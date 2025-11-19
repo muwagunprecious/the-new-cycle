@@ -1,34 +1,34 @@
 import gs_logo from "./gs_logo.jpg"
 import happy_store from "./happy_store.webp"
 import upload_area from "./upload_area.svg"
-import hero_model_img from "./hero_model_img.png"
+import gocycle from "./gocycle.png"
 import hero_product_img1 from "./hero_product_img1.png"
-import hero_product_img2 from "./hero_product_img2.png"
-import product_img1 from "./product_img1.png"
-import product_img2 from "./product_img2.png"
-import product_img3 from "./product_img3.png"
-import product_img4 from "./product_img4.png"
-import product_img5 from "./product_img5.png"
-import product_img6 from "./product_img6.png"
-import product_img7 from "./product_img7.png"
-import product_img8 from "./product_img8.png"
-import product_img9 from "./product_img9.png"
-import product_img10 from "./product_img10.png"
-import product_img11 from "./product_img11.png"
-import product_img12 from "./product_img12.png"
+import hero_product_img2 from "./battery 2.png"
+import product_img1 from "./battery 2.jpg"
+import product_img2 from "./battery 3.jpg"
+import product_img3 from "./battery 4.jpg"
+import product_img4 from "./battery 5.jpg"
+import product_img5 from "./battery 6.jpg"
+import product_img6 from "./battery 7.jpg"
+import product_img7 from "./battery 8.jpg"
+import product_img8 from "./battery 9.jpg"
+import product_img9 from "./battery 10.jpg"
+import product_img10 from "./battery 11.jpg"
+import product_img11 from "./battery 12.jpg"
+import product_img12 from "./battery 13.jpg"
 import { ClockFadingIcon, HeadsetIcon, SendIcon } from "lucide-react";
 import profile_pic1 from "./profile_pic1.jpg"
 import profile_pic2 from "./profile_pic2.jpg"
 import profile_pic3 from "./profile_pic3.jpg"
 
 export const assets = {
-    upload_area, hero_model_img,
+    upload_area, gocycle,
     hero_product_img1, hero_product_img2, gs_logo,
     product_img1, product_img2, product_img3, product_img4, product_img5, product_img6,
     product_img7, product_img8, product_img9, product_img10, product_img11, product_img12,
 }
 
-export const categories = ["Headphones", "Speakers", "Watch", "Earbuds", "Mouse", "Decoration"];
+export const categories = ["Lithium", "Rechargable", "quartz batteries", "renew batteries", "orginal batteries", "Decoration"];
 
 export const dummyRatingsData = [
     { id: "rat_1", rating: 4.2, review: "I was a bit skeptical at first, but this product turned out to be even better than I imagined. The quality feels premium, it's easy to use, and it delivers exactly what was promised. I've already recommended it to friends and will definitely purchase again in the future.", user: { name: 'Kristin Watson', image: profile_pic1 }, productId: "prod_1", createdAt: 'Sat Jul 19 2025 14:51:25 GMT+0530 (India Standard Time)', updatedAt: 'Sat Jul 19 2025 14:51:25 GMT+0530 (India Standard Time)', product: { name: 'Bluetooth Speakers', category:'Electronics', id:'prod_1'} },
@@ -64,8 +64,8 @@ export const dummyStoreData = {
 export const productDummyData = [
     {
         id: "prod_1",
-        name: "Modern table lamp",
-        description: "Modern table lamp with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty. Enhance your audio experience with this earbuds. Indulge yourself in a world of pure sound with 50 hours of uninterrupted playtime. Equipped with the cutting-edge Zen Mode Tech ENC and BoomX Tech, prepare to be enthralled by a symphony of crystal-clear melodies.",
+        name: "Battery",
+        description: "Modern battery with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty. Enhance your audio experience with this earbuds. Indulge yourself in a world of pure sound with 50 hours of uninterrupted playtime. Equipped with the cutting-edge Zen Mode Tech ENC and BoomX Tech, prepare to be enthralled by a symphony of crystal-clear melodies.",
         mrp: 40,
         price: 29,
         images: [product_img1, product_img2, product_img3, product_img4],
@@ -79,8 +79,8 @@ export const productDummyData = [
     },
     {
         id: "prod_2",
-        name: "Smart speaker gray",
-        description: "Smart speaker with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Grey battery",
+        description: "Recharable Battery with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 50,
         price: 29,
         images: [product_img2],
@@ -94,8 +94,8 @@ export const productDummyData = [
     },
     {
         id: "prod_3",
-        name: "Smart watch white",
-        description: "Smart watch with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Battery 1",
+        description: "Battery  with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 60,
         price: 29,
         images: [product_img3],
@@ -109,8 +109,8 @@ export const productDummyData = [
     },
     {
         id: "prod_4",
-        name: "Wireless headphones",
-        description: "Wireless headphones with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Battery 2",
+        description: " Battery with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 70,
         price: 29,
         images: [product_img4],
@@ -124,8 +124,8 @@ export const productDummyData = [
     },
     {
         id: "prod_5",
-        name: "Smart watch black",
-        description: "Smart watch with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Lithium Battery",
+        description: "Lithium with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 49,
         price: 29,
         images: [product_img5],
@@ -139,8 +139,8 @@ export const productDummyData = [
     },
     {
         id: "prod_6",
-        name: "Security Camera",
-        description: "Security Camera with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Battery 4",
+        description: "Security battery with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 59,
         price: 29,
         images: [product_img6],
@@ -154,8 +154,8 @@ export const productDummyData = [
     },
     {
         id: "prod_7",
-        name: "Smart Pen for iPad",
-        description: "Smart Pen for iPad with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Battery 5",
+        description: "Battery 5 with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 89,
         price: 29,
         images: [product_img7],
@@ -169,8 +169,8 @@ export const productDummyData = [
     },
     {
         id: "prod_8",
-        name: "Home Theater",
-        description: "Home Theater with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Battery 6",
+        description: "Battery 6 with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 99,
         price: 29,
         images: [product_img8],
@@ -184,8 +184,8 @@ export const productDummyData = [
     },
     {
         id: "prod_9",
-        name: "Apple Wireless Earbuds",
-        description: "Apple Wireless Earbuds with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Battery 7",
+        description: "Battery 7 with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 89,
         price: 29,
         images: [product_img9],
@@ -199,8 +199,8 @@ export const productDummyData = [
     },
     {
         id: "prod_10",
-        name: "Apple Smart Watch",
-        description: "Apple Smart Watch with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Battery",
+        description: "Battery 10 with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 179,
         price: 29,
         images: [product_img10],
@@ -214,8 +214,8 @@ export const productDummyData = [
     },
     {
         id: "prod_11",
-        name: "RGB Gaming Mouse",
-        description: "RGB Gaming Mouse with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Battery 11",
+        description: "Battery 11 with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 39,
         price: 29,
         images: [product_img11],
@@ -229,8 +229,8 @@ export const productDummyData = [
     },
     {
         id: "prod_12",
-        name: "Smart Home Cleaner",
-        description: "Smart Home Cleaner with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
+        name: "Battery 12",
+        description: "Battery 12 with a sleek design. It's perfect for any room. It's made of high-quality materials and comes with a lifetime warranty.",
         mrp: 199,
         price: 29,
         images: [product_img12],
