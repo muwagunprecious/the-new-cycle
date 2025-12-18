@@ -4,8 +4,12 @@ import { PlusIcon, SearchIcon, FilterIcon, MoreVerticalIcon, Edit3Icon, TrashIco
 import { categories, lagosLGAs } from "@/assets/assets"
 import Image from "next/image"
 import toast from "react-hot-toast"
+import { useDispatch } from "react-redux"
+import { showLoader, hideLoader, setLoadingSteps, nextLoadingStep } from "@/lib/features/ui/uiSlice"
+import Button from "@/components/Button"
 
 export default function SellerProducts() {
+    const dispatch = useDispatch()
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const [products, setProducts] = useState([
         { id: 1, name: "Classic Car Battery 12V", category: "Car Battery", brand: "Luminous", capacity: "65Ah", condition: "Used", price: 35000, quantity: 12, status: "Active" },
@@ -15,9 +19,43 @@ export default function SellerProducts() {
 
     const deleteProduct = (id) => {
         if (confirm("Confirm deletion of this listing?")) {
-            setProducts(products.filter(p => p.id !== id))
-            toast.success("Listing removed")
+            dispatch(showLoader("Removing listing..."))
+            setTimeout(() => {
+                setProducts(products.filter(p => p.id !== id))
+                dispatch(hideLoader())
+                toast.success("Listing removed")
+            }, 800)
         }
+    }
+
+    const handlePublish = (e) => {
+        e.preventDefault()
+
+        const steps = [
+            "Uploading battery specs...",
+            "Analyzing environmental impact...",
+            "Publishing to marketplace...",
+            "Finalizing listing..."
+        ]
+
+        dispatch(setLoadingSteps(steps))
+
+        const runSteps = (index) => {
+            if (index < steps.length) {
+                setTimeout(() => {
+                    dispatch(nextLoadingStep())
+                    runSteps(index + 1)
+                }, 1000)
+            } else {
+                setTimeout(() => {
+                    dispatch(hideLoader())
+                    setIsUploadModalOpen(false)
+                    toast.success("Listing published successfully!")
+                }, 500)
+            }
+        }
+
+        runSteps(0)
     }
 
     return (
@@ -33,7 +71,7 @@ export default function SellerProducts() {
                 </button>
             </div>
 
-            <div className="card bg-white">
+            <div className="card bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
                 <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="relative w-full max-w-md">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -84,7 +122,7 @@ export default function SellerProducts() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="status-badge status-completed">{product.status}</span>
+                                        <span className="status-badge status-completed">Active</span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
@@ -105,75 +143,75 @@ export default function SellerProducts() {
 
             {/* Upload Modal Mock */}
             {isUploadModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-100 animate-in fade-in zoom-in duration-300">
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
-                            <h2 className="text-xl font-bold text-slate-900">List New Battery</h2>
-                            <button onClick={() => setIsUploadModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                            <h2 className="text-xl font-bold text-slate-900">List New <span className="text-[#05DF72]">Battery</span></h2>
+                            <button onClick={() => setIsUploadModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400">
                                 <XIcon size={24} />
                             </button>
                         </div>
-                        <form className="p-8 space-y-6" onSubmit={(e) => {
-                            e.preventDefault()
-                            toast.success("Listing published successfully!")
-                            setIsUploadModalOpen(false)
-                        }}>
+                        <form className="p-8 space-y-6" onSubmit={handlePublish}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">Battery Type</label>
-                                    <select className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72]">
+                                    <label className="text-sm font-black uppercase tracking-widest text-slate-400 text-[10px]">Battery Type</label>
+                                    <select className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm">
                                         {categories.map(c => <option key={c}>{c}</option>)}
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">Brand</label>
-                                    <input placeholder="e.g. Luminous" className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72]" />
+                                    <label className="text-sm font-black uppercase tracking-widest text-slate-400 text-[10px]">Brand/Manufacturer</label>
+                                    <input placeholder="e.g. Luminous" className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">Capacity (Ah / Voltage)</label>
-                                    <input placeholder="e.g. 200Ah / 12V" className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72]" />
+                                    <label className="text-sm font-black uppercase tracking-widest text-slate-400 text-[10px]">Capacity (Ah / V)</label>
+                                    <input placeholder="e.g. 200Ah / 12V" className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">Condition</label>
-                                    <select className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72]">
+                                    <label className="text-sm font-black uppercase tracking-widest text-slate-400 text-[10px]">Current Condition</label>
+                                    <select className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm">
                                         <option>New</option>
                                         <option>Used</option>
                                         <option>Scrap</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">Quantity Available</label>
-                                    <input type="number" className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72]" />
+                                    <label className="text-sm font-black uppercase tracking-widest text-slate-400 text-[10px]">Quantity</label>
+                                    <input type="number" className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">Price per unit (₦)</label>
-                                    <input type="number" className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72]" />
+                                    <label className="text-sm font-black uppercase tracking-widest text-slate-400 text-[10px]">Price (₦)</label>
+                                    <input type="number" className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm" />
                                 </div>
                                 <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-medium text-slate-700">Pickup Location (Lagos LGA)</label>
-                                    <select className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72]">
+                                    <label className="text-sm font-black uppercase tracking-widest text-slate-400 text-[10px]">Lagos LGA Location</label>
+                                    <select className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm">
                                         {lagosLGAs.map(lga => <option key={lga}>{lga}</option>)}
                                     </select>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Product Images</label>
-                                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-slate-400 hover:border-[#05DF72] hover:text-[#05DF72] cursor-pointer transition-colors">
-                                    <UploadCloudIcon size={40} className="mb-2" />
-                                    <p className="text-sm font-medium">Click to upload or drag & drop</p>
-                                    <p className="text-[10px]">PNG, JPG up to 5MB</p>
+                                <label className="text-sm font-black uppercase tracking-widest text-slate-400 text-[10px]">Product Images</label>
+                                <div className="border-2 border-dashed border-slate-100 bg-slate-50/50 rounded-[2rem] p-10 flex flex-col items-center justify-center text-slate-400 hover:border-[#05DF72]/50 hover:bg-slate-50 transition-all cursor-pointer group">
+                                    <div className="bg-white p-4 rounded-2xl shadow-lg mb-4 group-hover:scale-110 transition-transform">
+                                        <UploadCloudIcon size={32} className="text-[#05DF72]" />
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-600">Select images to upload</p>
+                                    <p className="text-[10px] uppercase font-black tracking-widest mt-1">PNG, JPG up to 5MB</p>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Environmental Notes (Optional)</label>
-                                <textarea placeholder="Describe recycling history or eco-impact..." rows={3} className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72] resize-none" />
+                                <label className="text-sm font-black uppercase tracking-widest text-slate-400 text-[10px]">Environmental Notes</label>
+                                <textarea placeholder="Describe recycling history..." rows={3} className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm resize-none" />
                             </div>
 
-                            <div className="flex gap-4 pt-4 sticky bottom-0 bg-white">
-                                <button type="button" onClick={() => setIsUploadModalOpen(false)} className="flex-1 py-4 border border-slate-200 rounded-xl font-medium text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
-                                <button type="submit" className="flex-1 py-4 btn-primary">Publish Listing</button>
+                            <div className="flex gap-4 pt-6 sticky bottom-0 bg-white">
+                                <button type="button" onClick={() => setIsUploadModalOpen(false)} className="flex-1 py-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Dismiss</button>
+                                <button type="submit" className="flex-1 py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-[#05DF72] transition-all shadow-xl shadow-slate-200">
+                                    Publish Loop
+                                </button>
                             </div>
                         </form>
                     </div>

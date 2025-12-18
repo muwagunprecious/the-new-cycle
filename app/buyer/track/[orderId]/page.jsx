@@ -22,8 +22,13 @@ const STEPS = [
     { name: 'Order completed', icon: PackageCheckIcon }
 ]
 
+import { useDispatch } from "react-redux"
+import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
+import Button from "@/components/Button"
+
 export default function OrderTracking() {
     const { orderId } = useParams()
+    const dispatch = useDispatch()
     const [orderData, setOrderData] = useState(null)
     const [currentStep, setCurrentStep] = useState(0)
 
@@ -48,7 +53,13 @@ export default function OrderTracking() {
 
     const nextStep = () => {
         if (currentStep < STEPS.length - 1) {
-            setCurrentStep(currentStep + 1)
+            const nextStepName = STEPS[currentStep + 1].name
+            dispatch(showLoader(`Courier: ${nextStepName}...`))
+
+            setTimeout(() => {
+                dispatch(hideLoader())
+                setCurrentStep(currentStep + 1)
+            }, 800)
         }
     }
 

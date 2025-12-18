@@ -7,10 +7,14 @@ import { ShieldCheckIcon, MailIcon, LockIcon } from "lucide-react"
 import Link from "next/link"
 import toast from "react-hot-toast"
 
+import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
+import Button from "@/components/Button"
+
 export default function LoginPage() {
     const dispatch = useDispatch()
     const router = useRouter()
 
+    const [isLoading, setIsLoading] = useState(false)
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -18,24 +22,30 @@ export default function LoginPage() {
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        try {
-            dispatch(login(formData))
-            // The slice handles session storage and finding the user
-            toast.success("Logged in successfully!")
+        setIsLoading(true)
+        dispatch(showLoader("Signing you in..."))
 
-            // Redirect will be handled by a side effect or just check session again
-            // For now, simple redirect based on known dummy roles
-            const saved = localStorage.getItem('gocycle_session')
-            if (saved) {
-                const user = JSON.parse(saved)
-                if (user.role === 'ADMIN') router.push('/admin')
-                else if (user.role === 'SELLER') router.push('/seller')
-                else if (user.role === 'DELIVERY') router.push('/delivery')
-                else router.push('/buyer')
+        setTimeout(() => {
+            try {
+                dispatch(login(formData))
+                dispatch(hideLoader())
+                setIsLoading(false)
+                toast.success("Logged in successfully!")
+
+                const saved = localStorage.getItem('gocycle_session')
+                if (saved) {
+                    const user = JSON.parse(saved)
+                    if (user.role === 'ADMIN') router.push('/admin')
+                    else if (user.role === 'SELLER') router.push('/seller')
+                    else if (user.role === 'DELIVERY') router.push('/delivery')
+                    else router.push('/buyer')
+                }
+            } catch (error) {
+                dispatch(hideLoader())
+                setIsLoading(false)
+                toast.error(error.message)
             }
-        } catch (error) {
-            toast.error(error.message)
-        }
+        }, 1500)
     }
 
     return (
@@ -70,9 +80,14 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    <button type="submit" className="w-full btn-primary !py-5 shadow-2xl shadow-[#05DF72]/20 mt-4">
+                    <Button
+                        type="submit"
+                        loading={isLoading}
+                        loadingText="Authenticating..."
+                        className="w-full !py-5 shadow-2xl shadow-[#05DF72]/20 mt-4"
+                    >
                         Sign In & Access Portal
-                    </button>
+                    </Button>
 
                     <p className="text-center text-sm text-slate-400 font-medium mt-6">
                         Don't have an account? <Link href="/signup" className="text-[#05DF72] font-black hover:underline ml-1">Create One</Link>

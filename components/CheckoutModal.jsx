@@ -3,21 +3,33 @@ import { useState } from "react"
 import { XIcon, LockIcon, MailIcon, UserIcon, ShieldCheckIcon, CreditCardIcon, TruckIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
+import { useDispatch } from "react-redux"
+import { showLoader, hideLoader, setLoadingSteps, nextLoadingStep } from "@/lib/features/ui/uiSlice"
+import Button from "./Button"
 
 export default function CheckoutModal({ isOpen, onClose, product, paymentMethod }) {
     const router = useRouter()
+    const dispatch = useDispatch()
     const [step, setStep] = useState('auth') // auth, courier, success
     const [isLogin, setIsLogin] = useState(true)
+    const [isProcessing, setIsProcessing] = useState(false)
 
     if (!isOpen) return null
 
     const handleAuth = (e) => {
         e.preventDefault()
-        toast.success(isLogin ? "Welcome back!" : "Account created successfully!")
-        setStep('courier')
+        setIsProcessing(true)
+        dispatch(showLoader(isLogin ? "Signing you in..." : "Creating your account..."))
+
+        setTimeout(() => {
+            dispatch(hideLoader())
+            setIsProcessing(false)
+            toast.success(isLogin ? "Welcome back!" : "Account created successfully!")
+            setStep('courier')
+        }, 1500)
     }
 
-    const handleFinalize = (deliveryType) => {
+    const completeCheckout = (deliveryType) => {
         const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000)
         const deliveryCode = Math.floor(100000 + Math.random() * 900000)
 
@@ -33,12 +45,34 @@ export default function CheckoutModal({ isOpen, onClose, product, paymentMethod 
         }
 
         localStorage.setItem('active_order', JSON.stringify(orderData))
+        dispatch(hideLoader())
         setStep('success')
 
         setTimeout(() => {
             onClose()
             router.push(`/buyer/track/${orderId}`)
         }, 3000)
+    }
+
+    const handleFinalize = (deliveryType) => {
+        const steps = [
+            "Confirming order...",
+            paymentMethod === 'Pay Now' ? "Processing payment (Demo)..." : "Registering cash delivery...",
+            "Finalizing order..."
+        ]
+
+        dispatch(setLoadingSteps(steps))
+
+        let currentStep = 0;
+        const interval = setInterval(() => {
+            currentStep++;
+            if (currentStep < steps.length) {
+                dispatch(nextLoadingStep())
+            } else {
+                clearInterval(interval)
+                completeCheckout(deliveryType)
+            }
+        }, 1200)
     }
 
     return (
@@ -79,9 +113,14 @@ export default function CheckoutModal({ isOpen, onClose, product, paymentMethod 
                                 <input required type="password" placeholder="Password" className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20" />
                             </div>
 
-                            <button type="submit" className="w-full btn-primary !py-5 shadow-xl shadow-[#05DF72]/20 mt-4">
+                            <Button
+                                type="submit"
+                                loading={isProcessing}
+                                loadingText={isLogin ? "Signing in..." : "Creating..."}
+                                className="w-full !py-5 shadow-xl shadow-[#05DF72]/20 mt-4"
+                            >
                                 {isLogin ? 'Sign In & Continue' : 'Create Account'}
-                            </button>
+                            </Button>
                         </form>
 
                         <p className="mt-8 text-center text-sm text-slate-500 font-medium">

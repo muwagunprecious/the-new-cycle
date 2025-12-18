@@ -8,10 +8,14 @@ import Link from "next/link"
 import { addNotification } from "@/lib/features/notification/notificationSlice"
 import toast from "react-hot-toast"
 
+import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
+import Button from "@/components/Button"
+
 export default function SignupPage() {
     const dispatch = useDispatch()
     const router = useRouter()
 
+    const [isLoading, setIsLoading] = useState(false)
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -22,26 +26,35 @@ export default function SignupPage() {
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        try {
-            dispatch(signup(formData))
+        setIsLoading(true)
+        dispatch(showLoader("Creating your account..."))
 
-            // System Notification for Admin
-            dispatch(addNotification({
-                userId: 'user_admin',
-                title: 'New User Registered',
-                message: `${formData.name} joined as a ${formData.role}.`,
-                type: 'SYSTEM'
-            }))
+        setTimeout(() => {
+            try {
+                dispatch(signup(formData))
 
-            toast.success(`Welcome to GoCycle, ${formData.name}!`)
+                // System Notification for Admin
+                dispatch(addNotification({
+                    userId: 'user_admin',
+                    title: 'New User Registered',
+                    message: `${formData.name} joined as a ${formData.role}.`,
+                    type: 'SYSTEM'
+                }))
 
-            // Redirect based on role
-            if (formData.role === 'BUYER') router.push('/buyer')
-            else router.push('/seller')
+                dispatch(hideLoader())
+                setIsLoading(false)
+                toast.success(`Welcome to GoCycle, ${formData.name}!`)
 
-        } catch (error) {
-            toast.error(error.message)
-        }
+                // Redirect based on role
+                if (formData.role === 'BUYER') router.push('/buyer')
+                else router.push('/seller')
+
+            } catch (error) {
+                dispatch(hideLoader())
+                setIsLoading(false)
+                toast.error(error.message)
+            }
+        }, 2000)
     }
 
     return (
@@ -110,9 +123,14 @@ export default function SignupPage() {
                         </div>
                     </div>
 
-                    <button type="submit" className="w-full btn-primary !py-5 shadow-2xl shadow-[#05DF72]/20 mt-4">
+                    <Button
+                        type="submit"
+                        loading={isLoading}
+                        loadingText="Regsitering..."
+                        className="w-full !py-5 shadow-2xl shadow-[#05DF72]/20 mt-4"
+                    >
                         Create {formData.role.charAt(0) + formData.role.slice(1).toLowerCase()} Account
-                    </button>
+                    </Button>
 
                     <p className="text-center text-sm text-slate-400 font-medium mt-6">
                         Already have an account? <Link href="/login" className="text-[#05DF72] font-black hover:underline ml-1">Sign In</Link>

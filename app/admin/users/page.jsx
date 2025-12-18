@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { toggleUserStatus } from "@/lib/features/auth/authSlice"
 import { SearchIcon, UserPlusIcon, MoreVerticalIcon, PhoneIcon, MailIcon, ShieldCheckIcon, BanIcon, CheckCircle2Icon } from "lucide-react"
 import toast from "react-hot-toast"
+import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 
 export default function UserManagement() {
     const dispatch = useDispatch()
@@ -16,10 +17,16 @@ export default function UserManagement() {
     )
 
     const handleToggleStatus = (userId, name) => {
-        dispatch(toggleUserStatus({ userId }))
         const user = users.find(u => u.id === userId)
-        const newStatus = user.status === 'active' ? 'banned' : 'active'
-        toast.success(`${name} has been ${newStatus}`)
+        const isBanning = user.status === 'active'
+
+        dispatch(showLoader(isBanning ? `Banning ${name}...` : `Restoring ${name}...`))
+
+        setTimeout(() => {
+            dispatch(toggleUserStatus({ userId }))
+            dispatch(hideLoader())
+            toast.success(`${name} has been ${isBanning ? 'banned' : 'restored'}`)
+        }, 1200)
     }
 
     return (

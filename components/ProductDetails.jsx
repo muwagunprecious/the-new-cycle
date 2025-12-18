@@ -10,7 +10,8 @@ import {
     Boxes,
     ShieldCheckIcon,
     TruckIcon,
-    WalletIcon
+    WalletIcon,
+    CheckCircle2
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -19,6 +20,8 @@ import Image from "next/image";
 import Counter from "./Counter";
 import { useDispatch, useSelector } from "react-redux";
 import CheckoutModal from "./CheckoutModal";
+import Button from "./Button";
+import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice";
 
 const ProductDetails = ({ product }) => {
 
@@ -33,14 +36,26 @@ const ProductDetails = ({ product }) => {
     const [mainImage, setMainImage] = useState(product.images[0]);
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState('Pay Now');
+    const [isAdding, setIsAdding] = useState(false);
+    const [added, setAdded] = useState(false);
 
     const addToCartHandler = () => {
-        dispatch(addToCart({ productId }))
+        setIsAdding(true)
+        setTimeout(() => {
+            dispatch(addToCart({ productId }))
+            setIsAdding(false)
+            setAdded(true)
+            setTimeout(() => setAdded(false), 2000)
+        }, 1200)
     }
 
     const openCheckout = (method) => {
         setSelectedPayment(method)
-        setIsCheckoutOpen(true)
+        dispatch(showLoader(`Setting up ${method} checkout...`))
+        setTimeout(() => {
+            dispatch(hideLoader())
+            setIsCheckoutOpen(true)
+        }, 1000)
     }
 
     const averageRating = product.rating?.length > 0 ?
@@ -120,7 +135,7 @@ const ProductDetails = ({ product }) => {
                         >
                             <WalletIcon className="mb-2 group-hover:scale-110 transition-transform" size={24} />
                             <span className="font-bold">Pay Now</span>
-                            <span className="text-[10px] text-white/60 font-medium">Secure Card Payment</span>
+                            <span className="text-[10px] text-white/60 font-medium font-bold">Secure Card Payment</span>
                         </button>
                         <button
                             onClick={() => openCheckout('Pay on Delivery')}
@@ -128,7 +143,7 @@ const ProductDetails = ({ product }) => {
                         >
                             <TruckIcon className="mb-2 group-hover:scale-110 transition-transform" size={24} />
                             <span className="font-bold">Pay on Delivery</span>
-                            <span className="text-[10px] text-slate-400 font-medium font-bold">Lagos Delivery only</span>
+                            <span className="text-[10px] text-slate-400 font-bold">Lagos Delivery only</span>
                         </button>
                     </div>
                 </div>
@@ -141,12 +156,19 @@ const ProductDetails = ({ product }) => {
                         </div>
                     )}
 
-                    <button
+                    <Button
                         onClick={() => !cart[productId] ? addToCartHandler() : router.push('/cart')}
-                        className={`flex-1 !py-5 shadow-lg transition-all ${!cart[productId] ? 'btn-primary' : 'bg-slate-100 text-slate-600 font-bold rounded-[2rem] hover:bg-slate-200'}`}
+                        loading={isAdding}
+                        loadingText="Adding..."
+                        variant={cart[productId] ? "secondary" : "primary"}
+                        className={`flex-1 !rounded-[2rem] !py-5 shadow-lg ${added ? '!bg-green-50 !text-green-600 !border-green-200 !border-2' : ''}`}
                     >
-                        {!cart[productId] ? 'Add to Cart' : 'View in Cart'}
-                    </button>
+                        {added ? (
+                            <span className="flex items-center gap-2"><CheckCircle2 size={18} /> Added ✓</span>
+                        ) : (
+                            !cart[productId] ? 'Add to Cart' : 'View in Cart'
+                        )}
+                    </Button>
                 </div>
 
                 <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">

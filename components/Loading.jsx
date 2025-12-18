@@ -1,10 +1,17 @@
 'use client'
 
-const Loading = () => {
-
+const Loading = ({ message, size = '11', color = 'green-600', fullPage = true }) => {
     return (
-        <div className='flex items-center justify-center h-screen'>
-            <div className='w-11 h-11 rounded-full border-3 border-gray-300 border-t-green-500 animate-spin'></div>
+        <div className={`flex flex-col items-center justify-center ${fullPage ? 'h-[60vh] w-full' : ''}`}>
+            <div
+                className={`animate-spin rounded-full border-3 border-gray-200 border-t-${color}`}
+                style={{ width: `${size * 4}px`, height: `${size * 4}px` }}
+            ></div>
+            {message && (
+                <p className="mt-4 text-gray-600 font-medium animate-pulse">
+                    {message}
+                </p>
+            )}
         </div>
     )
 }

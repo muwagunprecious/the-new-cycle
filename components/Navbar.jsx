@@ -1,9 +1,9 @@
 import { Search, ShoppingCart, LeafIcon, BellIcon, LogOutIcon, LayoutDashboardIcon } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/lib/features/auth/authSlice";
+import { showLoader } from "@/lib/features/ui/uiSlice";
 
 const Navbar = () => {
 
@@ -16,14 +16,24 @@ const Navbar = () => {
     const notifications = useSelector(state => state.notifications.list)
     const unreadCount = notifications.filter(n => n.status === 'unread').length
 
+    const handleNavigation = (href, message = "Loading...") => {
+        dispatch(showLoader(message))
+        setTimeout(() => {
+            router.push(href)
+        }, 500)
+    }
+
     const handleSearch = (e) => {
         e.preventDefault()
-        router.push(`/shop?search=${search}`)
+        handleNavigation(`/shop?search=${search}`, "Searching marketplace...")
     }
 
     const handleLogout = () => {
-        dispatch(logout())
-        router.push('/')
+        dispatch(showLoader("Signing you out..."))
+        setTimeout(() => {
+            dispatch(logout())
+            router.push('/')
+        }, 800)
     }
 
     const getDashboardLink = () => {
@@ -39,7 +49,7 @@ const Navbar = () => {
             <div className="mx-6">
                 <div className="flex items-center justify-between max-w-7xl mx-auto py-5 transition-all">
 
-                    <Link href="/" className="flex items-center gap-2 group">
+                    <div onClick={() => handleNavigation('/')} className="flex items-center gap-2 group cursor-pointer">
                         <div className="bg-[#05DF72] p-2 rounded-xl transition-transform group-hover:rotate-12 shadow-lg shadow-[#05DF72]/20">
                             <LeafIcon className="text-white fill-white" size={20} />
                         </div>
@@ -47,13 +57,13 @@ const Navbar = () => {
                             <span className="text-xl font-black text-slate-900 tracking-tighter leading-none">Go<span className="text-[#05DF72]">Cycle</span></span>
                             <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Battery Loop</span>
                         </div>
-                    </Link>
+                    </div>
 
                     {/* Desktop Menu */}
                     <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-500 font-bold text-sm">
-                        <Link href="/shop" className="hover:text-[#05DF72] transition-colors uppercase tracking-widest text-[10px]">Marketplace</Link>
-                        <Link href="/about" className="hover:text-[#05DF72] transition-colors uppercase tracking-widest text-[10px]">Eco Impact</Link>
-                        <Link href="/seller" className="text-[#05DF72] bg-[#05DF72]/5 px-4 py-2 rounded-full hover:bg-[#05DF72] hover:text-white transition-all uppercase tracking-widest text-[10px]">Sell Batteries</Link>
+                        <button onClick={() => handleNavigation('/shop', 'Entering Marketplace...')} className="hover:text-[#05DF72] transition-colors uppercase tracking-widest text-[10px]">Marketplace</button>
+                        <button onClick={() => handleNavigation('/about', 'Checking our impact...')} className="hover:text-[#05DF72] transition-colors uppercase tracking-widest text-[10px]">Eco Impact</button>
+                        <button onClick={() => handleNavigation('/seller', 'Loading seller portal...')} className="text-[#05DF72] bg-[#05DF72]/5 px-4 py-2 rounded-full hover:bg-[#05DF72] hover:text-white transition-all uppercase tracking-widest text-[10px]">Sell Batteries</button>
 
                         <form onSubmit={handleSearch} className="hidden lg:flex items-center w-48 text-[10px] gap-2 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100 focus-within:border-[#05DF72] transition-all">
                             <Search size={14} className="text-slate-400" />
@@ -61,29 +71,29 @@ const Navbar = () => {
                         </form>
 
                         <div className="flex items-center gap-2">
-                            <Link href="/cart" className="relative p-2.5 hover:bg-slate-50 rounded-xl transition-all group">
+                            <button onClick={() => handleNavigation('/cart', 'Fetching your cart...')} className="relative p-2.5 hover:bg-slate-50 rounded-xl transition-all group">
                                 <ShoppingCart size={20} className="text-slate-600 group-hover:text-[#05DF72]" />
-                                {cartCount > 0 && <span className="absolute -top-1 -right-1 text-[10px] text-white bg-slate-900 size-5 rounded-full flex items-center justify-center font-black shadow-lg animate-in zoom-in">{cartCount}</span>}
-                            </Link>
+                                {cartCount > 0 && <span key={cartCount} className="absolute -top-1 -right-1 text-[10px] text-white bg-slate-900 size-5 rounded-full flex items-center justify-center font-black shadow-lg animate-pop-badge">{cartCount}</span>}
+                            </button>
 
                             {isLoggedIn && (
-                                <Link href="/notifications" className="relative p-2.5 hover:bg-slate-50 rounded-xl transition-all group">
+                                <button onClick={() => handleNavigation('/notifications', 'Fetching alerts...')} className="relative p-2.5 hover:bg-slate-50 rounded-xl transition-all group">
                                     <BellIcon size={20} className="text-slate-600 group-hover:text-[#05DF72]" />
                                     {unreadCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-[#05DF72] rounded-full ring-2 ring-white"></span>}
-                                </Link>
+                                </button>
                             )}
                         </div>
 
                         <div className="flex items-center gap-3 ml-2">
                             {!isLoggedIn ? (
-                                <Link href="/login" className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 active:scale-95 transition-all shadow-xl shadow-slate-200">
+                                <button onClick={() => handleNavigation('/login', 'Redirecting to login...')} className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 active:scale-95 transition-all shadow-xl shadow-slate-200">
                                     Sign In
-                                </Link>
+                                </button>
                             ) : (
                                 <div className="flex items-center gap-2">
-                                    <Link href={getDashboardLink()} className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#05DF72] transition-all shadow-xl shadow-slate-200 flex items-center gap-2">
+                                    <button onClick={() => handleNavigation(getDashboardLink(), 'Loading Portal...')} className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#05DF72] transition-all shadow-xl shadow-slate-200 flex items-center gap-2">
                                         <LayoutDashboardIcon size={14} /> Portal
-                                    </Link>
+                                    </button>
                                     <button onClick={handleLogout} className="p-3 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-all active:scale-95">
                                         <LogOutIcon size={16} />
                                     </button>
@@ -95,18 +105,18 @@ const Navbar = () => {
 
                     {/* Mobile Controls  */}
                     <div className="sm:hidden flex items-center gap-3">
-                        <Link href="/cart" className="relative p-2">
+                        <button onClick={() => handleNavigation('/cart')} className="relative p-2">
                             <ShoppingCart size={22} className="text-slate-700" />
                             {cartCount > 0 && <span className="absolute -top-1 -right-1 text-[8px] text-white bg-slate-900 size-4 rounded-full flex items-center justify-center font-black">{cartCount}</span>}
-                        </Link>
+                        </button>
                         {!isLoggedIn ? (
-                            <Link href="/login" className="px-4 py-2 bg-[#05DF72] text-[10px] font-black text-white rounded-xl uppercase tracking-widest">
+                            <button onClick={() => handleNavigation('/login')} className="px-4 py-2 bg-[#05DF72] text-[10px] font-black text-white rounded-xl uppercase tracking-widest">
                                 Login
-                            </Link>
+                            </button>
                         ) : (
-                            <Link href={getDashboardLink()} className="p-2 bg-slate-900 text-white rounded-xl">
+                            <button onClick={() => handleNavigation(getDashboardLink())} className="p-2 bg-slate-900 text-white rounded-xl">
                                 <LayoutDashboardIcon size={18} />
-                            </Link>
+                            </button>
                         )}
                     </div>
                 </div>
@@ -115,5 +125,4 @@ const Navbar = () => {
     )
 }
 
-export default Navbar
-
+export default Navbar;

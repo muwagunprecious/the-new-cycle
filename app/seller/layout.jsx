@@ -1,11 +1,14 @@
 'use client'
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { HomeIcon, ShoppingBagIcon, PackageIcon, SettingsIcon, LogOutIcon, MenuIcon, XIcon, BatteryIcon } from "lucide-react"
-import Link from "next/link"
 import { useState } from "react"
+import { useDispatch } from "react-redux"
+import { showLoader } from "@/lib/features/ui/uiSlice"
 
 export default function SellerLayout({ children }) {
     const pathname = usePathname()
+    const router = useRouter()
+    const dispatch = useDispatch()
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
     const sellerLinks = [
@@ -15,23 +18,30 @@ export default function SellerLayout({ children }) {
         { name: 'Settings', href: '/seller/settings', icon: SettingsIcon },
     ]
 
+    const handleNavigation = (href, message) => {
+        dispatch(showLoader(message))
+        setTimeout(() => {
+            router.push(href)
+        }, 500)
+    }
+
     return (
         <div className="flex h-screen bg-[#f9fafb]">
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-slate-200">
                 <div className="p-8">
-                    <h1 className="text-2xl font-bold text-slate-900 leading-tight">GoCycle <span className="text-[#05DF72]">Seller</span></h1>
+                    <h1 className="text-2xl font-bold text-slate-900 leading-tight cursor-pointer" onClick={() => handleNavigation('/')}>GoCycle <span className="text-[#05DF72]">Seller</span></h1>
                 </div>
                 <nav className="flex-1 px-4 space-y-1">
                     {sellerLinks.map((link) => (
-                        <Link
+                        <button
                             key={link.name}
-                            href={link.href}
-                            className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all ${pathname === link.href ? 'bg-[#05DF72]/10 text-[#05DF72] font-semibold' : 'text-slate-500 hover:bg-slate-50'}`}
+                            onClick={() => handleNavigation(link.href, `Loading ${link.name}...`)}
+                            className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all w-full text-left ${pathname === link.href ? 'bg-[#05DF72]/10 text-[#05DF72] font-semibold' : 'text-slate-500 hover:bg-slate-50'}`}
                         >
                             <link.icon size={20} />
                             {link.name}
-                        </Link>
+                        </button>
                     ))}
                 </nav>
                 <div className="p-4 border-t border-slate-100">
@@ -44,7 +54,7 @@ export default function SellerLayout({ children }) {
 
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-50 flex items-center justify-between px-6">
-                <h1 className="font-bold text-slate-900">GoCycle Seller</h1>
+                <h1 className="font-bold text-slate-900" onClick={() => handleNavigation('/')}>GoCycle Seller</h1>
                 <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-500">
                     {isSidebarOpen ? <XIcon /> : <MenuIcon />}
                 </button>
@@ -56,15 +66,17 @@ export default function SellerLayout({ children }) {
                     <aside className="w-64 h-full bg-white p-6" onClick={(e) => e.stopPropagation()}>
                         <nav className="space-y-4 mt-12">
                             {sellerLinks.map((link) => (
-                                <Link
+                                <button
                                     key={link.name}
-                                    href={link.href}
-                                    onClick={() => setIsSidebarOpen(false)}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl ${pathname === link.href ? 'bg-[#05DF72]/10 text-[#05DF72] font-semibold' : 'text-slate-500'}`}
+                                    onClick={() => {
+                                        setIsSidebarOpen(false)
+                                        handleNavigation(link.href, `Loading ${link.name}...`)
+                                    }}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full text-left ${pathname === link.href ? 'bg-[#05DF72]/10 text-[#05DF72] font-semibold' : 'text-slate-500'}`}
                                 >
                                     <link.icon size={20} />
                                     {link.name}
-                                </Link>
+                                </button>
                             ))}
                         </nav>
                     </aside>

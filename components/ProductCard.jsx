@@ -1,18 +1,32 @@
 'use client'
 import { StarIcon, ShieldCheckIcon } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import React from 'react'
+import { useDispatch } from 'react-redux'
+import { showLoader, hideLoader } from '@/lib/features/ui/uiSlice'
 
 const ProductCard = ({ product }) => {
-
+    const router = useRouter()
+    const dispatch = useDispatch()
     const currency = '₦'
+
+    const handleViewDetails = (e) => {
+        e.preventDefault()
+        dispatch(showLoader("Loading product details..."))
+
+        // Simulated delay
+        setTimeout(() => {
+            dispatch(hideLoader())
+            router.push(`/product/${product.id}`)
+        }, Math.random() * (1200 - 800) + 800)
+    }
 
     // calculate the average rating of the product
     const rating = product.rating?.length > 0 ? Math.round(product.rating.reduce((acc, curr) => acc + curr.rating, 0) / product.rating.length) : 0;
 
     return (
-        <Link href={`/product/${product.id}`} className='group block'>
+        <div onClick={handleViewDetails} className='group block cursor-pointer'>
             <div className='bg-slate-50 aspect-square rounded-[2rem] flex items-center justify-center relative overflow-hidden border border-slate-100 group-hover:border-[#05DF72]/30 transition-all duration-500'>
                 <Image width={500} height={500} className='w-2/3 h-auto group-hover:scale-110 transition duration-700 relative z-10' src={product.images[0]} alt="" />
                 <div className="absolute top-4 right-4 z-20">
@@ -41,7 +55,7 @@ const ProductCard = ({ product }) => {
                     <span className="text-[10px] font-black text-slate-400 border border-slate-200 px-2 py-1 rounded-md group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-all">VIEW</span>
                 </div>
             </div>
-        </Link>
+        </div>
     )
 }
 
