@@ -72,9 +72,9 @@ export default function UserManagement() {
                                     </td>
                                     <td className="px-8 py-6">
                                         <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${user.role === 'ADMIN' ? 'bg-slate-900 text-white border-slate-900' :
-                                                user.role === 'SELLER' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                    user.role === 'DELIVERY' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                        'bg-slate-50 text-slate-600 border-slate-100'
+                                            user.role === 'SELLER' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                                user.role === 'DELIVERY' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                    'bg-slate-50 text-slate-600 border-slate-100'
                                             }`}>
                                             {user.role}
                                         </span>
@@ -102,8 +102,8 @@ export default function UserManagement() {
                                             disabled={user.role === 'ADMIN'}
                                             onClick={() => handleToggleStatus(user.id, user.name)}
                                             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${user.status === 'active'
-                                                    ? 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
-                                                    : 'bg-[#05DF72]/10 text-[#05DF72] hover:bg-[#05DF72] hover:text-white'
+                                                ? 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
+                                                : 'bg-[#05DF72]/10 text-[#05DF72] hover:bg-[#05DF72] hover:text-white'
                                                 } disabled:opacity-30 disabled:cursor-not-allowed`}
                                         >
                                             {user.status === 'active' ? <><BanIcon size={14} /> Ban Access</> : <><CheckCircle2Icon size={14} /> Restore</>}
@@ -127,4 +127,3 @@ export default function UserManagement() {
         </div>
     )
 }
-

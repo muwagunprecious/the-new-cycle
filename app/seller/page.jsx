@@ -92,7 +92,7 @@ export default function SellerOverview() {
                                 <div className="text-right">
                                     <p className="font-black text-slate-900">₦{ord.price.toLocaleString()}</p>
                                     <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full mt-2 inline-block ${ord.status === 'PICKED' ? 'bg-[#05DF72]/10 text-[#05DF72]' :
-                                            ord.status === 'WAY' ? 'bg-blue-50 text-blue-500' : 'bg-amber-50 text-amber-500'
+                                        ord.status === 'WAY' ? 'bg-blue-50 text-blue-500' : 'bg-amber-50 text-amber-500'
                                         }`}>{ord.status}</span>
                                 </div>
                             </div>
@@ -142,8 +142,5 @@ export default function SellerOverview() {
                 </div>
             </div>
         </div>
-    )
-}
-
     )
 }
