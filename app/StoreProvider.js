@@ -9,9 +9,14 @@ const CartInitializer = ({ children }) => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('gocycle_cart')
-    if (savedCart) {
-      dispatch(setInitialCart(JSON.parse(savedCart)))
+    try {
+      const savedCart = localStorage.getItem('gocycle_cart')
+      if (savedCart && savedCart !== 'undefined') {
+        dispatch(setInitialCart(JSON.parse(savedCart)))
+      }
+    } catch (e) {
+      console.error("Cart Hydration Error:", e)
+      localStorage.removeItem('gocycle_cart')
     }
     dispatch(hydrateSession())
   }, [dispatch])

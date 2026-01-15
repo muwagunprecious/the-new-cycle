@@ -1,47 +1,186 @@
 'use client'
-import { dummyStoreDashboardData } from "@/assets/assets"
-import { BatteryIcon, CircleDollarSignIcon, PackageIcon, TrendingUpIcon, ClockIcon, PhoneIcon, ShieldCheckIcon } from "lucide-react"
+import { BatteryIcon, CircleDollarSignIcon, PackageIcon, ClockIcon, PhoneIcon, ShieldCheckIcon, CheckCircle2Icon, AlertCircleIcon, WalletIcon, CopyIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 import Loading from "@/components/Loading"
 import { useSelector } from "react-redux"
+import toast from "react-hot-toast"
+import VerificationModal from "@/components/VerificationModal"
+import Button from "@/components/Button"
+import { getSellerOrders, verifyOrderCollection, updateOrderStatus } from "@/backend/actions/order"
+import { getSellerProducts } from "@/backend/actions/product"
 
 export default function SellerOverview() {
     const { user } = useSelector(state => state.auth)
     const [loading, setLoading] = useState(true)
-    const [data, setData] = useState(null)
+    const [data, setData] = useState({ totalProducts: 0 })
+    const [orders, setOrders] = useState([])
+    const [pickupToken, setPickupToken] = useState('')
+    const [selectedOrderId, setSelectedOrderId] = useState(null)
+    const [verifying, setVerifying] = useState(false)
+    const [showVerificationModal, setShowVerificationModal] = useState(false)
 
     useEffect(() => {
-        setData(dummyStoreDashboardData)
-        setLoading(false)
-    }, [])
+        const load = async () => {
+            if (user?.id) {
+                // Load seller orders
+                const orderResult = await getSellerOrders(user.id)
+                if (orderResult.success) {
+                    setOrders(orderResult.orders)
+                }
+
+                // Load seller products count
+                const productResult = await getSellerProducts(user.id)
+                if (productResult.success) {
+                    setData({ totalProducts: productResult.products.length })
+                }
+            }
+            setLoading(false)
+        }
+        load()
+    }, [user])
+
+    const handleVerifyPickup = async (e) => {
+        e.preventDefault()
+        if (!pickupToken || pickupToken.length < 6) {
+            toast.error("Enter a valid 8-character token")
+            return
+        }
+        if (!selectedOrderId) {
+            toast.error("Please select an order to verify")
+            return
+        }
+
+        setVerifying(true)
+        try {
+            const result = await verifyOrderCollection(selectedOrderId, pickupToken)
+            if (result.success) {
+                toast.success("Token verified! Order marked as picked up")
+                setPickupToken('')
+                setSelectedOrderId(null)
+                // Update local state
+                setOrders(orders.map(o =>
+                    o.id === selectedOrderId
+                        ? result.order
+                        : o
+                ))
+            } else {
+                toast.error(result.error)
+            }
+        } catch (err) {
+            toast.error("Verification failed")
+        } finally {
+            setVerifying(false)
+        }
+    }
+
+    const handleCompleteOrder = async (orderId) => {
+        const result = await updateOrderStatus(orderId, 'COMPLETED')
+        if (result.success) {
+            toast.success("Order completed! Payout pending.")
+            setOrders(orders.map(o =>
+                o.id === orderId
+                    ? { ...o, status: 'COMPLETED', payoutStatus: 'pending' }
+                    : o
+            ))
+        }
+    }
+
+    const handleVerificationComplete = (data) => {
+        toast.success("Verification complete!")
+    }
 
     if (loading) return <Loading />
 
+    const pendingOrders = orders.filter(o => o.status === 'AWAITING_PICKUP' || o.status === 'PAID')
+    const completedOrders = orders.filter(o => o.status === 'COMPLETED' || o.status === 'PICKED_UP')
+    const totalEarnings = completedOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+    const pendingPayouts = orders.filter(o => o.payoutStatus === 'pending').reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+
     const stats = [
-        { label: 'Batteries Circulated', value: data.totalProducts * 5, icon: BatteryIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
-        { label: 'Business Revenue', value: '₦' + data.totalEarnings.toLocaleString(), icon: CircleDollarSignIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Pending Logistics', value: data.pendingPickups, icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
-        { label: 'Lifecycle Completed', value: data.totalOrders, icon: PackageIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { label: 'Listed Batteries', value: data.totalProducts, icon: BatteryIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
+        { label: 'Total Earnings', value: '₦' + totalEarnings.toLocaleString(), icon: CircleDollarSignIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Pending Pickups', value: pendingOrders.length, icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { label: 'Completed Orders', value: completedOrders.length, icon: PackageIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
     ]
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'AWAITING_PICKUP':
+            case 'PAID':
+                return 'bg-amber-50 text-amber-600'
+            case 'PICKED_UP':
+                return 'bg-blue-50 text-blue-600'
+            case 'COMPLETED':
+                return 'bg-[#05DF72]/10 text-[#05DF72]'
+            default:
+                return 'bg-slate-100 text-slate-500'
+        }
+    }
 
     return (
         <div className="space-y-12">
+            {/* Header with Verification Status */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <div className="flex items-center gap-2 text-[#05DF72] mb-2 font-black uppercase tracking-widest text-[10px]">
-                        <ShieldCheckIcon size={16} /> Verified Energy Partner
+                    <div className="flex items-center gap-2 mb-2">
+                        {user?.verificationStatus === 'verified' ? (
+                            <span className="flex items-center gap-1 text-[#05DF72] font-black uppercase tracking-widest text-[10px]">
+                                <ShieldCheckIcon size={16} /> Verified Seller
+                            </span>
+                        ) : (
+                            <button
+                                onClick={() => setShowVerificationModal(true)}
+                                className="flex items-center gap-1 text-amber-500 font-black uppercase tracking-widest text-[10px] hover:underline"
+                            >
+                                <AlertCircleIcon size={16} /> Complete Verification
+                            </button>
+                        )}
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 leading-tight">Business <span className="text-[#05DF72]">Command</span></h1>
-                    <p className="text-slate-400 font-bold text-sm mt-1">Grow your circular footprint, {user?.businessName || user?.name || 'Partner'}.</p>
+                    <h1 className="text-4xl font-black text-slate-900 leading-tight">Seller <span className="text-[#05DF72]">Dashboard</span></h1>
+                    <p className="text-slate-400 font-bold text-sm mt-1">Welcome back, {user?.businessName || user?.name || 'Seller'}!</p>
                 </div>
-                <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
-                    <div className="p-3 bg-slate-900 rounded-xl text-white">
-                        <TrendingUpIcon size={20} />
-                    </div>
-                    <div className="pr-4">
-                        <p className="text-[10px] font-black uppercase text-slate-400">Growth Rate</p>
-                        <p className="text-sm font-black text-slate-900">+24.5% MOH</p>
-                    </div>
+
+                {/* Verify Pickup Panel */}
+                <div className="flex-1 max-w-md bg-white p-2 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+                    <form onSubmit={handleVerifyPickup} className="bg-slate-900 p-6 rounded-[1.5rem] relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                                <ShieldCheckIcon className="text-[#05DF72]" size={20} />
+                                Verify Collection Token
+                            </h3>
+
+                            {/* Order Selection */}
+                            {pendingOrders.length > 0 && (
+                                <select
+                                    value={selectedOrderId || ''}
+                                    onChange={(e) => setSelectedOrderId(e.target.value)}
+                                    className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white mb-3 focus:outline-none focus:border-[#05DF72]"
+                                >
+                                    <option value="">Select order to verify</option>
+                                    {pendingOrders.map(o => (
+                                        <option key={o.id} value={o.id} className="text-slate-900">
+                                            {o.product?.name || `Order ${o.id}`} - ₦{o.totalAmount?.toLocaleString()}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+
+                            <div className="flex gap-2">
+                                <input
+                                    value={pickupToken}
+                                    onChange={(e) => setPickupToken(e.target.value.toUpperCase())}
+                                    type="text"
+                                    placeholder="Enter 8-char Token"
+                                    className="flex-1 bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 font-mono tracking-widest focus:outline-none focus:border-[#05DF72]"
+                                    maxLength={8}
+                                />
+                                <button disabled={verifying} className="bg-[#05DF72] text-slate-900 font-bold px-6 py-3 rounded-xl hover:bg-[#04c764] transition-colors disabled:opacity-50">
+                                    {verifying ? '...' : 'Verify'}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[#05DF72]/20 rounded-full blur-xl"></div>
+                    </form>
                 </div>
             </div>
 
@@ -61,86 +200,113 @@ export default function SellerOverview() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                {/* Recent Orders Preview */}
+                {/* Incoming Orders */}
                 <div className="lg:col-span-3 bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100">
                     <div className="flex items-center justify-between mb-10">
-                        <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Recent Logistics</h2>
-                        <button className="text-[10px] font-black uppercase tracking-widest text-[#05DF72] bg-[#05DF72]/5 px-4 py-2 rounded-full hover:bg-[#05DF72] hover:text-white transition-all">Export Report</button>
+                        <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Incoming Orders</h2>
+                        <span className="text-xs font-bold text-slate-400">{orders.length} total</span>
                     </div>
-                    <div className="space-y-4">
-                        {[
-                            { name: 'Classic Car Battery', buyer: 'Emeka Obi', whatsapp: '+234 809 123 4567', price: 35000, status: 'PICKED' },
-                            { name: 'Deep Cycle Inverter', buyer: 'Sarah Ahmed', whatsapp: '+234 701 987 6543', price: 95000, status: 'WAY' },
-                            { name: 'Solar Lead Acid', buyer: 'Leke Benson', whatsapp: '+234 812 345 6789', price: 120000, status: 'PENDING' }
-                        ].map((ord, i) => (
-                            <div key={i} className="flex items-center justify-between p-6 bg-slate-50/50 rounded-[2rem] border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-300">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-[#05DF72] shadow-sm">
-                                        <BatteryIcon size={24} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <p className="font-bold text-slate-900">{ord.name}</p>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Buyer: {ord.buyer}</span>
-                                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                            <a href={`https://wa.me/${ord.whatsapp.replace(/\D/g, '')}`} className="text-[10px] font-black text-[#05DF72] uppercase tracking-widest flex items-center gap-1 hover:underline">
-                                                <PhoneIcon size={10} /> {ord.whatsapp}
-                                            </a>
+
+                    {orders.length === 0 ? (
+                        <div className="text-center py-12">
+                            <PackageIcon className="mx-auto text-slate-300 mb-4" size={48} />
+                            <p className="text-slate-500">No orders yet</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {orders.slice(0, 5).map((order) => (
+                                <div key={order.id} className="flex items-center justify-between p-6 bg-slate-50/50 rounded-[2rem] border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-300">
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-[#05DF72] shadow-sm">
+                                            <BatteryIcon size={24} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <p className="font-bold text-slate-900">{order.product?.name || 'Battery Order'}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] font-bold text-slate-400">
+                                                    Collection: {order.collectionDate ? new Date(order.collectionDate).toLocaleDateString() : 'TBD'}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div className="text-right">
+                                        <p className="font-black text-slate-900">₦{(order.totalAmount || 0).toLocaleString()}</p>
+                                        <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full mt-2 inline-block ${getStatusBadge(order.status)}`}>
+                                            {order.status?.replace('_', ' ')}
+                                        </span>
+                                        {order.status === 'PICKED_UP' && (
+                                            <button
+                                                onClick={() => handleCompleteOrder(order.id)}
+                                                className="ml-2 text-[10px] font-bold text-[#05DF72] hover:underline"
+                                            >
+                                                Mark Complete
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="font-black text-slate-900">₦{ord.price.toLocaleString()}</p>
-                                    <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full mt-2 inline-block ${ord.status === 'PICKED' ? 'bg-[#05DF72]/10 text-[#05DF72]' :
-                                        ord.status === 'WAY' ? 'bg-blue-50 text-blue-500' : 'bg-amber-50 text-amber-500'
-                                        }`}>{ord.status}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* Popular Products Preview */}
+                {/* Payout Section */}
                 <div className="lg:col-span-2 bg-slate-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-10">
-                            <h2 className="text-xl font-black uppercase tracking-tighter">Circular Metrics</h2>
-                            <div className="w-2 h-2 rounded-full bg-[#05DF72] animate-ping"></div>
+                            <h2 className="text-xl font-black uppercase tracking-tighter">Payouts</h2>
+                            {user?.verificationStatus === 'verified' && (
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-[#05DF72]">
+                                    <CheckCircle2Icon size={12} /> Bank Verified
+                                </span>
+                            )}
                         </div>
-                        <div className="space-y-10">
-                            <div>
-                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-3 opacity-60">
-                                    <span>Acceptance Rating</span>
-                                    <span className="text-[#05DF72]">94%</span>
-                                </div>
-                                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-[#05DF72] w-[94%]" />
-                                </div>
+
+                        <div className="space-y-6">
+                            <div className="bg-white/10 rounded-2xl p-6">
+                                <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Pending Payout</p>
+                                <p className="text-3xl font-black text-[#05DF72]">₦{pendingPayouts.toLocaleString()}</p>
+                                <p className="text-xs text-slate-400 mt-2">Released after buyer confirms collection</p>
                             </div>
-                            <div>
-                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-3 opacity-60">
-                                    <span>Carbon Avoidance</span>
-                                    <span className="text-blue-400">12.5 TONS</span>
+
+                            {user?.bankDetails ? (
+                                <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+                                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-3">Bank Account</p>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-400">Bank</span>
+                                            <span className="font-bold">{user.bankDetails.bankName}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-400">Account</span>
+                                            <span className="font-mono">{user.bankDetails.accountNumber}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-400">Name</span>
+                                            <span className="font-bold">{user.bankDetails.accountName}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-blue-500 w-[78%]" />
-                                </div>
-                            </div>
-                            <div className="pt-10 grid grid-cols-2 gap-6 border-t border-white/10">
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Pick-up Avg</p>
-                                    <p className="text-2xl font-black text-[#05DF72]">1.2h</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Trust Score</p>
-                                    <p className="text-2xl font-black text-white">4.9<span className="text-xs opacity-40 ml-1">/ 5</span></p>
-                                </div>
-                            </div>
+                            ) : (
+                                <button
+                                    onClick={() => setShowVerificationModal(true)}
+                                    className="w-full py-4 bg-white/10 border border-white/20 rounded-xl text-sm font-bold hover:bg-white/20 transition-colors"
+                                >
+                                    Add Bank Details
+                                </button>
+                            )}
                         </div>
                     </div>
                     <div className="absolute bottom-0 right-0 w-64 h-64 bg-[#05DF72]/10 rounded-full blur-[80px]"></div>
                 </div>
             </div>
+
+            {/* Verification Modal */}
+            <VerificationModal
+                isOpen={showVerificationModal}
+                onClose={() => setShowVerificationModal(false)}
+                userRole="SELLER"
+                onVerificationComplete={handleVerificationComplete}
+            />
         </div>
     )
 }

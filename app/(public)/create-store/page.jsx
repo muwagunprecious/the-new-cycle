@@ -1,6 +1,8 @@
 'use client'
 import { assets, lagosLGAs } from "@/assets/assets"
 import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
+import { createStoreApplication, getUserStoreStatus } from "@/backend/actions/auth"
 import Image from "next/image"
 import toast from "react-hot-toast"
 import Loading from "@/components/Loading"
@@ -12,6 +14,7 @@ export default function CreateStore() {
     const [status, setStatus] = useState("")
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState("")
+    const { user, isLoggedIn } = useSelector((state) => state.auth)
 
     const [storeInfo, setStoreInfo] = useState({
         businessName: "",
@@ -30,36 +33,64 @@ export default function CreateStore() {
     }
 
     const fetchSellerStatus = async () => {
-        // Mocking a status check
-        const mockStatus = localStorage.getItem('gocycle_seller_status')
-        if (mockStatus) {
-            setAlreadySubmitted(true)
-            setStatus(mockStatus)
-            setMessage(mockStatus === 'pending' ? "Your application is currently pending approval. We'll notify you once it's reviewed." : "Your account is approved! Redirecting...")
-            if (mockStatus === 'approved') {
-                setTimeout(() => router.push('/seller'), 3000)
+        if (!user?.id) return
+
+        try {
+            const result = await getUserStoreStatus(user.id)
+
+            if (result.success && result.exists) {
+                setAlreadySubmitted(true)
+                setStatus(result.status)
+                setMessage(result.status === 'pending'
+                    ? "Your application is currently pending approval. We'll notify you once it's reviewed."
+                    : "Your account is approved! Redirecting...")
+
+                if (result.status === 'active' || result.status === 'approved') { // Handle both just in case
+                    setTimeout(() => router.push('/seller'), 3000)
+                }
+            } else {
+                setAlreadySubmitted(false)
             }
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
-        // Mocking submission
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                localStorage.setItem('gocycle_seller_status', 'pending')
-                setAlreadySubmitted(true)
-                setStatus('pending')
-                setMessage("Application submitted successfully! Your account is currently pending approval.")
-                resolve()
-            }, 2000)
-        })
+
+        if (!isLoggedIn || !user) {
+            toast.error("You must be logged in to apply.")
+            router.push('/login')
+            return
+        }
+
+        try {
+            const result = await createStoreApplication(storeInfo, user.id)
+            if (!result.success) {
+                throw new Error(result.error)
+            }
+
+            setAlreadySubmitted(true)
+            setStatus('pending')
+            setMessage("Application submitted successfully! Your account is currently pending approval.")
+            toast.success("Application submitted!")
+
+        } catch (error) {
+            console.error(error)
+            toast.error(error.message || "Something went wrong")
+        }
     }
 
     useEffect(() => {
-        fetchSellerStatus()
-    }, [])
+        if (user) {
+            fetchSellerStatus()
+        } else {
+            setLoading(false) // Stop loading if no user, form will eventually enforce login on submit
+        }
+    }, [user])
 
     return !loading ? (
         <div className="bg-[#f9fafb] min-h-screen">
@@ -143,16 +174,6 @@ export default function CreateStore() {
                             <p className="text-slate-500 mt-4 leading-relaxed">{message}</p>
                         </div>
                         {status === "approved" && <p className="text-sm text-slate-400">Redirecting to your dashboard...</p>}
-                        {status === "pending" && (
-                            <button onClick={() => {
-                                localStorage.setItem('gocycle_seller_status', 'approved')
-                                setStatus('approved')
-                                setMessage("Your account has been approved! Redirecting you now...")
-                                setTimeout(() => router.push('/seller'), 2000)
-                            }} className="text-xs text-slate-300 mt-8 hover:text-[#05DF72] transition-colors">
-                                (Mock Admin Approval - Click to Bypass)
-                            </button>
-                        )}
                     </div>
                 </div>
             )}

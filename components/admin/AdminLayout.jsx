@@ -1,5 +1,7 @@
 'use client'
 import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
+import { useRouter } from "next/navigation"
 import Loading from "../Loading"
 import Link from "next/link"
 import { ArrowRightIcon } from "lucide-react"
@@ -8,17 +10,24 @@ import AdminSidebar from "./AdminSidebar"
 
 const AdminLayout = ({ children }) => {
 
+    const { user, isLoggedIn } = useSelector((state) => state.auth)
+    const router = useRouter()
     const [isAdmin, setIsAdmin] = useState(false)
     const [loading, setLoading] = useState(true)
 
-    const fetchIsAdmin = async () => {
-        setIsAdmin(true)
-        setLoading(false)
-    }
-
     useEffect(() => {
-        fetchIsAdmin()
-    }, [])
+        if (!isLoggedIn) {
+            router.push('/login')
+            return
+        }
+
+        if (user && user.role === 'ADMIN') {
+            setIsAdmin(true)
+        } else {
+            setIsAdmin(false)
+        }
+        setLoading(false)
+    }, [user, isLoggedIn, router])
 
     return loading ? (
         <Loading />

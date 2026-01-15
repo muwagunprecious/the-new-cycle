@@ -1,6 +1,7 @@
 'use client'
 import { storesDummyData } from "@/assets/assets"
 import StoreInfo from "@/components/admin/StoreInfo"
+import { getPendingSellers, approveSeller, rejectSeller } from "@/backend/actions/admin"
 import Loading from "@/components/Loading"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
@@ -12,18 +13,42 @@ export default function AdminApprove() {
 
 
     const fetchStores = async () => {
-        setStores(storesDummyData)
-        setLoading(false)
+        try {
+            const result = await getPendingSellers()
+            if (result.success) {
+                setStores(result.data)
+            } else {
+                toast.error(result.error)
+            }
+        } catch (e) {
+            toast.error("Failed to load requests")
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleApprove = async ({ storeId, status }) => {
-        // Logic to approve a store
+        try {
+            let result;
+            if (status === 'approved') {
+                result = await approveSeller(storeId)
+            } else {
+                result = await rejectSeller(storeId)
+            }
 
-
+            if (result.success) {
+                toast.success(`Store ${status}`)
+                fetchStores() // Refresh list
+            } else {
+                toast.error(result.error)
+            }
+        } catch (e) {
+            toast.error("Action failed")
+        }
     }
 
     useEffect(() => {
-            fetchStores()
+        fetchStores()
     }, [])
 
     return !loading ? (

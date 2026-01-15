@@ -1,187 +1,306 @@
 'use client'
 import { useState } from "react"
-import { XIcon, LockIcon, MailIcon, UserIcon, ShieldCheckIcon, CreditCardIcon, TruckIcon } from "lucide-react"
+import { XIcon, WalletIcon, CheckCircle2Icon, CopyIcon, CalendarIcon, MapPinIcon, LoaderIcon, AlertCircleIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
-import { useDispatch } from "react-redux"
-import { showLoader, hideLoader, setLoadingSteps, nextLoadingStep } from "@/lib/features/ui/uiSlice"
+import { useDispatch, useSelector } from "react-redux"
+import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "./Button"
+import { mockOrderService, mockPaymentService, mockNotificationService } from "@/lib/mockService"
 
-export default function CheckoutModal({ isOpen, onClose, product, paymentMethod }) {
+/**
+ * CheckoutModal - Demo payment flow for battery purchase
+ * 
+ * Flow:
+ * 1. Order Summary
+ * 2. Mock Payment Processing
+ * 3. Success with Collection Token
+ * 
+ * No Pay on Delivery - Pay Now only as per requirements
+ */
+export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, selectedDate }) {
     const router = useRouter()
     const dispatch = useDispatch()
-    const [step, setStep] = useState('auth') // auth, courier, success
-    const [isLogin, setIsLogin] = useState(true)
-    const [isProcessing, setIsProcessing] = useState(false)
+    const { user } = useSelector(state => state.auth)
+
+    const [step, setStep] = useState('SUMMARY') // SUMMARY | PROCESSING | SUCCESS | FAILED
+    const [isLoading, setIsLoading] = useState(false)
+    const [orderResult, setOrderResult] = useState(null)
+    const [copied, setCopied] = useState(false)
 
     if (!isOpen) return null
 
-    const handleAuth = (e) => {
-        e.preventDefault()
-        setIsProcessing(true)
-        dispatch(showLoader(isLogin ? "Signing you in..." : "Creating your account..."))
+    const currency = '₦'
+    const totalAmount = (product?.price || 0) * quantity
 
-        setTimeout(() => {
-            dispatch(hideLoader())
-            setIsProcessing(false)
-            toast.success(isLogin ? "Welcome back!" : "Account created successfully!")
-            setStep('courier')
-        }, 1500)
-    }
+    const handlePayNow = async () => {
+        setIsLoading(true)
+        setStep('PROCESSING')
 
-    const completeCheckout = (deliveryType) => {
-        const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000)
-        const deliveryCode = Math.floor(100000 + Math.random() * 900000)
+        try {
+            // Step 1: Simulate payment
+            const paymentResult = await mockPaymentService.initiatePayment({
+                amount: totalAmount,
+                productId: product.id,
+                buyerId: user?.id
+            })
 
-        const orderData = {
-            id: orderId,
-            product: product.name,
-            total: product.price,
-            method: paymentMethod,
-            deliveryType: deliveryType,
-            code: deliveryCode,
-            status: 'Confirmed',
-            date: new Date().toLocaleDateString()
+            if (!paymentResult.success) {
+                setStep('FAILED')
+                setIsLoading(false)
+                return
+            }
+
+            // Step 2: Create order with collection token
+            const orderResult = await mockOrderService.createOrder({
+                buyerId: user?.id,
+                sellerId: product.sellerId,
+                productId: product.id,
+                quantity,
+                totalAmount,
+                collectionDate: selectedDate,
+                paymentReference: paymentResult.reference
+            })
+
+            if (orderResult.success) {
+                setOrderResult(orderResult)
+
+                // Step 3: Send notifications
+                await mockNotificationService.triggerPaymentSuccess(user?.id, orderResult.order.id, totalAmount)
+
+                // Notify seller
+                if (product.sellerId) {
+                    await mockNotificationService.createNotification({
+                        userId: product.sellerId,
+                        title: "New Order Received!",
+                        message: `You have a new order for ${product.name}. Collection: ${selectedDate}`,
+                        type: "ORDER"
+                    })
+                }
+
+                setStep('SUCCESS')
+            } else {
+                setStep('FAILED')
+            }
+        } catch (error) {
+            console.error(error)
+            setStep('FAILED')
         }
 
-        localStorage.setItem('active_order', JSON.stringify(orderData))
-        dispatch(hideLoader())
-        setStep('success')
-
-        setTimeout(() => {
-            onClose()
-            router.push(`/buyer/track/${orderId}`)
-        }, 3000)
+        setIsLoading(false)
     }
 
-    const handleFinalize = (deliveryType) => {
-        const steps = [
-            "Confirming order...",
-            paymentMethod === 'Pay Now' ? "Processing payment (Demo)..." : "Registering cash delivery...",
-            "Finalizing order..."
-        ]
+    const copyToken = () => {
+        if (orderResult?.collectionToken) {
+            navigator.clipboard.writeText(orderResult.collectionToken)
+            setCopied(true)
+            toast.success("Token copied!")
+            setTimeout(() => setCopied(false), 2000)
+        }
+    }
 
-        dispatch(setLoadingSteps(steps))
+    const handleClose = () => {
+        if (step === 'SUCCESS') {
+            router.push('/buyer')
+        }
+        onClose()
+        setStep('SUMMARY')
+        setOrderResult(null)
+    }
 
-        let currentStep = 0;
-        const interval = setInterval(() => {
-            currentStep++;
-            if (currentStep < steps.length) {
-                dispatch(nextLoadingStep())
-            } else {
-                clearInterval(interval)
-                completeCheckout(deliveryType)
-            }
-        }, 1200)
+    const formatDate = (dateStr) => {
+        if (!dateStr) return 'Not selected'
+        return new Date(dateStr).toLocaleDateString('en-NG', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        })
     }
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
 
                 {/* Header */}
-                <div className="p-8 pb-0 flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-[#05DF72]">
-                        <ShieldCheckIcon size={24} />
-                        <span className="font-bold uppercase tracking-widest text-[10px]">Secure Checkout</span>
-                    </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                        <XIcon size={20} className="text-slate-400" />
+                <div className="bg-slate-900 p-6 text-white relative">
+                    <button
+                        onClick={handleClose}
+                        className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors"
+                    >
+                        <XIcon size={20} />
                     </button>
+                    <div className="flex items-center gap-2 text-[#05DF72] mb-2 font-black uppercase tracking-widest text-[10px]">
+                        <WalletIcon size={14} />
+                        {step === 'SUMMARY' && 'Secure Checkout'}
+                        {step === 'PROCESSING' && 'Processing Payment'}
+                        {step === 'SUCCESS' && 'Payment Successful'}
+                        {step === 'FAILED' && 'Payment Failed'}
+                    </div>
+                    <h2 className="text-xl font-bold">
+                        {step === 'SUMMARY' && 'Complete Your Order'}
+                        {step === 'PROCESSING' && 'Please Wait...'}
+                        {step === 'SUCCESS' && 'Order Confirmed!'}
+                        {step === 'FAILED' && 'Transaction Failed'}
+                    </h2>
                 </div>
 
-                {step === 'auth' && (
-                    <div className="p-8 pt-6">
-                        <h2 className="text-3xl font-black text-slate-900 mb-2">
-                            {isLogin ? 'Sign In' : 'Create Account'}
-                        </h2>
-                        <p className="text-slate-500 mb-8 text-sm font-medium">Please authenticate to secure your battery order.</p>
+                {/* Content */}
+                <div className="p-6">
 
-                        <form className="space-y-4" onSubmit={handleAuth}>
-                            {!isLogin && (
-                                <div className="relative">
-                                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                    <input required type="text" placeholder="Full Name" className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20" />
+                    {/* STEP 1: Order Summary */}
+                    {step === 'SUMMARY' && (
+                        <div className="space-y-6">
+                            {/* Product Info */}
+                            <div className="flex gap-4 p-4 bg-slate-50 rounded-2xl">
+                                <div className="w-16 h-16 bg-slate-200 rounded-xl flex items-center justify-center">
+                                    <span className="text-2xl">🔋</span>
                                 </div>
-                            )}
-                            <div className="relative">
-                                <MailIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                <input required type="email" placeholder="Email Address" className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20" />
-                            </div>
-                            <div className="relative">
-                                <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                <input required type="password" placeholder="Password" className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20" />
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-slate-900">{product?.name}</h3>
+                                    <p className="text-xs text-slate-500">{product?.batteryType} • {product?.condition}</p>
+                                    <p className="text-sm font-bold text-slate-900 mt-1">
+                                        {currency}{product?.price?.toLocaleString()} × {quantity}
+                                    </p>
+                                </div>
                             </div>
 
+                            {/* Collection Details */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-3 text-sm">
+                                    <CalendarIcon size={16} className="text-[#05DF72]" />
+                                    <div>
+                                        <span className="text-slate-500">Collection Date:</span>
+                                        <span className="font-bold text-slate-900 ml-2">{formatDate(selectedDate)}</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3 text-sm">
+                                    <MapPinIcon size={16} className="text-[#05DF72] mt-0.5" />
+                                    <div>
+                                        <span className="text-slate-500">Pickup Location:</span>
+                                        <p className="font-medium text-slate-900">{product?.lga}, Lagos</p>
+                                        <p className="text-xs text-slate-500">{product?.address}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Total */}
+                            <div className="flex items-center justify-between p-4 bg-slate-900 rounded-2xl text-white">
+                                <span className="font-medium">Total Amount:</span>
+                                <span className="text-2xl font-black">{currency}{totalAmount.toLocaleString()}</span>
+                            </div>
+
+                            {/* Pay Button */}
                             <Button
-                                type="submit"
-                                loading={isProcessing}
-                                loadingText={isLogin ? "Signing in..." : "Creating..."}
-                                className="w-full !py-5 shadow-xl shadow-[#05DF72]/20 mt-4"
+                                onClick={handlePayNow}
+                                loading={isLoading}
+                                loadingText="Processing..."
+                                className="w-full !py-4"
                             >
-                                {isLogin ? 'Sign In & Continue' : 'Create Account'}
+                                <WalletIcon size={18} className="mr-2" />
+                                Pay {currency}{totalAmount.toLocaleString()} Now
                             </Button>
-                        </form>
 
-                        <p className="mt-8 text-center text-sm text-slate-500 font-medium">
-                            {isLogin ? "Don't have an account?" : "Already have an account?"}
-                            <button onClick={() => setIsLogin(!isLogin)} className="text-[#05DF72] ml-2 font-bold hover:underline">
-                                {isLogin ? 'Sign Up' : 'Log In'}
-                            </button>
-                        </p>
-                    </div>
-                )}
-
-                {step === 'courier' && (
-                    <div className="p-8 pt-6">
-                        <h2 className="text-3xl font-black text-slate-900 mb-2">Fulfillment</h2>
-                        <p className="text-slate-500 mb-8 text-sm font-medium">How would you like to receive your battery?</p>
-
-                        <div className="grid grid-cols-1 gap-4">
-                            <button
-                                onClick={() => handleFinalize('Pickup')}
-                                className="flex items-center gap-6 p-6 border-2 border-slate-100 rounded-3xl hover:border-[#05DF72] hover:bg-[#05DF72]/5 transition-all text-left"
-                            >
-                                <div className="w-14 h-14 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center shrink-0">
-                                    <UserIcon size={28} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-slate-900">Pickup at Seller Location</p>
-                                    <p className="text-xs text-slate-500 mt-1">Free • Save on delivery costs</p>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => handleFinalize('Delivery')}
-                                className="flex items-center gap-6 p-6 border-2 border-slate-100 rounded-3xl hover:border-[#05DF72] hover:bg-[#05DF72]/5 transition-all text-left"
-                            >
-                                <div className="w-14 h-14 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center shrink-0">
-                                    <TruckIcon size={28} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-slate-900">Request GoCycle Delivery</p>
-                                    <p className="text-xs text-slate-500 mt-1">₦2,500 • Secured with delivery code</p>
-                                </div>
-                            </button>
+                            <p className="text-xs text-slate-400 text-center">
+                                Demo: Payment will simulate success (90% success rate)
+                            </p>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {step === 'success' && (
-                    <div className="p-12 text-center">
-                        <div className="w-20 h-20 bg-[#05DF72] text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#05DF72]/40 animate-bounce">
-                            <ShieldCheckIcon size={40} />
+                    {/* STEP 2: Processing */}
+                    {step === 'PROCESSING' && (
+                        <div className="py-12 text-center space-y-6">
+                            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                                <LoaderIcon className="text-[#05DF72] animate-spin" size={40} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">Processing Payment</h3>
+                                <p className="text-sm text-slate-500 mt-2">Please don't close this window...</p>
+                            </div>
+                            <div className="flex flex-col gap-2 text-xs text-slate-400">
+                                <span>✓ Validating order details</span>
+                                <span>✓ Processing payment</span>
+                                <span className="animate-pulse">● Generating collection token...</span>
+                            </div>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 mb-2">Order Secured!</h2>
-                        <p className="text-slate-500 font-medium">Your {paymentMethod === 'Pay Now' ? 'payment' : 'request'} was successful. Redirecting to tracking...</p>
-                        <div className="mt-8 flex justify-center gap-1">
-                            <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                            <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                        </div>
-                    </div>
-                )}
+                    )}
 
+                    {/* STEP 3: Success */}
+                    {step === 'SUCCESS' && orderResult && (
+                        <div className="py-8 text-center space-y-6">
+                            <div className="w-20 h-20 bg-[#05DF72]/10 rounded-full flex items-center justify-center mx-auto">
+                                <CheckCircle2Icon className="text-[#05DF72]" size={40} />
+                            </div>
+
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-900">Payment Successful!</h3>
+                                <p className="text-sm text-slate-500 mt-2">Your order has been confirmed</p>
+                            </div>
+
+                            {/* Collection Token */}
+                            <div className="bg-slate-900 rounded-2xl p-6 text-white">
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Your Collection Token</p>
+                                <div className="flex items-center justify-center gap-3">
+                                    <span className="text-3xl font-mono font-black tracking-widest text-[#05DF72]">
+                                        {orderResult.collectionToken}
+                                    </span>
+                                    <button
+                                        onClick={copyToken}
+                                        className={`p-2 rounded-lg transition-colors ${copied ? 'bg-green-500' : 'bg-white/10 hover:bg-white/20'
+                                            }`}
+                                    >
+                                        {copied ? <CheckCircle2Icon size={18} /> : <CopyIcon size={18} />}
+                                    </button>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-4">
+                                    Show this token to the seller on collection day
+                                </p>
+                            </div>
+
+                            <div className="text-left bg-amber-50 rounded-xl p-4 border border-amber-100">
+                                <p className="text-xs font-bold text-amber-800 mb-2">📋 Next Steps:</p>
+                                <ol className="text-xs text-amber-700 space-y-1">
+                                    <li>1. Visit the pickup location on {formatDate(selectedDate)}</li>
+                                    <li>2. Show your collection token to the seller</li>
+                                    <li>3. Collect your battery</li>
+                                </ol>
+                            </div>
+
+                            <Button onClick={handleClose} className="w-full">
+                                Go to My Orders
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* STEP 4: Failed */}
+                    {step === 'FAILED' && (
+                        <div className="py-12 text-center space-y-6">
+                            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto">
+                                <AlertCircleIcon className="text-red-500" size={40} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-900">Payment Failed</h3>
+                                <p className="text-sm text-slate-500 mt-2">
+                                    Something went wrong with your payment. Please try again.
+                                </p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handleClose}
+                                    className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <Button
+                                    onClick={() => setStep('SUMMARY')}
+                                    className="flex-1"
+                                >
+                                    Try Again
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )

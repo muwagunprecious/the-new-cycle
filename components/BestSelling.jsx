@@ -8,11 +8,21 @@ const BestSelling = () => {
     const displayQuantity = 8
     const products = useSelector(state => state.product.list)
 
+    // Sort by lowest units available (simulating high demand/sales)
+    const bestSellers = products
+        .slice()
+        .sort((a, b) => (a.unitsAvailable || 0) - (b.unitsAvailable || 0))
+        .slice(0, displayQuantity)
+
     return (
         <div className='px-6 my-32 max-w-7xl mx-auto'>
-            <Title title='Top <span className="text-[#05DF72]">Rated</span> Batteries' description="The most reliable power solutions as rated by our recycling community." href='/shop' />
+            <Title
+                title='Best <span className="text-[#05DF72]">Selling</span> Batteries'
+                description="High demand batteries moving fast in the marketplace."
+                href='/shop'
+            />
             <div className='mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
-                {products.slice().sort((a, b) => b.rating.length - a.rating.length).slice(0, displayQuantity).map((product, index) => (
+                {bestSellers.map((product, index) => (
                     <ProductCard key={index} product={product} />
                 ))}
             </div>

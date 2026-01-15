@@ -1,5 +1,5 @@
 'use client'
-import { ArrowRight, StarIcon } from "lucide-react"
+import { ArrowRight, InfoIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
@@ -9,12 +9,16 @@ const ProductDescription = ({ product }) => {
     const [selectedTab, setSelectedTab] = useState('Description')
 
     return (
-        <div className="my-18 text-sm text-slate-600">
+        <div className="my-12 text-sm text-slate-600">
 
             {/* Tabs */}
             <div className="flex border-b border-slate-200 mb-6 max-w-2xl">
-                {['Description', 'Reviews'].map((tab, index) => (
-                    <button className={`${tab === selectedTab ? 'border-b-[1.5px] font-semibold' : 'text-slate-400'} px-3 py-2 font-medium`} key={index} onClick={() => setSelectedTab(tab)}>
+                {['Description', 'Seller Info'].map((tab, index) => (
+                    <button
+                        className={`${tab === selectedTab ? 'border-b-2 border-[#05DF72] text-[#05DF72] font-bold' : 'text-slate-400 font-medium'} px-4 py-2 transition-all`}
+                        key={index}
+                        onClick={() => setSelectedTab(tab)}
+                    >
                         {tab}
                     </button>
                 ))}
@@ -22,38 +26,47 @@ const ProductDescription = ({ product }) => {
 
             {/* Description */}
             {selectedTab === "Description" && (
-                <p className="max-w-xl">{product.description}</p>
-            )}
-
-            {/* Reviews */}
-            {selectedTab === "Reviews" && (
-                <div className="flex flex-col gap-3 mt-14">
-                    {product.rating.map((item,index) => (
-                        <div key={index} className="flex gap-5 mb-10">
-                            <Image src={item.user.image} alt="" className="size-10 rounded-full" width={100} height={100} />
+                <div className="space-y-4 max-w-xl animate-in fade-in duration-300">
+                    <p className="leading-relaxed">{product.description}</p>
+                    {product.comments && (
+                        <div className="flex items-start gap-2 p-4 bg-amber-50 rounded-xl text-amber-800 text-xs">
+                            <InfoIcon size={16} className="mt-0.5 shrink-0" />
                             <div>
-                                <div className="flex items-center" >
-                                    {Array(5).fill('').map((_, index) => (
-                                        <StarIcon key={index} size={18} className='text-transparent mt-0.5' fill={item.rating >= index + 1 ? "#00C950" : "#D1D5DB"} />
-                                    ))}
-                                </div>
-                                <p className="text-sm max-w-lg my-4">{item.review}</p>
-                                <p className="font-medium text-slate-800">{item.user.name}</p>
-                                <p className="mt-3 font-light">{new Date(item.createdAt).toDateString()}</p>
+                                <span className="font-bold block mb-1">Seller Notes:</span>
+                                {product.comments}
                             </div>
                         </div>
-                    ))}
+                    )}
                 </div>
             )}
 
-            {/* Store Page */}
-            <div className="flex gap-3 mt-14">
-                <Image src={product.store.logo} alt="" className="size-11 rounded-full ring ring-slate-400" width={100} height={100} />
-                <div>
-                    <p className="font-medium text-slate-600">Product by {product.store.name}</p>
-                    <Link href={`/shop/${product.store.username}`} className="flex items-center gap-1.5 text-green-500"> view store <ArrowRight size={14} /></Link>
+            {/* Seller Info (Replaces Reviews) */}
+            {selectedTab === "Seller Info" && product.store && (
+                <div className="flex flex-col gap-4 mt-6 animate-in fade-in duration-300">
+                    <div className="flex items-center gap-4">
+                        <Image src={product.store.logo || '/placeholder-store.jpg'} alt="" className="size-16 rounded-full border border-slate-200" width={100} height={100} />
+                        <div>
+                            <p className="font-bold text-slate-900 text-lg">{product.store.name}</p>
+                            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">Verified Vendor</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 mt-2">
+                        <div className="flex items-center gap-2 text-slate-600">
+                            <span className="font-bold w-20">Location:</span>
+                            <span>{product.store.address}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-600">
+                            <span className="font-bold w-20">Contact:</span>
+                            <span>{product.store.contact}</span>
+                        </div>
+                    </div>
+
+                    <Link href={`/shop/${product.store.username}`} className="mt-4 inline-flex items-center gap-2 text-[#05DF72] font-bold hover:underline">
+                        Visit Store Page <ArrowRight size={16} />
+                    </Link>
                 </div>
-            </div>
+            )}
         </div>
     )
 }

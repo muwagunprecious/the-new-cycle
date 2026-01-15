@@ -1,73 +1,102 @@
 'use client'
 import { Suspense, useState, useEffect } from "react"
 import ProductCard from "@/components/ProductCard"
-import { MoveLeftIcon, MapPin, FilterIcon, ChevronDown } from "lucide-react"
+import { MoveLeftIcon, MapPin, FilterIcon, ChevronDown, BatteryIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSelector } from "react-redux"
 import { ProductCardSkeleton } from "@/components/Skeleton"
-
-const LAGOS_LGAS = [
-    "Alimosho", "Ajeromi-Ifelodun", "Kosofe", "Mushin", "Oshodi-Isolo",
-    "Ojo", "Ikorodu", "Surulere", "Agege", "Ifako-Ijaiye",
-    "Somolu", "Amuwo-Odofin", "Lagos Island", "Lagos Mainland", "Ikeja",
-    "Eti-Osa", "Badagry", "Apapa", "Epe", "Ibeju-Lekki"
-]
+import { lagosLGAs } from "@/assets/assets"
 
 function ShopContent() {
     const searchParams = useSearchParams()
     const search = searchParams.get('search')
     const router = useRouter()
+
+    // Get products from Redux (which should be populated from assets or mock service)
     const products = useSelector(state => state.product.list)
 
     const [loading, setLoading] = useState(false)
     const [activeLga, setActiveLga] = useState('All')
+    const [activeType, setActiveType] = useState('All')
     const [filteredProducts, setFilteredProducts] = useState(products)
 
+    const batteryTypes = ["All", "Car Battery", "Inverter Battery", "Heavy Duty Battery"]
+
     useEffect(() => {
-        let result = products
+        setLoading(true)
+
+        let result = [...products]
+
+        // 1. Search Filter
         if (search) {
             result = result.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
         }
+
+        // 2. LGA Filter
         if (activeLga !== 'All') {
-            // Simulated per-LGA filtering
-            // Note: in a real app products would have an LGA field
-            result = result.filter((_, i) => (i + activeLga.length) % 2 === 0)
+            result = result.filter(p => p.lga === activeLga)
         }
-        setFilteredProducts(result)
-    }, [search, activeLga, products])
+
+        // 3. Type Filter
+        if (activeType !== 'All') {
+            result = result.filter(p => p.batteryType === activeType || p.category === activeType)
+        }
+
+        // Simulate network delay
+        setTimeout(() => {
+            setFilteredProducts(result)
+            setLoading(false)
+        }, 500)
+
+    }, [search, activeLga, activeType, products])
 
     const handleLgaChange = (lga) => {
-        setLoading(true)
         setActiveLga(lga)
-        setTimeout(() => {
-            setLoading(false)
-        }, 800)
     }
 
     return (
         <div className="min-h-[70vh] mx-6">
             <div className="max-w-7xl mx-auto py-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                     <div>
-                        <h1 onClick={() => router.push('/shop')} className="text-4xl font-black text-slate-900 flex items-center gap-4 cursor-pointer">
+                        <h1 onClick={() => router.push('/shop')} className="text-4xl font-black text-slate-900 flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
                             {search && <MoveLeftIcon size={24} className="text-[#05DF72]" />}
                             Browse <span className="text-[#05DF72]">Marketplace</span>
                         </h1>
                         <p className="text-slate-500 font-medium mt-2">Showing verified battery listings across Lagos State.</p>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
+                        {/* Battery Type Filter */}
+                        <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm focus-within:ring-2 focus-within:ring-[#05DF72]/20 transition-all">
+                            <BatteryIcon size={18} className="text-[#05DF72]" />
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Battery Type</span>
+                                <select
+                                    className="bg-transparent outline-none font-bold text-slate-700 text-sm appearance-none pr-6 cursor-pointer w-32"
+                                    value={activeType}
+                                    onChange={(e) => setActiveType(e.target.value)}
+                                >
+                                    {batteryTypes.map(type => (
+                                        <option key={type} value={type}>{type}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <ChevronDown size={14} className="text-slate-400 -ml-4" />
+                        </div>
+
+                        {/* LGA Filter */}
                         <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm focus-within:ring-2 focus-within:ring-[#05DF72]/20 transition-all">
                             <MapPin size={18} className="text-[#05DF72]" />
                             <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Lagos State</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Location</span>
                                 <select
-                                    className="bg-transparent outline-none font-bold text-slate-700 text-sm appearance-none pr-6 cursor-pointer"
+                                    className="bg-transparent outline-none font-bold text-slate-700 text-sm appearance-none pr-6 cursor-pointer w-32"
                                     value={activeLga}
                                     onChange={(e) => handleLgaChange(e.target.value)}
                                 >
-                                    <option value="All">All LGAs</option>
-                                    {LAGOS_LGAS.sort().map(lga => (
+                                    <option value="All">All Lagos</option>
+                                    {lagosLGAs.sort().map(lga => (
                                         <option key={lga} value={lga}>{lga}</option>
                                     ))}
                                 </select>
@@ -92,9 +121,14 @@ function ShopContent() {
                                 <div className="size-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
                                     <FilterIcon size={32} className="text-slate-300" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900">No products found</h3>
+                                <h3 className="text-xl font-bold text-slate-900">No batteries found</h3>
                                 <p className="text-slate-500 font-medium mt-2">Try adjusting your filters or search terms.</p>
-                                <button onClick={() => { setActiveLga('All'); router.push('/shop') }} className="mt-8 text-[#05DF72] font-black uppercase tracking-widest text-[10px] hover:underline">Reset All Filters</button>
+                                <button
+                                    onClick={() => { setActiveLga('All'); setActiveType('All'); router.push('/shop') }}
+                                    className="mt-8 text-[#05DF72] font-black uppercase tracking-widest text-[10px] hover:underline"
+                                >
+                                    Reset All Filters
+                                </button>
                             </div>
                         )}
                     </>
@@ -107,7 +141,7 @@ function ShopContent() {
 
 export default function Shop() {
     return (
-        <Suspense fallback={<div>Loading shop...</div>}>
+        <Suspense fallback={<div>Loading marketplace...</div>}>
             <ShopContent />
         </Suspense>
     );

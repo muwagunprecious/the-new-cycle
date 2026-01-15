@@ -1,40 +1,11 @@
 'use client'
 import { useState, useEffect } from "react"
-import { PackageIcon, SearchIcon, FilterIcon, ArrowRightIcon, MapPinIcon, ShieldCheckIcon, CalendarIcon, WalletIcon } from "lucide-react"
+import { PackageIcon, SearchIcon, ArrowRightIcon, CalendarIcon, WalletIcon, ShieldCheckIcon, AlertCircleIcon } from "lucide-react"
 import Loading from "@/components/Loading"
 import { useRouter } from "next/navigation"
-import { useSelector, useDispatch } from "react-redux"
-import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
-
-const DUMMY_HISTORY = [
-    {
-        id: "ORD-7721",
-        product: "Solar Power Wall 5kWh",
-        total: 450000,
-        status: "Completed",
-        date: "2024-03-15",
-        deliveryType: "Delivery",
-        method: "Pay Now"
-    },
-    {
-        id: "ORD-6612",
-        product: "Lithium Ion 200Ah",
-        total: 185000,
-        status: "Completed",
-        date: "2024-02-28",
-        deliveryType: "Pickup",
-        method: "Pay Now"
-    },
-    {
-        id: "ORD-9901",
-        product: "Deep Cycle Gel Battery",
-        total: 95000,
-        status: "Cancelled",
-        date: "2024-01-20",
-        deliveryType: "Delivery",
-        method: "Pay on Delivery"
-    }
-]
+import { useDispatch } from "react-redux"
+import { showLoader } from "@/lib/features/ui/uiSlice"
+import { orderDummyData } from "@/assets/assets"
 
 export default function BuyerOrders() {
     const router = useRouter()
@@ -44,11 +15,22 @@ export default function BuyerOrders() {
     const [searchTerm, setSearchTerm] = useState('')
 
     useEffect(() => {
-        // Load active order from localStorage + mix with dummy history
+        // Load active order from localStorage + mix with dummy data from assets
+        // assets.js orderDummyData already contains mock orders with correct structure
+
         const active = localStorage.getItem('active_order')
-        let combined = [...DUMMY_HISTORY]
+        let combined = [...orderDummyData]
+
         if (active) {
-            combined = [JSON.parse(active), ...combined]
+            try {
+                const activeOrder = JSON.parse(active)
+                // Avoid duplicates if active order is already in dummy data
+                if (!combined.find(o => o.id === activeOrder.id)) {
+                    combined = [activeOrder, ...combined]
+                }
+            } catch (e) {
+                console.error("Failed to parse active order", e)
+            }
         }
         setOrders(combined)
 
@@ -64,19 +46,13 @@ export default function BuyerOrders() {
 
     if (loading) return <Loading />
 
-    const filteredOrders = orders.filter(order =>
-        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.product.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-
-    const getStatusColor = (status) => {
-        switch (status.toLowerCase()) {
-            case 'confirmed': return 'bg-blue-50 text-blue-600 border-blue-100'
-            case 'completed': return 'bg-green-50 text-green-600 border-green-100'
-            case 'cancelled': return 'bg-rose-50 text-rose-600 border-rose-100'
-            default: return 'bg-slate-50 text-slate-600 border-slate-100'
-        }
-    }
+    // Safely filter orders
+    const filteredOrders = orders.filter(order => {
+        const orderId = order.id || ''
+        const productName = order.product?.name || 'Unknown Product'
+        const term = searchTerm.toLowerCase()
+        return orderId.toLowerCase().includes(term) || productName.toLowerCase().includes(term)
+    })
 
     return (
         <div className="space-y-10">
@@ -113,17 +89,28 @@ export default function BuyerOrders() {
                                     <PackageIcon size={28} />
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-[#05DF72] mb-1">{order.status}</p>
+                                    <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${order.status === 'COMPLETED' ? 'text-green-500' :
+                                            order.status === 'PICKED_UP' ? 'text-blue-500' :
+                                                'text-amber-500'
+                                        }`}>
+                                        {order.status?.replace('_', ' ') || 'PENDING'}
+                                    </p>
                                     <h3 className="text-xl font-black text-slate-900">{order.id}</h3>
                                 </div>
                             </div>
 
                             {/* Product Info */}
                             <div className="flex-1 space-y-2">
-                                <p className="text-sm font-bold text-slate-900">{order.product}</p>
+                                <p className="text-sm font-bold text-slate-900">{order.product?.name || 'Battery Product'}</p>
                                 <div className="flex items-center gap-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                                    <span className="flex items-center gap-1.5"><CalendarIcon size={12} /> {order.date}</span>
-                                    <span className="flex items-center gap-1.5"><WalletIcon size={12} /> ₦{order.total.toLocaleString()}</span>
+                                    <span className="flex items-center gap-1.5">
+                                        <CalendarIcon size={12} />
+                                        {order.collectionDate || new Date(order.createdAt).toLocaleDateString()}
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                        <WalletIcon size={12} />
+                                        ₦{(order.totalAmount || order.total || 0).toLocaleString()}
+                                    </span>
                                 </div>
                             </div>
 
@@ -131,18 +118,24 @@ export default function BuyerOrders() {
                             <div className="flex items-center justify-between md:justify-end gap-10 md:w-1/3">
                                 <div className="text-right hidden sm:block">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Method</p>
-                                    <p className="text-xs font-black text-slate-900">{order.method} • {order.deliveryType}</p>
+                                    <p className="text-xs font-black text-slate-900">
+                                        {order.paymentMethod || 'Online'} • {order.deliveryType || 'Pickup'}
+                                    </p>
                                 </div>
 
-                                {order.status === 'Confirmed' ? (
-                                    <button
-                                        onClick={() => handleNavigation(`/buyer/track/${order.id}`)}
-                                        className="btn-primary !py-4 !px-8 shadow-lg shadow-[#05DF72]/20 group-hover:scale-105 transition-all flex items-center gap-2"
-                                    >
-                                        Live Track <ArrowRightIcon size={16} />
-                                    </button>
+                                {/* Collection Token Display if Active */}
+                                {order.collectionToken && order.status !== 'COMPLETED' && order.status !== 'PICKED_UP' ? (
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Collection Token</p>
+                                        <p className="text-lg font-black text-[#05DF72] bg-[#05DF72]/10 px-3 py-1 rounded-lg border border-[#05DF72]/20">
+                                            {order.collectionToken}
+                                        </p>
+                                    </div>
                                 ) : (
-                                    <button className="px-8 py-4 bg-slate-50 text-slate-400 font-bold text-xs rounded-xl border border-slate-100 hover:bg-slate-100 transition-all">
+                                    <button
+                                        onClick={() => handleNavigation(`/product/${order.productId || order.product?.id}`)} // Redirect to product/store for now
+                                        className="px-8 py-4 bg-slate-50 text-slate-400 font-bold text-xs rounded-xl border border-slate-100 hover:bg-slate-100 transition-all"
+                                    >
                                         View Details
                                     </button>
                                 )}
@@ -151,7 +144,7 @@ export default function BuyerOrders() {
                     ))
                 ) : (
                     <div className="bg-white rounded-[3rem] p-20 text-center border border-dashed border-slate-200">
-                        <PackageIcon className="mx-auto text-slate-200 mb-6" size={64} />
+                        <AlertCircleIcon className="mx-auto text-slate-200 mb-6" size={64} />
                         <h3 className="text-lg font-black text-slate-900 mb-2">No orders found</h3>
                         <p className="text-sm font-bold text-slate-400 mb-8 max-w-xs mx-auto">We couldn't find any orders matching your criteria.</p>
                         <button

@@ -28,7 +28,7 @@ export const assets = {
     product_img7, product_img8, product_img9, product_img10, product_img11, product_img12,
 }
 
-export const categories = ["Car Battery", "Inverter Battery", "Lithium-Ion", "UPS Battery", "Solar Battery", "Scrap/Recyclable"];
+export const categories = ["Car Battery", "Inverter Battery", "Heavy Duty Battery"];
 
 export const lagosLGAs = [
     "Ikeja", "Surulere", "Alimosho", "Kosofe", "Eti-Osa", "Agege", "Mushin",
@@ -67,54 +67,63 @@ export const dummyStoreData = {
 export const productDummyData = [
     {
         id: "prod_1",
-        name: "Classic Car Battery 12V",
-        description: "Reliable 12V car battery for standard sedans. Tested for performance and durability. Part of our green initiative.",
-        mrp: 50000,
-        price: 35000,
+        name: "Scrap Car Battery 12V",
+        description: "Used 12V car battery suitable for recycling or refurbishment. Good core value.",
+        batteryType: "Car Battery",
+        brand: "Bosch",
+        condition: "SCRAP",
+        unitsAvailable: 5,
+        price: 15000,
         images: [product_img1, product_img2],
-        category: "Car Battery",
         storeId: "store_1",
-        inStock: true,
-        condition: "Used",
-        capacity: "65Ah",
+        sellerId: "user_seller_1",
+        lga: "Ikeja",
+        address: "45 Ikeja Industrial Estate, Near LASUTH",
+        collectionDates: ["2026-01-14", "2026-01-15", "2026-01-16", "2026-01-17"],
+        comments: "Batteries are from fleet vehicles. Good for core exchange programs.",
         store: dummyStoreData,
-        rating: dummyRatingsData,
-        createdAt: 'Sat Jul 29 2025 14:51:25 GMT+0530 (India Standard Time)',
-        updatedAt: 'Sat Jul 29 2025 14:51:25 GMT+0530 (India Standard Time)',
+        createdAt: '2026-01-10T14:51:25.000Z',
+        updatedAt: '2026-01-10T14:51:25.000Z',
     },
     {
         id: "prod_2",
-        name: "Deep Cycle Inverter Battery",
-        description: "High-capacity deep cycle battery for solar and inverter setups. Excellent backup power for homes.",
-        mrp: 120000,
-        price: 95000,
-        images: [product_img2],
+        name: "Scrap Inverter Battery 200Ah",
+        description: "Used deep cycle inverter battery. Cells still hold partial charge. Ideal for recycling.",
+        batteryType: "Inverter Battery",
+        brand: "Luminous",
+        condition: "SCRAP",
+        unitsAvailable: 3,
+        price: 25000,
+        images: [product_img3, product_img4],
         storeId: "store_1",
-        inStock: true,
-        condition: "Used",
-        capacity: "200Ah",
+        sellerId: "user_seller_1",
+        lga: "Lekki",
+        address: "12 Admiralty Way, Lekki Phase 1",
+        collectionDates: ["2026-01-14", "2026-01-15", "2026-01-18"],
+        comments: "From residential inverter systems. Pickup available all listed dates.",
         store: dummyStoreData,
-        category: "Inverter Battery",
-        rating: dummyRatingsData,
-        createdAt: 'Sat Jul 28 2025 14:51:25 GMT+0530 (India Standard Time)',
-        updatedAt: 'Sat Jul 28 2025 14:51:25 GMT+0530 (India Standard Time)',
+        createdAt: '2026-01-09T14:51:25.000Z',
+        updatedAt: '2026-01-09T14:51:25.000Z',
     },
     {
         id: "prod_3",
-        name: "Lithium Scrap Battery Pack",
-        description: "Damaged lithium packs suitable for material recovery and recycling. Price per KG.",
-        mrp: 2000,
-        price: 1500,
-        images: [product_img3],
+        name: "Heavy Duty Truck Battery Pack",
+        description: "Commercial vehicle batteries for scrap. Multiple units available.",
+        batteryType: "Heavy Duty Battery",
+        brand: null,
+        condition: "SCRAP",
+        unitsAvailable: 8,
+        price: 35000,
+        images: [product_img5, product_img6],
         storeId: "store_1",
-        inStock: true,
-        condition: "Scrap",
-        capacity: "N/A",
+        sellerId: "user_seller_1",
+        lga: "Apapa",
+        address: "Wharf Road, Near Tin Can Island Port",
+        collectionDates: ["2026-01-15", "2026-01-16", "2026-01-17", "2026-01-20"],
+        comments: "From logistics fleet. Heavy items - bring appropriate vehicle for pickup.",
         store: dummyStoreData,
-        category: "Scrap/Recyclable",
-        rating: dummyRatingsData,
-        createdAt: 'Sat Jul 27 2025 14:51:25 GMT+0530 (India Standard Time)',
-        updatedAt: 'Sat Jul 27 2025 14:51:25 GMT+0530 (India Standard Time)',
+        createdAt: '2026-01-08T14:51:25.000Z',
+        updatedAt: '2026-01-08T14:51:25.000Z',
     }
 ];
 
@@ -154,20 +163,41 @@ export const dummyUserData = {
 export const orderDummyData = [
     {
         id: "ord_101",
-        total: 35000,
-        status: "PICKED",
-        userId: "user_1",
-        storeId: "store_1",
-        addressId: "addr_1",
+        totalAmount: 15000,
+        status: "COMPLETED",
+        buyerId: "user_buyer_1",
+        sellerId: "user_seller_1",
+        productId: "prod_1",
+        quantity: 1,
+        collectionToken: "GC7XK2M9",
+        collectionDate: "2026-01-14",
         isPaid: true,
         paymentMethod: "Bank Transfer",
-        createdAt: "2025-08-22T09:15:03.929Z",
-        updatedAt: "2025-08-22T09:15:50.723Z",
-        orderItems: [
-            { orderId: "ord_101", productId: "prod_1", quantity: 1, price: 35000, product: productDummyData[0], },
-        ],
-        address: addressDummyData,
-        user: dummyUserData
+        payoutStatus: "released",
+        createdAt: "2026-01-10T09:15:03.929Z",
+        updatedAt: "2026-01-14T12:30:00.000Z",
+        pickedUpAt: "2026-01-14T12:25:00.000Z",
+        completedAt: "2026-01-14T12:30:00.000Z",
+        product: productDummyData[0],
+        buyerAddress: addressDummyData
+    },
+    {
+        id: "ord_102",
+        totalAmount: 25000,
+        status: "AWAITING_PICKUP",
+        buyerId: "user_buyer_1",
+        sellerId: "user_seller_1",
+        productId: "prod_2",
+        quantity: 1,
+        collectionToken: "GC4RT8P2",
+        collectionDate: "2026-01-15",
+        isPaid: true,
+        paymentMethod: "Bank Transfer",
+        payoutStatus: "pending",
+        createdAt: "2026-01-12T10:00:00.000Z",
+        updatedAt: "2026-01-12T10:00:00.000Z",
+        product: productDummyData[1],
+        buyerAddress: addressDummyData
     }
 ]
 
@@ -195,41 +225,59 @@ export const dummyUsers = [
         id: "user_admin",
         name: "Admin Superuser",
         email: "admin@gocycle.com",
+        password: "admin123",
         whatsapp: "+234 900 000 0001",
         role: "ADMIN",
         status: "active",
+        isEmailVerified: true,
+        isPhoneVerified: true,
+        verificationStatus: "verified",
         image: profile_pic1
     },
     {
         id: "user_buyer_1",
         name: "Emeka Obi",
         email: "emeka@example.com",
+        password: "buyer123",
         whatsapp: "+234 809 123 4567",
         role: "BUYER",
         status: "active",
-        lga: "Lekki Phase 1",
-        image: profile_pic1,
-        cart: {}
+        lga: "Eti-Osa",
+        isEmailVerified: true,
+        isPhoneVerified: true,
+        verificationStatus: "verified",
+        verificationMethod: "NIN",
+        bankDetails: {
+            accountNumber: "0123456789",
+            bankName: "GTBank",
+            accountName: "Emeka Obi"
+        },
+        image: profile_pic1
     },
     {
         id: "user_seller_1",
         name: "Adebayo Kola",
         email: "adebayo@ecovolt.com",
+        password: "seller123",
         whatsapp: "+234 801 234 5678",
         role: "SELLER",
         status: "active",
         businessName: "EcoVolt Solutions",
         lga: "Ikeja",
+        isEmailVerified: true,
+        isPhoneVerified: true,
+        verificationStatus: "verified",
+        phoneIntelligence: {
+            registrationAge: "4+ years ago",
+            networkProvider: "MTN",
+            riskLevel: "Low"
+        },
+        bankDetails: {
+            accountNumber: "9876543210",
+            bankName: "Access Bank",
+            accountName: "EcoVolt Solutions"
+        },
         image: profile_pic2
-    },
-    {
-        id: "user_delivery_1",
-        name: "Chidi Logistics",
-        email: "chidi@deliver.com",
-        whatsapp: "+234 700 888 9999",
-        role: "DELIVERY",
-        status: "active",
-        image: profile_pic3
     }
 ];
 
@@ -262,6 +310,14 @@ export const dummyNotifications = [
         createdAt: new Date().toISOString()
     }
 ];
+
+// Simulate blocked dates for the calendar demo
+export const dummyScheduleData = [
+    // Random dates in near future to show as blocked
+    { date: "2026-01-20", slot: "Morning" },
+    { date: "2026-01-22", slot: "Afternoon" },
+    { date: "2026-02-15", slot: "Morning" }
+].map(d => d.date); // For simple blocking logic, just blocking the whole day in demo or specific check
 
 export const dummyAdminDashboardData = {
     "orders": 124,

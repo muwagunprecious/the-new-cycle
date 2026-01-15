@@ -1,15 +1,73 @@
 'use client'
 import { usePathname, useRouter } from "next/navigation"
 import { HomeIcon, ShoppingBagIcon, PackageIcon, SettingsIcon, LogOutIcon, MenuIcon, XIcon, BatteryIcon } from "lucide-react"
-import { useState } from "react"
-import { useDispatch } from "react-redux"
+import { useState, useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
 
 export default function SellerLayout({ children }) {
     const pathname = usePathname()
     const router = useRouter()
     const dispatch = useDispatch()
+    const { user, isLoggedIn } = useSelector((state) => state.auth)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+    const [loading, setLoading] = useState(true)
+
+    // Auth Protection
+    useEffect(() => {
+        // Give time for hydration
+        const checkAuth = async () => {
+            if (!isLoggedIn) {
+                router.push('/login')
+                return
+            }
+
+            // Check store status from DB
+            try {
+                // Determine user ID from Redux if available, or rely on session if we had it. 
+                // Since this is client component, we trust Redux user.id
+                if (!user?.id) return
+
+                const { getUserStoreStatus } = await import("@/backend/actions/auth")
+                const result = await getUserStoreStatus(user.id)
+
+                if (result.success) {
+                    if (!result.exists) {
+                        // No store -> Create one
+                        router.push('/create-store')
+                        return
+                    }
+                    if (result.status === 'pending') {
+                        // Pending -> Go to status page
+                        router.push('/create-store')
+                        return
+                    }
+                    if (result.status === 'rejected' || !result.isActive) {
+                        dispatch(showLoader("Account Suspended"))
+                        setTimeout(() => router.push('/'), 2000)
+                        return
+                    }
+                }
+            } catch (error) {
+                console.error("Auth check failed", error)
+            }
+
+            // Fallback role check
+            if (user?.role !== 'SELLER') {
+                router.push('/create-store')
+                return
+            }
+
+            setLoading(false)
+        }
+
+        if (user) {
+            checkAuth()
+        } else if (!isLoggedIn && !loading) {
+            // If not logged in and not loading (initial state), redirect
+            router.push('/login')
+        }
+    }, [isLoggedIn, user, router])
 
     const sellerLinks = [
         { name: 'Overview', href: '/seller', icon: HomeIcon },
@@ -23,6 +81,14 @@ export default function SellerLayout({ children }) {
         setTimeout(() => {
             router.push(href)
         }, 500)
+    }
+
+    if (loading) {
+        return (
+            <div className="h-screen w-full flex items-center justify-center bg-white">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#05DF72]"></div>
+            </div>
+        )
     }
 
     return (

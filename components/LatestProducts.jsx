@@ -1,27 +1,41 @@
 'use client'
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Title from './Title'
 import ProductCard from './ProductCard'
-import { useSelector } from 'react-redux'
 import { lagosLGAs } from '@/assets/assets'
 import { MapPinIcon, FilterIcon } from 'lucide-react'
+import { getAllProducts } from '@/backend/actions/product'
+import Loading from './Loading'
 
 const LatestProducts = () => {
-    const products = useSelector(state => state.product.list)
+    const [products, setProducts] = useState([])
+    const [loading, setLoading] = useState(true)
     const [selectedLGA, setSelectedLGA] = useState('All')
 
+    useEffect(() => {
+        const fetchProducts = async () => {
+            const result = await getAllProducts()
+            if (result.success) {
+                setProducts(result.products)
+            }
+            setLoading(false)
+        }
+        fetchProducts()
+    }, [])
+
     const filteredProducts = useMemo(() => {
-        let list = products.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        let list = [...products] // Already sorted by backend
+
         if (selectedLGA !== 'All') {
-            // Mock filtering: In a real app, products would have an LGA field.
-            // We'll simulate by filtering based on some dummy logic or just showing how it works.
-            // For now, let's assume some products are in specific LGAs or just filter for demo.
-            return list.filter((_, index) => index % 2 === 0) // Just to show dynamic UI update
+            // Check pickupAddress or store address? Using product.pickupAddress as mostly relevant
+            return list.filter(p => p.pickupAddress && p.pickupAddress.includes(selectedLGA))
         }
         return list
     }, [products, selectedLGA])
 
     const displayQuantity = 8
+
+    if (loading) return <div className="py-20"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#05DF72] mx-auto"></div></div>
 
     return (
         <div className='px-6 my-32 max-w-7xl mx-auto'>
@@ -43,7 +57,7 @@ const LatestProducts = () => {
                             className="bg-transparent text-sm font-medium text-slate-700 outline-none w-full min-w-[150px] cursor-pointer"
                         >
                             <option value="All">All Local Governments</option>
-                            {lagosLGAs.map(lga => (
+                            {lagosLGAs.sort().map(lga => (
                                 <option key={lga} value={lga}>{lga}</option>
                             ))}
                         </select>
@@ -53,13 +67,13 @@ const LatestProducts = () => {
 
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
                 {filteredProducts.slice(0, displayQuantity).map((product, index) => (
-                    <ProductCard key={index} product={product} />
+                    <ProductCard key={product.id || index} product={product} />
                 ))}
             </div>
 
             {filteredProducts.length === 0 && (
                 <div className="text-center py-20 bg-slate-50 rounded-3xl mt-12 border-2 border-dashed border-slate-200">
-                    <p className="text-slate-400 font-medium">No batteries listed in {selectedLGA} yet.</p>
+                    <p className="text-slate-400 font-medium">No verified battery listings available yet.</p>
                 </div>
             )}
         </div>
@@ -67,4 +81,3 @@ const LatestProducts = () => {
 }
 
 export default LatestProducts
-
