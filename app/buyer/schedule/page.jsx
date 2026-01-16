@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CalendarIcon, MapPinIcon, ShieldCheckIcon, AlertCircleIcon, CheckCircleIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -8,7 +8,7 @@ import { dummyScheduleData } from '@/assets/assets'
 import { useDispatch } from 'react-redux'
 import { showLoader, hideLoader } from '@/lib/features/ui/uiSlice'
 
-export default function PickupSchedule() {
+function ScheduleContent() {
     const router = useRouter()
     const dispatch = useDispatch()
     const searchParams = useSearchParams()
@@ -148,5 +148,13 @@ export default function PickupSchedule() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function PickupSchedule() {
+    return (
+        <Suspense fallback={<div className="p-10 text-center">Loading schedule...</div>}>
+            <ScheduleContent />
+        </Suspense>
     )
 }
