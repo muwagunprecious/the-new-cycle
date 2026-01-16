@@ -26,7 +26,8 @@ export async function approveSeller(storeId) {
             where: { id: storeId },
             data: {
                 status: 'approved',
-                isActive: true
+                isActive: true,
+                isVerified: true
             }
         })
 
@@ -46,6 +47,8 @@ export async function approveSeller(storeId) {
         }
 
         revalidatePath('/admin/approve')
+        revalidatePath('/')
+        revalidatePath('/shop')
         return { success: true }
     } catch (error) {
         console.error("Error approving seller:", error)
@@ -63,6 +66,8 @@ export async function rejectSeller(storeId) {
             }
         })
         revalidatePath('/admin/approve')
+        revalidatePath('/')
+        revalidatePath('/shop')
         return { success: true }
     } catch (error) {
         console.error("Error rejecting seller:", error)

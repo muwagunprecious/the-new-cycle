@@ -22,6 +22,11 @@ export async function createProduct(data, userId) {
             return { success: false, error: "No store found for this seller. Please create a store first." }
         }
 
+        // 1.5. Check if store is approved
+        if (store.status !== 'approved' || !store.isActive) {
+            return { success: false, error: "Your store is pending approval. You can only list products once verified by an admin." }
+        }
+
         // 2. Create the product
         const product = await prisma.product.create({
             data: {
@@ -31,7 +36,8 @@ export async function createProduct(data, userId) {
                 price: parseFloat(data.price),
                 images: data.images,
                 category: "Battery", // Default
-                type: data.batteryType,
+                type: data.batteryType === 'Car Battery' ? 'CAR_BATTERY' :
+                    data.batteryType === 'Inverter Battery' ? 'INVERTER_BATTERY' : 'HEAVY_DUTY_BATTERY',
                 brand: data.brand,
                 condition: data.condition || "SCRAP",
                 pickupAddress: data.address,
@@ -45,6 +51,8 @@ export async function createProduct(data, userId) {
 
         revalidatePath('/seller/products')
         revalidatePath('/seller')
+        revalidatePath('/')
+        revalidatePath('/shop')
 
         return { success: true, product }
 
@@ -107,5 +115,61 @@ export async function deleteProduct(productId, userId) {
     } catch (error) {
         console.error("Delete Product Error:", error)
         return { success: false, error: "Failed to delete product" }
+    }
+}
+
+export async function getAllProducts() {
+    try {
+        const products = await prisma.product.findMany({
+            where: {
+                store: {
+                    status: 'approved',
+                    isActive: true
+                }
+            },
+            include: {
+                store: {
+                    select: {
+                        name: true,
+                        address: true,
+                        isVerified: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        })
+
+        return { success: true, products }
+    } catch (error) {
+        console.error("Get All Products Error:", error)
+        return { success: false, error: "Failed to fetch products" }
+    }
+}
+
+export async function getProductById(productId) {
+    try {
+        const product = await prisma.product.findUnique({
+            where: { id: productId },
+            include: {
+                store: {
+                    select: {
+                        name: true,
+                        address: true,
+                        isVerified: true,
+                        logo: true
+                    }
+                }
+            }
+        })
+
+        if (!product) {
+            return { success: false, error: "Product not found" }
+        }
+
+        return { success: true, product }
+
+    } catch (error) {
+        console.error("Get Product By Id Error:", error)
+        return { success: false, error: "Failed to fetch product" }
     }
 }

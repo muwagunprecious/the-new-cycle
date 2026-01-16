@@ -1,7 +1,8 @@
 'use client'
 import { assets, lagosLGAs } from "@/assets/assets"
 import { useEffect, useState } from "react"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
+import { logout } from "@/lib/features/auth/authSlice"
 import { createStoreApplication, getUserStoreStatus } from "@/backend/actions/auth"
 import Image from "next/image"
 import toast from "react-hot-toast"
@@ -10,10 +11,12 @@ import { useRouter } from "next/navigation"
 
 export default function CreateStore() {
     const router = useRouter()
+    const dispatch = useDispatch()
     const [alreadySubmitted, setAlreadySubmitted] = useState(false)
     const [status, setStatus] = useState("")
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState("")
+    const [isSessionInvalid, setIsSessionInvalid] = useState(false)
     const { user, isLoggedIn } = useSelector((state) => state.auth)
 
     const [storeInfo, setStoreInfo] = useState({
@@ -38,18 +41,25 @@ export default function CreateStore() {
         try {
             const result = await getUserStoreStatus(user.id)
 
-            if (result.success && result.exists) {
-                setAlreadySubmitted(true)
-                setStatus(result.status)
-                setMessage(result.status === 'pending'
-                    ? "Your application is currently pending approval. We'll notify you once it's reviewed."
-                    : "Your account is approved! Redirecting...")
+            if (result.success) {
+                if (result.exists) {
+                    setAlreadySubmitted(true)
+                    setStatus(result.status)
+                    setMessage(result.status === 'pending'
+                        ? "Your application is currently pending approval. We'll notify you once it's reviewed."
+                        : "Your account is approved! Redirecting...")
 
-                if (result.status === 'active' || result.status === 'approved') { // Handle both just in case
-                    setTimeout(() => router.push('/seller'), 3000)
+                    if (result.status === 'active' || result.status === 'approved') {
+                        setTimeout(() => router.push('/seller'), 3000)
+                    }
+                } else {
+                    setAlreadySubmitted(false)
                 }
             } else {
-                setAlreadySubmitted(false)
+                if (result.error && result.error.includes("Session invalid")) {
+                    setIsSessionInvalid(true)
+                }
+                toast.error(result.error || "Failed to fetch status")
             }
         } catch (error) {
             console.error(error)
@@ -70,6 +80,9 @@ export default function CreateStore() {
         try {
             const result = await createStoreApplication(storeInfo, user.id)
             if (!result.success) {
+                if (result.error.includes("Session invalid")) {
+                    setIsSessionInvalid(true)
+                }
                 throw new Error(result.error)
             }
 
@@ -82,6 +95,11 @@ export default function CreateStore() {
             console.error(error)
             toast.error(error.message || "Something went wrong")
         }
+    }
+
+    const handleLogoutAndRestart = () => {
+        dispatch(logout())
+        router.push('/signup')
     }
 
     useEffect(() => {
@@ -102,6 +120,15 @@ export default function CreateStore() {
                             <h1 className="text-3xl text-slate-900 font-bold mb-2">Sell on <span className="text-[#05DF72]">GoCycle</span></h1>
                             <p className="text-slate-500">Join our circular-economy marketplace. Submit your vendor details below.</p>
                         </div>
+
+                        {isSessionInvalid && (
+                            <div className="bg-rose-50 border border-rose-200 p-6 rounded-2xl flex flex-col items-center gap-4 text-center">
+                                <p className="text-rose-600 font-bold">Session Invalid: Your account was reset during database maintenance.</p>
+                                <button type="button" onClick={handleLogoutAndRestart} className="bg-rose-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-rose-700 transition-colors">
+                                    Logout & Start Fresh
+                                </button>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="flex flex-col gap-2">

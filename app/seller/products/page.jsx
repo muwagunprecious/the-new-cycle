@@ -1,13 +1,14 @@
 'use client'
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { PlusIcon, SearchIcon, Edit3Icon, TrashIcon, BatteryIcon, ImageIcon, XIcon, CalendarIcon, MapPinIcon, BoxIcon } from "lucide-react"
+import { PlusIcon, SearchIcon, Edit3Icon, TrashIcon, BatteryIcon, ImageIcon, XIcon, CalendarIcon, MapPinIcon, BoxIcon, AlertCircleIcon } from "lucide-react"
 import { lagosLGAs } from "@/assets/assets"
 import toast from "react-hot-toast"
 import { useDispatch, useSelector } from "react-redux"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "@/components/Button"
 import { createProduct, getSellerProducts, deleteProduct as deleteProductAction } from "@/backend/actions/product"
+import { getUserStoreStatus } from "@/backend/actions/auth"
 import { CONSTANTS } from "@/lib/mockService"
 
 export default function SellerProducts() {
@@ -17,6 +18,7 @@ export default function SellerProducts() {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const [products, setProducts] = useState([])
     const [isLoading, setIsLoading] = useState(false)
+    const [storeInfo, setStoreInfo] = useState({ status: null, isActive: false })
 
     // Get minimum date (24h from now)
     const getMinDate = () => {
@@ -51,6 +53,13 @@ export default function SellerProducts() {
     useEffect(() => {
         if (user) {
             loadProducts()
+            const checkStatus = async () => {
+                const res = await getUserStoreStatus(user.id)
+                if (res.success && res.exists) {
+                    setStoreInfo({ status: res.status, isActive: res.isActive })
+                }
+            }
+            checkStatus()
         }
     }, [user])
 
@@ -194,11 +203,23 @@ export default function SellerProducts() {
                     <h1 className="text-2xl font-bold text-slate-900">My <span className="text-[#05DF72]">Inventory</span></h1>
                     <p className="text-slate-500 mt-1">Manage your battery listings and stock levels.</p>
                 </div>
-                <button onClick={() => setIsUploadModalOpen(true)} className="btn-primary">
+                <button
+                    disabled={storeInfo.status !== 'approved'}
+                    onClick={() => setIsUploadModalOpen(true)}
+                    className={`btn-primary ${storeInfo.status !== 'approved' ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                >
                     <PlusIcon size={18} />
-                    List New Battery
+                    {storeInfo.status === 'pending' ? 'Verification Pending' :
+                        storeInfo.status === 'approved' ? 'List New Battery' : 'Listing Disabled'}
                 </button>
             </div>
+
+            {storeInfo.status && storeInfo.status !== 'approved' && (
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center gap-3 text-amber-700 text-sm font-medium">
+                    <AlertCircleIcon size={20} className="shrink-0" />
+                    <p>Your seller account is currently {storeInfo.status}. Please wait for admin approval before you can list products.</p>
+                </div>
+            )}
 
             <div className="card bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
                 <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">

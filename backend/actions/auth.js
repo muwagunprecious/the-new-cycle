@@ -143,6 +143,12 @@ export async function createStoreApplication(storeData, userId) {
 
 export async function getUserStoreStatus(userId) {
     try {
+        // Verify user exists (handling stale sessions after db wipe)
+        const userExists = await prisma.user.findUnique({ where: { id: userId } })
+        if (!userExists) {
+            return { success: false, error: "Session invalid: Your account was reset. Please Logout and Sign Up again." }
+        }
+
         const store = await prisma.store.findUnique({
             where: { userId }
         })

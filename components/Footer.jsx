@@ -63,9 +63,9 @@ const Footer = () => {
                             ))}
                         </div>
                     </div>
-                    <div className="flex flex-wrap justify-between w-full md:w-[45%] gap-5 text-sm ">
+                    <div className="flex flex-wrap justify-between w-full md:w-[45%] gap-5 text-sm " suppressHydrationWarning>
                         {linkSections.map((section, index) => (
-                            <div key={index}>
+                            <div key={index} suppressHydrationWarning>
                                 <h3 className="font-medium text-slate-700 md:mb-5 mb-3">{section.title}</h3>
                                 <ul className="space-y-2.5">
                                     {section.links.map((link, i) => (

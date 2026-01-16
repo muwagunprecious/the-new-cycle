@@ -5,23 +5,36 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
+import { getProductById } from "@/backend/actions/product";
+
 export default function Product() {
 
     const { productId } = useParams();
     const [product, setProduct] = useState();
     const products = useSelector(state => state.product.list);
 
-    const fetchProduct = async () => {
-        const product = products.find((product) => product.id === productId);
-        setProduct(product);
-    }
-
     useEffect(() => {
-        if (products.length > 0) {
-            fetchProduct()
+        const loadProduct = async () => {
+            // 1. Try to find in Redux first (instant)
+            const cachedProduct = products.find((p) => p.id === productId);
+
+            if (cachedProduct) {
+                setProduct(cachedProduct);
+            } else {
+                // 2. Fallback to server fetch
+                const res = await getProductById(productId);
+                if (res.success) {
+                    setProduct(res.product);
+                }
+            }
         }
+
+        if (productId) {
+            loadProduct()
+        }
+
         scrollTo(0, 0)
-    }, [productId,products]);
+    }, [productId, products]);
 
     return (
         <div className="mx-6">

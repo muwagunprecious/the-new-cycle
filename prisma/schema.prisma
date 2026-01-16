@@ -44,6 +44,8 @@ model User {
     Address     Address[]
     store       Store?
     buyerOrders Order[]   @relation("BuyerRelation")
+
+    @@map("users")
 }
 
 enum OrderStatus {
@@ -70,6 +72,7 @@ model OrderItem {
     product Product @relation(fields: [productId], references: [id])
 
     @@id([orderId, productId])
+    @@map("OrderItem")
 }
 
 // Required for creating a Rating: rating, review, userId, productId
@@ -88,6 +91,7 @@ model Rating {
     product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
     @@unique([userId, productId, orderId])
+    @@map("Rating")
 }
 
 // Required for creating an Address: userId, name, email, street, city, state, zip, country, phone
@@ -160,6 +164,8 @@ model Store {
     Product Product[]
     Order   Order[]
     user    User      @relation(fields: [userId], references: [id])
+
+    @@map("Store")
 }
 
 // Required for creating a Product: ... + type, brand, condition, dates, pickupAddress, quantity
@@ -189,6 +195,8 @@ model Product {
     store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
     orderItems OrderItem[]
     rating     Rating[]
+
+    @@map("Product")
 }
 
 // Required for creating an Order: ... + pickupToken, pickupStatus
