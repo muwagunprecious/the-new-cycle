@@ -1,48 +1,91 @@
 'use client'
-import { useState } from "react"
+import { useState, Suspense, useEffect } from "react"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/lib/features/auth/authSlice"
-import { mockAuthService, mockVerificationService, mockNotificationService } from "@/lib/mockService"
-import { useRouter } from "next/navigation"
-import { ShieldCheckIcon, UserIcon, MailIcon, LockIcon, PhoneIcon, UserCircleIcon, BriefcaseIcon, BuildingIcon, CheckCircle2Icon, AlertCircleIcon, LoaderIcon } from "lucide-react"
+import { registerUser, loginUser, verifyOTP } from "@/backend/actions/auth"
+import { useRouter, useSearchParams } from "next/navigation"
+import { ShieldCheckIcon, UserIcon, MailIcon, LockIcon, PhoneIcon, CheckCircle2Icon, LoaderIcon, BuildingIcon } from "lucide-react"
 import Link from "next/link"
-import { addNotification } from "@/lib/features/notification/notificationSlice"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "@/components/Button"
 
-export default function SignupPage() {
+function SignupContent() {
     const dispatch = useDispatch()
     const router = useRouter()
+    const searchParams = useSearchParams()
+
+    const redirect = searchParams.get('redirect')
+    const roleParam = searchParams.get('role') || 'BUYER'
 
     const [isLoading, setIsLoading] = useState(false)
     const [step, setStep] = useState('REGISTER') // REGISTER | VERIFY_EMAIL | VERIFY_PHONE | COMPLETE
     const [otp, setOtp] = useState('')
-    const [phoneData, setPhoneData] = useState(null)
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
-        whatsapp: '',
-        role: 'BUYER',
+        whatsapp: '+234 ',
+        role: roleParam,
         businessName: ''
     })
 
+    // Sync role with URL parameters
+    useEffect(() => {
+        if (roleParam) {
+            setFormData(prev => ({ ...prev, role: roleParam }))
+        }
+    }, [roleParam])
+
+    const formatWhatsApp = (value) => {
+        // Strip everything but numbers
+        const numbers = value.replace(/\D/g, '')
+
+        // Keep 234 as prefix
+        let suffix = numbers.startsWith('234') ? numbers.slice(3) : numbers
+
+        // Max 10 digits for the suffix
+        const cleanSuffix = suffix.slice(0, 10)
+
+        // Build the formatted string: +234 XXX-XXXX-XXX
+        let res = '+234 '
+        if (cleanSuffix.length > 0) {
+            res += cleanSuffix.slice(0, 3)
+        }
+        if (cleanSuffix.length > 3) {
+            res += '-' + cleanSuffix.slice(3, 7)
+        }
+        if (cleanSuffix.length > 7) {
+            res += '-' + cleanSuffix.slice(7, 10)
+        }
+
+        return res
+    }
+
+    const handleWhatsAppChange = (e) => {
+        const formatted = formatWhatsApp(e.target.value)
+        setFormData({ ...formData, whatsapp: formatted })
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
+
+        // Validate WhatsApp number length (must have 10 digits after +234)
+        const digits = formData.whatsapp.replace(/\D/g, '')
+        if (digits.length !== 13) { // 234 + 10 digits
+            return toast.error("Please enter a valid 10-digit WhatsApp number after +234")
+        }
+
         setIsLoading(true)
         dispatch(showLoader("Creating your account..."))
 
         try {
-            // Register with mock service
-            const result = await mockAuthService.register(formData)
+            // Register with real server action
+            const result = await registerUser(formData)
 
             if (!result.success) {
                 throw new Error(result.error)
             }
-
-            // Send email verification OTP
-            await mockVerificationService.sendEmailOTP(formData.email)
 
             dispatch(hideLoader())
             setIsLoading(false)
@@ -64,17 +107,17 @@ export default function SignupPage() {
         dispatch(showLoader("Verifying email..."))
 
         try {
-            const res = await mockVerificationService.verifyEmailOTP(formData.email, otp)
+            const res = await verifyOTP(formData.email, otp, 'EMAIL')
             if (res.success) {
-                // Check phone intelligence
-                dispatch(showLoader("Checking phone..."))
-                const phoneCheck = await mockVerificationService.checkPhoneIntelligence(formData.whatsapp)
-                setPhoneData(phoneCheck.data)
+                // For MVP, we'll mark phone as verified too during this "Mock OTP" demo
+                await verifyOTP(formData.email, otp, 'PHONE')
 
                 dispatch(hideLoader())
                 setIsLoading(false)
-                setStep('VERIFY_PHONE')
-                toast.success("Email verified!")
+                toast.success("Account verified!")
+
+                // Automatically login
+                handleAutoLogin()
             } else {
                 throw new Error(res.error)
             }
@@ -85,37 +128,22 @@ export default function SignupPage() {
         }
     }
 
-    const handleContinueAfterPhone = async () => {
+    const handleAutoLogin = async () => {
         setIsLoading(true)
-        dispatch(showLoader("Completing registration..."))
+        dispatch(showLoader("Signing you in..."))
 
         try {
-            // Login with mock service
-            const loginResult = await mockAuthService.login(formData.email, formData.password)
+            const loginResult = await loginUser(formData.email, formData.password)
 
             if (loginResult.success) {
-                // Update user with verification data
-                await mockAuthService.updateUserVerification(loginResult.user.id, {
-                    isEmailVerified: true,
-                    isPhoneVerified: true,
-                    phoneIntelligence: phoneData
-                })
-
-                // Trigger welcome notification
-                await mockNotificationService.triggerWelcome(loginResult.user.id, formData.name)
-
-                dispatch(setCredentials({
-                    ...loginResult.user,
-                    isEmailVerified: true,
-                    isPhoneVerified: true,
-                    phoneIntelligence: phoneData
-                }))
-
+                dispatch(setCredentials(loginResult.user))
                 dispatch(hideLoader())
                 toast.success(`Welcome to GoCycle, ${formData.name}!`)
 
-                // Redirect based on role
-                if (formData.role === 'BUYER') {
+                // Redirect based on role or param
+                if (redirect) {
+                    router.push(redirect)
+                } else if (formData.role === 'BUYER') {
                     router.push('/buyer')
                 } else {
                     router.push('/seller')
@@ -125,15 +153,7 @@ export default function SignupPage() {
             dispatch(hideLoader())
             setIsLoading(false)
             toast.error(error.message)
-        }
-    }
-
-    const getRiskLevelColor = (level) => {
-        switch (level) {
-            case 'Low': return 'text-green-600 bg-green-50'
-            case 'Medium': return 'text-yellow-600 bg-yellow-50'
-            case 'High': return 'text-red-600 bg-red-50'
-            default: return 'text-slate-600 bg-slate-50'
+            router.push('/login')
         }
     }
 
@@ -145,13 +165,11 @@ export default function SignupPage() {
                         <div className="flex items-center gap-2 text-[#05DF72] mb-2 font-black uppercase tracking-widest text-[10px]">
                             <ShieldCheckIcon size={16} />
                             {step === 'REGISTER' && 'Secure Registration'}
-                            {step === 'VERIFY_EMAIL' && 'Email Verification'}
-                            {step === 'VERIFY_PHONE' && 'Phone Verification'}
+                            {step === 'VERIFY_EMAIL' && 'Account Verification'}
                         </div>
                         <h1 className="text-4xl font-black">
                             {step === 'REGISTER' && <>Join <span className="text-[#05DF72]">GoCycle</span></>}
-                            {step === 'VERIFY_EMAIL' && <>Verify <span className="text-[#05DF72]">Email</span></>}
-                            {step === 'VERIFY_PHONE' && <>Phone <span className="text-[#05DF72]">Check</span></>}
+                            {step === 'VERIFY_EMAIL' && <>Verify <span className="text-[#05DF72]">Account</span></>}
                         </h1>
                     </div>
                     <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 bg-[#05DF72]/10 rounded-full blur-[80px]"></div>
@@ -164,14 +182,14 @@ export default function SignupPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="relative">
                                     <span className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">
-                                        {formData.role === 'SELLER' ? 'Business Name' : 'Full Name'}
+                                        Full Name
                                     </span>
                                     <div className="relative">
                                         <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                         <input
                                             required
                                             type="text"
-                                            placeholder={formData.role === 'SELLER' ? "EcoVolt Solutions" : "John Doe"}
+                                            placeholder="John Doe"
                                             className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -180,22 +198,17 @@ export default function SignupPage() {
                                 </div>
 
                                 <div className="relative">
-                                    <span className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">Account Type</span>
-                                    <div className="flex bg-slate-50 p-1 rounded-2xl">
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, role: 'BUYER' })}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${formData.role === 'BUYER' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-                                        >
-                                            <UserCircleIcon size={16} /> Buyer
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, role: 'SELLER' })}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${formData.role === 'SELLER' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-                                        >
-                                            <BriefcaseIcon size={16} /> Seller
-                                        </button>
+                                    <span className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">WhatsApp Number</span>
+                                    <div className="relative">
+                                        <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input
+                                            required
+                                            type="tel"
+                                            placeholder="+234 803-0818-868"
+                                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-mono font-bold"
+                                            value={formData.whatsapp}
+                                            onChange={handleWhatsAppChange}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -203,11 +216,10 @@ export default function SignupPage() {
                             {/* Business Name for Sellers */}
                             {formData.role === 'SELLER' && (
                                 <div className="relative animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <span className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">Business/Store Name</span>
+                                    <span className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">Business Name (Optional)</span>
                                     <div className="relative">
                                         <BuildingIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                         <input
-                                            required
                                             type="text"
                                             placeholder="Your business name"
                                             className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
@@ -234,21 +246,6 @@ export default function SignupPage() {
                             </div>
 
                             <div className="relative">
-                                <span className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">WhatsApp Number</span>
-                                <div className="relative">
-                                    <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                    <input
-                                        required
-                                        type="tel"
-                                        placeholder="+234 801 234 5678"
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
-                                        value={formData.whatsapp}
-                                        onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="relative">
                                 <span className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">Create Password</span>
                                 <div className="relative">
                                     <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -269,8 +266,29 @@ export default function SignupPage() {
                                 loadingText="Creating account..."
                                 className="w-full !py-5 shadow-2xl shadow-[#05DF72]/20 mt-4"
                             >
-                                Create {formData.role.charAt(0) + formData.role.slice(1).toLowerCase()} Account
+                                {formData.role === 'SELLER' ? 'Create Seller Account' : 'Create Account'}
                             </Button>
+
+                            {formData.role !== 'SELLER' && (
+                                <div className="bg-slate-50 p-6 rounded-3xl mt-8 border border-slate-100 flex flex-col items-center gap-2 text-center">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Are you a seller?</p>
+                                    <p className="text-[10px] text-slate-400 mb-2">Join our circular economy and start earning from scrap batteries.</p>
+                                    <Link
+                                        href="/signup?role=SELLER&redirect=/create-store"
+                                        className="text-xs font-black text-white bg-slate-900 px-6 py-3 rounded-xl hover:bg-[#05DF72] transition-all"
+                                    >
+                                        Signup to Sell Here
+                                    </Link>
+                                </div>
+                            )}
+
+                            {formData.role === 'SELLER' && (
+                                <div className="text-center mt-8">
+                                    <Link href="/signup?role=BUYER" className="text-xs font-bold text-slate-400 hover:text-[#05DF72] transition-colors">
+                                        ← Switch to Buyer Signup
+                                    </Link>
+                                </div>
+                            )}
 
                             <p className="text-center text-sm text-slate-400 font-medium mt-6">
                                 Already have an account? <Link href="/login" className="text-[#05DF72] font-black hover:underline ml-1">Sign In</Link>
@@ -278,18 +296,18 @@ export default function SignupPage() {
                         </form>
                     )}
 
-                    {/* Step 2: Email Verification */}
+                    {/* Account Verification Step remains the same */}
                     {step === 'VERIFY_EMAIL' && (
                         <form className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-300" onSubmit={handleVerifyEmail}>
                             <div className="text-center">
                                 <div className="w-16 h-16 bg-[#05DF72]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <MailIcon className="text-[#05DF72]" size={28} />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900">Check Your Email</h3>
+                                <h3 className="text-xl font-bold text-slate-900">Verify Your Account</h3>
                                 <p className="text-sm text-slate-500 mt-2">
-                                    We sent a verification code to <span className="font-semibold">{formData.email}</span>
+                                    Enter the code sent to <span className="font-semibold">{formData.email}</span>
                                 </p>
-                                <p className="text-xs text-slate-400 mt-1">(Demo: use code <span className="font-mono bg-slate-100 px-2 py-0.5 rounded">123456</span>)</p>
+                                <p className="text-xs text-slate-400 mt-1 font-bold">(Demo: use code <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-900">123456</span>)</p>
                             </div>
 
                             <div className="flex justify-center">
@@ -309,7 +327,7 @@ export default function SignupPage() {
                                 loadingText="Verifying..."
                                 className="w-full !py-5 shadow-xl shadow-[#05DF72]/20"
                             >
-                                Verify Email
+                                Verify & Continue
                             </Button>
 
                             <button
@@ -321,53 +339,16 @@ export default function SignupPage() {
                             </button>
                         </form>
                     )}
-
-                    {/* Step 3: Phone Intelligence Check Results */}
-                    {step === 'VERIFY_PHONE' && phoneData && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-300">
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-[#05DF72]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircle2Icon className="text-[#05DF72]" size={28} />
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-900">Phone Verified</h3>
-                                <p className="text-sm text-slate-500 mt-2">Your WhatsApp number has been validated</p>
-                            </div>
-
-                            {/* Phone Intelligence Display */}
-                            <div className="bg-slate-50 rounded-2xl p-6 space-y-4">
-                                <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-                                    <span className="text-xs font-bold uppercase text-slate-400">Phone Number</span>
-                                    <span className="text-sm font-semibold text-slate-900">{formData.whatsapp}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-xs font-bold uppercase text-slate-400">Network Provider</span>
-                                    <span className="text-sm font-semibold text-slate-900">{phoneData.networkProvider}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-xs font-bold uppercase text-slate-400">Registration Age</span>
-                                    <span className="text-sm font-semibold text-green-600">{phoneData.registrationAge}</span>
-                                </div>
-                                <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-                                    <span className="text-xs font-bold uppercase text-slate-400">Risk Level</span>
-                                    <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full ${getRiskLevelColor(phoneData.riskLevel)}`}>
-                                        {phoneData.riskLevel}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <Button
-                                type="button"
-                                onClick={handleContinueAfterPhone}
-                                loading={isLoading}
-                                loadingText="Completing..."
-                                className="w-full !py-5 shadow-xl shadow-[#05DF72]/20"
-                            >
-                                Continue to Dashboard
-                            </Button>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function SignupPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><LoaderIcon className="animate-spin text-[#05DF72]" size={48} /></div>}>
+            <SignupContent />
+        </Suspense>
     )
 }

@@ -1,18 +1,20 @@
 'use client'
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/lib/features/auth/authSlice"
 import { loginUser } from "@/backend/actions/auth"
-import { useRouter } from "next/navigation"
-import { ShieldCheckIcon, MailIcon, LockIcon } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { ShieldCheckIcon, MailIcon, LockIcon, LoaderIcon } from "lucide-react"
 import Link from "next/link"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "@/components/Button"
 
-export default function LoginPage() {
+function LoginContent() {
     const dispatch = useDispatch()
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const redirect = searchParams.get('redirect')
 
     const [isLoading, setIsLoading] = useState(false)
     const [formData, setFormData] = useState({
@@ -34,9 +36,6 @@ export default function LoginPage() {
             }
 
             if (result.requiresVerification) {
-                // If backend says unverified, maybe redirect to an OTP page?
-                // For now, let's just warn them or handle if it's the admin flow.
-                // But admin is now verified.
                 toast("Please check your email/phone to verify your account.", { icon: "⚠️" })
             }
 
@@ -46,9 +45,10 @@ export default function LoginPage() {
             setIsLoading(false)
             toast.success("Logged in successfully!")
 
-            // Redirect based on role
+            // Redirect based on param or role
             const user = result.user
-            if (user.role === 'ADMIN') router.push('/admin')
+            if (redirect) router.push(redirect)
+            else if (user.role === 'ADMIN') router.push('/admin')
             else if (user.role === 'SELLER') router.push('/seller')
             else router.push('/buyer')
 
@@ -60,7 +60,7 @@ export default function LoginPage() {
     }
 
     const demoAccounts = [
-        { email: 'admin@gocycle.com', password: 'admin123', label: 'Admin' },
+        { email: 'admin@gmail.com', password: 'admin123', label: 'Admin' },
         { email: 'adebayo@ecovolt.com', password: 'seller123', label: 'Seller' },
         { email: 'emeka@example.com', password: 'buyer123', label: 'Buyer' }
     ]
@@ -71,7 +71,7 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-            <div className="bg-white rounded-[3rem] w-full max-w-md shadow-2xl overflow-hidden border border-slate-100">
+            <div className="bg-white rounded-[3rem] w-full max-md shadow-2xl overflow-hidden border border-slate-100">
                 <div className="bg-slate-900 p-10 text-white relative h-48 flex flex-col justify-end">
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 text-[#05DF72] mb-2 font-black uppercase tracking-widest text-[10px]">
@@ -123,7 +123,7 @@ export default function LoginPage() {
                     </Button>
 
                     <p className="text-center text-sm text-slate-400 font-medium mt-6">
-                        Don't have an account? <Link href="/signup" className="text-[#05DF72] font-black hover:underline ml-1">Create One</Link>
+                        Don't have an account? <Link href={`/signup${redirect ? `?redirect=${redirect}` : ''}`} className="text-[#05DF72] font-black hover:underline ml-1">Create One</Link>
                     </p>
 
                     <div className="mt-8 pt-8 border-t border-slate-100">
@@ -143,12 +143,17 @@ export default function LoginPage() {
                                 </button>
                             ))}
                         </div>
-                        <p className="text-[9px] text-slate-400 text-center mt-3">
-                            Click to auto-fill credentials
-                        </p>
                     </div>
                 </form>
             </div>
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><LoaderIcon className="animate-spin text-[#05DF72]" size={48} /></div>}>
+            <LoginContent />
+        </Suspense>
     )
 }

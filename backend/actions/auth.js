@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs"
 
 export async function registerUser(userData) {
     try {
-        const { name, email, password, role, whatsapp } = userData
+        const { name, email, password, role, whatsapp, businessName } = userData
 
         // Check if user exists
         const userExists = await prisma.user.findUnique({
@@ -45,6 +45,27 @@ export async function registerUser(userData) {
                 // Ideally, store in Redis or a VerificationToken table.
             }
         })
+
+        // If user is a seller, auto-create a pending store application
+        if (role === 'SELLER') {
+            const finalBusinessName = (businessName && businessName.trim()) || `${name}'s Store`
+            const username = finalBusinessName.toLowerCase().replace(/\s/g, '_') + "_" + Math.random().toString(36).substr(2, 4)
+
+            await prisma.store.create({
+                data: {
+                    name: finalBusinessName,
+                    username: username,
+                    description: "Battery Vendor",
+                    address: "To be updated",
+                    email: email,
+                    contact: whatsapp || "",
+                    logo: "",
+                    status: "pending",
+                    isActive: false,
+                    userId: user.id
+                }
+            })
+        }
 
         // Mock sending
         // sendEmail(email, emailOtp)

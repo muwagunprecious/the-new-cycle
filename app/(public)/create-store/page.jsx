@@ -73,7 +73,7 @@ export default function CreateStore() {
 
         if (!isLoggedIn || !user) {
             toast.error("You must be logged in to apply.")
-            router.push('/login')
+            router.push('/login?redirect=/create-store')
             return
         }
 
