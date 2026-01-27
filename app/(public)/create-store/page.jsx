@@ -117,8 +117,8 @@ export default function CreateStore() {
                     <form onSubmit={e => toast.promise(onSubmitHandler(e), { loading: "Submitting application...", success: "Submitted!", error: "Failed to submit" })} className="bg-white p-10 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-6">
                         {/* Title */}
                         <div className="mb-6">
-                            <h1 className="text-3xl text-slate-900 font-bold mb-2">Sell on <span className="text-[#05DF72]">GoCycle</span></h1>
-                            <p className="text-slate-500">Join our circular-economy marketplace. Submit your vendor details below.</p>
+                            <h1 className="text-3xl text-slate-900 font-bold mb-2">Become a Seller on <span className="text-[#05DF72]">GoCycle</span></h1>
+                            <p className="text-slate-500">Provide your business details below to start selling.</p>
                         </div>
 
                         {isSessionInvalid && (
@@ -137,8 +137,8 @@ export default function CreateStore() {
                             </div>
 
                             <div className="flex flex-col gap-2">
-                                <label className="text-sm font-medium text-slate-700">Business / Vendor Name</label>
-                                <input required name="businessName" onChange={onChangeHandler} value={storeInfo.businessName} type="text" placeholder="Enter business name" className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all" />
+                                <label className="text-sm font-medium text-slate-700">Business Name</label>
+                                <input required name="businessName" onChange={onChangeHandler} value={storeInfo.businessName} type="text" placeholder="Your business identity" className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all" />
                             </div>
 
                             <div className="flex flex-col gap-2">
