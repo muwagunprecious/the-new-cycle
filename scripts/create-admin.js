@@ -10,6 +10,15 @@ async function main() {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
+    console.log("Connecting to database...")
+    try {
+        await prisma.$connect()
+        console.log("Connected! seeding admin...")
+    } catch (err) {
+        console.error("Explicit connect failed:", err)
+        throw err;
+    }
+
     const user = await prisma.user.upsert({
         where: { email: email },
         update: {

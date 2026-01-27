@@ -184,6 +184,7 @@ model Product {
     
     collectionDateStart DateTime 
     collectionDateEnd   DateTime 
+    collectionDates     String[]
     quantity    Int         @default(1)
 
     inStock     Boolean  @default(true)

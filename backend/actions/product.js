@@ -4,10 +4,14 @@ import prisma from "@/backend/lib/prisma"
 import { revalidatePath } from "next/cache"
 
 export async function createProduct(data, userId) {
+    const startTime = Date.now()
     try {
-        console.log("Creating product for user:", userId)
-
-        // 1. Get the store for this user
+        console.log("SERVER: Creating product for user:", userId)
+        console.log("SERVER: Data keys:", Object.keys(data))
+        if (data.images) {
+            console.log("SERVER: Number of images:", data.images.length)
+            console.log("SERVER: Estimated images size:", JSON.stringify(data.images).length)
+        }
         const store = await prisma.store.findUnique({
             where: { userId }
         })
@@ -43,6 +47,7 @@ export async function createProduct(data, userId) {
                 pickupAddress: data.address,
                 collectionDateStart: new Date(data.collectionDates[0]),
                 collectionDateEnd: new Date(data.collectionDates[data.collectionDates.length - 1]),
+                collectionDates: data.collectionDates,
                 quantity: parseInt(data.unitsAvailable),
                 storeId: store.id,
                 inStock: true
@@ -50,14 +55,17 @@ export async function createProduct(data, userId) {
         })
 
         revalidatePath('/seller/products')
-        revalidatePath('/seller')
-        revalidatePath('/')
-        revalidatePath('/shop')
+        // revalidatePath('/seller')
+        // revalidatePath('/')
+        // revalidatePath('/shop')
+
+        const duration = (Date.now() - startTime) / 1000
+        console.log(`SERVER: Product created successfully in ${duration}s. ID: ${product.id}`)
 
         return { success: true, product }
 
     } catch (error) {
-        console.error("Create Product Error:", error)
+        console.error("SERVER: Create Product Error:", error)
         return { success: false, error: "Failed to create product: " + error.message }
     }
 }
@@ -77,7 +85,15 @@ export async function getSellerProducts(userId) {
             orderBy: { createdAt: 'desc' }
         })
 
-        return { success: true, products }
+        // Hydrate products for frontend compatibility
+        const hydratedProducts = products.map(p => ({
+            ...p,
+            unitsAvailable: p.quantity,
+            batteryType: p.type === 'CAR_BATTERY' ? 'Car Battery' :
+                p.type === 'INVERTER_BATTERY' ? 'Inverter Battery' : 'Heavy Duty Battery'
+        }))
+
+        return { success: true, products: hydratedProducts }
 
     } catch (error) {
         console.error("Get Seller Products Error:", error)
@@ -139,7 +155,15 @@ export async function getAllProducts() {
             orderBy: { createdAt: 'desc' }
         })
 
-        return { success: true, products }
+        // Hydrate products for frontend compatibility
+        const hydratedProducts = products.map(p => ({
+            ...p,
+            unitsAvailable: p.quantity,
+            batteryType: p.type === 'CAR_BATTERY' ? 'Car Battery' :
+                p.type === 'INVERTER_BATTERY' ? 'Inverter Battery' : 'Heavy Duty Battery'
+        }))
+
+        return { success: true, products: hydratedProducts }
     } catch (error) {
         console.error("Get All Products Error:", error)
         return { success: false, error: "Failed to fetch products" }
@@ -166,7 +190,15 @@ export async function getProductById(productId) {
             return { success: false, error: "Product not found" }
         }
 
-        return { success: true, product }
+        // Hydrate product for frontend compatibility
+        const hydratedProduct = {
+            ...product,
+            unitsAvailable: product.quantity,
+            batteryType: product.type === 'CAR_BATTERY' ? 'Car Battery' :
+                product.type === 'INVERTER_BATTERY' ? 'Inverter Battery' : 'Heavy Duty Battery'
+        }
+
+        return { success: true, product: hydratedProduct }
 
     } catch (error) {
         console.error("Get Product By Id Error:", error)

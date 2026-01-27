@@ -106,18 +106,28 @@ export async function verifyOTP(email, code, type = 'EMAIL') {
 export async function createStoreApplication(storeData, userId) {
     try {
         // Check if store exists for user
-        const existingStore = await prisma.store.findUnique({
+        const existingStoreWithUserId = await prisma.store.findUnique({
             where: { userId }
         })
 
-        if (existingStore) {
-            return { success: false, error: "User already has a store application" }
+        if (existingStoreWithUserId) {
+            return { success: false, error: "You have already submitted a store application." }
         }
 
         // Verify user exists (handling stale sessions after db wipe)
         const userExists = await prisma.user.findUnique({ where: { id: userId } })
         if (!userExists) {
             return { success: false, error: "Session invalid: Your account was reset. Please Logout and Sign Up again." }
+        }
+
+        // Generate username and check for duplicates
+        const username = storeData.businessName.toLowerCase().replace(/\s/g, '_')
+        const existingStoreWithUsername = await prisma.store.findUnique({
+            where: { username }
+        })
+
+        if (existingStoreWithUsername) {
+            return { success: false, error: "This business name is already taken. Please try a slightly different name." }
         }
 
         const store = await prisma.store.create({
@@ -127,7 +137,7 @@ export async function createStoreApplication(storeData, userId) {
                 address: storeData.address,
                 userId: userId,
                 email: storeData.email,
-                username: storeData.businessName.toLowerCase().replace(/\s/g, '_'), // specific to schema
+                username: username,
                 contact: storeData.phone,
                 logo: "", // Handle image upload later
                 status: 'pending',
@@ -137,7 +147,11 @@ export async function createStoreApplication(storeData, userId) {
         return { success: true, store }
     } catch (error) {
         console.error("Create Store Error:", error)
-        return { success: false, error: "Store application failed" }
+        if (error.code === 'P2002') {
+            const field = error.meta?.target?.[0] || 'field'
+            return { success: false, error: `A store with this ${field} already exists.` }
+        }
+        return { success: false, error: "Store application failed: " + error.message }
     }
 }
 
@@ -165,12 +179,19 @@ export async function getUserStoreStatus(userId) {
 
 export async function approveStore(userId) {
     try {
-        await prisma.store.update({
-            where: { userId },
-            data: { status: 'approved', isActive: true }
-        })
+        await prisma.$transaction([
+            prisma.store.update({
+                where: { userId },
+                data: { status: 'approved', isActive: true }
+            }),
+            prisma.user.update({
+                where: { id: userId },
+                data: { role: 'SELLER' }
+            })
+        ])
         return { success: true }
     } catch (error) {
+        console.error("Approval logic failed:", error)
         return { success: false, error: "Approval failed" }
     }
 }
