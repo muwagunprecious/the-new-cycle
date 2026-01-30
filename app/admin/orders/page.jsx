@@ -1,56 +1,39 @@
 'use client'
 import { useState } from "react"
-import { SearchIcon, FilterIcon, EyeIcon, TruckIcon, CalendarIcon, MessageSquareIcon } from "lucide-react"
+import { SearchIcon, FilterIcon, EyeIcon, TruckIcon, CalendarIcon, MessageSquareIcon, XCircleIcon } from "lucide-react"
+import { getAllOrders } from "@/backend/actions/order"
+import { useEffect } from "react"
+import Loading from "@/components/Loading"
 
 export default function OrderManagement() {
-    const [orders, setOrders] = useState([
-        {
-            id: "ORD-7721",
-            buyer: "Emeka Obi",
-            vendor: "EcoVolt Solutions",
-            items: ["Car Battery 12V (x1)"],
-            total: "₦35,000",
-            status: "Picked",
-            date: "2023-12-15",
-            pickupDate: "2023-12-16",
-            payment: "Bank Transfer"
-        },
-        {
-            id: "ORD-8812",
-            buyer: "Chioma Azikiwe",
-            vendor: "PowerCell Ltd",
-            items: ["Lithium Scrap (10kg)"],
-            total: "₦15,000",
-            status: "Pending",
-            date: "2023-12-18",
-            pickupDate: "2023-12-20",
-            payment: "COD"
-        },
-        {
-            id: "ORD-9901",
-            buyer: "John Smith",
-            vendor: "EcoVolt Solutions",
-            items: ["Inverter Battery (x2)"],
-            total: "₦190,000",
-            status: "Approved",
-            date: "2023-12-17",
-            pickupDate: "2023-12-19",
-            payment: "Wallet"
-        },
-    ])
+    const [orders, setOrders] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            const res = await getAllOrders()
+            if (res.success) {
+                setOrders(res.data)
+            }
+            setLoading(false)
+        }
+        fetchOrders()
+    }, [])
 
     const [selectedOrder, setSelectedOrder] = useState(null)
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Pending': return 'status-pending';
-            case 'Approved': return 'status-approved';
-            case 'Picked': return 'status-picked';
-            case 'In Transit': return 'status-transit';
-            case 'Completed': return 'status-completed';
-            default: return '';
+            case 'ORDER_PLACED': return 'status-pending';
+            case 'APPROVED': return 'status-approved';
+            case 'PICKED_UP': return 'status-picked';
+            case 'IN_TRANSIT': return 'status-transit';
+            case 'COMPLETED': return 'status-completed';
+            default: return 'status-pending';
         }
     }
+
+    if (loading) return <Loading />
 
     return (
         <div className="p-6">
@@ -94,14 +77,14 @@ export default function OrderManagement() {
                                     <td className="px-6 py-4 font-medium text-slate-900">{order.id}</td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-medium text-slate-800">{order.buyer}</span>
-                                            <span className="text-xs text-[#05DF72]">Seller: {order.vendor}</span>
+                                            <span className="text-sm font-medium text-slate-800">{order.user?.name || 'Unknown Buyer'}</span>
+                                            <span className="text-xs text-[#05DF72]">Seller ID: {order.storeId}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col text-sm">
-                                            <span className="text-slate-500 truncate max-w-[200px]">{order.items.join(", ")}</span>
-                                            <span className="font-bold text-slate-900 mt-0.5">{order.total}</span>
+                                            <span className="text-slate-500 truncate max-w-[200px]">{order.orderItems?.map(i => i.product?.name).join(', ') || 'Battery Order'}</span>
+                                            <span className="font-bold text-slate-900 mt-0.5">₦{(order.total || 0).toLocaleString()}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -111,7 +94,7 @@ export default function OrderManagement() {
                                             </span>
                                             <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
                                                 <CalendarIcon size={12} />
-                                                Pickup: {order.pickupDate}
+                                                Pickup: {order.collectionDate || 'Pending'}
                                             </div>
                                         </div>
                                     </td>
@@ -150,14 +133,14 @@ export default function OrderManagement() {
                             <div className="grid grid-cols-2 gap-8">
                                 <div>
                                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Buyer Information</h3>
-                                    <p className="text-slate-900 font-medium">{selectedOrder.buyer}</p>
-                                    <p className="text-sm text-slate-500">Address: 12 Admiralty Way, Lekki</p>
+                                    <p className="text-slate-900 font-medium">{selectedOrder.user?.name || 'Unknown'}</p>
+                                    <p className="text-sm text-slate-500">Email: {selectedOrder.user?.email || 'N/A'}</p>
                                 </div>
                                 <div>
                                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vendor Information</h3>
-                                    <p className="text-slate-900 font-medium">{selectedOrder.vendor}</p>
+                                    <p className="text-slate-900 font-medium">{selectedOrder.store?.name || selectedOrder.storeId}</p>
                                     <div className="mt-2 inline-flex items-center gap-2 px-2 py-1 bg-[#05DF72]/10 text-[#05DF72] rounded text-[10px] font-bold">
-                                        VERIFIED VENDOR
+                                        {(selectedOrder.store?.isVerified || true) ? 'VERIFIED VENDOR' : 'PENDING VERIFICATION'}
                                     </div>
                                 </div>
                             </div>

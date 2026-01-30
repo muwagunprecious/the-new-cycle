@@ -40,10 +40,11 @@ model User {
     businessToken   String?
     
     // Relations
-    ratings     Rating[]
-    Address     Address[]
-    store       Store?
-    buyerOrders Order[]   @relation("BuyerRelation")
+    ratings       Rating[]
+    Address       Address[]
+    store         Store?
+    buyerOrders   Order[]        @relation("BuyerRelation")
+    notifications Notification[]
 
     @@map("users")
 }
@@ -207,6 +208,7 @@ model Order {
     status        OrderStatus   @default(ORDER_PLACED)
     pickupStatus  PickupStatus  @default(PENDING) // New
     pickupToken   String?       // 6-digit code generated on purchase
+    payoutStatus  String        @default("none") // none, pending, released
     
     userId        String
     storeId       String
@@ -224,3 +226,18 @@ model Order {
     store   Store   @relation(fields: [storeId], references: [id])
     address Address @relation(fields: [addressId], references: [id])
 }
+
+model Notification {
+    id        String   @id @default(cuid())
+    userId    String
+    title     String
+    message   String
+    type      String // e.g., "ORDER", "PAYMENT", "SYSTEM"
+    status    String @default("unread") // unread, read
+    createdAt DateTime @default(now())
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("Notification")
+}
+

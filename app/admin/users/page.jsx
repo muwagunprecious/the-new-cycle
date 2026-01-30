@@ -2,31 +2,49 @@
 import { useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { toggleUserStatus } from "@/lib/features/auth/authSlice"
-import { SearchIcon, UserPlusIcon, MoreVerticalIcon, PhoneIcon, MailIcon, ShieldCheckIcon, BanIcon, CheckCircle2Icon } from "lucide-react"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
+import { useEffect } from "react"
+import { getAllUsers, banUser } from "@/backend/actions/admin"
+import Loading from "@/components/Loading"
 
 export default function UserManagement() {
     const dispatch = useDispatch()
-    const { users } = useSelector(state => state.auth)
+    const [dbUsers, setDbUsers] = useState([])
+    const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
 
-    const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const res = await getAllUsers()
+            if (res.success) {
+                setDbUsers(res.data)
+            }
+            setLoading(false)
+        }
+        fetchUsers()
+    }, [])
+
+    const filteredUsers = dbUsers.filter(user =>
+        (user.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (user.email?.toLowerCase() || "").includes(searchTerm.toLowerCase())
     )
 
-    const handleToggleStatus = (userId, name) => {
-        const user = users.find(u => u.id === userId)
-        const isBanning = user.status === 'active'
+    const handleToggleStatus = async (userId, name) => {
+        const user = dbUsers.find(u => u.id === userId)
+        const isBanning = user.status === 'active' || !user.status
 
         dispatch(showLoader(isBanning ? `Banning ${name}...` : `Restoring ${name}...`))
 
-        setTimeout(() => {
-            dispatch(toggleUserStatus({ userId }))
-            dispatch(hideLoader())
+        const res = await banUser(userId, isBanning)
+        dispatch(hideLoader())
+
+        if (res.success) {
+            setDbUsers(prev => prev.map(u => u.id === userId ? { ...u, status: isBanning ? 'banned' : 'active' } : u))
             toast.success(`${name} has been ${isBanning ? 'banned' : 'restored'}`)
-        }, 1200)
+        } else {
+            toast.error(res.error || "Failed to update status")
+        }
     }
 
     return (
@@ -98,9 +116,9 @@ export default function UserManagement() {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${user.status === 'active' ? 'bg-[#05DF72] animate-pulse' : 'bg-rose-500'}`}></div>
-                                            <span className={`text-[10px] font-black uppercase tracking-widest ${user.status === 'active' ? 'text-[#05DF72]' : 'text-rose-500'}`}>
-                                                {user.status}
+                                            <div className={`w-2 h-2 rounded-full ${(user.status === 'active' || !user.status) ? 'bg-[#05DF72] animate-pulse' : 'bg-rose-500'}`}></div>
+                                            <span className={`text-[10px] font-black uppercase tracking-widest ${(user.status === 'active' || !user.status) ? 'text-[#05DF72]' : 'text-rose-500'}`}>
+                                                {user.status || 'active'}
                                             </span>
                                         </div>
                                     </td>
@@ -108,12 +126,12 @@ export default function UserManagement() {
                                         <button
                                             disabled={user.role === 'ADMIN'}
                                             onClick={() => handleToggleStatus(user.id, user.name)}
-                                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${user.status === 'active'
+                                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${(user.status === 'active' || !user.status)
                                                 ? 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
                                                 : 'bg-[#05DF72]/10 text-[#05DF72] hover:bg-[#05DF72] hover:text-white'
                                                 } disabled:opacity-30 disabled:cursor-not-allowed`}
                                         >
-                                            {user.status === 'active' ? <><BanIcon size={14} /> Ban Access</> : <><CheckCircle2Icon size={14} /> Restore</>}
+                                            {(user.status === 'active' || !user.status) ? <><BanIcon size={14} /> Ban Access</> : <><CheckCircle2Icon size={14} /> Restore</>}
                                         </button>
                                     </td>
                                 </tr>

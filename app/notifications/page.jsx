@@ -1,15 +1,35 @@
 'use client'
 import { useSelector, useDispatch } from "react-redux"
-import { markAsRead, markAllAsRead } from "@/lib/features/notification/notificationSlice"
+import { useState, useEffect } from "react"
+import { markAsRead, markAllAsRead, addNotification } from "@/lib/features/notification/notificationSlice"
 import { BellIcon, CheckIcon, TrashIcon, InfoIcon, ShieldAlertIcon, PackageIcon } from "lucide-react"
+import { getNotifications, markNotificationAsRead } from "@/backend/actions/notification"
+import Loading from "@/components/Loading"
 
 export default function NotificationsPage() {
     const notifications = useSelector(state => state.notifications.list)
     const { user } = useSelector(state => state.auth)
+    const [loading, setLoading] = useState(true)
+    const [realNotifications, setRealNotifications] = useState([])
     const dispatch = useDispatch()
 
-    // Filter notifications for the current user
-    const userNotifications = notifications.filter(n => n.userId === user?.id || n.userId === 'all')
+    useEffect(() => {
+        const load = async () => {
+            if (user?.id) {
+                const result = await getNotifications(user.id)
+                if (result.success) {
+                    setRealNotifications(result.data)
+                }
+            }
+            setLoading(false)
+        }
+        load()
+    }, [user])
+
+    const handleMarkAsRead = async (notifId) => {
+        await markNotificationAsRead(notifId)
+        setRealNotifications(prev => prev.map(n => n.id === notifId ? { ...n, status: 'read' } : n))
+    }
 
     const getIcon = (type) => {
         switch (type) {
@@ -28,14 +48,14 @@ export default function NotificationsPage() {
                         <h1 className="text-4xl font-black text-slate-900 leading-tight">Your <span className="text-[#05DF72]">Alerts</span></h1>
                         <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mt-1">Real-time system updates</p>
                     </div>
-                    <button onClick={() => dispatch(markAllAsRead())} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
+                    <button onClick={() => { }} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
                         Mark all as read
                     </button>
                 </div>
 
                 <div className="space-y-4">
-                    {userNotifications.length > 0 ? userNotifications.map((notif) => (
-                        <div key={notif.id} onClick={() => dispatch(markAsRead({ id: notif.id }))}
+                    {loading ? <Loading /> : realNotifications.length > 0 ? realNotifications.map((notif) => (
+                        <div key={notif.id} onClick={() => handleMarkAsRead(notif.id)}
                             className={`p-6 rounded-[2rem] border transition-all cursor-pointer flex items-start gap-5 ${notif.status === 'unread' ? 'bg-white border-[#05DF72]/20 shadow-xl shadow-[#05DF72]/5' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
                             <div className={`p-3 rounded-2xl ${notif.status === 'unread' ? 'bg-[#05DF72]/10' : 'bg-slate-200/50'}`}>
                                 {getIcon(notif.type)}

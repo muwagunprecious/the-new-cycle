@@ -1,19 +1,42 @@
 'use client'
 import { useState } from "react"
-import { SearchIcon, CalendarIcon, TruckIcon, CheckCircle2Icon, AlertCircleIcon, XIcon } from "lucide-react"
-import toast from "react-hot-toast"
+import { getSellerOrders, updateOrderStatus } from "@/backend/actions/order"
+import { useSelector } from "react-redux"
+import { useEffect } from "react"
+import Loading from "@/components/Loading"
 
 export default function SellerOrders() {
-    const [orders, setOrders] = useState([
-        { id: "ORD-9901", buyer: "John Smith", amount: "₦190,000", status: "Approved", date: "2023-12-17", pickup: "2023-12-19", items: "Inverter Battery (x2)" },
-        { id: "ORD-7721", buyer: "Emeka Obi", amount: "₦35,000", status: "Picked", date: "2023-12-15", pickup: "2023-12-16", items: "Car Battery 12V (x1)" },
-        { id: "ORD-1102", buyer: "Sarah Usman", amount: "₦15,000", status: "Pending", date: "2023-12-18", pickup: "2023-12-21", items: "Lithium Scrap (10kg)" },
-    ])
+    const { user } = useSelector(state => state.auth)
+    const [orders, setOrders] = useState([])
+    const [loading, setLoading] = useState(true)
 
-    const updateStatus = (id, newStatus) => {
-        setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o))
-        toast.success(`Order ${newStatus.toLowerCase()}`)
+    useEffect(() => {
+        if (user?.id) {
+            fetchOrders()
+        } else {
+            setLoading(false)
+        }
+    }, [user])
+
+    const fetchOrders = async () => {
+        const res = await getSellerOrders(user.id)
+        if (res.success) {
+            setOrders(res.orders)
+        }
+        setLoading(false)
     }
+
+    const updateStatus = async (id, newStatus) => {
+        const res = await updateOrderStatus(id, newStatus)
+        if (res.success) {
+            setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o))
+            toast.success(`Order ${newStatus.toLowerCase().replace('_', ' ')}`)
+        } else {
+            toast.error(res.error || "Failed to update status")
+        }
+    }
+
+    if (loading) return <Loading />
 
     return (
         <div className="space-y-8">
@@ -36,34 +59,37 @@ export default function SellerOrders() {
                                         {order.status}
                                     </span>
                                 </div>
-                                <p className="text-sm font-medium text-slate-600 line-clamp-1">{order.items}</p>
+                                <p className="text-sm font-medium text-slate-600 line-clamp-1">{order.orderItems?.map(item => item.product?.name).join(', ') || 'Battery Order'}</p>
                                 <div className="flex items-center gap-4 text-xs text-slate-400 mt-2">
                                     <div className="flex items-center gap-1">
                                         <CalendarIcon size={14} />
-                                        Ordered: {order.date}
+                                        Ordered: {new Date(order.createdAt).toLocaleDateString()}
                                     </div>
                                     <div className="flex items-center gap-1 text-[#05DF72] font-semibold">
                                         <TruckIcon size={14} />
-                                        Pickup: {order.pickup}
+                                        Pickup: {order.collectionDate || 'Pending Selection'}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0">
-                            <span className="text-xl font-bold text-slate-900">{order.amount}</span>
+                            <span className="text-xl font-bold text-slate-900">₦{(order.total || 0).toLocaleString()}</span>
                             <div className="flex gap-2 w-full md:w-auto mt-2">
-                                {order.status === 'Pending' && (
+                                {(order.status === 'ORDER_PLACED' || order.status === 'PAID') && (
                                     <>
-                                        <button onClick={() => updateStatus(order.id, 'Approved')} className="flex-1 md:flex-none btn-primary !py-2 !px-4 text-sm">Accept Order</button>
+                                        <button onClick={() => updateStatus(order.id, 'APPROVED')} className="flex-1 md:flex-none btn-primary !py-2 !px-4 text-sm">Accept Order</button>
                                         <button className="flex-1 md:flex-none px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-500 hover:bg-slate-50">Reschedule</button>
                                     </>
                                 )}
-                                {order.status === 'Approved' && (
-                                    <button onClick={() => updateStatus(order.id, 'Picked')} className="flex-1 md:flex-none bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Mark as Picked</button>
+                                {order.status === 'APPROVED' && (
+                                    <button onClick={() => updateStatus(order.id, 'PICKED_UP')} className="flex-1 md:flex-none bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Mark as Picked</button>
                                 )}
-                                {order.status === 'Picked' && (
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Awaiting Delivery Hub</span>
+                                {order.status === 'PICKED_UP' && (
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Awaiting Verification</span>
+                                )}
+                                {order.status === 'COMPLETED' && (
+                                    <span className="text-xs font-bold text-green-500 uppercase tracking-widest">Order Completed</span>
                                 )}
                             </div>
                         </div>

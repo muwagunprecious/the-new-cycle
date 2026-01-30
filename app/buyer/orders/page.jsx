@@ -3,39 +3,33 @@ import { useState, useEffect } from "react"
 import { PackageIcon, SearchIcon, ArrowRightIcon, CalendarIcon, WalletIcon, ShieldCheckIcon, AlertCircleIcon } from "lucide-react"
 import Loading from "@/components/Loading"
 import { useRouter } from "next/navigation"
-import { useDispatch } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
-import { orderDummyData } from "@/assets/assets"
+import { getUserOrders } from "@/backend/actions/order"
 
 export default function BuyerOrders() {
     const router = useRouter()
     const dispatch = useDispatch()
+    const { user } = useSelector(state => state.auth)
     const [loading, setLoading] = useState(true)
     const [orders, setOrders] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
 
     useEffect(() => {
-        // Load active order from localStorage + mix with dummy data from assets
-        // assets.js orderDummyData already contains mock orders with correct structure
-
-        const active = localStorage.getItem('active_order')
-        let combined = [...orderDummyData]
-
-        if (active) {
-            try {
-                const activeOrder = JSON.parse(active)
-                // Avoid duplicates if active order is already in dummy data
-                if (!combined.find(o => o.id === activeOrder.id)) {
-                    combined = [activeOrder, ...combined]
-                }
-            } catch (e) {
-                console.error("Failed to parse active order", e)
-            }
+        if (user?.id) {
+            fetchOrders()
+        } else {
+            setLoading(false)
         }
-        setOrders(combined)
+    }, [user])
 
-        setTimeout(() => setLoading(false), 800)
-    }, [])
+    const fetchOrders = async () => {
+        const res = await getUserOrders(user.id)
+        if (res.success) {
+            setOrders(res.data)
+        }
+        setLoading(false)
+    }
 
     const handleNavigation = (href, message = "Loading tracking details...") => {
         dispatch(showLoader(message))
@@ -49,7 +43,7 @@ export default function BuyerOrders() {
     // Safely filter orders
     const filteredOrders = orders.filter(order => {
         const orderId = order.id || ''
-        const productName = order.product?.name || 'Unknown Product'
+        const productName = order.orderItems?.map(i => i.product?.name).join(', ') || 'Battery Product'
         const term = searchTerm.toLowerCase()
         return orderId.toLowerCase().includes(term) || productName.toLowerCase().includes(term)
     })
@@ -90,18 +84,18 @@ export default function BuyerOrders() {
                                 </div>
                                 <div className="space-y-1">
                                     <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${order.status === 'COMPLETED' ? 'text-green-500' :
-                                            order.status === 'PICKED_UP' ? 'text-blue-500' :
-                                                'text-amber-500'
+                                        order.status === 'PICKED_UP' ? 'text-blue-500' :
+                                            'text-amber-500'
                                         }`}>
                                         {order.status?.replace('_', ' ') || 'PENDING'}
                                     </p>
-                                    <h3 className="text-xl font-black text-slate-900">{order.id}</h3>
+                                    <h3 className="text-sm font-black text-slate-900">{order.id}</h3>
                                 </div>
                             </div>
 
                             {/* Product Info */}
                             <div className="flex-1 space-y-2">
-                                <p className="text-sm font-bold text-slate-900">{order.product?.name || 'Battery Product'}</p>
+                                <p className="text-sm font-bold text-slate-900">{order.orderItems?.map(i => i.product?.name).join(', ') || 'Battery Product'}</p>
                                 <div className="flex items-center gap-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">
                                     <span className="flex items-center gap-1.5">
                                         <CalendarIcon size={12} />
@@ -109,7 +103,7 @@ export default function BuyerOrders() {
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <WalletIcon size={12} />
-                                        ₦{(order.totalAmount || order.total || 0).toLocaleString()}
+                                        ₦{(order.total || 0).toLocaleString()}
                                     </span>
                                 </div>
                             </div>
@@ -133,7 +127,7 @@ export default function BuyerOrders() {
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={() => handleNavigation(`/product/${order.productId || order.product?.id}`)} // Redirect to product/store for now
+                                        onClick={() => handleNavigation(`/product/${order.orderItems?.[0]?.productId || ''}`)}
                                         className="px-8 py-4 bg-slate-50 text-slate-400 font-bold text-xs rounded-xl border border-slate-100 hover:bg-slate-100 transition-all"
                                     >
                                         View Details

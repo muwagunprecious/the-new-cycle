@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "./Button"
 import { mockOrderService, mockPaymentService, mockNotificationService } from "@/lib/mockService"
+import { createOrder } from "@/backend/actions/order"
 
 /**
  * CheckoutModal - Demo payment flow for battery purchase
@@ -51,10 +52,11 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                 return
             }
 
-            // Step 2: Create order with collection token
-            const orderResult = await mockOrderService.createOrder({
+
+            // Step 2: Create order with collection token (REAL ACTION)
+            const result = await createOrder({
                 buyerId: user?.id,
-                sellerId: product.sellerId,
+                sellerId: product.userId || product.sellerId,
                 productId: product.id,
                 quantity,
                 totalAmount,
@@ -62,24 +64,14 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                 paymentReference: paymentResult.reference
             })
 
-            if (orderResult.success) {
-                setOrderResult(orderResult)
-
-                // Step 3: Send notifications
-                await mockNotificationService.triggerPaymentSuccess(user?.id, orderResult.order.id, totalAmount)
-
-                // Notify seller
-                if (product.sellerId) {
-                    await mockNotificationService.createNotification({
-                        userId: product.sellerId,
-                        title: "New Order Received!",
-                        message: `You have a new order for ${product.name}. Collection: ${selectedDate}`,
-                        type: "ORDER"
-                    })
-                }
-
+            if (result.success) {
+                setOrderResult({
+                    ...result.order,
+                    collectionToken: result.collectionToken
+                })
                 setStep('SUCCESS')
             } else {
+                toast.error(result.error || "Failed to create order")
                 setStep('FAILED')
             }
         } catch (error) {

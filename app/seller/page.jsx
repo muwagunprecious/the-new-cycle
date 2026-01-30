@@ -91,10 +91,10 @@ export default function SellerOverview() {
 
     if (loading) return <Loading />
 
-    const pendingOrders = orders.filter(o => o.status === 'AWAITING_PICKUP' || o.status === 'PAID')
+    const pendingOrders = orders.filter(o => o.status === 'AWAITING_PICKUP' || o.status === 'PAID' || o.status === 'ORDER_PLACED')
     const completedOrders = orders.filter(o => o.status === 'COMPLETED' || o.status === 'PICKED_UP')
-    const totalEarnings = completedOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0)
-    const pendingPayouts = orders.filter(o => o.payoutStatus === 'pending').reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+    const totalEarnings = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0)
+    const pendingPayouts = orders.filter(o => o.payoutStatus === 'pending').reduce((sum, o) => sum + (o.total || 0), 0)
 
     const stats = [
         { label: 'Listed Batteries', value: data.totalProducts, icon: BatteryIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
@@ -230,7 +230,7 @@ export default function SellerOverview() {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-black text-slate-900">₦{(order.totalAmount || 0).toLocaleString()}</p>
+                                        <p className="font-black text-slate-900">₦{(order.total || 0).toLocaleString()}</p>
                                         <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full mt-2 inline-block ${getStatusBadge(order.status)}`}>
                                             {order.status?.replace('_', ' ')}
                                         </span>

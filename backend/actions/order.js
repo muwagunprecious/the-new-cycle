@@ -1,6 +1,86 @@
 'use server'
 import prisma from "@/backend/lib/prisma"
+import { createNotification } from "./notification"
+import { revalidatePath } from "next/cache"
 
+export async function createOrder(orderData) {
+    try {
+        const { buyerId, sellerId, productId, quantity, totalAmount, collectionDate, paymentReference } = orderData
+
+        // Generate collection token
+        const collectionToken = Math.floor(100000 + Math.random() * 900000).toString()
+
+        // Get store of the seller
+        const store = await prisma.store.findUnique({
+            where: { userId: sellerId }
+        })
+
+        if (!store) {
+            return { success: false, error: "Seller store not found" }
+        }
+
+        const order = await prisma.order.create({
+            data: {
+                total: totalAmount,
+                status: 'ORDER_PLACED',
+                pickupStatus: 'PENDING',
+                pickupToken: collectionToken,
+                userId: buyerId,
+                storeId: store.id,
+                isPaid: true,
+                paymentMethod: 'STRIPE', // Mocked as Stripe
+                addressId: "temp_address_id", // Placeholder as address selection is mock
+                orderItems: {
+                    create: [
+                        {
+                            productId: productId,
+                            quantity: quantity,
+                            price: totalAmount / quantity
+                        }
+                    ]
+                }
+            },
+            include: {
+                user: true,
+                store: true
+            }
+        })
+
+        // Notify Seller
+        await createNotification(
+            sellerId,
+            "New Order Received!",
+            `You have a new order for ${quantity} battery(s). Total: ₦${totalAmount.toLocaleString()}`,
+            "ORDER"
+        )
+
+        // Notify Admin
+        const admins = await prisma.user.findMany({
+            where: { role: 'ADMIN' }
+        })
+
+        for (const admin of admins) {
+            await createNotification(
+                admin.id,
+                "New Platform Sale",
+                `A new order has been placed on the platform. Total: ₦${totalAmount.toLocaleString()}`,
+                "ORDER"
+            )
+        }
+
+        revalidatePath('/buyer/orders')
+        revalidatePath('/seller/orders')
+        revalidatePath('/admin/orders')
+        revalidatePath('/admin')
+        revalidatePath('/seller')
+        revalidatePath('/notifications')
+
+        return { success: true, order, collectionToken }
+    } catch (error) {
+        console.error("Create Order Error:", error)
+        return { success: false, error: "Failed to create order" }
+    }
+}
 
 export async function getUserOrders(userId) {
     try {
@@ -63,26 +143,24 @@ export async function getSellerOrders(userId) {
     }
 }
 
-export async function updateOrderStatus(orderId, status) {
-    try {
-        const order = await prisma.order.update({
-            where: { id: orderId },
-            data: {
-                status: status,
-                // If completing, maybe update payout status logic?
-                // Keeping it simple for now as per minimal requirement
-            }
-        })
-
-        // If pickup is verified (status changed to PICKED_UP), we might want to set pickedUpAt etc.
-        // But for now, we just map the ENUM.
-
-        return { success: true, order }
-    } catch (error) {
-        console.error("Update Order Status Error:", error)
-
-        return { success: false, error: "Failed to update order status" }
+const order = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+        status: status,
     }
+})
+
+revalidatePath('/seller/orders')
+revalidatePath('/admin/orders')
+revalidatePath('/buyer/orders')
+revalidatePath('/admin')
+revalidatePath('/seller')
+return { success: true, order }
+    } catch (error) {
+    console.error("Update Order Status Error:", error)
+
+    return { success: false, error: "Failed to update order status" }
+}
 }
 
 export async function verifyOrderCollection(orderId, token) {
@@ -107,9 +185,36 @@ export async function verifyOrderCollection(orderId, token) {
             }
         })
 
+        revalidatePath('/seller/orders')
+        revalidatePath('/admin/orders')
+        revalidatePath('/buyer/orders')
+        revalidatePath('/admin')
+        revalidatePath('/seller')
         return { success: true, order: updatedOrder }
     } catch (error) {
         console.error("Verify Collection Error:", error)
         return { success: false, error: "Verification failed" }
     }
 }
+
+export async function getAllOrders() {
+    try {
+        const orders = await prisma.order.findMany({
+            include: {
+                user: true,
+                store: true,
+                orderItems: {
+                    include: {
+                        product: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        })
+        return { success: true, data: orders }
+    } catch (error) {
+        console.error("Get All Orders Error:", error)
+        return { success: false, error: "Failed to fetch all orders" }
+    }
+}
+

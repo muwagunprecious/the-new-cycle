@@ -6,6 +6,9 @@ import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { mockAdminService, mockNotificationService } from "@/lib/mockService"
 import Button from "@/components/Button"
+import { getPendingSellers, approveSeller, rejectSeller, getAllUsers, banUser, releasePayout } from "@/backend/actions/admin"
+import { getAllOrders } from "@/backend/actions/order"
+import { getAllProducts } from "@/backend/actions/product"
 
 export default function AdminDashboard() {
     const currency = '₦'
@@ -33,40 +36,55 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         const fetchData = async () => {
-            // Load users
-            setUsers(dummyUsers)
-            // Load orders
-            setOrders(orderDummyData)
-            // Load products
-            setProducts(productDummyData)
+            setLoading(true)
+            try {
+                const [usersRes, ordersRes, productsRes] = await Promise.all([
+                    getAllUsers(),
+                    getAllOrders(),
+                    getAllProducts()
+                ])
 
-            // Calculate dashboard stats
-            const verifiedCount = dummyUsers.filter(u => u.verificationStatus === 'verified').length
-            const pendingPayouts = orderDummyData
-                .filter(o => o.status === 'COMPLETED' && o.payoutStatus === 'pending')
-                .reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+                const usersData = usersRes.success ? usersRes.data : []
+                const ordersData = ordersRes.success ? ordersRes.data : []
+                const productsData = productsRes.success ? productsRes.products : []
 
-            setDashboardData({
-                products: productDummyData.length,
-                revenue: orderDummyData.reduce((sum, o) => sum + (o.totalAmount || 0), 0),
-                orders: orderDummyData.length,
-                stores: dummyUsers.filter(u => u.role === 'SELLER').length,
-                pendingPayouts,
-                verifiedUsers: verifiedCount,
-                unverifiedUsers: dummyUsers.length - verifiedCount
-            })
+                setUsers(usersData)
+                setOrders(ordersData)
+                setProducts(productsData)
 
-            setLoading(false)
+                // Calculate dashboard stats
+                const verifiedCount = usersData.filter(u => u.isEmailVerified || u.verificationStatus === 'verified').length
+                const revenue = ordersData.reduce((sum, o) => sum + (o.total || 0), 0)
+                const pendingPayouts = ordersData
+                    .filter(o => o.status === 'COMPLETED' && o.payoutStatus === 'pending')
+                    .reduce((sum, o) => sum + (o.total || 0), 0)
+
+                setDashboardData({
+                    products: productsData.length,
+                    revenue: revenue,
+                    orders: ordersData.length,
+                    stores: usersData.filter(u => u.role === 'SELLER').length,
+                    pendingPayouts,
+                    verifiedUsers: verifiedCount,
+                    unverifiedUsers: usersData.length - verifiedCount
+                })
+            } catch (error) {
+                console.error("Dashboard Fetch Error:", error)
+            } finally {
+                setLoading(false)
+            }
         }
         fetchData()
     }, [])
 
     const handleBanUser = async (userId, currentStatus) => {
         const newStatus = currentStatus === 'active' ? 'banned' : 'active'
-        const result = await mockAdminService.banUser(userId, newStatus === 'banned')
+        const result = await banUser(userId, newStatus === 'banned')
         if (result.success) {
             setUsers(users.map(u => u.id === userId ? { ...u, status: newStatus } : u))
             toast.success(`User ${newStatus === 'banned' ? 'banned' : 'unbanned'} successfully`)
+        } else {
+            toast.error(result.error || "Failed to update user status")
         }
     }
 
@@ -78,24 +96,35 @@ export default function AdminDashboard() {
         }
 
         setSendingNotification(true)
-        const result = await mockAdminService.sendNotification(
-            notificationForm.userId,
-            notificationForm.title,
-            notificationForm.message
-        )
-        setSendingNotification(false)
+        try {
+            const { createNotification } = await import("@/backend/actions/notification")
+            const result = await createNotification(
+                notificationForm.userId,
+                notificationForm.title,
+                notificationForm.message,
+                "SYSTEM"
+            )
 
-        if (result.success) {
-            toast.success("Notification sent!")
-            setNotificationForm({ userId: '', title: '', message: '' })
+            if (result.success) {
+                toast.success("Notification sent!")
+                setNotificationForm({ userId: '', title: '', message: '' })
+            } else {
+                toast.error(result.error || "Failed to send notification")
+            }
+        } catch (err) {
+            toast.error("An error occurred")
+        } finally {
+            setSendingNotification(false)
         }
     }
 
     const handleReleasePayout = async (orderId) => {
-        const result = await mockAdminService.releasePayout(orderId)
+        const result = await releasePayout(orderId)
         if (result.success) {
             setOrders(orders.map(o => o.id === orderId ? { ...o, payoutStatus: 'released' } : o))
             toast.success("Payout released to seller!")
+        } else {
+            toast.error(result.error || "Failed to release payout")
         }
     }
 
@@ -132,8 +161,8 @@ export default function AdminDashboard() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`px-6 py-3 text-sm font-bold transition-colors ${activeTab === tab.id
-                                ? 'text-[#05DF72] border-b-2 border-[#05DF72]'
-                                : 'text-slate-500 hover:text-slate-700'
+                            ? 'text-[#05DF72] border-b-2 border-[#05DF72]'
+                            : 'text-slate-500 hover:text-slate-700'
                             }`}
                     >
                         {tab.label}
@@ -171,7 +200,7 @@ export default function AdminDashboard() {
                                             <p className="font-bold text-sm text-slate-900">{order.product?.name || 'Battery Order'}</p>
                                             <p className="text-xs text-slate-500">{order.status}</p>
                                         </div>
-                                        <p className="font-bold text-slate-900">{currency}{(order.totalAmount || 0).toLocaleString()}</p>
+                                        <p className="font-bold text-slate-900">{currency}{(order.total || 0).toLocaleString()}</p>
                                     </div>
                                 ))}
                             </div>
@@ -251,8 +280,8 @@ export default function AdminDashboard() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full ${user.role === 'ADMIN' ? 'bg-purple-50 text-purple-600' :
-                                                    user.role === 'SELLER' ? 'bg-blue-50 text-blue-600' :
-                                                        'bg-slate-100 text-slate-600'
+                                                user.role === 'SELLER' ? 'bg-blue-50 text-blue-600' :
+                                                    'bg-slate-100 text-slate-600'
                                                 }`}>
                                                 {user.role}
                                             </span>
@@ -325,12 +354,12 @@ export default function AdminDashboard() {
                                             <p className="font-bold text-slate-900">{order.product?.name || 'Battery'}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="font-bold text-slate-900">{currency}{(order.totalAmount || 0).toLocaleString()}</p>
+                                            <p className="font-bold text-slate-900">{currency}{(order.total || 0).toLocaleString()}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full ${order.status === 'COMPLETED' ? 'bg-green-50 text-green-600' :
-                                                    order.status === 'PICKED_UP' ? 'bg-blue-50 text-blue-600' :
-                                                        'bg-amber-50 text-amber-600'
+                                                order.status === 'PICKED_UP' ? 'bg-blue-50 text-blue-600' :
+                                                    'bg-amber-50 text-amber-600'
                                                 }`}>
                                                 {order.status?.replace('_', ' ')}
                                             </span>
@@ -371,7 +400,7 @@ export default function AdminDashboard() {
                                         <p className="text-sm text-slate-500">Seller: {order.sellerId}</p>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <p className="text-lg font-bold text-slate-900">{currency}{(order.totalAmount || 0).toLocaleString()}</p>
+                                        <p className="text-lg font-bold text-slate-900">{currency}{(order.total || 0).toLocaleString()}</p>
                                         <Button
                                             onClick={() => handleReleasePayout(order.id)}
                                             className="!py-2 !px-4 !text-sm"

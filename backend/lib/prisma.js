@@ -1,21 +1,21 @@
 import { PrismaClient } from '@prisma/client'
 
 const prismaClientSingleton = () => {
-    if (!process.env.DATABASE_URL) {
-        console.warn("WARN: DATABASE_URL is missing. Prisma Client will not work.")
-        // Return a proxy that logs error when accessed to preventing crash on import
+    if (!process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
+        console.warn("WARN: DATABASE_URL is missing in production. Using defensive Proxy.")
         return new Proxy({}, {
             get: (target, prop) => {
-                return () => {
+                if (prop === 'then') return undefined; // Handle async/await checks
+                return (...args) => {
                     console.error(`ERROR: Attempted to access prisma.${String(prop)} but DATABASE_URL is missing.`)
-                    throw new Error("DATABASE_URL is missing. Check your environment variables.")
+                    return { success: false, error: "Database connection not configured." }
                 }
             }
         })
     }
 
     return new PrismaClient({
-        log: ['query', 'info', 'warn', 'error'],
+        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
     })
 }
 

@@ -74,3 +74,44 @@ export async function rejectSeller(storeId) {
         return { success: false, error: "Failed to reject seller" }
     }
 }
+
+export async function getAllUsers() {
+    try {
+        const users = await prisma.user.findMany({
+            orderBy: { name: 'asc' }
+        })
+        return { success: true, data: users }
+    } catch (error) {
+        console.error("Get All Users Error:", error)
+        return { success: false, error: "Failed to fetch users" }
+    }
+}
+
+export async function banUser(userId, isBanned) {
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { status: isBanned ? 'banned' : 'active' }
+        })
+        revalidatePath('/admin/users')
+        return { success: true }
+    } catch (error) {
+        console.error("Ban User Error:", error)
+        return { success: false, error: "Failed to update user status" }
+    }
+}
+
+export async function releasePayout(orderId) {
+    try {
+        await prisma.order.update({
+            where: { id: orderId },
+            data: { payoutStatus: 'released' }
+        })
+        revalidatePath('/admin')
+        return { success: true }
+    } catch (error) {
+        console.error("Release Payout Error:", error)
+        return { success: false, error: "Failed to release payout" }
+    }
+}
+
