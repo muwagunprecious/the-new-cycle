@@ -1,7 +1,7 @@
 'use client'
 import { dummyAdminDashboardData, productDummyData, orderDummyData, dummyUsers } from "@/assets/assets"
 import Loading from "@/components/Loading"
-import { CircleDollarSignIcon, ShoppingBasketIcon, StoreIcon, TagsIcon, UsersIcon, PackageCheckIcon, ShieldCheckIcon, ShieldXIcon, BanIcon, CheckCircle2Icon, AlertCircleIcon, WalletIcon, EyeIcon, SendIcon } from "lucide-react"
+import { CircleDollarSignIcon, ShoppingBasketIcon, StoreIcon, TagsIcon, UsersIcon, PackageCheckIcon, ShieldCheckIcon, ShieldXIcon, BanIcon, CheckCircleIcon, AlertCircleIcon, WalletIcon, EyeIcon, SendIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { mockAdminService, mockNotificationService } from "@/lib/mockService"
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
                                         <td className="px-6 py-4">
                                             {user.verificationStatus === 'verified' ? (
                                                 <span className="flex items-center gap-1 text-[#05DF72] text-xs font-bold">
-                                                    <CheckCircle2Icon size={14} /> Verified
+                                                    <CheckCircleIcon size={14} /> Verified
                                                 </span>
                                             ) : (
                                                 <span className="flex items-center gap-1 text-amber-500 text-xs font-bold">

@@ -1,6 +1,6 @@
 'use client'
 import { useState } from "react"
-import { XIcon, WalletIcon, CheckCircle2Icon, CopyIcon, CalendarIcon, MapPinIcon, LoaderIcon, AlertCircleIcon } from "lucide-react"
+import { XIcon, WalletIcon, CheckCircleIcon, CopyIcon, CalendarIcon, MapPinIcon, LoaderIcon, AlertCircleIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
@@ -56,7 +56,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
             // Step 2: Create order with collection token (REAL ACTION)
             const result = await createOrder({
                 buyerId: user?.id,
-                sellerId: product.userId || product.sellerId,
+                sellerId: product.sellerId || product.userId || product.store?.userId,
                 productId: product.id,
                 quantity,
                 totalAmount,
@@ -221,7 +221,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                     {step === 'SUCCESS' && orderResult && (
                         <div className="py-8 text-center space-y-6">
                             <div className="w-20 h-20 bg-[#05DF72]/10 rounded-full flex items-center justify-center mx-auto">
-                                <CheckCircle2Icon className="text-[#05DF72]" size={40} />
+                                <CheckCircleIcon className="text-[#05DF72]" size={40} />
                             </div>
 
                             <div>
@@ -241,7 +241,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                         className={`p-2 rounded-lg transition-colors ${copied ? 'bg-green-500' : 'bg-white/10 hover:bg-white/20'
                                             }`}
                                     >
-                                        {copied ? <CheckCircle2Icon size={18} /> : <CopyIcon size={18} />}
+                                        {copied ? <CheckCircleIcon size={18} /> : <CopyIcon size={18} />}
                                     </button>
                                 </div>
                                 <p className="text-xs text-slate-400 mt-4">

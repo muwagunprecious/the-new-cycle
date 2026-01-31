@@ -1,6 +1,6 @@
 'use client'
 import { useState } from "react"
-import { CircleDollarSignIcon, SearchIcon, ArrowUpRightIcon, ArrowDownLeftIcon, FilterIcon, MoreVerticalIcon, AlertCircleIcon, CheckCircle2Icon } from "lucide-react"
+import { CircleDollarSignIcon, SearchIcon, ArrowUpRightIcon, ArrowDownLeftIcon, FilterIcon, MoreVerticalIcon, AlertCircleIcon, CheckCircleIcon } from "lucide-react"
 
 export default function AdminPayments() {
     const [filter, setFilter] = useState('All')
@@ -109,9 +109,9 @@ export default function AdminPayments() {
                                 <td className="p-6 font-black text-slate-900">₦{trx.amount.toLocaleString()}</td>
                                 <td className="p-6">
                                     <span className={`text-[10px] font-black uppercase tracking-widest ${trx.status.includes('Held') ? 'text-amber-500' :
-                                            trx.status === 'Released' ? 'text-[#05DF72]' :
-                                                trx.status === 'Failed' ? 'text-red-500' :
-                                                    'text-blue-500'
+                                        trx.status === 'Released' ? 'text-[#05DF72]' :
+                                            trx.status === 'Failed' ? 'text-red-500' :
+                                                'text-blue-500'
                                         }`}>
                                         {trx.status}
                                     </span>

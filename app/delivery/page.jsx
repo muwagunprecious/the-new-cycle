@@ -7,7 +7,7 @@ import {
     MapPinIcon,
     PhoneIcon,
     ShieldCheckIcon,
-    CheckCircle2Icon,
+    CheckCircleIcon,
     AlertCircleIcon,
     PackageIcon,
     Navigation2Icon,
@@ -64,7 +64,7 @@ export default function DeliveryDashboard() {
         { key: 'picked_up', label: 'Item Picked Up', icon: PackageIcon },
         { key: 'on_way', label: 'On the Way', icon: Navigation2Icon },
         { key: 'at_buyer', label: 'Arrived at Buyer', icon: UserIcon },
-        { key: 'completed', label: 'Delivered Successfully', icon: CheckCircle2Icon },
+        { key: 'completed', label: 'Delivered Successfully', icon: CheckCircleIcon },
     ]
 
     const getStepStatus = (stepKey) => {
@@ -162,8 +162,8 @@ export default function DeliveryDashboard() {
                                             disabled={status !== 'next'}
                                             onClick={() => updateStatus(step.key, step.label)}
                                             className={`flex items-center gap-4 p-5 rounded-2xl transition-all text-left ${status === 'completed' ? 'bg-[#05DF72]/10 border border-[#05DF72]/20 text-[#05DF72]' :
-                                                    status === 'next' ? 'bg-white/10 border border-white/10 text-white hover:bg-white/20' :
-                                                        'bg-white/5 border border-white/5 text-white/30 cursor-not-allowed'
+                                                status === 'next' ? 'bg-white/10 border border-white/10 text-white hover:bg-white/20' :
+                                                    'bg-white/5 border border-white/5 text-white/30 cursor-not-allowed'
                                                 }`}
                                         >
                                             <step.icon size={20} />
@@ -171,7 +171,7 @@ export default function DeliveryDashboard() {
                                                 <span className="text-[10px] font-black uppercase tracking-widest opacity-50">{status === 'completed' ? 'Done' : 'Update'}</span>
                                                 <span className="font-bold text-sm">{step.label}</span>
                                             </div>
-                                            {status === 'completed' && <CheckCircle2Icon size={18} className="ml-auto" />}
+                                            {status === 'completed' && <CheckCircleIcon size={18} className="ml-auto" />}
                                         </button>
                                     )
                                 })}

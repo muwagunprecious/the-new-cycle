@@ -141,8 +141,8 @@ export async function verifyPickupToken(storeId, token) {
         const order = await prisma.order.findFirst({
             where: {
                 storeId: storeId,
-                pickupToken: token,
-                pickupStatus: 'PENDING'
+                collectionToken: token,
+                collectionStatus: 'PENDING'
             }
         })
 
@@ -154,7 +154,7 @@ export async function verifyPickupToken(storeId, token) {
         await prisma.order.update({
             where: { id: order.id },
             data: {
-                pickupStatus: 'COLLECTED',
+                collectionStatus: 'COLLECTED',
                 status: 'DELIVERED', // or 'COMPLETED'
                 isPaid: true // Assuming platform releases funds internally or marks it paid to seller
             }

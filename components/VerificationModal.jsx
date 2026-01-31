@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { XIcon, ShieldCheckIcon, PhoneIcon, BuildingIcon, CreditCardIcon, LoaderIcon, CheckCircle2Icon, AlertCircleIcon, UserIcon } from 'lucide-react'
+import { XIcon, ShieldCheckIcon, PhoneIcon, BuildingIcon, CreditCardIcon, LoaderIcon, CheckCircleIcon, AlertCircleIcon, UserIcon } from 'lucide-react'
 import { mockVerificationService } from '@/lib/mockService'
 import Button from './Button'
 
@@ -125,10 +125,10 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                         <ShieldCheckIcon size={14} /> Account Verification
                     </div>
                     <h2 className="text-xl font-bold">
-                        {userRole === 'BUYER' ? 'Buyer Verification' : 'Seller Verification'}
+                        {(userRole === 'BUYER' || userRole === 'USER') ? 'Buyer Verification' : 'Seller Verification'}
                     </h2>
                     <p className="text-sm text-slate-400 mt-1">
-                        {step === 1 && (userRole === 'BUYER' ? 'Verify via CAC or NIN' : 'Phone intelligence check')}
+                        {step === 1 && ((userRole === 'BUYER' || userRole === 'USER') ? 'Verify via CAC or NIN' : 'Phone intelligence check')}
                         {step === 2 && 'Validate your bank account'}
                         {step === 3 && 'Verification complete!'}
                     </p>
@@ -137,7 +137,7 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                 {/* Content */}
                 <div className="p-6">
                     {/* BUYER FLOW - Step 1: Choose verification method */}
-                    {userRole === 'BUYER' && step === 1 && !verificationMethod && (
+                    {(userRole === 'BUYER' || userRole === 'USER') && step === 1 && !verificationMethod && (
                         <div className="space-y-4">
                             <p className="text-sm text-slate-500 text-center mb-6">
                                 Choose one verification method to proceed
@@ -170,7 +170,7 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                     )}
 
                     {/* BUYER FLOW - Step 1: Enter CAC or NIN */}
-                    {userRole === 'BUYER' && step === 1 && verificationMethod && (
+                    {(userRole === 'BUYER' || userRole === 'USER') && step === 1 && verificationMethod && (
                         <form onSubmit={handleBuyerVerification} className="space-y-6">
                             <div>
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">
@@ -242,9 +242,9 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                     {step === 2 && (
                         <form onSubmit={handleBankVerification} className="space-y-6">
                             {/* Show verification result for buyer */}
-                            {userRole === 'BUYER' && verificationResult && (
+                            {(userRole === 'BUYER' || userRole === 'USER') && verificationResult && (
                                 <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3 mb-4">
-                                    <CheckCircle2Icon className="text-green-600" size={20} />
+                                    <CheckCircleIcon className="text-green-600" size={20} />
                                     <span className="text-sm text-green-700 font-medium">
                                         {verificationMethod} verification successful
                                     </span>
@@ -323,7 +323,7 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                     {step === 3 && (
                         <div className="text-center space-y-6">
                             <div className="w-20 h-20 bg-[#05DF72]/10 rounded-full flex items-center justify-center mx-auto">
-                                <CheckCircle2Icon className="text-[#05DF72]" size={40} />
+                                <CheckCircleIcon className="text-[#05DF72]" size={40} />
                             </div>
                             <div>
                                 <h3 className="text-xl font-bold text-slate-900">Verification Complete!</h3>

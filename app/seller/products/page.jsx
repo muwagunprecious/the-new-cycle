@@ -31,8 +31,10 @@ export default function SellerProducts() {
     const [formData, setFormData] = useState({
         batteryType: 'Car Battery',
         brand: '',
+        amps: '', // New Field
         unitsAvailable: 1,
         price: '',
+        isManualPrice: false, // New Field
         lga: '',
         address: '',
         collectionDates: [],
@@ -49,6 +51,15 @@ export default function SellerProducts() {
             setProducts(result.products)
         }
     }
+
+    // Price calc logic: (Amps * 250) * units
+    useEffect(() => {
+        if (formData.amps && formData.unitsAvailable && !formData.isManualPrice) {
+            const suggestedPerUnit = parseInt(formData.amps) * 250
+            const totalSuggested = suggestedPerUnit * parseInt(formData.unitsAvailable)
+            setFormData(prev => ({ ...prev, price: totalSuggested.toString() }))
+        }
+    }, [formData.amps, formData.unitsAvailable, formData.isManualPrice])
 
     useEffect(() => {
         if (user) {
@@ -81,6 +92,10 @@ export default function SellerProducts() {
         if (selectedDates.includes(date)) {
             setSelectedDates(selectedDates.filter(d => d !== date))
         } else {
+            if (selectedDates.length >= 2) {
+                toast.error("You can select a maximum of 2 collection dates.")
+                return
+            }
             setSelectedDates([...selectedDates, date])
         }
     }
@@ -91,7 +106,8 @@ export default function SellerProducts() {
         const minDate = new Date()
         minDate.setDate(minDate.getDate() + 1) // Start from tomorrow
 
-        for (let i = 0; i < 14; i++) {
+        // Limit to 2 options as requested
+        for (let i = 0; i < 2; i++) {
             const date = new Date(minDate)
             date.setDate(date.getDate() + i)
             dates.push({
@@ -151,9 +167,10 @@ export default function SellerProducts() {
 
         try {
             const result = await createProduct({
-                name: `Scrap ${formData.batteryType} - ${formData.lga}`,
+                name: `Scrap ${formData.batteryType} (${formData.amps}Ah) - ${formData.lga}`,
                 batteryType: formData.batteryType,
                 brand: formData.brand || null,
+                amps: formData.amps,
                 condition: 'SCRAP', // Always SCRAP
                 unitsAvailable: parseInt(formData.unitsAvailable),
                 price: parseInt(formData.price),
@@ -177,8 +194,10 @@ export default function SellerProducts() {
                 setFormData({
                     batteryType: 'Car Battery',
                     brand: '',
+                    amps: '',
                     unitsAvailable: 1,
                     price: '',
+                    isManualPrice: false,
                     lga: '',
                     address: '',
                     collectionDates: [],
@@ -267,7 +286,7 @@ export default function SellerProducts() {
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-bold text-slate-900">{product.name}</span>
-                                                    <span className="text-xs text-slate-400">{product.batteryType} • {product.brand || 'No Brand'}</span>
+                                                    <span className="text-xs text-slate-400">{product.batteryType} • {product.amps}Ah • {product.brand || 'No Brand'}</span>
                                                 </div>
                                             </div>
                                         </td>
@@ -360,9 +379,24 @@ export default function SellerProducts() {
                                     </div>
 
                                     <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Battery Size (Ah) *</label>
+                                        <select
+                                            value={formData.amps}
+                                            onChange={e => setFormData({ ...formData, amps: e.target.value })}
+                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                            required
+                                        >
+                                            <option value="">Select Size</option>
+                                            {[45, 60, 75, 100, 150, 200, 220].map(size => (
+                                                <option key={size} value={size}>{size} Amps</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Condition</label>
                                         <div className="w-full p-4 bg-slate-100 rounded-2xl font-medium text-sm text-slate-500 cursor-not-allowed">
-                                            SCRAP (Default - Cannot be changed)
+                                            SCRAP (Default)
                                         </div>
                                     </div>
 
@@ -380,16 +414,41 @@ export default function SellerProducts() {
                                     </div>
 
                                     <div className="space-y-2 md:col-span-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Price Per Unit (₦) *</label>
-                                        <input
-                                            value={formData.price}
-                                            onChange={e => setFormData({ ...formData, price: e.target.value })}
-                                            type="number"
-                                            min="1"
-                                            placeholder="e.g. 15000"
-                                            required
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                        />
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Listing Price (₦) *</label>
+                                            {formData.amps && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData(prev => ({ ...prev, isManualPrice: !prev.isManualPrice }))}
+                                                    className="text-[10px] font-bold text-[#05DF72] uppercase tracking-widest hover:underline"
+                                                >
+                                                    {formData.isManualPrice ? 'Reset to Suggested' : 'Enter My Own Price'}
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="relative">
+                                            <input
+                                                value={formData.price}
+                                                onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                                type="number"
+                                                min="1"
+                                                placeholder="e.g. 15000"
+                                                readOnly={!formData.isManualPrice && formData.amps !== ''}
+                                                required
+                                                className={`w-full p-4 rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm transition-all ${!formData.isManualPrice && formData.amps !== '' ? 'bg-slate-100/50 text-slate-400 border-none' : 'bg-slate-50 border-none'
+                                                    }`}
+                                            />
+                                            {formData.amps && !formData.isManualPrice && (
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#05DF72]/10 text-[#05DF72] rounded-full text-[10px] font-bold uppercase">
+                                                    Suggested
+                                                </div>
+                                            )}
+                                        </div>
+                                        {formData.amps && !formData.isManualPrice && (
+                                            <p className="text-[10px] text-slate-400 mt-2 font-medium">
+                                                Suggested price: (₦250 × {formData.amps}Ah) × {formData.unitsAvailable} unit{formData.unitsAvailable > 1 ? 's' : ''} = ₦{parseInt(formData.price).toLocaleString()}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -462,7 +521,7 @@ export default function SellerProducts() {
                                 </div>
                                 {selectedDates.length > 0 && (
                                     <p className="text-xs text-[#05DF72] font-medium">
-                                        {selectedDates.length} date(s) selected
+                                        {selectedDates.length}/2 date(s) selected
                                     </p>
                                 )}
                             </div>

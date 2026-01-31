@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Clock, MapPin, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, MapPin, CheckCircle, AlertCircle } from 'lucide-react'
 
 /**
  * ScheduleCalendar Component
@@ -116,7 +116,7 @@ const ScheduleCalendar = ({ onSelect, blockedDates = [] }) => {
                                     }
                                 `}
                             >
-                                {isSelected(day, 'Morning') && <CheckCircle2 size={14} />}
+                                {isSelected(day, 'Morning') && <CheckCircle size={14} />}
                                 {isBlocked ? 'Booked' : 'Morning'}
                             </button>
 
@@ -133,7 +133,7 @@ const ScheduleCalendar = ({ onSelect, blockedDates = [] }) => {
                                     }
                                 `}
                             >
-                                {isSelected(day, 'Afternoon') && <CheckCircle2 size={14} />}
+                                {isSelected(day, 'Afternoon') && <CheckCircle size={14} />}
                                 {isBlocked ? 'Booked' : 'Afternoon'}
                             </button>
 

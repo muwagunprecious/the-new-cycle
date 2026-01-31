@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux"
 import { setCredentials } from "@/lib/features/auth/authSlice"
 import { registerUser, loginUser, verifyOTP } from "@/backend/actions/auth"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ShieldCheckIcon, UserIcon, MailIcon, LockIcon, PhoneIcon, CheckCircle2Icon, LoaderIcon, BuildingIcon } from "lucide-react"
+import { ShieldCheckIcon, UserIcon, MailIcon, LockIcon, PhoneIcon, CheckCircleIcon, LoaderIcon, BuildingIcon } from "lucide-react"
 import Link from "next/link"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
@@ -90,7 +90,7 @@ function SignupContent() {
             dispatch(hideLoader())
             setIsLoading(false)
             setStep('VERIFY_EMAIL')
-            toast.success("Account created! Please verify your email.")
+            toast.success("Account created! Please verify your account.")
 
         } catch (error) {
             dispatch(hideLoader())
@@ -107,11 +107,8 @@ function SignupContent() {
         dispatch(showLoader("Verifying email..."))
 
         try {
-            const res = await verifyOTP(formData.email, otp, 'EMAIL')
+            const res = await verifyOTP(formData.whatsapp, otp, 'PHONE')
             if (res.success) {
-                // For MVP, we'll mark phone as verified too during this "Mock OTP" demo
-                await verifyOTP(formData.email, otp, 'PHONE')
-
                 dispatch(hideLoader())
                 setIsLoading(false)
                 toast.success("Account verified!")
@@ -133,7 +130,7 @@ function SignupContent() {
         dispatch(showLoader("Signing you in..."))
 
         try {
-            const loginResult = await loginUser(formData.email, formData.password)
+            const loginResult = await loginUser(formData.whatsapp, formData.password)
 
             if (loginResult.success) {
                 dispatch(setCredentials(loginResult.user))
@@ -231,11 +228,10 @@ function SignupContent() {
                             )}
 
                             <div className="relative">
-                                <span className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">Email Address</span>
+                                <span className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">Email Address (Optional)</span>
                                 <div className="relative">
                                     <MailIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                     <input
-                                        required
                                         type="email"
                                         placeholder="you@example.com"
                                         className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
@@ -301,11 +297,12 @@ function SignupContent() {
                         <form className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-300" onSubmit={handleVerifyEmail}>
                             <div className="text-center">
                                 <div className="w-16 h-16 bg-[#05DF72]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <MailIcon className="text-[#05DF72]" size={28} />
+                                    <PhoneIcon className="text-[#05DF72]" size={28} />
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-900">Verify Your Account</h3>
                                 <p className="text-sm text-slate-500 mt-2">
-                                    Enter the code sent to <span className="font-semibold">{formData.email}</span>
+                                    Enter the code sent to <span className="font-semibold">{formData.whatsapp}</span>
+                                    {formData.email && <span> and <span className="font-semibold">{formData.email}</span></span>}
                                 </p>
                                 <p className="text-xs text-slate-400 mt-1 font-bold">(Demo: use code <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-900">123456</span>)</p>
                             </div>

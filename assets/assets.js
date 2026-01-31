@@ -156,7 +156,7 @@ export const dummyUserData = {
     name: "Emeka Obi",
     email: "emeka@example.com",
     image: profile_pic1,
-    role: "BUYER",
+    role: "USER",
     cart: {}
 }
 
@@ -240,7 +240,7 @@ export const dummyUsers = [
         email: "emeka@example.com",
         password: "buyer123",
         whatsapp: "+234 809 123 4567",
-        role: "BUYER",
+        role: "USER",
         status: "active",
         lga: "Eti-Osa",
         isEmailVerified: true,

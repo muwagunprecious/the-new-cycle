@@ -5,7 +5,10 @@ import Loading from "@/components/Loading"
 import { useRouter } from "next/navigation"
 import { useSelector, useDispatch } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
-import { getUserOrders } from "@/backend/actions/order"
+import { getUserOrders, respondToReschedule } from "@/backend/actions/order"
+import ScheduleCalendar from "@/components/ScheduleCalendar"
+import toast from "react-hot-toast"
+import { XIcon, CheckIcon, ClockIcon } from "lucide-react"
 
 export default function BuyerOrders() {
     const router = useRouter()
@@ -14,6 +17,9 @@ export default function BuyerOrders() {
     const [loading, setLoading] = useState(true)
     const [orders, setOrders] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
+    const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
+    const [selectedOrder, setSelectedOrder] = useState(null)
+    const [rescheduleLoading, setRescheduleLoading] = useState(false)
 
     useEffect(() => {
         if (user?.id) {
@@ -29,6 +35,20 @@ export default function BuyerOrders() {
             setOrders(res.data)
         }
         setLoading(false)
+    }
+
+    const handleRescheduleAction = async (orderId, action, alternateDate = null) => {
+        setRescheduleLoading(true)
+        const res = await respondToReschedule(orderId, action, alternateDate)
+        if (res.success) {
+            setOrders(orders.map(o => o.id === orderId ? res.order : o))
+            toast.success(action === 'ACCEPT' ? "Date accepted!" : "New date proposed!")
+            setIsRescheduleModalOpen(false)
+            setSelectedOrder(null)
+        } else {
+            toast.error(res.error || "Failed to respond")
+        }
+        setRescheduleLoading(false)
     }
 
     const handleNavigation = (href, message = "Loading tracking details...") => {
@@ -118,7 +138,30 @@ export default function BuyerOrders() {
                                 </div>
 
                                 {/* Collection Token Display if Active */}
-                                {order.collectionToken && order.status !== 'COMPLETED' && order.status !== 'PICKED_UP' ? (
+                                {order.collectionStatus === 'RESCHEDULE_REQUESTED' ? (
+                                    <div className="flex flex-col gap-2">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1 flex items-center gap-1">
+                                            <ClockIcon size={12} /> Reschedule Requested: {order.proposedDate}
+                                        </p>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleRescheduleAction(order.id, 'ACCEPT')}
+                                                className="px-4 py-2 bg-[#05DF72] text-white font-bold text-[10px] rounded-lg hover:shadow-lg transition-all flex items-center gap-1"
+                                            >
+                                                <CheckIcon size={12} /> Accept
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedOrder(order)
+                                                    setIsRescheduleModalOpen(true)
+                                                }}
+                                                className="px-4 py-2 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 transition-all font-inter"
+                                            >
+                                                Propose New
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : order.collectionToken && order.status !== 'COMPLETED' && order.status !== 'PICKED_UP' ? (
                                     <div className="text-right">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Collection Token</p>
                                         <p className="text-lg font-black text-[#05DF72] bg-[#05DF72]/10 px-3 py-1 rounded-lg border border-[#05DF72]/20">
@@ -167,6 +210,41 @@ export default function BuyerOrders() {
                 </div>
                 <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-[#05DF72]/10 rounded-full blur-[100px] -ml-20"></div>
             </div>
+            {/* Reschedule Modal (Buyer Proposing Alternate) */}
+            {isRescheduleModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300">
+                        <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                            <div>
+                                <h3 className="text-2xl font-black text-slate-900 leading-none">Propose <span className="text-[#05DF72]">Alternate</span> Date</h3>
+                                <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Select a date that works better for you</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setIsRescheduleModalOpen(false)
+                                    setSelectedOrder(null)
+                                }}
+                                className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:shadow-lg transition-all"
+                            >
+                                <XIcon size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-8">
+                            <ScheduleCalendar onSelect={(dateInfo) => handleRescheduleAction(selectedOrder.id, 'RESCHEDULE', dateInfo.date)} />
+
+                            {rescheduleLoading && (
+                                <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center z-10">
+                                    <div className="flex flex-col items-center gap-3">
+                                        <div className="w-10 h-10 border-4 border-[#05DF72] border-t-transparent rounded-full animate-spin"></div>
+                                        <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Sending Proposal...</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

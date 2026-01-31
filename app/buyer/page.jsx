@@ -1,5 +1,5 @@
 'use client'
-import { PackageIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, MapPinIcon, CalendarIcon, CopyIcon, CheckCircle2Icon, AlertCircleIcon, ClockIcon } from "lucide-react"
+import { PackageIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, MapPinIcon, CalendarIcon, CopyIcon, CheckCircleIcon, AlertCircleIcon, ClockIcon } from "lucide-react"
 import Loading from "@/components/Loading"
 import { useState, useEffect } from "react"
 import { productDummyData, orderDummyData } from "@/assets/assets"
@@ -52,7 +52,7 @@ export default function BuyerDashboard() {
     const stats = [
         { label: 'Total Orders', value: orders.length, icon: PackageIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
         { label: 'Pending Pickups', value: orders.filter(o => o.status === 'AWAITING_PICKUP' || o.status === 'PAID').length, icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
-        { label: 'Completed', value: orders.filter(o => o.status === 'COMPLETED').length, icon: CheckCircle2Icon, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Completed', value: orders.filter(o => o.status === 'COMPLETED').length, icon: CheckCircleIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Total Spent', value: '₦' + orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0).toLocaleString(), icon: CreditCardIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
     ]
 
@@ -208,12 +208,12 @@ export default function BuyerDashboard() {
                                                     <button
                                                         onClick={() => copyToken(order.collectionToken)}
                                                         className={`p-2 rounded-lg transition-colors ${copiedToken === order.collectionToken
-                                                                ? 'bg-green-500 text-white'
-                                                                : 'bg-white/10 text-white hover:bg-white/20'
+                                                            ? 'bg-green-500 text-white'
+                                                            : 'bg-white/10 text-white hover:bg-white/20'
                                                             }`}
                                                     >
                                                         {copiedToken === order.collectionToken
-                                                            ? <CheckCircle2Icon size={16} />
+                                                            ? <CheckCircleIcon size={16} />
                                                             : <CopyIcon size={16} />
                                                         }
                                                     </button>

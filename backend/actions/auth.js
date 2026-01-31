@@ -5,15 +5,30 @@ import bcrypt from "bcryptjs"
 
 export async function registerUser(userData) {
     try {
-        const { name, email, password, role, whatsapp, businessName } = userData
+        let { name, email, password, role, whatsapp, businessName } = userData
 
-        // Check if user exists
-        const userExists = await prisma.user.findUnique({
-            where: { email }
+        // Map BUYER to USER for Prisma schema compatibility
+        if (role === 'BUYER') {
+            role = 'USER'
+        }
+
+        // Primary check: Phone number must be unique
+        const phoneExists = await prisma.user.findUnique({
+            where: { phone: whatsapp }
         })
 
-        if (userExists) {
-            return { success: false, error: "User already exists" }
+        if (phoneExists) {
+            return { success: false, error: "A user with this phone number already exists" }
+        }
+
+        // Secondary check: If email is provided, it must be unique
+        if (email) {
+            const emailExists = await prisma.user.findUnique({
+                where: { email }
+            })
+            if (emailExists) {
+                return { success: false, error: "A user with this email already exists" }
+            }
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
@@ -23,8 +38,8 @@ export async function registerUser(userData) {
         const phoneOtp = Math.floor(100000 + Math.random() * 900000).toString()
 
         // Log OTPs for now (Integration Placeholder)
-        console.log(`[Validation] EMAIL OTP for ${email}: ${emailOtp}`)
-        console.log(`[Validation] PHONE OTP for ${whatsapp || 'N/A'}: ${phoneOtp}`)
+        if (email) console.log(`[Validation] EMAIL OTP for ${email}: ${emailOtp}`)
+        console.log(`[Validation] PHONE OTP for ${whatsapp}: ${phoneOtp}`)
 
         const user = await prisma.user.create({
             data: {
@@ -77,19 +92,30 @@ export async function registerUser(userData) {
     }
 }
 
-export async function loginUser(email, password) {
+export async function loginUser(identifier, password) {
     try {
+        // Try searching by email or phone
         const user = await prisma.user.findFirst({
-            where: { email }
+            where: {
+                OR: [
+                    { email: identifier },
+                    { phone: identifier }
+                ]
+            }
         })
 
         if (!user) {
+            console.log(`[LoginDebug] User not found for identifier: ${identifier}`)
             return { success: false, error: "Invalid credentials" }
         }
 
         if (user.password) {
             const isMatch = await bcrypt.compare(password, user.password)
+            console.log(`[LoginDebug] Attempt for ${identifier}: password provided, match results: ${isMatch}`)
             if (!isMatch) return { success: false, error: "Invalid credentials" }
+        } else {
+            console.log(`[LoginDebug] User ${identifier} has no password set.`)
+            return { success: false, error: "Invalid credentials" }
         }
 
         if (!user.isEmailVerified) {
@@ -105,19 +131,27 @@ export async function loginUser(email, password) {
     }
 }
 
-// New Verification Action
-export async function verifyOTP(email, code, type = 'EMAIL') {
-    // In a real app, verify against stored hash/Redis.
-    // Here, for the "Mock" requirement without 3rd party, we will just simulate success if code is '123456' 
-    // OR if we stored it in the user record (which we didn't add to schema yet).
-    // Let's assume for MVP we accept '123456' for any user to pass validation quickly during demo
-    // Or we verify against the log.
-
-    // Simplest: Always accept '123456' for demo purposes as requested "Basic Validation... Placeholder"
+// Update verification logic to mark both verified if code is matched
+export async function verifyOTP(identifier, code, type = 'PHONE') {
+    // Simplest: Always accept '123456' for demo purposes
     if (code === '123456') {
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: identifier },
+                    { phone: identifier }
+                ]
+            }
+        })
+
+        if (!user) return { success: false, error: "User not found" }
+
         await prisma.user.update({
-            where: { email },
-            data: type === 'EMAIL' ? { isEmailVerified: true } : { isPhoneVerified: true }
+            where: { id: user.id },
+            data: {
+                isEmailVerified: true,
+                isPhoneVerified: true
+            }
         })
         return { success: true }
     }

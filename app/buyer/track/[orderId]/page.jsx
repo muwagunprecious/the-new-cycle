@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import {
-    CheckCircle2Icon,
+    CheckCircleIcon,
     PackageCheckIcon,
     TruckIcon,
     HomeIcon,
@@ -14,7 +14,7 @@ import {
 import Link from "next/link"
 
 const DELIVERY_STEPS = [
-    { name: 'Order confirmed', icon: CheckCircle2Icon },
+    { name: 'Order confirmed', icon: CheckCircleIcon },
     { name: 'Courier assigned', icon: UserIcon },
     { name: 'On the way', icon: TruckIcon },
     { name: 'Arrived at your location', icon: HomeIcon },
@@ -22,10 +22,10 @@ const DELIVERY_STEPS = [
 ]
 
 const PICKUP_STEPS = [
-    { name: 'Order confirmed', icon: CheckCircle2Icon },
+    { name: 'Order confirmed', icon: CheckCircleIcon },
     { name: 'Ready for Collection', icon: PackageCheckIcon },
     { name: 'Pickup Verified', icon: ShieldCheckIcon },
-    { name: 'Completed', icon: CheckCircle2Icon }
+    { name: 'Completed', icon: CheckCircleIcon }
 ]
 
 import { useDispatch } from "react-redux"

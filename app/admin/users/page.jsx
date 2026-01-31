@@ -131,7 +131,7 @@ export default function UserManagement() {
                                                 : 'bg-[#05DF72]/10 text-[#05DF72] hover:bg-[#05DF72] hover:text-white'
                                                 } disabled:opacity-30 disabled:cursor-not-allowed`}
                                         >
-                                            {(user.status === 'active' || !user.status) ? <><BanIcon size={14} /> Ban Access</> : <><CheckCircle2Icon size={14} /> Restore</>}
+                                            {(user.status === 'active' || !user.status) ? <><BanIcon size={14} /> Ban Access</> : <><CheckCircleIcon size={14} /> Restore</>}
                                         </button>
                                     </td>
                                 </tr>

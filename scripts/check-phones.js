@@ -1,26 +1,25 @@
 
 const { PrismaClient } = require('@prisma/client');
 
-async function listUsers() {
+async function checkPhoneNumbers() {
     const prisma = new PrismaClient();
     try {
         const users = await prisma.user.findMany({
             select: {
                 id: true,
                 email: true,
-                role: true,
-                isEmailVerified: true
+                phone: true
             }
         });
-        console.log('Users found in database:');
+        console.log('User Phone Status:');
         users.forEach(u => {
-            console.log(`- Email: ${u.email}, Role: ${u.role}, Verified: ${u.isEmailVerified}, ID: ${u.id}`);
+            console.log(`- ID: ${u.id}, Email: ${u.email}, Phone: ${u.phone || 'NULL'}`);
         });
     } catch (error) {
-        console.error('Failed to list users:', error.message);
+        console.error('Error:', error.message);
     } finally {
         await prisma.$disconnect();
     }
 }
 
-listUsers();
+checkPhoneNumbers();

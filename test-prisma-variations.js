@@ -14,9 +14,9 @@ async function test(url) {
     try {
         console.log(`Testing Prisma URL: ${url.replace(/:.*@/, ':****@')}`)
         await prisma.$connect()
-        console.log('  SUCCESS!')
+        console.log(`  SUCCESS: ${url.replace(/:.*@/, ':****@')}`)
     } catch (err) {
-        console.log(`  FAIL: ${err.message.split('\n')[0]}`)
+        console.log(`  FAIL: ${url.replace(/:.*@/, ':****@')} - ${err.message.split('\n')[0]}`)
     } finally {
         await prisma.$disconnect()
     }

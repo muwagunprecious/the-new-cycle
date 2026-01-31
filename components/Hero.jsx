@@ -2,11 +2,12 @@
 import { assets } from '@/assets/assets'
 import { ArrowRightIcon, ChevronRightIcon, LeafIcon, RecycleIcon, ZapIcon } from 'lucide-react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import React from 'react'
 import CategoriesMarquee from './CategoriesMarquee'
 
 const Hero = () => {
-
+    const router = useRouter()
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '₦'
 
     return (
@@ -15,7 +16,7 @@ const Hero = () => {
                 <div className='relative flex-1 flex flex-col bg-[#05DF72]/10 border border-[#05DF72]/20 rounded-[2.5rem] xl:min-h-[500px] group overflow-hidden'>
                     <div className='p-8 sm:p-20 relative z-10'>
                         <div className='inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm text-[#05DF72] pr-5 p-1.5 rounded-full text-xs sm:text-sm font-bold shadow-sm border border-[#05DF72]/10'>
-                            <span className='bg-[#05DF72] px-3 py-1 ml-1 rounded-full text-white flex items-center gap-1'><LeafIcon size={12} /> ECO</span> Nigeria's #1 Battery Marketplace <ChevronRightIcon className='group-hover:translate-x-1 transition-all' size={16} />
+                            Nigeria's #1 Battery Marketplace <ChevronRightIcon className='group-hover:translate-x-1 transition-all' size={16} />
                         </div>
                         <h2 className='text-4xl sm:text-6xl leading-[1.1] my-8 font-black text-slate-900 max-w-md'>
                             Powering the <span className="text-[#05DF72]">Future</span>. Recycled.
@@ -24,8 +25,8 @@ const Hero = () => {
                             Buy and sell high-quality used batteries. Join the circular economy and save up to 60% on power costs.
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            <button className='bg-slate-900 text-white text-sm font-bold py-4 px-10 rounded-2xl hover:bg-[#05DF72] hover:scale-105 active:scale-95 transition-all shadow-xl'>SHOP MARKETPLACE</button>
-                            <button className='bg-white text-slate-900 text-sm font-bold py-4 px-10 rounded-2xl border border-slate-200 hover:bg-slate-50 transition-all'>BECOME A SELLER</button>
+                            <button onClick={() => router.push('/shop')} className='bg-slate-900 text-white text-sm font-bold py-4 px-10 rounded-2xl hover:bg-[#05DF72] hover:scale-105 active:scale-95 transition-all shadow-xl'>BUY</button>
+                            <button onClick={() => router.push('/seller')} className='bg-white text-slate-900 text-sm font-bold py-4 px-10 rounded-2xl border border-slate-200 hover:bg-slate-50 transition-all'>SELL</button>
                         </div>
                     </div>
                     {/* Abstract circular shapes for tech feel */}

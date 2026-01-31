@@ -43,6 +43,7 @@ export async function createProduct(data, userId) {
                 type: data.batteryType === 'Car Battery' ? 'CAR_BATTERY' :
                     data.batteryType === 'Inverter Battery' ? 'INVERTER_BATTERY' : 'HEAVY_DUTY_BATTERY',
                 brand: data.brand,
+                amps: parseInt(data.amps) || 0,
                 condition: data.condition || "SCRAP",
                 pickupAddress: data.address,
                 collectionDateStart: new Date(data.collectionDates[0]),

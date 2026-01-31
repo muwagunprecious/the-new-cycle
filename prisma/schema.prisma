@@ -20,14 +20,14 @@ enum Role {
 model User {
     id    String @id
     name  String
-    email String @unique
+    email String? @unique
     password String?
     image String
     role  Role   @default(USER)
     cart  Json   @default("{}")
 
     // Verification & Safety
-    phone           String?
+    phone           String @unique
     isEmailVerified Boolean @default(false)
     isPhoneVerified Boolean @default(false)
     
@@ -52,9 +52,14 @@ model User {
 
 enum OrderStatus {
     ORDER_PLACED
+    PAID
+    APPROVED
     PROCESSING
     SHIPPED
+    PICKED_UP
     DELIVERED
+    COMPLETED
+    CANCELLED
 }
 
 enum PaymentMethod {
@@ -138,6 +143,8 @@ enum PickupStatus {
     PENDING
     COLLECTED
     DISPUTED
+    RESCHEDULE_REQUESTED
+    RESCHEDULED
 }
 
 // Required for creating a Store: userId, name, username, email, contact, logo, description, address, bank details
@@ -181,6 +188,7 @@ model Product {
     category    String      // Optional or redundancy
     type        BatteryType @default(CAR_BATTERY) 
     brand       String?     // Optional
+    amps        Int         @default(0) // Capacity in Ah
     condition   String      @default("SCRAP")
     pickupAddress String    // Explicit pickup address
     
@@ -207,13 +215,15 @@ model Order {
     id            String        @id @default(cuid())
     total         Float
     status        OrderStatus   @default(ORDER_PLACED)
-    pickupStatus  PickupStatus  @default(PENDING) // New
-    pickupToken   String?       // 6-digit code generated on purchase
-    payoutStatus  String        @default("none") // none, pending, released
+    collectionStatus PickupStatus  @default(PENDING)
+    collectionToken  String?       // 6-digit code generated on purchase
+    collectionDate   String?
+    proposedDate     String?       // For rescheduling
+    payoutStatus     String        @default("none") // none, pending, released
     
     userId        String
     storeId       String
-    addressId     String
+    addressId     String?
     isPaid        Boolean       @default(false)
     paymentMethod PaymentMethod
     createdAt     DateTime      @default(now())
@@ -225,7 +235,7 @@ model Order {
     // Relations
     user    User    @relation("BuyerRelation", fields: [userId], references: [id])
     store   Store   @relation(fields: [storeId], references: [id])
-    address Address @relation(fields: [addressId], references: [id])
+    address Address? @relation(fields: [addressId], references: [id])
 }
 
 model Notification {

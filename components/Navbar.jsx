@@ -62,8 +62,7 @@ const Navbar = () => {
                     {/* Desktop Menu */}
                     <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-500 font-bold text-sm">
                         <button onClick={() => handleNavigation('/shop', 'Entering Marketplace...')} className="hover:text-[#05DF72] transition-colors uppercase tracking-widest text-[10px]">Marketplace</button>
-                        <button onClick={() => handleNavigation('/about', 'Checking our impact...')} className="hover:text-[#05DF72] transition-colors uppercase tracking-widest text-[10px]">Eco Impact</button>
-                        <button onClick={() => handleNavigation('/seller', 'Loading seller portal...')} className="text-[#05DF72] bg-[#05DF72]/5 px-4 py-2 rounded-full hover:bg-[#05DF72] hover:text-white transition-all uppercase tracking-widest text-[10px]">Sell Batteries</button>
+                        <button onClick={() => handleNavigation('/seller', 'Loading seller portal...')} className="text-[#05DF72] bg-[#05DF72]/5 px-4 py-2 rounded-full hover:bg-[#05DF72] hover:text-white transition-all uppercase tracking-widest text-[10px]">Sell</button>
 
                         <form onSubmit={handleSearch} className="hidden lg:flex items-center w-48 text-[10px] gap-2 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100 focus-within:border-[#05DF72] transition-all">
                             <Search size={14} className="text-slate-400" />

@@ -1,5 +1,5 @@
 'use client'
-import { BatteryIcon, CircleDollarSignIcon, PackageIcon, ClockIcon, PhoneIcon, ShieldCheckIcon, CheckCircle2Icon, AlertCircleIcon, WalletIcon, CopyIcon } from "lucide-react"
+import { BatteryIcon, CircleDollarSignIcon, PackageIcon, ClockIcon, PhoneIcon, ShieldCheckIcon, CheckCircleIcon, AlertCircleIcon, WalletIcon, CopyIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 import Loading from "@/components/Loading"
 import { useSelector } from "react-redux"
@@ -41,8 +41,8 @@ export default function SellerOverview() {
 
     const handleVerifyPickup = async (e) => {
         e.preventDefault()
-        if (!pickupToken || pickupToken.length < 6) {
-            toast.error("Enter a valid 8-character token")
+        if (!pickupToken || pickupToken.length !== 6) {
+            toast.error("Enter a valid 6-digit token")
             return
         }
         if (!selectedOrderId) {
@@ -170,9 +170,9 @@ export default function SellerOverview() {
                                     value={pickupToken}
                                     onChange={(e) => setPickupToken(e.target.value.toUpperCase())}
                                     type="text"
-                                    placeholder="Enter 8-char Token"
+                                    placeholder="Enter 6-digit Token"
                                     className="flex-1 bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 font-mono tracking-widest focus:outline-none focus:border-[#05DF72]"
-                                    maxLength={8}
+                                    maxLength={6}
                                 />
                                 <button disabled={verifying} className="bg-[#05DF72] text-slate-900 font-bold px-6 py-3 rounded-xl hover:bg-[#04c764] transition-colors disabled:opacity-50">
                                     {verifying ? '...' : 'Verify'}
@@ -256,7 +256,7 @@ export default function SellerOverview() {
                             <h2 className="text-xl font-black uppercase tracking-tighter">Payouts</h2>
                             {user?.verificationStatus === 'verified' && (
                                 <span className="flex items-center gap-1 text-[10px] font-bold text-[#05DF72]">
-                                    <CheckCircle2Icon size={12} /> Bank Verified
+                                    <CheckCircleIcon size={12} /> Bank Verified
                                 </span>
                             )}
                         </div>
