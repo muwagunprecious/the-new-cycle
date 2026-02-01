@@ -1,6 +1,12 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DIRECT_URL || process.env.DATABASE_URL,
+        },
+    },
+});
 
 async function main() {
     console.log("Seeding demo data...");
@@ -19,7 +25,8 @@ async function main() {
             password: password,
             role: 'ADMIN',
             image: '',
-            isEmailVerified: true
+            isEmailVerified: true,
+            phone: '08000000001'
         }
     });
     console.log("Admin seeded:", admin.email);
@@ -35,7 +42,8 @@ async function main() {
             password: sellerPassword,
             role: 'SELLER',
             image: '',
-            isEmailVerified: true
+            isEmailVerified: true,
+            phone: '08000000002'
         }
     });
     console.log("Seller seeded:", seller.email);
