@@ -1,7 +1,6 @@
 'use client'
 import { useState } from "react"
 import { SearchIcon, ShoppingBagIcon, CheckCircleIcon, XCircleIcon, Trash2Icon, ExternalLinkIcon, BatteryIcon } from "lucide-react"
-import Image from "next/image"
 import { productDummyData } from "@/assets/assets"
 import toast from "react-hot-toast"
 
@@ -21,6 +20,13 @@ export default function AdminProducts() {
             setProducts(products.filter(p => p.id !== id))
             toast.success("Product deleted")
         }
+    }
+
+    const getImageUrl = (image) => {
+        if (!image) return null
+        if (typeof image === 'string') return image
+        if (typeof image === 'object' && image.src) return image.src
+        return null
     }
 
     return (
@@ -59,7 +65,11 @@ export default function AdminProducts() {
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-4">
                                             <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 border border-slate-100 group-hover:border-[#05DF72]/20 transition-all overflow-hidden relative">
-                                                {product.images?.[0] ? <Image src={product.images[0]} alt="" layout="fill" objectFit="cover" /> : <BatteryIcon size={24} />}
+                                                {getImageUrl(product.images?.[0]) ? (
+                                                    <img src={getImageUrl(product.images[0])} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <BatteryIcon size={24} />
+                                                )}
                                             </div>
                                             <div className="flex flex-col gap-0.5">
                                                 <span className="font-bold text-slate-900 group-hover:text-[#05DF72] transition-colors line-clamp-1">{product.name}</span>

@@ -215,6 +215,13 @@ export default function SellerProducts() {
         }
     }
 
+    const getImageUrl = (image) => {
+        if (!image) return null
+        if (typeof image === 'string') return image
+        if (typeof image === 'object' && image.src) return image.src
+        return null
+    }
+
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -282,8 +289,8 @@ export default function SellerProducts() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
-                                                    {product.images && product.images.length > 0 ? (
-                                                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                                    {getImageUrl(product.images?.[0]) ? (
+                                                        <img src={getImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-cover" />
                                                     ) : (
                                                         <BatteryIcon size={20} />
                                                     )}

@@ -13,7 +13,6 @@ import {
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import CheckoutModal from "./CheckoutModal";
 import Button from "./Button";
@@ -73,6 +72,13 @@ const ProductDetails = ({ product }) => {
         })
     }
 
+    const getImageUrl = (image) => {
+        if (!image) return '/placeholder-battery.jpg'
+        if (typeof image === 'string') return image
+        if (typeof image === 'object' && image.src) return image.src
+        return '/placeholder-battery.jpg'
+    }
+
     return (
         <div className="flex max-lg:flex-col gap-12 p-4">
 
@@ -85,19 +91,17 @@ const ProductDetails = ({ product }) => {
                             onClick={() => setMainImage(product.images[index])}
                             className={`bg-slate-50 flex items-center justify-center size-24 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden ${mainImage === image ? 'border-[#05DF72]' : 'border-transparent'}`}
                         >
-                            <Image
-                                src={image}
-                                className="hover:scale-110 transition-transform duration-500"
+                            <img
+                                src={getImageUrl(image)}
+                                className="hover:scale-110 transition-transform duration-500 w-20 h-20 object-contain"
                                 alt=""
-                                width={80}
-                                height={80}
                             />
                         </div>
                     ))}
                 </div>
 
                 <div className="flex-1 flex justify-center items-center bg-slate-50 rounded-[2.5rem] p-10 relative group overflow-hidden border border-slate-100 min-h-[400px]">
-                    <Image src={mainImage || product.images?.[0]} alt="" width={400} height={400} className="group-hover:scale-105 transition-transform duration-700 relative z-10" />
+                    <img src={getImageUrl(mainImage || product.images?.[0])} alt="" className="group-hover:scale-105 transition-transform duration-700 relative z-10 w-full max-w-[400px] h-auto object-contain" />
 
                     {/* Condition Badge */}
                     <div className="absolute top-6 left-6 z-20">
@@ -162,8 +166,8 @@ const ProductDetails = ({ product }) => {
                                 key={date}
                                 onClick={() => setSelectedDate(date)}
                                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedDate === date
-                                        ? 'bg-[#05DF72] text-white'
-                                        : 'bg-white border border-slate-200 text-slate-600 hover:border-[#05DF72]'
+                                    ? 'bg-[#05DF72] text-white'
+                                    : 'bg-white border border-slate-200 text-slate-600 hover:border-[#05DF72]'
                                     }`}
                             >
                                 {formatDate(date)}
