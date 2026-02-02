@@ -68,6 +68,7 @@ export default function OrderManagement() {
                                 <th className="px-6 py-4 font-semibold">Buyer / Vendor</th>
                                 <th className="px-6 py-4 font-semibold">Items & Total</th>
                                 <th className="px-6 py-4 font-semibold">Logistics Status</th>
+                                <th className="px-6 py-4 font-semibold">Payout Status</th>
                                 <th className="px-6 py-4 font-semibold">Actions</th>
                             </tr>
                         </thead>
@@ -97,6 +98,16 @@ export default function OrderManagement() {
                                                 Pickup: {order.collectionDate || 'Pending'}
                                             </div>
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className={`status-badge w-fit ${order.payoutStatus === 'released'
+                                                ? 'bg-green-100 text-green-700'
+                                                : order.payoutStatus === 'pending'
+                                                    ? 'bg-amber-100 text-amber-700'
+                                                    : 'bg-slate-100 text-slate-600'
+                                            }`}>
+                                            {order.payoutStatus?.toUpperCase() || 'NONE'}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
@@ -159,6 +170,80 @@ export default function OrderManagement() {
                                             <span className={`text-[10px] font-bold uppercase tracking-tighter ${idx <= 2 ? 'text-slate-900' : 'text-slate-400'}`}>{step}</span>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+
+                            {/* Vendor Bank Details & Payout Section */}
+                            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Vendor Payment Details</h3>
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <p className="text-xs text-slate-500 mb-1">Bank Name</p>
+                                        <p className="font-bold text-slate-900">{selectedOrder.store?.bankName || 'Not Provided'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500 mb-1">Account Number</p>
+                                        <p className="font-bold text-slate-900">{selectedOrder.store?.accountNumber || 'Not Provided'}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <p className="text-xs text-slate-500 mb-1">Account Name</p>
+                                        <p className="font-bold text-slate-900">{selectedOrder.store?.accountName || 'Not Provided'}</p>
+                                    </div>
+                                </div>
+
+                                {/* Collection Code Status */}
+                                <div className="bg-white rounded-xl p-4 mb-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs text-slate-500 mb-1">Collection Code</p>
+                                            <p className="font-mono text-lg font-bold text-slate-900">{selectedOrder.collectionToken || 'Not Generated'}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs text-slate-500 mb-1">Verification Status</p>
+                                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${selectedOrder.collectionStatus === 'COLLECTED'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-slate-100 text-slate-600'
+                                                }`}>
+                                                {selectedOrder.collectionStatus || 'PENDING'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Payout Status & Action */}
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs text-slate-500 mb-1">Payout Status</p>
+                                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${selectedOrder.payoutStatus === 'released'
+                                            ? 'bg-green-100 text-green-700'
+                                            : selectedOrder.payoutStatus === 'pending'
+                                                ? 'bg-amber-100 text-amber-700'
+                                                : 'bg-slate-100 text-slate-600'
+                                            }`}>
+                                            {selectedOrder.payoutStatus?.toUpperCase() || 'NONE'}
+                                        </span>
+                                    </div>
+                                    {selectedOrder.collectionStatus === 'COLLECTED' && selectedOrder.payoutStatus !== 'released' && (
+                                        <button
+                                            onClick={async () => {
+                                                const { releasePayout } = await import('@/backend/actions/admin')
+                                                const res = await releasePayout(selectedOrder.id)
+                                                if (res.success) {
+                                                    alert('Payout approved! Vendor will receive payment.')
+                                                    setSelectedOrder(null)
+                                                    // Refresh orders
+                                                    const ordersRes = await getAllOrders()
+                                                    if (ordersRes.success) setOrders(ordersRes.data)
+                                                } else {
+                                                    alert('Failed to approve payout: ' + res.error)
+                                                }
+                                            }}
+                                            className="btn-primary text-sm !py-2 !px-4"
+                                        >
+                                            <CheckCircleIcon size={16} />
+                                            Approve Payout
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 

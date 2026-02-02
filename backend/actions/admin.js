@@ -103,11 +103,33 @@ export async function banUser(userId, isBanned) {
 
 export async function releasePayout(orderId) {
     try {
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: { store: true }
+        })
+
+        if (!order) {
+            return { success: false, error: "Order not found" }
+        }
+
         await prisma.order.update({
             where: { id: orderId },
             data: { payoutStatus: 'released' }
         })
+
+        // Notify vendor about payout approval
+        const { createNotification } = await import('./notification')
+        await createNotification(
+            order.store.userId,
+            "Payout Approved!",
+            `Your payout of ₦${order.total.toLocaleString()} for order ${orderId} has been approved and will be credited to ${order.store.accountNumber || 'your account'}.`,
+            "PAYMENT"
+        )
+
         revalidatePath('/admin')
+        revalidatePath('/admin/orders')
+        revalidatePath('/seller')
+        revalidatePath('/notifications')
         return { success: true }
     } catch (error) {
         console.error("Release Payout Error:", error)

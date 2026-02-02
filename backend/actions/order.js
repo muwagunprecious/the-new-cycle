@@ -197,7 +197,7 @@ export async function verifyOrderCollection(orderId, token) {
             data: {
                 status: 'PICKED_UP',
                 collectionStatus: 'COLLECTED',
-                payoutStatus: 'released'
+                payoutStatus: 'pending' // Changed from 'released' to require admin approval
             }
         })
 
@@ -209,8 +209,8 @@ export async function verifyOrderCollection(orderId, token) {
         for (const admin of admins) {
             await createNotification(
                 admin.id,
-                "Order Completed & Payout Released",
-                `Order ${orderId} has been successfully collected. Seller credited: ₦${order.total.toLocaleString()}`,
+                "Order Collected - Payout Pending",
+                `Order ${orderId} has been successfully collected. Please review and approve payout of ₦${order.total.toLocaleString()} to vendor.`,
                 "PAYMENT"
             )
         }
