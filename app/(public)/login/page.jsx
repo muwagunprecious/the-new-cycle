@@ -60,7 +60,7 @@ function LoginContent() {
     }
 
     const demoAccounts = [
-        { email: 'admin@gmail.com', password: 'admin123', label: 'Admin' },
+        { email: 'admin@gocycle.com', password: 'admin123', label: 'Admin' },
         { email: 'adebayo@ecovolt.com', password: 'seller123', label: 'Seller' },
         { email: 'emeka@example.com', password: 'buyer123', label: 'Buyer' }
     ]
