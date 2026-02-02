@@ -281,8 +281,12 @@ export default function SellerProducts() {
                                     <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                                                    <BatteryIcon size={20} />
+                                                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
+                                                    {product.images && product.images.length > 0 ? (
+                                                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <BatteryIcon size={20} />
+                                                    )}
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-bold text-slate-900">{product.name}</span>

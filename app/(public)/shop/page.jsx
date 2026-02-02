@@ -3,14 +3,17 @@ import { Suspense, useState, useEffect } from "react"
 import ProductCard from "@/components/ProductCard"
 import { MoveLeftIcon, MapPin, FilterIcon, ChevronDown, BatteryIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import { ProductCardSkeleton } from "@/components/Skeleton"
 import { lagosLGAs } from "@/assets/assets"
+import { getAllProducts } from "@/backend/actions/product"
+import { setProduct } from "@/lib/features/product/productSlice"
 
 function ShopContent() {
     const searchParams = useSearchParams()
     const search = searchParams.get('search')
     const router = useRouter()
+    const dispatch = useDispatch()
 
     // Get products from Redux (which should be populated from assets or mock service)
     const products = useSelector(state => state.product.list)
@@ -23,32 +26,48 @@ function ShopContent() {
     const batteryTypes = ["All", "Car Battery", "Inverter Battery", "Heavy Duty Battery"]
 
     useEffect(() => {
-        setLoading(true)
+        const fetchAndFilter = async () => {
+            setLoading(true)
 
-        let result = [...products]
+            // Fetch fresh data
+            const serverResult = await getAllProducts()
+            let currentProducts = []
 
-        // 1. Search Filter
-        if (search) {
-            result = result.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
-        }
+            if (serverResult.success) {
+                dispatch(setProduct(serverResult.products))
+                currentProducts = serverResult.products
+            } else {
+                // Fallback to existing state if fetch fails
+                currentProducts = products
+            }
 
-        // 2. LGA Filter
-        if (activeLga !== 'All') {
-            result = result.filter(p => p.lga === activeLga)
-        }
+            let result = [...currentProducts]
 
-        // 3. Type Filter
-        if (activeType !== 'All') {
-            result = result.filter(p => p.batteryType === activeType || p.category === activeType)
-        }
+            // 1. Search Filter
+            if (search) {
+                result = result.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+            }
 
-        // Simulate network delay
-        setTimeout(() => {
+            // 2. LGA Filter
+            if (activeLga !== 'All') {
+                // For legacy/mock products which have 'lga' property
+                // For new products, we might not have it unless we added it to schema.
+                // Fallback: check address?
+                result = result.filter(p => p.lga === activeLga || (p.pickupAddress && p.pickupAddress.includes(activeLga)))
+            }
+
+            // 3. Type Filter
+            if (activeType !== 'All') {
+                result = result.filter(p => p.batteryType === activeType || p.category === activeType)
+            }
+
             setFilteredProducts(result)
             setLoading(false)
-        }, 500)
+        }
 
-    }, [search, activeLga, activeType, products])
+        fetchAndFilter()
+
+    }, [search, activeLga, activeType, dispatch]) // removed 'products' dependency to avoid infinite loop if we update it inside
 
     const handleLgaChange = (lga) => {
         setActiveLga(lga)
