@@ -1,6 +1,5 @@
 'use client'
 import { MapPinIcon, BatteryIcon, BoxIcon } from 'lucide-react'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 import { useDispatch } from 'react-redux'
@@ -30,9 +29,7 @@ const ProductCard = ({ product }) => {
     return (
         <div onClick={handleViewDetails} className='group block cursor-pointer'>
             <div className='bg-slate-50 aspect-square rounded-[2rem] flex items-center justify-center relative overflow-hidden border border-slate-100 group-hover:border-[#05DF72]/30 transition-all duration-500'>
-                <Image
-                    width={500}
-                    height={500}
+                <img
                     className='w-2/3 h-auto group-hover:scale-110 transition duration-700 relative z-10'
                     src={product.images?.[0] || '/placeholder-battery.jpg'}
                     alt={product.name}
