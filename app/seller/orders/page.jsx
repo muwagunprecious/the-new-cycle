@@ -125,10 +125,19 @@ export default function SellerOrders() {
                                             </div>
                                         )}
                                         {order.status === 'APPROVED' && (
-                                            <button onClick={() => updateStatus(order.id, 'PICKED_UP')} className="flex-1 md:flex-none bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Mark as Picked</button>
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Collection Code</span>
+                                                <div className="text-xl font-black text-[#05DF72] tracking-widest bg-[#05DF72]/10 px-3 py-1 rounded-lg border border-[#05DF72]/20 mt-1">
+                                                    {order.collectionToken}
+                                                </div>
+                                                <span className="text-[10px] text-slate-400 mt-1">Share with buyer to confirm pickup</span>
+                                            </div>
                                         )}
                                         {order.status === 'PICKED_UP' && (
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Awaiting Verification</span>
+                                            <div className="flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg border border-blue-100">
+                                                <CheckCircleIcon size={14} />
+                                                <span className="text-xs font-bold uppercase tracking-widest">Picked Up</span>
+                                            </div>
                                         )}
                                     </>
                                 )}

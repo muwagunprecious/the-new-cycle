@@ -85,7 +85,7 @@ export async function createOrder(orderData) {
         revalidatePath('/seller')
         revalidatePath('/notifications')
 
-        return { success: true, order, collectionToken }
+        return { success: true, order }
     } catch (error) {
         console.error("Create Order Error:", error)
         return { success: false, error: "Failed to create order: " + error.message }
@@ -106,7 +106,14 @@ export async function getUserOrders(userId) {
             },
             orderBy: { createdAt: 'desc' }
         })
-        return { success: true, data: orders }
+
+        // Sanitize orders to remove collectionToken before sending to buyer
+        const sanitizedOrders = orders.map(order => {
+            const { collectionToken, ...safeOrder } = order
+            return safeOrder
+        })
+
+        return { success: true, data: sanitizedOrders }
     } catch (error) {
         console.error("Error fetching user orders:", error)
         return { success: false, error: "Failed to fetch orders" }
