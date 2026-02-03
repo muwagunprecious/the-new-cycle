@@ -91,7 +91,7 @@ export default function SellerOverview() {
 
     if (loading) return <Loading />
 
-    const pendingOrders = orders.filter(o => o.status === 'AWAITING_PICKUP' || o.status === 'PAID' || o.status === 'ORDER_PLACED')
+    const pendingOrders = orders.filter(o => ['AWAITING_PICKUP', 'PAID', 'ORDER_PLACED', 'APPROVED'].includes(o.status))
     const completedOrders = orders.filter(o => o.status === 'COMPLETED' || o.status === 'PICKED_UP')
     const totalEarnings = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0)
     const pendingPayouts = orders.filter(o => o.payoutStatus === 'pending').reduce((sum, o) => sum + (o.total || 0), 0)
@@ -241,6 +241,14 @@ export default function SellerOverview() {
                                             >
                                                 Mark Complete
                                             </button>
+                                        )}
+                                        {order.status === 'APPROVED' && (
+                                            <div className="mt-2 flex flex-col items-end">
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Collection Token</span>
+                                                <span className="font-mono font-black text-[#05DF72] text-lg bg-[#05DF72]/10 px-2 rounded-md border border-[#05DF72]/20">
+                                                    {order.collectionToken}
+                                                </span>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

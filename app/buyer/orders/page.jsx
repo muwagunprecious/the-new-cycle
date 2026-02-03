@@ -115,6 +115,58 @@ export default function BuyerOrders() {
                 </div>
             </div>
 
+            {/* Action Required Section */}
+            {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status)) && (
+                <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-6">
+                            <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest animate-pulse">Action Required</span>
+                            <h2 className="text-2xl font-black text-slate-900">Verify Pickup</h2>
+                        </div>
+                        <div className="grid gap-4">
+                            {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status)).map(order => (
+                                <div key={order.id} className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-[#05DF72]/10 text-[#05DF72] rounded-xl flex items-center justify-center shrink-0">
+                                            <PackageIcon size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-900 text-sm">{order.orderItems?.map(i => i.product?.name).join(', ')}</h3>
+                                            <p className="text-xs text-slate-500 font-medium">Order ID: {order.id}</p>
+                                        </div>
+                                    </div>
+
+                                    <form onSubmit={(e) => {
+                                        e.preventDefault()
+                                        handleVerifyCollection(e, order.id)
+                                    }} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                                        <input
+                                            type="text"
+                                            maxLength={6}
+                                            placeholder="ENTER CODE"
+                                            className="w-32 bg-transparent border-none text-center font-black tracking-widest text-sm focus:ring-0 outline-none uppercase placeholder:text-slate-300 placeholder:font-bold placeholder:tracking-normal"
+                                            value={selectedOrder?.id === order.id ? verifyToken : ''}
+                                            onChange={(e) => {
+                                                setSelectedOrder(order)
+                                                setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))
+                                            }}
+                                            onClick={() => setSelectedOrder(order)}
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={verifying || (selectedOrder?.id === order.id && verifyToken.length < 6)}
+                                            className="p-2 bg-[#05DF72] text-white rounded-lg hover:bg-[#04c764] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#05DF72]/20"
+                                        >
+                                            {verifying && selectedOrder?.id === order.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckIcon size={16} />}
+                                        </button>
+                                    </form>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Orders List */}
             <div className="space-y-6">
                 {filteredOrders.length > 0 ? (
@@ -184,7 +236,7 @@ export default function BuyerOrders() {
                                             </button>
                                         </div>
                                     </div>
-                                ) : order.status === 'APPROVED' ? (
+                                ) : ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) ? (
                                     <form onSubmit={(e) => {
                                         e.preventDefault()
                                         handleVerifyCollection(e, order.id) // Pass ID here if needed, or set selectedOrder

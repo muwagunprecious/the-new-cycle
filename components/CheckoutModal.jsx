@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "./Button"
 import { mockOrderService, mockPaymentService, mockNotificationService } from "@/lib/mockService"
-import { createOrder } from "@/backend/actions/order"
+import { createOrder, verifyOrderCollection } from "@/backend/actions/order"
 
 /**
  * CheckoutModal - Demo payment flow for battery purchase
@@ -27,7 +27,8 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     const [step, setStep] = useState('SUMMARY') // SUMMARY | PROCESSING | SUCCESS | FAILED
     const [isLoading, setIsLoading] = useState(false)
     const [orderResult, setOrderResult] = useState(null)
-    const [copied, setCopied] = useState(false)
+    const [verifyToken, setVerifyToken] = useState('')
+    const [verifying, setVerifying] = useState(false)
 
     if (!isOpen) return null
 
@@ -82,13 +83,23 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
         setIsLoading(false)
     }
 
-    const copyToken = () => {
-        if (orderResult?.collectionToken) {
-            navigator.clipboard.writeText(orderResult.collectionToken)
-            setCopied(true)
-            toast.success("Token copied!")
-            setTimeout(() => setCopied(false), 2000)
+    const handleVerifyCollection = async (e) => {
+        e.preventDefault()
+        if (!verifyToken || verifyToken.length < 6) return
+
+        setVerifying(true)
+        try {
+            const res = await verifyOrderCollection(orderResult.id, verifyToken)
+            if (res.success) {
+                toast.success("Pickup verified successfully!")
+                router.push('/buyer') // Redirect to orders after verification
+            } else {
+                toast.error(res.error || "Invalid code")
+            }
+        } catch (error) {
+            toast.error("Verification failed")
         }
+        setVerifying(false)
     }
 
     const handleClose = () => {
@@ -229,32 +240,41 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                 <p className="text-sm text-slate-500 mt-2">Your order has been confirmed</p>
                             </div>
 
-                            {/* Collection Token */}
-                            <div className="bg-slate-900 rounded-2xl p-6 text-white">
-                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Your Collection Token</p>
-                                <div className="flex items-center justify-center gap-3">
-                                    <span className="text-3xl font-mono font-black tracking-widest text-[#05DF72]">
-                                        {orderResult.collectionToken}
-                                    </span>
-                                    <button
-                                        onClick={copyToken}
-                                        className={`p-2 rounded-lg transition-colors ${copied ? 'bg-green-500' : 'bg-white/10 hover:bg-white/20'
-                                            }`}
-                                    >
-                                        {copied ? <CheckCircleIcon size={18} /> : <CopyIcon size={18} />}
-                                    </button>
+                            {/* Verification Input */}
+                            <div className="bg-slate-900 rounded-2xl p-6 text-white text-left">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <h3 className="text-lg font-bold">Confirm Pickup</h3>
+                                    <span className="bg-[#05DF72] text-[#003314] text-[10px] uppercase font-black px-2 py-0.5 rounded tracking-widest">Action Required</span>
                                 </div>
-                                <p className="text-xs text-slate-400 mt-4">
-                                    Show this token to the seller on collection day
+                                <p className="text-sm text-slate-400 mb-4">
+                                    Ask the seller for the 6-digit confirmation code to verify you've received the item.
                                 </p>
+
+                                <form onSubmit={handleVerifyCollection} className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        maxLength={6}
+                                        placeholder="ENTER CODE"
+                                        className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-center font-black tracking-widest text-lg text-white placeholder:text-white/30 focus:border-[#05DF72] outline-none uppercase transition-colors"
+                                        value={verifyToken}
+                                        onChange={(e) => setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))}
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={verifying || verifyToken.length < 6}
+                                        className="bg-[#05DF72] text-[#003314] px-6 rounded-xl font-bold hover:bg-[#04c764] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {verifying ? <LoaderIcon className="animate-spin" /> : "Verify"}
+                                    </button>
+                                </form>
                             </div>
 
                             <div className="text-left bg-amber-50 rounded-xl p-4 border border-amber-100">
                                 <p className="text-xs font-bold text-amber-800 mb-2">📋 Next Steps:</p>
                                 <ol className="text-xs text-amber-700 space-y-1">
                                     <li>1. Visit the pickup location on {formatDate(selectedDate)}</li>
-                                    <li>2. Show your collection token to the seller</li>
-                                    <li>3. Collect your battery</li>
+                                    <li>2. Ask the seller for the confirmation code</li>
+                                    <li>3. Verify and collect your battery</li>
                                 </ol>
                             </div>
 

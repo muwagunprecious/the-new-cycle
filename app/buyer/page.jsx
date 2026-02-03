@@ -1,46 +1,56 @@
 'use client'
-import { PackageIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, MapPinIcon, CalendarIcon, CopyIcon, CheckCircleIcon, AlertCircleIcon, ClockIcon } from "lucide-react"
+import { PackageIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, MapPinIcon, CalendarIcon, CopyIcon, CheckCircleIcon, AlertCircleIcon, ClockIcon, CheckIcon } from "lucide-react"
 import Loading from "@/components/Loading"
 import { useState, useEffect } from "react"
 import { productDummyData, orderDummyData } from "@/assets/assets"
 import Link from "next/link"
 import { useSelector } from "react-redux"
 import ProductCard from "@/components/ProductCard"
-import { mockOrderService } from "@/lib/mockService"
 import VerificationModal from "@/components/VerificationModal"
 import toast from "react-hot-toast"
+import { getUserOrders, verifyOrderCollection } from "@/backend/actions/order"
 
 export default function BuyerDashboard() {
     const { user, isLoggedIn } = useSelector(state => state.auth)
     const [loading, setLoading] = useState(true)
     const [orders, setOrders] = useState([])
     const [showVerificationModal, setShowVerificationModal] = useState(false)
-    const [copiedToken, setCopiedToken] = useState(null)
+    const [verifyToken, setVerifyToken] = useState('')
+    const [verifying, setVerifying] = useState(false)
+    const [selectedOrder, setSelectedOrder] = useState(null)
 
     useEffect(() => {
         const load = async () => {
             if (user?.id) {
-                // Load buyer orders from mock service
-                const result = await mockOrderService.getOrders({ buyerId: user.id })
-                if (result.success && result.orders.length > 0) {
-                    setOrders(result.orders)
-                } else {
-                    // Fallback to dummy data
-                    setOrders(orderDummyData.filter(o => o.buyerId === user.id))
+                const res = await getUserOrders(user.id)
+                if (res.success) {
+                    setOrders(res.data)
                 }
-            } else {
-                setOrders(orderDummyData)
             }
             setLoading(false)
         }
         load()
     }, [user])
 
-    const copyToken = (token) => {
-        navigator.clipboard.writeText(token)
-        setCopiedToken(token)
-        toast.success("Token copied!")
-        setTimeout(() => setCopiedToken(null), 2000)
+    const handleVerifyCollection = async (e, orderId) => {
+        e.preventDefault()
+        if (!verifyToken || verifyToken.length < 6) {
+            toast.error("Please enter a valid 6-digit code")
+            return
+        }
+
+        setVerifying(true)
+        const res = await verifyOrderCollection(orderId, verifyToken)
+        setVerifying(false)
+
+        if (res.success) {
+            toast.success("Pickup confirmed! Release of funds initiated.")
+            setOrders(orders.map(o => o.id === orderId ? res.order : o))
+            setVerifyToken('')
+            setSelectedOrder(null)
+        } else {
+            toast.error(res.error || "Invalid code. Please check with seller.")
+        }
     }
 
     const handleVerificationComplete = (data) => {
@@ -60,7 +70,9 @@ export default function BuyerDashboard() {
         switch (status) {
             case 'AWAITING_PICKUP':
             case 'PAID':
-                return { bg: 'bg-amber-50 text-amber-600', label: 'Awaiting Pickup' }
+            case 'ORDER_PLACED':
+            case 'APPROVED':
+                return { bg: 'bg-amber-50 text-amber-600', label: 'Ready for Pickup' }
             case 'PICKED_UP':
                 return { bg: 'bg-blue-50 text-blue-600', label: 'Picked Up' }
             case 'COMPLETED':
@@ -109,6 +121,58 @@ export default function BuyerDashboard() {
                     Browse Batteries
                 </Link>
             </div>
+
+            {/* Action Required Section */}
+            {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status)) && (
+                <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-6">
+                            <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest animate-pulse">Action Required</span>
+                            <h2 className="text-2xl font-black text-slate-900">Verify Pickup</h2>
+                        </div>
+                        <div className="grid gap-4">
+                            {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status)).map(order => (
+                                <div key={order.id} className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-[#05DF72]/10 text-[#05DF72] rounded-xl flex items-center justify-center shrink-0">
+                                            <PackageIcon size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-900 text-sm">{order.orderItems?.map(i => i.product?.name).join(', ')}</h3>
+                                            <p className="text-xs text-slate-500 font-medium">Order ID: {order.id}</p>
+                                        </div>
+                                    </div>
+
+                                    <form onSubmit={(e) => {
+                                        e.preventDefault()
+                                        handleVerifyCollection(e, order.id)
+                                    }} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                                        <input
+                                            type="text"
+                                            maxLength={6}
+                                            placeholder="ENTER CODE"
+                                            className="w-32 bg-transparent border-none text-center font-black tracking-widest text-sm focus:ring-0 outline-none uppercase placeholder:text-slate-300 placeholder:font-bold placeholder:tracking-normal"
+                                            value={selectedOrder?.id === order.id ? verifyToken : ''}
+                                            onChange={(e) => {
+                                                setSelectedOrder(order)
+                                                setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))
+                                            }}
+                                            onClick={() => setSelectedOrder(order)}
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={verifying || (selectedOrder?.id === order.id && verifyToken.length < 6)}
+                                            className="p-2 bg-[#05DF72] text-white rounded-lg hover:bg-[#04c764] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#05DF72]/20"
+                                        >
+                                            {verifying && selectedOrder?.id === order.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckIcon size={16} />}
+                                        </button>
+                                    </form>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -195,31 +259,7 @@ export default function BuyerDashboard() {
                                             </div>
                                         </div>
 
-                                        {/* Collection Token */}
-                                        {order.collectionToken && order.status !== 'COMPLETED' && (
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex-1 bg-slate-900 rounded-xl p-3 flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-[10px] font-bold uppercase text-slate-400">Collection Token</p>
-                                                        <p className="text-lg font-mono font-black text-[#05DF72] tracking-widest">
-                                                            {order.collectionToken}
-                                                        </p>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => copyToken(order.collectionToken)}
-                                                        className={`p-2 rounded-lg transition-colors ${copiedToken === order.collectionToken
-                                                            ? 'bg-green-500 text-white'
-                                                            : 'bg-white/10 text-white hover:bg-white/20'
-                                                            }`}
-                                                    >
-                                                        {copiedToken === order.collectionToken
-                                                            ? <CheckCircleIcon size={16} />
-                                                            : <CopyIcon size={16} />
-                                                        }
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
+
                                     </div>
 
                                     {/* Instructions for pending orders */}
