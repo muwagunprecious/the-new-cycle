@@ -240,3 +240,53 @@ export async function getProductById(productId) {
         return { success: false, error: "Failed to fetch product" }
     }
 }
+
+export async function getAdminProducts() {
+    try {
+        const products = await prisma.product.findMany({
+            include: {
+                store: {
+                    include: {
+                        user: {
+                            select: {
+                                name: true,
+                                email: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        })
+
+        // Hydrate products for admin view
+        const hydratedProducts = products.map(p => ({
+            ...p,
+            unitsAvailable: p.quantity,
+            batteryType: p.type === 'CAR_BATTERY' ? 'Car Battery' :
+                p.type === 'INVERTER_BATTERY' ? 'Inverter Battery' : 'Heavy Duty Battery',
+            // Since Product doesn't have status, we use store status or default to Approved
+            status: p.store?.status === 'approved' ? 'Approved' : 'Pending'
+        }))
+
+        return { success: true, products: hydratedProducts }
+    } catch (error) {
+        console.error("Get Admin Products Error:", error)
+        return { success: false, error: "Failed to fetch admin products" }
+    }
+}
+
+export async function adminDeleteProduct(productId) {
+    try {
+        await prisma.product.delete({
+            where: { id: productId }
+        })
+        revalidatePath('/admin/products')
+        revalidatePath('/')
+        revalidatePath('/shop')
+        return { success: true }
+    } catch (error) {
+        console.error("Admin Delete Product Error:", error)
+        return { success: false, error: "Failed to delete product" }
+    }
+}
