@@ -28,7 +28,11 @@ const ProductCard = ({ product }) => {
 
     const getImageUrl = (image) => {
         if (!image) return '/placeholder-battery.jpg'
-        if (typeof image === 'string') return image
+        if (typeof image === 'string') {
+            // Handle cases where string might be stringified object or empty
+            if (image === '[object Object]') return '/placeholder-battery.jpg'
+            return image
+        }
         if (typeof image === 'object' && image.src) return image.src
         return '/placeholder-battery.jpg'
     }
@@ -37,9 +41,11 @@ const ProductCard = ({ product }) => {
         <div onClick={handleViewDetails} className='group block cursor-pointer'>
             <div className='bg-slate-50 aspect-square rounded-[2rem] flex items-center justify-center relative overflow-hidden border border-slate-100 group-hover:border-[#05DF72]/30 transition-all duration-500'>
                 <img
-                    className='w-2/3 h-auto group-hover:scale-110 transition duration-700 relative z-10'
+                    className='w-full h-full object-cover group-hover:scale-110 transition duration-700 relative z-10'
                     src={getImageUrl(product.images?.[0])}
                     alt={product.name}
+                    loading="lazy"
+                    onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
                 />
 
                 {/* Condition Badge */}

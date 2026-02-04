@@ -162,10 +162,26 @@ export default function SellerProducts() {
             return
         }
 
+        // Check image size (Total base64 characters)
+        const totalImageSize = formData.images.reduce((acc, img) => acc + img.length, 0)
+        if (totalImageSize > 10 * 1024 * 1024) { // ~7.5MB decoded
+            toast.error("Images are too large. Please upload smaller files or fewer images.")
+            return
+        }
+
         setIsLoading(true)
         dispatch(showLoader("Publishing listing..."))
 
+        // Add a timeout warning after 10 seconds
+        const timeoutId = setTimeout(() => {
+            toast("Still publishing... hang tight! Large images might take a moment.", {
+                icon: '⏳',
+                duration: 5000
+            })
+        }, 10000)
+
         try {
+            console.log("CLIENT: Starting product publication...")
             const result = await createProduct({
                 name: `Scrap ${formData.batteryType} (${formData.amps}Ah) - ${formData.lga}`,
                 batteryType: formData.batteryType,
@@ -181,6 +197,7 @@ export default function SellerProducts() {
                 images: formData.images.length > 0 ? formData.images : ['/placeholder-battery.jpg']
             }, user.id)
 
+            clearTimeout(timeoutId)
             dispatch(hideLoader())
             setIsLoading(false)
 
@@ -206,20 +223,25 @@ export default function SellerProducts() {
                 })
                 setSelectedDates([])
             } else {
-                toast.error(result.error)
+                toast.error(result.error || "Publication failed")
             }
         } catch (error) {
+            clearTimeout(timeoutId)
             dispatch(hideLoader())
             setIsLoading(false)
-            toast.error("Failed to publish listing")
+            console.error("CLIENT: Publication Exception:", error)
+            toast.error("Failed to publish listing: Network or Server Error")
         }
     }
 
     const getImageUrl = (image) => {
-        if (!image) return null
-        if (typeof image === 'string') return image
+        if (!image) return '/placeholder-battery.jpg'
+        if (typeof image === 'string') {
+            if (image === '[object Object]' || image === '') return '/placeholder-battery.jpg'
+            return image
+        }
         if (typeof image === 'object' && image.src) return image.src
-        return null
+        return '/placeholder-battery.jpg'
     }
 
     return (
@@ -290,7 +312,12 @@ export default function SellerProducts() {
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
                                                     {getImageUrl(product.images?.[0]) ? (
-                                                        <img src={getImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-cover" />
+                                                        <img
+                                                            src={getImageUrl(product.images[0])}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
+                                                        />
                                                     ) : (
                                                         <BatteryIcon size={20} />
                                                     )}

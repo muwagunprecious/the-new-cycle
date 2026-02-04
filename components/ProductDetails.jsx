@@ -74,7 +74,10 @@ const ProductDetails = ({ product }) => {
 
     const getImageUrl = (image) => {
         if (!image) return '/placeholder-battery.jpg'
-        if (typeof image === 'string') return image
+        if (typeof image === 'string') {
+            if (image === '[object Object]' || image === '') return '/placeholder-battery.jpg'
+            return image
+        }
         if (typeof image === 'object' && image.src) return image.src
         return '/placeholder-battery.jpg'
     }
@@ -93,15 +96,21 @@ const ProductDetails = ({ product }) => {
                         >
                             <img
                                 src={getImageUrl(image)}
-                                className="hover:scale-110 transition-transform duration-500 w-20 h-20 object-contain"
+                                className="hover:scale-110 transition-transform duration-500 w-full h-full object-cover"
                                 alt=""
+                                onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
                             />
                         </div>
                     ))}
                 </div>
 
                 <div className="flex-1 flex justify-center items-center bg-slate-50 rounded-[2.5rem] p-10 relative group overflow-hidden border border-slate-100 min-h-[400px]">
-                    <img src={getImageUrl(mainImage || product.images?.[0])} alt="" className="group-hover:scale-105 transition-transform duration-700 relative z-10 w-full max-w-[400px] h-auto object-contain" />
+                    <img
+                        src={getImageUrl(mainImage || product.images?.[0])}
+                        alt=""
+                        className="group-hover:scale-105 transition-transform duration-700 relative z-10 w-full max-w-[400px] h-full object-cover rounded-2xl shadow-sm"
+                        onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
+                    />
 
                     {/* Condition Badge */}
                     <div className="absolute top-6 left-6 z-20">

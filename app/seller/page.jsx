@@ -6,7 +6,7 @@ import { useSelector } from "react-redux"
 import toast from "react-hot-toast"
 import VerificationModal from "@/components/VerificationModal"
 import Button from "@/components/Button"
-import { getSellerOrders, verifyOrderCollection, updateOrderStatus } from "@/backend/actions/order"
+import { getSellerOrders, updateOrderStatus } from "@/backend/actions/order"
 import { getSellerProducts } from "@/backend/actions/product"
 
 export default function SellerOverview() {
@@ -14,9 +14,6 @@ export default function SellerOverview() {
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState({ totalProducts: 0 })
     const [orders, setOrders] = useState([])
-    const [pickupToken, setPickupToken] = useState('')
-    const [selectedOrderId, setSelectedOrderId] = useState(null)
-    const [verifying, setVerifying] = useState(false)
     const [showVerificationModal, setShowVerificationModal] = useState(false)
 
     useEffect(() => {
@@ -39,39 +36,6 @@ export default function SellerOverview() {
         load()
     }, [user])
 
-    const handleVerifyPickup = async (e) => {
-        e.preventDefault()
-        if (!pickupToken || pickupToken.length !== 6) {
-            toast.error("Enter a valid 6-digit token")
-            return
-        }
-        if (!selectedOrderId) {
-            toast.error("Please select an order to verify")
-            return
-        }
-
-        setVerifying(true)
-        try {
-            const result = await verifyOrderCollection(selectedOrderId, pickupToken)
-            if (result.success) {
-                toast.success("Token verified! Order marked as picked up")
-                setPickupToken('')
-                setSelectedOrderId(null)
-                // Update local state
-                setOrders(orders.map(o =>
-                    o.id === selectedOrderId
-                        ? result.order
-                        : o
-                ))
-            } else {
-                toast.error(result.error)
-            }
-        } catch (err) {
-            toast.error("Verification failed")
-        } finally {
-            setVerifying(false)
-        }
-    }
 
     const handleCompleteOrder = async (orderId) => {
         const result = await updateOrderStatus(orderId, 'COMPLETED')
@@ -140,47 +104,7 @@ export default function SellerOverview() {
                     <p className="text-slate-400 font-bold text-sm mt-1">Welcome back, {user?.businessName || user?.name || 'Seller'}!</p>
                 </div>
 
-                {/* Verify Pickup Panel */}
-                <div className="flex-1 max-w-md bg-white p-2 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
-                    <form onSubmit={handleVerifyPickup} className="bg-slate-900 p-6 rounded-[1.5rem] relative overflow-hidden">
-                        <div className="relative z-10">
-                            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                                <ShieldCheckIcon className="text-[#05DF72]" size={20} />
-                                Verify Collection Token
-                            </h3>
-
-                            {/* Order Selection */}
-                            {pendingOrders.length > 0 && (
-                                <select
-                                    value={selectedOrderId || ''}
-                                    onChange={(e) => setSelectedOrderId(e.target.value)}
-                                    className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white mb-3 focus:outline-none focus:border-[#05DF72]"
-                                >
-                                    <option value="">Select order to verify</option>
-                                    {pendingOrders.map(o => (
-                                        <option key={o.id} value={o.id} className="text-slate-900">
-                                            {o.product?.name || `Order ${o.id}`} - ₦{o.totalAmount?.toLocaleString()}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
-
-                            <div className="flex gap-2">
-                                <input
-                                    value={pickupToken}
-                                    onChange={(e) => setPickupToken(e.target.value.toUpperCase())}
-                                    type="text"
-                                    placeholder="Enter 6-digit Token"
-                                    className="flex-1 bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 font-mono tracking-widest focus:outline-none focus:border-[#05DF72]"
-                                    maxLength={6}
-                                />
-                                <button disabled={verifying} className="bg-[#05DF72] text-slate-900 font-bold px-6 py-3 rounded-xl hover:bg-[#04c764] transition-colors disabled:opacity-50">
-                                    {verifying ? '...' : 'Verify'}
-                                </button>
-                            </div>
-                        </div>
-                        <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[#05DF72]/20 rounded-full blur-xl"></div>
-                    </form>
+                <div className="flex-1 max-w-md">
                 </div>
             </div>
 

@@ -5,69 +5,103 @@ import { revalidatePath } from "next/cache"
 
 export async function createProduct(data, userId) {
     const startTime = Date.now()
+    const log = (msg) => console.log(`[${new Date().toISOString()}] SERVER PRODUCT: ${msg}`)
+
     try {
-        console.log("SERVER: Creating product for user:", userId)
-        console.log("SERVER: Data keys:", Object.keys(data))
-        if (data.images) {
-            console.log("SERVER: Number of images:", data.images.length)
-            console.log("SERVER: Estimated images size:", JSON.stringify(data.images).length)
+        log(`[START] Creating product for UserID: ${userId}`)
+        log(`PAYLOAD_KEYS: ${Object.keys(data).join(', ')}`)
+
+        // 1. Basic validation
+        if (!userId) {
+            log("ERROR: User ID missing from session context")
+            return { success: false, error: "Authentication Error: Please re-login" }
         }
+        if (!data.collectionDates || data.collectionDates.length === 0) {
+            log("ERROR: No collection dates provided")
+            return { success: false, error: "Please select at least one collection date" }
+        }
+
+        const price = parseFloat(data.price)
+        const units = parseInt(data.unitsAvailable)
+        const amps = parseInt(data.amps) || 0
+
+        if (isNaN(price)) { log("ERROR: Price is NaN"); return { success: false, error: "Invalid price" } }
+        if (isNaN(units)) { log("ERROR: Units is NaN"); return { success: false, error: "Invalid units/quantity" } }
+
+        log(`VALIDATED: Price=${price}, Units=${units}, Amps=${amps}`)
+        if (data.images) log(`IMAGES: Count=${data.images.length}, TotalLen=${JSON.stringify(data.images).length}`)
+
+        // 2. Database Lookup: Store
+        log("DB: Looking up store for seller...")
         const store = await prisma.store.findUnique({
             where: { userId }
         })
 
         if (!store) {
-            // Check if user exists to provide better error
-            const userExists = await prisma.user.findUnique({ where: { id: userId } })
-            if (!userExists) {
-                return { success: false, error: "Session invalid: Your account was reset. Please Logout and Sign Up again." }
-            }
-
-            return { success: false, error: "No store found for this seller. Please create a store first." }
+            log(`ERROR: Store not found for user ${userId}`)
+            return { success: false, error: "Store not found. Please create a store first." }
         }
+        log(`STORE: Found ID ${store.id}, Status: ${store.status}`)
 
-        // 1.5. Check if store is approved
         if (store.status !== 'approved' || !store.isActive) {
-            return { success: false, error: "Your store is pending approval. You can only list products once verified by an admin." }
+            log(`ERROR: Store not ready. Status=${store.status}, Active=${store.isActive}`)
+            return { success: false, error: "Your store must be 'Approved' and 'Active' to list batteries." }
         }
 
-        // 2. Create the product
+        // 3. Prepare Dates
+        const startRaw = data.collectionDates[0]
+        const collectionDateStart = new Date(startRaw)
+        const collectionDateEnd = new Date(data.collectionDates[data.collectionDates.length - 1])
+
+        if (isNaN(collectionDateStart.getTime())) {
+            log(`ERROR: Date conversion failed for ${startRaw}`)
+            return { success: false, error: "Invalid collection date format" }
+        }
+
+        // 4. Create Product
+        log("DB: Attempting product creation...")
         const product = await prisma.product.create({
             data: {
                 name: data.name,
                 description: data.comments || "",
-                mrp: parseFloat(data.price) * 1.2, // Mock MRP calculation
-                price: parseFloat(data.price),
-                images: data.images,
-                category: "Battery", // Default
+                mrp: price * 1.2,
+                price: price,
+                images: data.images || [],
+                category: "Battery",
                 type: data.batteryType === 'Car Battery' ? 'CAR_BATTERY' :
                     data.batteryType === 'Inverter Battery' ? 'INVERTER_BATTERY' : 'HEAVY_DUTY_BATTERY',
-                brand: data.brand,
-                amps: parseInt(data.amps) || 0,
+                brand: data.brand || "",
+                amps: amps,
                 condition: data.condition || "SCRAP",
                 pickupAddress: data.address,
-                collectionDateStart: new Date(data.collectionDates[0]),
-                collectionDateEnd: new Date(data.collectionDates[data.collectionDates.length - 1]),
+                collectionDateStart,
+                collectionDateEnd,
                 collectionDates: data.collectionDates,
-                quantity: parseInt(data.unitsAvailable),
+                quantity: units,
                 storeId: store.id,
                 inStock: true
             }
         })
+        log(`SUCCESS: Product created with ID ${product.id}`)
 
-        revalidatePath('/seller/products')
-        // revalidatePath('/seller')
-        // revalidatePath('/')
-        // revalidatePath('/shop')
+        // 5. Safe Revalidation
+        log("CACHE: Starting revalidation...")
+        try {
+            revalidatePath('/seller/products')
+            // revalidatePath('/') // Skip heavy revalidation in dev to prevent hangs
+        } catch (revalErr) {
+            log(`CACHE_WARN: Revalidation non-fatal error: ${revalErr.message}`)
+        }
 
         const duration = (Date.now() - startTime) / 1000
-        console.log(`SERVER: Product created successfully in ${duration}s. ID: ${product.id}`)
+        log(`[DONE] Total server time: ${duration}s`)
 
         return { success: true, product }
 
     } catch (error) {
-        console.error("SERVER: Create Product Error:", error)
-        return { success: false, error: "Failed to create product: " + error.message }
+        log(`FATAL_ERROR: ${error.message}`)
+        console.error(error)
+        return { success: false, error: "Publication failed: " + (error.message || "Internal Server Error") }
     }
 }
 
