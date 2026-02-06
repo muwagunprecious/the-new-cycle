@@ -31,10 +31,18 @@ model User {
     isEmailVerified Boolean @default(false)
     isPhoneVerified Boolean @default(false)
     
+    
     // Bank Details (For refunds/payments)
     bankName      String?
     accountNumber String?
     accountName   String?
+    
+    // Buyer Verification
+    accountStatus     String  @default("pending") // pending, approved, rejected
+    ninDocument       String? // Base64 encoded NIN document
+    cacDocument       String? // Base64 encoded CAC document (optional)
+    verificationNotes String? // Admin notes for rejection
+    verifiedAt        DateTime?
     
     // Placeholders for Future verification
     identityToken   String?
@@ -166,6 +174,9 @@ model Store {
     accountNumber String?
     accountName   String?
     isVerified    Boolean @default(false)
+
+    nin           String? // National Identification Number
+    cac           String? // Corporate Affairs Commission Number
 
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt

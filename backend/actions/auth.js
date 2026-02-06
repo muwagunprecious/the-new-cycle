@@ -53,13 +53,30 @@ export async function registerUser(userData) {
                 isEmailVerified: false, // Enforce verification
                 isPhoneVerified: false,
                 cart: "{}", // Initialize cart
-                // Store OTPs temporarily? 
-                // For this MVP, we might need a way to verify. 
-                // Creating a simplified verification flow without a separate table for now.
-                // We'll trust the verify action to checking a matched code (stateless or mock).
-                // Ideally, store in Redis or a VerificationToken table.
+                // Buyer verification fields
+                accountStatus: role === 'USER' ? 'pending' : 'approved', // Sellers have their own store verification
+                ninDocument: userData.ninDocument || null,
+                cacDocument: userData.cacDocument || null,
+                bankName: userData.bankName || null,
+                accountNumber: userData.accountNumber || null,
+                accountName: userData.accountName || null
             }
         })
+
+        if (role === 'USER') {
+            // Notify Admin about new buyer
+            const { createNotification } = await import('./notification')
+            // Find admins
+            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
+            for (const admin of admins) {
+                await createNotification(
+                    admin.id,
+                    "New Buyer Registration",
+                    `${name} has registered as a buyer and is awaiting verification.`,
+                    "SYSTEM"
+                )
+            }
+        }
 
         // If user is a seller, auto-create a pending store application
         if (role === 'SELLER') {
@@ -88,6 +105,18 @@ export async function registerUser(userData) {
         return { success: true, user, requiresVerification: true }
     } catch (error) {
         console.error("Register Error:", error)
+
+        // Handle unique constraint violations
+        if (error.code === 'P2002') {
+            const field = error.meta?.target?.[0]
+            if (field === 'email') {
+                return { success: false, error: "This email address is already registered. Please login instead." }
+            } else if (field === 'phone') {
+                return { success: false, error: "This phone number is already registered. Please login instead." }
+            }
+            return { success: false, error: "An account with these details already exists." }
+        }
+
         return { success: false, error: "Registration failed: " + error.message }
     }
 }
@@ -196,7 +225,9 @@ export async function createStoreApplication(storeData, userId) {
                 contact: storeData.phone,
                 logo: "", // Handle image upload later
                 status: 'pending',
-                isActive: false
+                isActive: false,
+                nin: storeData.nin || "",
+                cac: storeData.cac || ""
             }
         })
         return { success: true, store }

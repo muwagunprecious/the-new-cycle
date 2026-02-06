@@ -16,6 +16,7 @@ const AdminSidebar = () => {
         { name: 'Products', href: '/admin/products', icon: ShoppingBagIcon },
         { name: 'Users', href: '/admin/users', icon: UsersIcon },
         { name: 'Orders', href: '/admin/orders', icon: ShieldCheckIcon },
+        { name: 'Verify Buyers', href: '/admin/verify-buyers', icon: ShieldCheckIcon },
         { name: 'Notifications', href: '/admin/notifications', icon: BellIcon },
     ]
 

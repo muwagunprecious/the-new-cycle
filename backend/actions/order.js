@@ -29,6 +29,19 @@ export async function createOrder(orderData) {
             return { success: false, error: "Seller store not found. Please ensure the product is listed by a valid seller." }
         }
 
+        // Verify Buyer Status
+        const buyer = await prisma.user.findUnique({
+            where: { id: buyerId }
+        })
+
+        if (!buyer) {
+            return { success: false, error: "Buyer account not found." }
+        }
+
+        if (buyer.role === 'USER' && buyer.accountStatus !== 'approved') {
+            return { success: false, error: "Your account is pending verification. You cannot place orders until approved by admin." }
+        }
+
         const order = await prisma.order.create({
             data: {
                 total: totalAmount,

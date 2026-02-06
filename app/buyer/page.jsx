@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useSelector } from "react-redux"
 import ProductCard from "@/components/ProductCard"
 import VerificationModal from "@/components/VerificationModal"
+import DocumentVerificationModal from "@/components/DocumentVerificationModal"
 import toast from "react-hot-toast"
 import { getUserOrders, verifyOrderCollection } from "@/backend/actions/order"
 
@@ -18,6 +19,7 @@ export default function BuyerDashboard() {
     const [verifyToken, setVerifyToken] = useState('')
     const [verifying, setVerifying] = useState(false)
     const [selectedOrder, setSelectedOrder] = useState(null)
+    const [documentsSubmitted, setDocumentsSubmitted] = useState(false)
 
     useEffect(() => {
         const load = async () => {
@@ -86,221 +88,302 @@ export default function BuyerDashboard() {
     const orderedProductIds = orders.map(o => o.productId)
     const relatedProducts = productDummyData.filter(p => !orderedProductIds.includes(p.id)).slice(0, 4)
 
+    const isVerified = user?.accountStatus === 'approved'
+    const isPending = user?.accountStatus === 'pending'
+    const isRejected = user?.accountStatus === 'rejected'
+
+    // Check if user has submitted documents (either in DB or in current session)
+    const hasSubmitted = !!user?.ninDocument || documentsSubmitted
+
+    // Strict Blocking Logic
+    const showInputModal = isPending && !hasSubmitted
+    const showUnderReviewOverlay = isPending && hasSubmitted
+    const showRejectedOverlay = isRejected
+
+    const handleDocumentSubmissionComplete = () => {
+        setDocumentsSubmitted(true)
+        toast.success('Documents submitted! Account under review.')
+        // Reload page to refresh user data context
+        setTimeout(() => window.location.reload(), 1500)
+    }
+
     return (
-        <div className="space-y-12">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        {user?.verificationStatus === 'verified' ? (
-                            <span className="flex items-center gap-1 text-[#05DF72] font-black uppercase tracking-widest text-[10px]">
-                                <ShieldCheckIcon size={16} /> Verified Buyer
+        <div className="relative space-y-12 min-h-[80vh]">
+
+            {/* STATE 1: INPUT REQUIRED (Blocking Modal) */}
+            {showInputModal && (
+                <DocumentVerificationModal
+                    user={user}
+                    onComplete={handleDocumentSubmissionComplete}
+                />
+            )}
+
+            {/* STATE 2: UNDER REVIEW (Blocking Overlay) */}
+            {showUnderReviewOverlay && (
+                <div className="fixed inset-0 z-50 bg-slate-50/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl max-w-lg border border-slate-100 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-[#05DF72] animate-pulse"></div>
+                        <div className="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <ClockIcon className="text-orange-500" size={48} />
+                        </div>
+                        <h2 className="text-3xl font-black text-slate-900 mb-3">Under Review</h2>
+                        <p className="text-slate-500 font-medium mb-8 leading-relaxed">
+                            Thanks for submitting your details! Our team is reviewing your information.
+                            <br /><br />
+                            <span className="bg-slate-100 px-3 py-1 rounded-lg text-sm text-slate-700 font-bold">
+                                You will receive an email once approved.
                             </span>
-                        ) : (
-                            <button
-                                onClick={() => setShowVerificationModal(true)}
-                                className="flex items-center gap-1 text-amber-500 font-black uppercase tracking-widest text-[10px] hover:underline"
-                            >
-                                <AlertCircleIcon size={16} /> Complete Verification
-                            </button>
-                        )}
+                        </p>
+                        <div className="flex justify-center gap-2">
+                            <div className="w-3 h-3 bg-slate-200 rounded-full animate-bounce"></div>
+                            <div className="w-3 h-3 bg-slate-200 rounded-full animate-bounce delay-100"></div>
+                            <div className="w-3 h-3 bg-slate-200 rounded-full animate-bounce delay-200"></div>
+                        </div>
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 leading-tight">
-                        My <span className="text-[#05DF72]">Dashboard</span>
-                    </h1>
-                    <p className="text-slate-400 font-bold text-sm mt-1">
-                        Welcome back, {user?.name || 'Buyer'}!
-                    </p>
+                </div>
+            )}
+
+            {/* STATE 3: REJECTED (Blocking Overlay) */}
+            {showRejectedOverlay && (
+                <div className="fixed inset-0 z-50 bg-red-50/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl max-w-lg border border-red-100">
+                        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <AlertCircleIcon className="text-red-500" size={48} />
+                        </div>
+                        <h2 className="text-3xl font-black text-slate-900 mb-3">Verification Failed</h2>
+                        <p className="text-slate-500 font-medium mb-6">
+                            Unfortunately, your account application was not approved.
+                        </p>
+                        {user?.verificationNotes && (
+                            <div className="bg-red-50 p-4 rounded-2xl border border-red-100 text-sm text-red-700 font-bold mb-8">
+                                " {user.verificationNotes} "
+                            </div>
+                        )}
+                        <button
+                            onClick={() => window.location.href = 'mailto:support@gocycle.com'}
+                            className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-colors"
+                        >
+                            Contact Support
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Main Content (Blurred if any blocking state is active) */}
+            <div className={(showInputModal || showUnderReviewOverlay || showRejectedOverlay) ? 'blur-xl pointer-events-none opacity-50 select-none grayscale' : ''}>
+
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            {isVerified ? (
+                                <span className="flex items-center gap-1 text-[#05DF72] font-black uppercase tracking-widest text-[10px]">
+                                    <ShieldCheckIcon size={16} /> Verified Buyer
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1 text-slate-400 font-black uppercase tracking-widest text-[10px]">
+                                    <ShieldCheckIcon size={16} /> Unverified Account
+                                </span>
+                            )}
+                        </div>
+                        <h1 className="text-4xl font-black text-slate-900 leading-tight">
+                            My <span className="text-[#05DF72]">Dashboard</span>
+                        </h1>
+                        <p className="text-slate-400 font-bold text-sm mt-1">
+                            Welcome back, {user?.name || 'Buyer'}!
+                        </p>
+                    </div>
+
+                    <Link
+                        href={isVerified ? "/shop" : "#"}
+                        onClick={() => !isVerified && toast.error("Account verification required to browse shop")}
+                        className={`btn-primary ${!isVerified ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        <ShoppingCartIcon size={18} />
+                        Browse Batteries
+                    </Link>
                 </div>
 
-                <Link
-                    href="/shop"
-                    className="btn-primary"
-                >
-                    <ShoppingCartIcon size={18} />
-                    Browse Batteries
-                </Link>
-            </div>
+                {/* Action Required Section */}
+                {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status)) && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-6">
+                                <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest animate-pulse">Action Required</span>
+                                <h2 className="text-2xl font-black text-slate-900">Verify Pickup</h2>
+                            </div>
+                            <div className="grid gap-4">
+                                {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status)).map(order => (
+                                    <div key={order.id} className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-[#05DF72]/10 text-[#05DF72] rounded-xl flex items-center justify-center shrink-0">
+                                                <PackageIcon size={20} />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-slate-900 text-sm">{order.orderItems?.map(i => i.product?.name).join(', ')}</h3>
+                                                <p className="text-xs text-slate-500 font-medium">Order ID: {order.id}</p>
+                                            </div>
+                                        </div>
 
-            {/* Action Required Section */}
-            {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status)) && (
-                <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-6">
-                            <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest animate-pulse">Action Required</span>
-                            <h2 className="text-2xl font-black text-slate-900">Verify Pickup</h2>
-                        </div>
-                        <div className="grid gap-4">
-                            {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status)).map(order => (
-                                <div key={order.id} className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-[#05DF72]/10 text-[#05DF72] rounded-xl flex items-center justify-center shrink-0">
-                                            <PackageIcon size={20} />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-slate-900 text-sm">{order.orderItems?.map(i => i.product?.name).join(', ')}</h3>
-                                            <p className="text-xs text-slate-500 font-medium">Order ID: {order.id}</p>
-                                        </div>
+                                        <form onSubmit={(e) => {
+                                            e.preventDefault()
+                                            handleVerifyCollection(e, order.id)
+                                        }} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                                            <input
+                                                type="text"
+                                                maxLength={6}
+                                                placeholder="ENTER CODE"
+                                                className="w-32 bg-transparent border-none text-center font-black tracking-widest text-sm focus:ring-0 outline-none uppercase placeholder:text-slate-300 placeholder:font-bold placeholder:tracking-normal"
+                                                value={selectedOrder?.id === order.id ? verifyToken : ''}
+                                                onChange={(e) => {
+                                                    setSelectedOrder(order)
+                                                    setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))
+                                                }}
+                                                onClick={() => setSelectedOrder(order)}
+                                            />
+                                            <button
+                                                type="submit"
+                                                disabled={verifying || (selectedOrder?.id === order.id && verifyToken.length < 6)}
+                                                className="p-2 bg-[#05DF72] text-white rounded-lg hover:bg-[#04c764] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#05DF72]/20"
+                                            >
+                                                {verifying && selectedOrder?.id === order.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckIcon size={16} />}
+                                            </button>
+                                        </form>
                                     </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
-                                    <form onSubmit={(e) => {
-                                        e.preventDefault()
-                                        handleVerifyCollection(e, order.id)
-                                    }} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
-                                        <input
-                                            type="text"
-                                            maxLength={6}
-                                            placeholder="ENTER CODE"
-                                            className="w-32 bg-transparent border-none text-center font-black tracking-widest text-sm focus:ring-0 outline-none uppercase placeholder:text-slate-300 placeholder:font-bold placeholder:tracking-normal"
-                                            value={selectedOrder?.id === order.id ? verifyToken : ''}
-                                            onChange={(e) => {
-                                                setSelectedOrder(order)
-                                                setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))
-                                            }}
-                                            onClick={() => setSelectedOrder(order)}
-                                        />
-                                        <button
-                                            type="submit"
-                                            disabled={verifying || (selectedOrder?.id === order.id && verifyToken.length < 6)}
-                                            className="p-2 bg-[#05DF72] text-white rounded-lg hover:bg-[#04c764] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#05DF72]/20"
-                                        >
-                                            {verifying && selectedOrder?.id === order.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckIcon size={16} />}
-                                        </button>
-                                    </form>
-                                </div>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {stats.map((stat) => (
+                        <div key={stat.label} className="bg-white rounded-2xl p-6 flex flex-col gap-4 shadow-lg border border-slate-100">
+                            <div className={`${stat.bg} ${stat.color} w-12 h-12 rounded-xl flex items-center justify-center`}>
+                                <stat.icon size={24} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
+                                <h3 className="text-2xl font-black text-slate-900">{stat.value}</h3>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Orders Section */}
+                <div className="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100">
+                    <div className="flex items-center justify-between mb-8">
+                        <h2 className="text-xl font-black text-slate-900">My Orders</h2>
+                        <span className="text-xs font-bold text-slate-400">{orders.length} order(s)</span>
+                    </div>
+
+                    {orders.length === 0 ? (
+                        <div className="text-center py-16">
+                            <PackageIcon className="mx-auto text-slate-300 mb-4" size={64} />
+                            <h3 className="text-lg font-bold text-slate-900">No Orders Yet</h3>
+                            <p className="text-slate-500 mt-2">Start shopping to see your orders here.</p>
+                            <Link href="/shop" className="inline-block mt-6 btn-primary">
+                                Browse Batteries
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {orders.map((order) => {
+                                const status = getStatusBadge(order.status)
+                                return (
+                                    <div key={order.id} className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-[#05DF72] shadow-sm">
+                                                    <PackageIcon size={28} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-slate-900">{order.product?.name || 'Battery Order'}</h3>
+                                                    <p className="text-sm text-slate-500">Qty: {order.quantity || 1}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xl font-black text-slate-900">₦{(order.totalAmount || 0).toLocaleString()}</p>
+                                                <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${status.bg}`}>
+                                                    {status.label}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Order Details */}
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
+                                            {/* Collection Date */}
+                                            <div className="flex items-center gap-3">
+                                                <CalendarIcon size={16} className="text-slate-400" />
+                                                <div>
+                                                    <p className="text-[10px] font-bold uppercase text-slate-400">Collection Date</p>
+                                                    <p className="text-sm font-bold text-slate-700">
+                                                        {order.collectionDate
+                                                            ? new Date(order.collectionDate).toLocaleDateString('en-NG', {
+                                                                weekday: 'short',
+                                                                day: 'numeric',
+                                                                month: 'short'
+                                                            })
+                                                            : 'TBD'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Location */}
+                                            <div className="flex items-center gap-3">
+                                                <MapPinIcon size={16} className="text-slate-400" />
+                                                <div>
+                                                    <p className="text-[10px] font-bold uppercase text-slate-400">Pickup Location</p>
+                                                    <p className="text-sm font-bold text-slate-700">
+                                                        {order.product?.lga || 'Lagos'}, Lagos
+                                                    </p>
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+
+                                        {/* Instructions for pending orders */}
+                                        {(order.status === 'AWAITING_PICKUP' || order.status === 'PAID') && (
+                                            <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                                                <p className="text-xs text-amber-700">
+                                                    <strong>📋 Next Step:</strong> Visit the pickup location on your collection date and show your token to the seller.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* Related Products */}
+                {relatedProducts.length > 0 && (
+                    <div>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-black text-slate-900">You Might Also Like</h2>
+                            <Link href="/shop" className="text-sm font-bold text-[#05DF72] hover:underline">
+                                View All
+                            </Link>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            {relatedProducts.map(product => (
+                                <ProductCard key={product.id} product={product} />
                             ))}
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map((stat) => (
-                    <div key={stat.label} className="bg-white rounded-2xl p-6 flex flex-col gap-4 shadow-lg border border-slate-100">
-                        <div className={`${stat.bg} ${stat.color} w-12 h-12 rounded-xl flex items-center justify-center`}>
-                            <stat.icon size={24} />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
-                            <h3 className="text-2xl font-black text-slate-900">{stat.value}</h3>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Orders Section */}
-            <div className="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100">
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-xl font-black text-slate-900">My Orders</h2>
-                    <span className="text-xs font-bold text-slate-400">{orders.length} order(s)</span>
-                </div>
-
-                {orders.length === 0 ? (
-                    <div className="text-center py-16">
-                        <PackageIcon className="mx-auto text-slate-300 mb-4" size={64} />
-                        <h3 className="text-lg font-bold text-slate-900">No Orders Yet</h3>
-                        <p className="text-slate-500 mt-2">Start shopping to see your orders here.</p>
-                        <Link href="/shop" className="inline-block mt-6 btn-primary">
-                            Browse Batteries
-                        </Link>
-                    </div>
-                ) : (
-                    <div className="space-y-6">
-                        {orders.map((order) => {
-                            const status = getStatusBadge(order.status)
-                            return (
-                                <div key={order.id} className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-[#05DF72] shadow-sm">
-                                                <PackageIcon size={28} />
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-slate-900">{order.product?.name || 'Battery Order'}</h3>
-                                                <p className="text-sm text-slate-500">Qty: {order.quantity || 1}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xl font-black text-slate-900">₦{(order.totalAmount || 0).toLocaleString()}</p>
-                                            <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${status.bg}`}>
-                                                {status.label}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Order Details */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
-                                        {/* Collection Date */}
-                                        <div className="flex items-center gap-3">
-                                            <CalendarIcon size={16} className="text-slate-400" />
-                                            <div>
-                                                <p className="text-[10px] font-bold uppercase text-slate-400">Collection Date</p>
-                                                <p className="text-sm font-bold text-slate-700">
-                                                    {order.collectionDate
-                                                        ? new Date(order.collectionDate).toLocaleDateString('en-NG', {
-                                                            weekday: 'short',
-                                                            day: 'numeric',
-                                                            month: 'short'
-                                                        })
-                                                        : 'TBD'}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Location */}
-                                        <div className="flex items-center gap-3">
-                                            <MapPinIcon size={16} className="text-slate-400" />
-                                            <div>
-                                                <p className="text-[10px] font-bold uppercase text-slate-400">Pickup Location</p>
-                                                <p className="text-sm font-bold text-slate-700">
-                                                    {order.product?.lga || 'Lagos'}, Lagos
-                                                </p>
-                                            </div>
-                                        </div>
-
-
-                                    </div>
-
-                                    {/* Instructions for pending orders */}
-                                    {(order.status === 'AWAITING_PICKUP' || order.status === 'PAID') && (
-                                        <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
-                                            <p className="text-xs text-amber-700">
-                                                <strong>📋 Next Step:</strong> Visit the pickup location on your collection date and show your token to the seller.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            )
-                        })}
-                    </div>
                 )}
+
+                {/* Verification Modal */}
+                <VerificationModal
+                    isOpen={showVerificationModal}
+                    onClose={() => setShowVerificationModal(false)}
+                    userRole="BUYER"
+                    onVerificationComplete={handleVerificationComplete}
+                />
             </div>
-
-            {/* Related Products */}
-            {relatedProducts.length > 0 && (
-                <div>
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-black text-slate-900">You Might Also Like</h2>
-                        <Link href="/shop" className="text-sm font-bold text-[#05DF72] hover:underline">
-                            View All
-                        </Link>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {relatedProducts.map(product => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Verification Modal */}
-            <VerificationModal
-                isOpen={showVerificationModal}
-                onClose={() => setShowVerificationModal(false)}
-                userRole="BUYER"
-                onVerificationComplete={handleVerificationComplete}
-            />
         </div>
     )
 }

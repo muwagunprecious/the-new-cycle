@@ -28,7 +28,9 @@ export default function CreateStore() {
         lga: "",
         address: "",
         batteryTypes: "",
-        logo: null
+        logo: null,
+        nin: "",
+        cac: ""
     })
 
     const onChangeHandler = (e) => {
@@ -173,6 +175,18 @@ export default function CreateStore() {
                         <div className="flex flex-col gap-2">
                             <label className="text-sm font-medium text-slate-700">Type of Batteries Sold</label>
                             <input required name="batteryTypes" onChange={onChangeHandler} value={storeInfo.batteryTypes} type="text" placeholder="e.g. Car, Inverter, Lithium, UPS" className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all" />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="flex flex-col gap-2">
+                                <label className="text-sm font-medium text-slate-700">NIN (National Identification Number)</label>
+                                <input name="nin" onChange={onChangeHandler} value={storeInfo.nin} type="text" placeholder="11-digit NIN" className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all" />
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <label className="text-sm font-medium text-slate-700">CAC Number (Optional if individual)</label>
+                                <input name="cac" onChange={onChangeHandler} value={storeInfo.cac} type="text" placeholder="e.g. RC1234567" className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all" />
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-3 mt-4">

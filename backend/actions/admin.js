@@ -137,3 +137,74 @@ export async function releasePayout(orderId) {
     }
 }
 
+export async function getPendingBuyers() {
+    try {
+        const buyers = await prisma.user.findMany({
+            where: {
+                role: 'USER',
+                accountStatus: 'pending'
+            },
+            orderBy: { name: 'asc' }
+        })
+        return { success: true, data: buyers }
+    } catch (error) {
+        console.error("Get Pending Buyers Error:", error)
+        return { success: false, error: "Failed to fetch pending buyers" }
+    }
+}
+
+export async function approveBuyer(userId) {
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                accountStatus: 'approved',
+                verifiedAt: new Date()
+            }
+        })
+
+        // Send notification to buyer
+        const { createNotification } = await import('./notification')
+        await createNotification(
+            userId,
+            "Account Verified! 🎉",
+            "Your buyer account has been verified by our admin team. You can now place orders and enjoy all platform features!",
+            "SYSTEM"
+        )
+
+        revalidatePath('/admin/verify-buyers')
+        revalidatePath('/buyer')
+        return { success: true }
+    } catch (error) {
+        console.error("Approve Buyer Error:", error)
+        return { success: false, error: "Failed to approve buyer" }
+    }
+}
+
+export async function rejectBuyer(userId, reason) {
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                accountStatus: 'rejected',
+                verificationNotes: reason || "Your verification documents did not meet our requirements."
+            }
+        })
+
+        // Send notification to buyer
+        const { createNotification } = await import('./notification')
+        await createNotification(
+            userId,
+            "Account Verification Not Approved",
+            `We're sorry, but your account verification was not approved. Reason: ${reason || "Please contact support for more information."}`,
+            "SYSTEM"
+        )
+
+        revalidatePath('/admin/verify-buyers')
+        return { success: true }
+    } catch (error) {
+        console.error("Reject Buyer Error:", error)
+        return { success: false, error: "Failed to reject buyer" }
+    }
+}
+
