@@ -281,3 +281,16 @@ export async function approveStore(userId) {
         return { success: false, error: "Approval failed" }
     }
 }
+
+export async function getUserProfile(userId) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        })
+        if (!user) return { success: false, error: "User not found" }
+        return { success: true, data: user }
+    } catch (error) {
+        console.error("Get Profile Error:", error)
+        return { success: false, error: "Failed to fetch profile" }
+    }
+}

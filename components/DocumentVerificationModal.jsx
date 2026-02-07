@@ -3,8 +3,11 @@ import { useState } from 'react'
 import { X, Upload, FileText, Building2, CreditCard } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Button from './Button'
+import { useDispatch } from 'react-redux'
+import { updateProfile } from '@/lib/features/auth/authSlice'
 
 export default function DocumentVerificationModal({ user, onComplete }) {
+    const dispatch = useDispatch()
     const [formData, setFormData] = useState({
         ninDocument: null,
         cacDocument: null,
@@ -64,6 +67,17 @@ export default function DocumentVerificationModal({ user, onComplete }) {
 
             if (result.success) {
                 toast.success('Documents submitted successfully! Awaiting admin verification.')
+
+                // Update Redux state immediately so the form doesn't pop up again
+                dispatch(updateProfile({
+                    ninDocument: formData.ninDocument,
+                    cacDocument: formData.cacDocument,
+                    bankName: formData.bankName,
+                    accountNumber: formData.accountNumber,
+                    accountName: formData.accountName,
+                    accountStatus: 'pending'
+                }))
+
                 onComplete?.()
             } else {
                 throw new Error(result.error)

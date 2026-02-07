@@ -1,3 +1,4 @@
+'use client'
 import { useState, useEffect } from "react"
 import { SearchIcon, ShoppingBagIcon, CheckCircleIcon, XCircleIcon, Trash2Icon, ExternalLinkIcon, BatteryIcon } from "lucide-react"
 import { lagosLGAs } from "@/assets/assets"

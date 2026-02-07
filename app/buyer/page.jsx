@@ -4,14 +4,19 @@ import Loading from "@/components/Loading"
 import { useState, useEffect } from "react"
 import { productDummyData, orderDummyData } from "@/assets/assets"
 import Link from "next/link"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
+import { updateProfile } from "@/lib/features/auth/authSlice"
+import { getUserProfile } from "@/backend/actions/auth"
 import ProductCard from "@/components/ProductCard"
 import VerificationModal from "@/components/VerificationModal"
 import DocumentVerificationModal from "@/components/DocumentVerificationModal"
 import toast from "react-hot-toast"
 import { getUserOrders, verifyOrderCollection } from "@/backend/actions/order"
+import { getNotifications } from "@/backend/actions/notification"
+import { MessageSquareIcon } from "lucide-react"
 
 export default function BuyerDashboard() {
+    const dispatch = useDispatch()
     const { user, isLoggedIn } = useSelector(state => state.auth)
     const [loading, setLoading] = useState(true)
     const [orders, setOrders] = useState([])
@@ -20,19 +25,31 @@ export default function BuyerDashboard() {
     const [verifying, setVerifying] = useState(false)
     const [selectedOrder, setSelectedOrder] = useState(null)
     const [documentsSubmitted, setDocumentsSubmitted] = useState(false)
+    const [notifications, setNotifications] = useState([])
 
     useEffect(() => {
         const load = async () => {
             if (user?.id) {
-                const res = await getUserOrders(user.id)
-                if (res.success) {
-                    setOrders(res.data)
+                const [ordersRes, notifyRes, profileRes] = await Promise.all([
+                    getUserOrders(user.id),
+                    getNotifications(user.id),
+                    getUserProfile(user.id)
+                ])
+                if (ordersRes.success) setOrders(ordersRes.data)
+                if (notifyRes.success) setNotifications(notifyRes.data)
+
+                // Update Redux state with latest profile data (includes latest accountStatus)
+                if (profileRes.success && profileRes.data) {
+                    // Only update if accountStatus has changed to prevent infinite loops
+                    if (profileRes.data.accountStatus !== user?.accountStatus) {
+                        dispatch(updateProfile(profileRes.data))
+                    }
                 }
             }
             setLoading(false)
         }
         load()
-    }, [user])
+    }, [user?.id, dispatch])
 
     const handleVerifyCollection = async (e, orderId) => {
         e.preventDefault()
@@ -95,16 +112,15 @@ export default function BuyerDashboard() {
     // Check if user has submitted documents (either in DB or in current session)
     const hasSubmitted = !!user?.ninDocument || documentsSubmitted
 
-    // Strict Blocking Logic
-    const showInputModal = isPending && !hasSubmitted
-    const showUnderReviewOverlay = isPending && hasSubmitted
+    // Strict Blocking Logic - Priority: Rejected > Pending Review > Input Required
     const showRejectedOverlay = isRejected
+    const showUnderReviewOverlay = !isRejected && isPending && hasSubmitted
+    const showInputModal = !isRejected && isPending && !hasSubmitted
 
     const handleDocumentSubmissionComplete = () => {
         setDocumentsSubmitted(true)
         toast.success('Documents submitted! Account under review.')
-        // Reload page to refresh user data context
-        setTimeout(() => window.location.reload(), 1500)
+        // Removed forced reload to allow Redux state update to handle the UI transition
     }
 
     return (
@@ -120,24 +136,69 @@ export default function BuyerDashboard() {
 
             {/* STATE 2: UNDER REVIEW (Blocking Overlay) */}
             {showUnderReviewOverlay && (
-                <div className="fixed inset-0 z-50 bg-slate-50/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
-                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl max-w-lg border border-slate-100 relative overflow-hidden">
+                <div className="fixed inset-0 z-50 bg-slate-50/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500">
+                    <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl max-w-xl border border-slate-100 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-2 bg-[#05DF72] animate-pulse"></div>
-                        <div className="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <ClockIcon className="text-orange-500" size={48} />
+                        <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8">
+                            <ClockIcon className="text-[#05DF72] animate-spin-slow" size={48} />
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 mb-3">Under Review</h2>
-                        <p className="text-slate-500 font-medium mb-8 leading-relaxed">
-                            Thanks for submitting your details! Our team is reviewing your information.
-                            <br /><br />
-                            <span className="bg-slate-100 px-3 py-1 rounded-lg text-sm text-slate-700 font-bold">
-                                You will receive an email once approved.
-                            </span>
-                        </p>
-                        <div className="flex justify-center gap-2">
-                            <div className="w-3 h-3 bg-slate-200 rounded-full animate-bounce"></div>
-                            <div className="w-3 h-3 bg-slate-200 rounded-full animate-bounce delay-100"></div>
-                            <div className="w-3 h-3 bg-slate-200 rounded-full animate-bounce delay-200"></div>
+                        <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Account <span className="text-[#05DF72]">Pending Approval</span></h2>
+                        <div className="space-y-4 text-slate-500 font-medium mb-10 leading-relaxed text-lg">
+                            <p>
+                                Thank you for completing your verification! Your documents have been successfully received and are currently being reviewed by our administrative team.
+                            </p>
+                            <div className="bg-slate-50 p-6 rounded-3xl text-sm border border-slate-100">
+                                <p className="text-slate-700 font-bold mb-2 uppercase tracking-widest text-[10px]">What happens next?</p>
+                                <ul className="text-left space-y-2 text-slate-600">
+                                    <li className="flex gap-2">
+                                        <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-full mt-1.5 shrink-0"></div>
+                                        <span>Our team will verify your identity and bank details.</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-full mt-1.5 shrink-0"></div>
+                                        <span>You will receive an email notification once your account is active.</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-full mt-1.5 shrink-0"></div>
+                                        <span>This usually takes between <span className="text-slate-900 font-bold">2-24 hours</span>.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {/* Admin Messages section */}
+                            {notifications.length > 0 && (
+                                <div className="mt-8 space-y-3">
+                                    <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
+                                        <MessageSquareIcon size={16} className="text-[#05DF72]" />
+                                        <span>Messages from Admin</span>
+                                    </div>
+                                    <div className="space-y-2 max-h-32 overflow-y-auto no-scrollbar">
+                                        {notifications.map(n => (
+                                            <div key={n.id} className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50 text-left">
+                                                <p className="text-xs font-bold text-slate-800 mb-1">{n.title}</p>
+                                                <p className="text-xs text-slate-600">{n.message}</p>
+                                                <p className="text-[10px] text-slate-400 mt-2 font-medium">
+                                                    {new Date(n.createdAt).toLocaleDateString()} at {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            <div className="flex justify-center gap-2">
+                                <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-bounce"></div>
+                                <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-bounce delay-100"></div>
+                                <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-bounce delay-200"></div>
+                            </div>
+                            <button
+                                onClick={() => window.location.href = '/'}
+                                className="text-slate-400 text-sm font-bold hover:text-slate-600 transition-colors"
+                            >
+                                Back to Home
+                            </button>
                         </div>
                     </div>
                 </div>
