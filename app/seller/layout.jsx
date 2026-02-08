@@ -37,9 +37,9 @@ export default function SellerLayout({ children }) {
                         router.push('/create-store')
                         return
                     }
-                    if (result.status === 'pending') {
-                        // Pending -> Go to status page
-                        router.push('/create-store')
+                    if (result.status === 'pending' || result.status === 'approved' || result.isActive) {
+                        // Allowed to access
+                        setLoading(false)
                         return
                     }
                     if (result.status === 'rejected' || !result.isActive) {

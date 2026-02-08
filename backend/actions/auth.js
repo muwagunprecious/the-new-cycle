@@ -92,8 +92,8 @@ export async function registerUser(userData) {
                     email: email,
                     contact: whatsapp || "",
                     logo: "",
-                    status: "pending",
-                    isActive: false,
+                    status: "approved",
+                    isActive: true,
                     userId: user.id
                 }
             })
@@ -224,10 +224,13 @@ export async function createStoreApplication(storeData, userId) {
                 username: username,
                 contact: storeData.phone,
                 logo: "", // Handle image upload later
-                status: 'pending',
-                isActive: false,
+                status: 'approved',
+                isActive: true,
                 nin: storeData.nin || "",
-                cac: storeData.cac || ""
+                cac: storeData.cac || "",
+                bankName: storeData.bankName || null,
+                accountNumber: storeData.accountNumber || null,
+                accountName: storeData.accountName || null
             }
         })
         return { success: true, store }

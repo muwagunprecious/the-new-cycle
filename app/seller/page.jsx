@@ -87,16 +87,16 @@ export default function SellerOverview() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <div className="flex items-center gap-2 mb-2">
-                        {user?.verificationStatus === 'verified' ? (
+                        {(user?.isEmailVerified || user?.isPhoneVerified) ? (
                             <span className="flex items-center gap-1 text-[#05DF72] font-black uppercase tracking-widest text-[10px]">
-                                <ShieldCheckIcon size={16} /> Verified Seller
+                                <ShieldCheckIcon size={16} /> Contact Verified
                             </span>
                         ) : (
                             <button
                                 onClick={() => setShowVerificationModal(true)}
                                 className="flex items-center gap-1 text-amber-500 font-black uppercase tracking-widest text-[10px] hover:underline"
                             >
-                                <AlertCircleIcon size={16} /> Complete Verification
+                                <AlertCircleIcon size={16} /> Verify Phone / Email
                             </button>
                         )}
                     </div>
@@ -186,9 +186,9 @@ export default function SellerOverview() {
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-10">
                             <h2 className="text-xl font-black uppercase tracking-tighter">Payouts</h2>
-                            {user?.verificationStatus === 'verified' && (
+                            {(user?.isEmailVerified || user?.isPhoneVerified) && (
                                 <span className="flex items-center gap-1 text-[10px] font-bold text-[#05DF72]">
-                                    <CheckCircleIcon size={12} /> Bank Verified
+                                    <CheckCircleIcon size={12} /> Identity Verified
                                 </span>
                             )}
                         </div>

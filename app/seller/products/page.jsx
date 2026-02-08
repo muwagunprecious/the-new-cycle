@@ -7,6 +7,7 @@ import toast from "react-hot-toast"
 import { useDispatch, useSelector } from "react-redux"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "@/components/Button"
+import ScheduleCalendar from "@/components/ScheduleCalendar"
 import { createProduct, getSellerProducts, deleteProduct as deleteProductAction } from "@/backend/actions/product"
 import { getUserStoreStatus } from "@/backend/actions/auth"
 import { CONSTANTS } from "@/lib/mockService"
@@ -542,24 +543,16 @@ export default function SellerProducts() {
                                 </h3>
                                 <p className="text-xs text-slate-500">Select dates when buyers can pickup (must be 24h+ from now)</p>
 
-                                <div className="flex flex-wrap gap-2">
-                                    {getAvailableDates().map(date => (
-                                        <button
-                                            key={date.value}
-                                            type="button"
-                                            onClick={() => handleDateToggle(date.value)}
-                                            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${selectedDates.includes(date.value)
-                                                ? 'bg-[#05DF72] text-white'
-                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                                }`}
-                                        >
-                                            {date.label}
-                                        </button>
-                                    ))}
-                                </div>
+                                <ScheduleCalendar
+                                    mode="days"
+                                    multiSelect={true}
+                                    onSelect={(dates) => setSelectedDates(dates)}
+                                    preSelected={selectedDates}
+                                />
+
                                 {selectedDates.length > 0 && (
                                     <p className="text-xs text-[#05DF72] font-medium">
-                                        {selectedDates.length}/2 date(s) selected
+                                        {selectedDates.length} date(s) selected
                                     </p>
                                 )}
                             </div>

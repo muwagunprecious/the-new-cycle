@@ -56,22 +56,87 @@ export async function approveSeller(storeId) {
     }
 }
 
-export async function rejectSeller(storeId) {
+export async function rejectSeller(storeId, reason) {
     try {
         await prisma.store.update({
             where: { id: storeId },
             data: {
                 status: 'rejected',
-                isActive: false
+                isActive: false,
+                rejectionReason: reason || "Your store application did not meet our requirements."
             }
         })
+
+        // Notify vendor about rejection
+        const store = await prisma.store.findUnique({ where: { id: storeId } })
+        if (store) {
+            const { createNotification } = await import('./notification')
+            await createNotification(
+                store.userId,
+                "Store Application Rejected",
+                `We're sorry, but your store application was not approved. Reason: ${reason || "Please contact support."}`,
+                "SYSTEM"
+            )
+        }
+
         revalidatePath('/admin/approve')
         revalidatePath('/')
-        revalidatePath('/shop')
         return { success: true }
     } catch (error) {
         console.error("Error rejecting seller:", error)
         return { success: false, error: "Failed to reject seller" }
+    }
+}
+
+export async function getVerifiedSellers() {
+    try {
+        const stores = await prisma.store.findMany({
+            where: {
+                status: 'approved',
+                isActive: true
+            },
+            include: {
+                user: true
+            },
+            orderBy: { createdAt: 'desc' }
+        })
+        return { success: true, data: stores }
+    } catch (error) {
+        console.error("Error fetching verified sellers:", error)
+        return { success: false, error: "Failed to fetch verified sellers" }
+    }
+}
+
+export async function updateSellerWallet(storeId, amount, type = 'CREDIT') {
+    try {
+        const store = await prisma.store.findUnique({ where: { id: storeId } })
+        if (!store) return { success: false, error: "Store not found" }
+
+        const currentBalance = store.walletBalance || 0
+        const newBalance = type === 'CREDIT' ? currentBalance + amount : currentBalance - amount
+
+        if (newBalance < 0) return { success: false, error: "Insufficient wallet balance" }
+
+        await prisma.store.update({
+            where: { id: storeId },
+            data: { walletBalance: newBalance }
+        })
+
+        // Notify vendor about wallet update
+        const { createNotification } = await import('./notification')
+        await createNotification(
+            store.userId,
+            "Wallet Balance Updated",
+            `Your seller wallet has been ${type === 'CREDIT' ? 'credited' : 'debited'} with ₦${amount.toLocaleString()}. New balance: ₦${newBalance.toLocaleString()}`,
+            "PAYMENT"
+        )
+
+        revalidatePath('/admin/sellers')
+        revalidatePath('/seller')
+        return { success: true, newBalance }
+    } catch (error) {
+        console.error("Error updating seller wallet:", error)
+        return { success: false, error: "Failed to update wallet balance" }
     }
 }
 

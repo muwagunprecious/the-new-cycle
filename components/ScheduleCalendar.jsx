@@ -4,15 +4,24 @@ import { ChevronLeft, ChevronRight, Clock, MapPin, CheckCircle, AlertCircle } fr
 
 /**
  * ScheduleCalendar Component
- * Displays a weekly view of pickup slots
+ * Displays a weekly view of pickup slots or days
  * 
  * Props:
- * - onSelect: (date, slot) => void
+ * - onSelect: (selection) => void
  * - blockedDates: array of strings (ISO dates)
+ * - mode: "slots" (default) or "days" (simple date picker)
+ * - multiSelect: boolean (default false)
+ * - preSelected: array of strings (for multi-select)
  */
-const ScheduleCalendar = ({ onSelect, blockedDates = [] }) => {
+const ScheduleCalendar = ({
+    onSelect,
+    blockedDates = [],
+    mode = "slots",
+    multiSelect = false,
+    preSelected = []
+}) => {
     const [currentWeekStart, setCurrentWeekStart] = useState(new Date())
-    const [selectedSlot, setSelectedSlot] = useState(null)
+    const [selectedItems, setSelectedItems] = useState(multiSelect ? preSelected : null)
     const [weekDays, setWeekDays] = useState([])
 
     // Generate Mon-Fri for the current week view
@@ -35,8 +44,10 @@ const ScheduleCalendar = ({ onSelect, blockedDates = [] }) => {
     const handlePrevWeek = () => {
         const newDate = new Date(currentWeekStart)
         newDate.setDate(newDate.getDate() - 7)
-        // Prevent going to past weeks (simple check)
-        if (newDate > new Date().setDate(new Date().getDate() - 7)) {
+        // Prevent going to past weeks (simple check: tomorrow's week)
+        const minStartDate = new Date()
+        minStartDate.setDate(minStartDate.getDate() - 7)
+        if (newDate > minStartDate) {
             setCurrentWeekStart(newDate)
         }
     }
@@ -47,30 +58,57 @@ const ScheduleCalendar = ({ onSelect, blockedDates = [] }) => {
         setCurrentWeekStart(newDate)
     }
 
-    const handleSlotClick = (date, timeSlot) => {
+    const isDateInPast = (date) => {
+        const minDate = new Date()
+        minDate.setDate(minDate.getDate() + 1) // 24h buffer
+        minDate.setHours(0, 0, 0, 0)
+        return date < minDate
+    }
+
+    const handleItemClick = (date, slot = null) => {
         const dateStr = date.toISOString().split('T')[0]
-        const isBlocked = blockedDates.includes(dateStr)
+        if (isDateBlocked(date) || isDateInPast(date)) return
 
-        if (isBlocked) return
+        if (multiSelect) {
+            let newItems = [...(selectedItems || [])]
+            const selection = slot ? `${dateStr}:${slot}` : dateStr
 
-        const newSelection = { date: dateStr, slot: timeSlot }
-        setSelectedSlot(newSelection)
-        onSelect(newSelection)
+            if (newItems.includes(selection)) {
+                newItems = newItems.filter(i => i !== selection)
+            } else {
+                newItems.push(selection)
+            }
+            setSelectedItems(newItems)
+            onSelect(newItems)
+        } else {
+            const selection = slot ? { date: dateStr, slot } : { date: dateStr }
+            setSelectedItems(selection)
+            onSelect(selection)
+        }
     }
 
     const isDateBlocked = (date) => {
         return blockedDates.includes(date.toISOString().split('T')[0])
     }
 
-    const isSelected = (date, slot) => {
-        return selectedSlot?.date === date.toISOString().split('T')[0] && selectedSlot?.slot === slot
+    const isSelected = (date, slot = null) => {
+        const dateStr = date.toISOString().split('T')[0]
+        if (multiSelect) {
+            const selection = slot ? `${dateStr}:${slot}` : dateStr
+            return selectedItems?.includes(selection)
+        } else {
+            if (slot) {
+                return selectedItems?.date === dateStr && selectedItems?.slot === slot
+            }
+            return selectedItems?.date === dateStr
+        }
     }
 
     return (
         <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40">
             {/* Header / Navigation */}
             <div className="flex items-center justify-between mb-8">
-                <h3 className="font-bold text-slate-800 text-lg">
+                <h3 className="font-bold text-slate-800 text-lg uppercase tracking-wider">
                     {weekDays[0]?.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </h3>
                 <div className="flex gap-2">
@@ -86,16 +124,17 @@ const ScheduleCalendar = ({ onSelect, blockedDates = [] }) => {
             {/* Calendar Grid */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {weekDays.map((day, index) => {
-                    const dateStr = day.toISOString().split('T')[0]
                     const isBlocked = isDateBlocked(day)
+                    const isPast = isDateInPast(day)
                     const isToday = new Date().toDateString() === day.toDateString()
+                    const isDisabled = isBlocked || isPast
 
                     return (
-                        <div key={index} className={`relative flex flex-col gap-3 p-4 rounded-2xl border transition-all ${isToday ? 'bg-green-50/50 border-green-100' : 'bg-slate-50 border-slate-100'}`}>
+                        <div key={index} className={`relative flex flex-col gap-3 p-4 rounded-2xl border transition-all ${isToday ? 'bg-green-50/50 border-green-100' : isDisabled ? 'bg-slate-50/50 border-slate-50' : 'bg-slate-50 border-slate-100'}`}>
 
                             {/* Date Header */}
-                            <div className="text-center mb-2">
-                                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                            <div className={`text-center mb-2 ${isDisabled ? 'opacity-30' : ''}`}>
+                                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
                                     {day.toLocaleDateString('en-US', { weekday: 'short' })}
                                 </span>
                                 <span className={`text-xl font-black ${isToday ? 'text-[#05DF72]' : 'text-slate-800'}`}>
@@ -103,45 +142,58 @@ const ScheduleCalendar = ({ onSelect, blockedDates = [] }) => {
                                 </span>
                             </div>
 
-                            {/* Morning Slot */}
-                            <button
-                                onClick={() => handleSlotClick(day, 'Morning')}
-                                disabled={isBlocked}
-                                className={`w-full py-3 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all group
-                                    ${isBlocked
-                                        ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent'
-                                        : isSelected(day, 'Morning')
-                                            ? 'bg-[#05DF72] text-white shadow-lg shadow-[#05DF72]/30 scale-105'
-                                            : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-[#05DF72] hover:shadow-md'
-                                    }
-                                `}
-                            >
-                                {isSelected(day, 'Morning') && <CheckCircle size={14} />}
-                                {isBlocked ? 'Booked' : 'Morning'}
-                            </button>
+                            {mode === "slots" ? (
+                                <>
+                                    {/* Morning Slot */}
+                                    <button
+                                        onClick={() => handleItemClick(day, 'Morning')}
+                                        disabled={isDisabled}
+                                        className={`w-full py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all group
+                                            ${isDisabled
+                                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent'
+                                                : isSelected(day, 'Morning')
+                                                    ? 'bg-[#05DF72] text-white shadow-lg shadow-[#05DF72]/30 scale-105'
+                                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-[#05DF72] hover:shadow-md'
+                                            }
+                                        `}
+                                    >
+                                        {isSelected(day, 'Morning') && <CheckCircle size={14} />}
+                                        {isBlocked ? 'Full' : 'Morning'}
+                                    </button>
 
-                            {/* Afternoon Slot */}
-                            <button
-                                onClick={() => handleSlotClick(day, 'Afternoon')}
-                                disabled={isBlocked}
-                                className={`w-full py-3 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all group
-                                    ${isBlocked
-                                        ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent'
-                                        : isSelected(day, 'Afternoon')
-                                            ? 'bg-[#05DF72] text-white shadow-lg shadow-[#05DF72]/30 scale-105'
-                                            : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-[#05DF72] hover:shadow-md'
-                                    }
-                                `}
-                            >
-                                {isSelected(day, 'Afternoon') && <CheckCircle size={14} />}
-                                {isBlocked ? 'Booked' : 'Afternoon'}
-                            </button>
-
-                            {/* Mobile visual cue for blocked */}
-                            {isBlocked && (
-                                <div className="absolute inset-0 bg-slate-50/50 rounded-2xl md:hidden pointer-events-none flex items-center justify-center">
-                                    <span className="bg-slate-200 text-slate-500 text-[10px] font-bold px-2 py-1 rounded-full opacity-80">Full</span>
-                                </div>
+                                    {/* Afternoon Slot */}
+                                    <button
+                                        onClick={() => handleItemClick(day, 'Afternoon')}
+                                        disabled={isDisabled}
+                                        className={`w-full py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all group
+                                            ${isDisabled
+                                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent'
+                                                : isSelected(day, 'Afternoon')
+                                                    ? 'bg-[#05DF72] text-white shadow-lg shadow-[#05DF72]/30 scale-105'
+                                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-[#05DF72] hover:shadow-md'
+                                            }
+                                        `}
+                                    >
+                                        {isSelected(day, 'Afternoon') && <CheckCircle size={14} />}
+                                        {isBlocked ? 'Full' : 'Afternoon'}
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => handleItemClick(day)}
+                                    disabled={isDisabled}
+                                    className={`w-full py-4 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all group
+                                        ${isDisabled
+                                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent'
+                                            : isSelected(day)
+                                                ? 'bg-[#05DF72] text-white shadow-lg shadow-[#05DF72]/30'
+                                                : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-[#05DF72] hover:shadow-md'
+                                        }
+                                    `}
+                                >
+                                    {isSelected(day) ? <CheckCircle size={14} /> : <span>Select</span>}
+                                </button>
                             )}
                         </div>
                     )
@@ -149,19 +201,21 @@ const ScheduleCalendar = ({ onSelect, blockedDates = [] }) => {
             </div>
 
             {/* Legend */}
-            <div className="flex items-center justify-center gap-6 mt-8 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <div className="flex items-center justify-center gap-6 mt-8 text-[10px] font-black uppercase tracking-widest text-slate-400">
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-white border border-slate-300"></div>
                     <span>Available</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#05DF72]"></div>
-                    <span>Selected</span>
+                    <span>{multiSelect ? 'Selected' : 'Selected Slot'}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-slate-200"></div>
-                    <span>Booked</span>
-                </div>
+                {mode === "slots" && (
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-slate-200"></div>
+                        <span>Fully Booked</span>
+                    </div>
+                )}
             </div>
         </div>
     )

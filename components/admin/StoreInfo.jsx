@@ -21,7 +21,20 @@ const StoreInfo = ({ store }) => {
                 >
                     {store.status}
                 </span>
+
+                {store.walletBalance !== undefined && (
+                    <span className="text-xs font-black bg-[#05DF72]/10 text-[#05DF72] px-3 py-1 rounded-full border border-[#05DF72]/20">
+                        Wallet: ₦{store.walletBalance.toLocaleString()}
+                    </span>
+                )}
             </div>
+
+            {store.status === 'rejected' && store.rejectionReason && (
+                <div className="bg-rose-50 border border-rose-100 p-3 rounded-lg flex items-start gap-2 text-rose-600 text-[10px] font-medium my-2">
+                    <span className="font-black uppercase">Reason:</span>
+                    <span>{store.rejectionReason}</span>
+                </div>
+            )}
 
             <p className="text-slate-600 my-5 max-w-2xl">{store.description}</p>
             <p className="flex items-center gap-2"> <MapPin size={16} /> {store.address}</p>
@@ -29,14 +42,37 @@ const StoreInfo = ({ store }) => {
             <p className="flex items-center gap-2"><Mail size={16} />  {store.email}</p>
 
             {/* Verification Content */}
-            <div className="mt-4 p-4 bg-slate-50 rounded-xl grid grid-cols-2 gap-4 border border-slate-100">
-                <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NIN Number</p>
-                    <p className="text-slate-700 font-medium">{store.nin || 'Not Provided'}</p>
+            <div className="mt-4 p-5 bg-slate-50 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-6 border border-slate-100">
+                <div className="space-y-4">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest border-b border-slate-200 pb-1">Identification</p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">NIN Number</p>
+                            <p className="text-slate-700 font-bold">{store.nin || 'Not Provided'}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">CAC Number</p>
+                            <p className="text-slate-700 font-bold">{store.cac || 'Individual'}</p>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CAC Number</p>
-                    <p className="text-slate-700 font-medium">{store.cac || 'Individual'}</p>
+
+                <div className="space-y-4">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest border-b border-slate-200 pb-1">Bank Details</p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="col-span-2">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Account Name</p>
+                            <p className="text-slate-700 font-bold">{store.accountName || 'Not Provided'}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Bank</p>
+                            <p className="text-slate-700 font-bold">{store.bankName || 'Not Provided'}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Account Number</p>
+                            <p className="text-slate-700 font-mono font-bold">{store.accountNumber || 'Not Provided'}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

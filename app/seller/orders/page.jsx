@@ -159,7 +159,7 @@ export default function SellerOrders() {
                         <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
                             <div>
                                 <h3 className="text-2xl font-black text-slate-900 leading-none">Reschedule <span className="text-[#05DF72]">Pickup</span></h3>
-                                <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Select a new proposed date for the buyer</p>
+                                <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Select an Available Collection Date for the buyer</p>
                             </div>
                             <button
                                 onClick={() => {

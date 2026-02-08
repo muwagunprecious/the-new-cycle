@@ -66,6 +66,10 @@
     .animate-pop-badge {
         animation: popBadge 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+
+    .status-badge-big {
+        @apply px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border flex items-center gap-2;
+    }
 }
 
 @layer base {

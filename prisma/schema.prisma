@@ -178,6 +178,9 @@ model Store {
     nin           String? // National Identification Number
     cac           String? // Corporate Affairs Commission Number
 
+    walletBalance    Float   @default(0)
+    rejectionReason  String?
+
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 

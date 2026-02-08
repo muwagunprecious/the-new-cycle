@@ -30,7 +30,10 @@ export default function CreateStore() {
         batteryTypes: "",
         logo: null,
         nin: "",
-        cac: ""
+        cac: "",
+        bankName: "",
+        accountNumber: "",
+        accountName: ""
     })
 
     const onChangeHandler = (e) => {
@@ -47,12 +50,9 @@ export default function CreateStore() {
                 if (result.exists) {
                     setAlreadySubmitted(true)
                     setStatus(result.status)
-                    setMessage(result.status === 'pending'
-                        ? "Your application is currently pending approval. We'll notify you once it's reviewed."
-                        : "Your account is approved! Redirecting...")
-
-                    if (result.status === 'active' || result.status === 'approved') {
-                        setTimeout(() => router.push('/seller'), 3000)
+                    if (result.status === 'active' || result.status === 'approved' || result.isActive) {
+                        router.push('/seller')
+                        return
                     }
                 } else {
                     setAlreadySubmitted(false)
@@ -89,9 +89,13 @@ export default function CreateStore() {
             }
 
             setAlreadySubmitted(true)
-            setStatus('pending')
-            setMessage("Application submitted successfully! Your account is currently pending approval.")
-            toast.success("Application submitted!")
+            setStatus('approved')
+            setMessage("Store created successfully! Redirecting to your dashboard...")
+            toast.success("Store created!")
+
+            setTimeout(() => {
+                router.push('/seller')
+            }, 2000)
 
         } catch (error) {
             console.error(error)
@@ -189,6 +193,36 @@ export default function CreateStore() {
                             </div>
                         </div>
 
+                        {/* Bank Details Section */}
+                        <div className="mt-4">
+                            <h3 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Bank Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-sm font-medium text-slate-700">Bank Name</label>
+                                    <select required name="bankName" onChange={onChangeHandler} value={storeInfo.bankName} className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all">
+                                        <option value="">Select Bank</option>
+                                        <option value="Access Bank">Access Bank</option>
+                                        <option value="GTBank">GTBank</option>
+                                        <option value="First Bank">First Bank</option>
+                                        <option value="UBA">UBA</option>
+                                        <option value="Zenith Bank">Zenith Bank</option>
+                                        <option value="Wema Bank">Wema Bank</option>
+                                        <option value="Ecobank">Ecobank</option>
+                                    </select>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-sm font-medium text-slate-700">Account Number</label>
+                                    <input required name="accountNumber" onChange={onChangeHandler} value={storeInfo.accountNumber} type="text" placeholder="10-digit account number" maxLength={10} className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all" />
+                                </div>
+
+                                <div className="flex flex-col md:col-span-2 gap-2">
+                                    <label className="text-sm font-medium text-slate-700">Account Holder Name</label>
+                                    <input required name="accountName" onChange={onChangeHandler} value={storeInfo.accountName} type="text" placeholder="Name as it appears on bank statement" className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all" />
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex items-center gap-3 mt-4">
                             <input required type="checkbox" id="terms" className="w-5 h-5 accent-[#05DF72] cursor-pointer" />
                             <label htmlFor="terms" className="text-sm text-slate-600 cursor-pointer">I agree to the GoCycle terms and environmental policies.</label>
@@ -198,23 +232,68 @@ export default function CreateStore() {
                     </form>
                 </div>
             ) : (
-                <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
-                    <div className="bg-white p-12 rounded-3xl border border-slate-200 shadow-xl max-w-xl w-full text-center flex flex-col items-center gap-6">
-                        <div className={`w-20 h-20 rounded-full flex items-center justify-center ${status === 'pending' ? 'bg-orange-100 text-orange-500' : 'bg-green-100 text-green-500'}`}>
+                <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 bg-slate-50">
+                    <div className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-2xl max-w-2xl w-full text-center flex flex-col items-center gap-8 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-[#05DF72] animate-pulse"></div>
+
+                        <div className={`w-24 h-24 rounded-full flex items-center justify-center ${status === 'pending' ? 'bg-amber-50 text-amber-500' : 'bg-emerald-50 text-[#05DF72]'}`}>
                             {status === 'pending' ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="animate-spin-slow"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                             ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                             )}
                         </div>
+
                         <div>
-                            <span className={`status-badge ${status === 'pending' ? 'status-pending' : 'status-completed'} mb-4 uppercase tracking-wider`}>
-                                Account {status}
+                            <span className={`status-badge ${status === 'pending' ? 'status-pending' : 'status-completed'} mb-6 uppercase tracking-[0.2em] text-[10px] font-black px-6 py-2`}>
+                                Account {status === 'pending' ? 'Under Review' : 'Verified'}
                             </span>
-                            <h2 className="text-2xl font-bold text-slate-900 mt-4">{status === 'pending' ? 'Application Received' : 'Welcome to GoCycle!'}</h2>
-                            <p className="text-slate-500 mt-4 leading-relaxed">{message}</p>
+                            <h2 className="text-4xl font-black text-slate-900 mt-6 tracking-tight">
+                                {status === 'pending' ? (
+                                    <>Store Application <span className="text-[#05DF72]">Pending</span></>
+                                ) : (
+                                    <>Welcome to <span className="text-[#05DF72]">GoCycle!</span></>
+                                )}
+                            </h2>
+                            <p className="text-slate-500 mt-6 leading-relaxed text-lg font-medium mx-auto max-w-md">
+                                {status === 'pending'
+                                    ? "Setting up your store profile..."
+                                    : "Successfully registered! Redirecting you to your seller dashboard where you can start listing your products."}
+                            </p>
                         </div>
-                        {status === "approved" && <p className="text-sm text-slate-400">Redirecting to your dashboard...</p>}
+
+                        {status === 'pending' && (
+                            <div className="bg-slate-50 p-8 rounded-[2.5rem] w-full text-left border border-slate-100">
+                                <p className="text-slate-900 font-bold mb-4 uppercase tracking-widest text-[10px]">What happens next?</p>
+                                <ul className="space-y-3 text-slate-600 font-medium">
+                                    <li className="flex gap-3">
+                                        <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-full mt-2 shrink-0"></div>
+                                        <span>We verify your identification and business details.</span>
+                                    </li>
+                                    <li className="flex gap-3">
+                                        <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-full mt-2 shrink-0"></div>
+                                        <span>This process usually takes between <span className="text-slate-900 font-bold">12-24 hours</span>.</span>
+                                    </li>
+                                    <li className="flex gap-3">
+                                        <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-full mt-2 shrink-0"></div>
+                                        <span>You'll receive an email notification once your store is active.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        )}
+
+                        <div className="flex flex-col gap-4 w-full">
+                            {status === "approved" ? (
+                                <p className="text-sm text-slate-400 font-bold animate-pulse">Redirecting to your dashboard...</p>
+                            ) : (
+                                <button
+                                    onClick={() => router.push('/')}
+                                    className="text-slate-400 hover:text-slate-600 transition-colors font-bold text-sm"
+                                >
+                                    Back to Marketplace
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

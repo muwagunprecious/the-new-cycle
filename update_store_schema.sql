@@ -1,5 +1,4 @@
 -- SQL Script to add missing Store columns for seller verification
--- Run this in the Supabase SQL Editor or via terminal
 
 -- Add seller verification fields to Store table
 ALTER TABLE "Store" ADD COLUMN IF NOT EXISTS "nin" TEXT;

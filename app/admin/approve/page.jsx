@@ -27,13 +27,13 @@ export default function AdminApprove() {
         }
     }
 
-    const handleApprove = async ({ storeId, status }) => {
+    const handleApprove = async ({ storeId, status, reason }) => {
         try {
             let result;
             if (status === 'approved') {
                 result = await approveSeller(storeId)
             } else {
-                result = await rejectSeller(storeId)
+                result = await rejectSeller(storeId, reason)
             }
 
             if (result.success) {
@@ -67,7 +67,15 @@ export default function AdminApprove() {
                                 <button onClick={() => toast.promise(handleApprove({ storeId: store.id, status: 'approved' }), { loading: "approving" })} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm" >
                                     Approve
                                 </button>
-                                <button onClick={() => toast.promise(handleApprove({ storeId: store.id, status: 'rejected' }), { loading: 'rejecting' })} className="px-4 py-2 bg-slate-500 text-white rounded hover:bg-slate-600 text-sm" >
+                                <button
+                                    onClick={() => {
+                                        const reason = prompt("Enter rejection reason:");
+                                        if (reason !== null) {
+                                            toast.promise(handleApprove({ storeId: store.id, status: 'rejected', reason }), { loading: 'rejecting' })
+                                        }
+                                    }}
+                                    className="px-4 py-2 bg-slate-500 text-white rounded hover:bg-slate-600 text-sm"
+                                >
                                     Reject
                                 </button>
                             </div>

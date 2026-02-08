@@ -101,10 +101,10 @@ export default function OrderManagement() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`status-badge w-fit ${order.payoutStatus === 'released'
-                                                ? 'bg-green-100 text-green-700'
-                                                : order.payoutStatus === 'pending'
-                                                    ? 'bg-amber-100 text-amber-700'
-                                                    : 'bg-slate-100 text-slate-600'
+                                            ? 'bg-green-100 text-green-700'
+                                            : order.payoutStatus === 'pending'
+                                                ? 'bg-amber-100 text-amber-700'
+                                                : 'bg-slate-100 text-slate-600'
                                             }`}>
                                             {order.payoutStatus?.toUpperCase() || 'NONE'}
                                         </span>
@@ -174,35 +174,42 @@ export default function OrderManagement() {
                             </div>
 
                             {/* Vendor Bank Details & Payout Section */}
-                            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Vendor Payment Details</h3>
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <p className="text-xs text-slate-500 mb-1">Bank Name</p>
-                                        <p className="font-bold text-slate-900">{selectedOrder.store?.bankName || 'Not Provided'}</p>
+                            {/* Vendor Bank Details & Payout Section */}
+                            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-[#05DF72]/10 rounded-full blur-3xl"></div>
+
+                                <h3 className="text-xs font-bold text-[#05DF72] uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#05DF72]"></div>
+                                    Vendor Payout Information
+                                </h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative z-10">
+                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Bank Name</p>
+                                        <p className="font-bold text-lg">{selectedOrder.store?.bankName || 'Not Provided'}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 mb-1">Account Number</p>
-                                        <p className="font-bold text-slate-900">{selectedOrder.store?.accountNumber || 'Not Provided'}</p>
+                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Account Number</p>
+                                        <p className="font-mono text-lg font-bold tracking-wider">{selectedOrder.store?.accountNumber || 'Not Provided'}</p>
                                     </div>
-                                    <div className="col-span-2">
-                                        <p className="text-xs text-slate-500 mb-1">Account Name</p>
-                                        <p className="font-bold text-slate-900">{selectedOrder.store?.accountName || 'Not Provided'}</p>
+                                    <div className="md:col-span-2 bg-white/5 p-4 rounded-2xl border border-white/10">
+                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Account Name</p>
+                                        <p className="font-bold text-lg uppercase">{selectedOrder.store?.accountName || 'Not Provided'}</p>
                                     </div>
                                 </div>
 
                                 {/* Collection Code Status */}
-                                <div className="bg-white rounded-xl p-4 mb-4">
+                                <div className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/10 backdrop-blur-sm">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-xs text-slate-500 mb-1">Collection Code</p>
-                                            <p className="font-mono text-lg font-bold text-slate-900">{selectedOrder.collectionToken || 'Not Generated'}</p>
+                                            <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Collection Token</p>
+                                            <p className="font-mono text-2xl font-black text-[#05DF72]">{selectedOrder.collectionToken || '---'}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs text-slate-500 mb-1">Verification Status</p>
-                                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${selectedOrder.collectionStatus === 'COLLECTED'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-slate-100 text-slate-600'
+                                            <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Verification Status</p>
+                                            <span className={`inline-block px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${selectedOrder.collectionStatus === 'COLLECTED'
+                                                ? 'bg-[#05DF72] text-slate-900'
+                                                : 'bg-white/10 text-slate-400'
                                                 }`}>
                                                 {selectedOrder.collectionStatus || 'PENDING'}
                                             </span>
@@ -211,37 +218,43 @@ export default function OrderManagement() {
                                 </div>
 
                                 {/* Payout Status & Action */}
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-6 border-t border-white/10">
                                     <div>
-                                        <p className="text-xs text-slate-500 mb-1">Payout Status</p>
-                                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${selectedOrder.payoutStatus === 'released'
-                                            ? 'bg-green-100 text-green-700'
-                                            : selectedOrder.payoutStatus === 'pending'
-                                                ? 'bg-amber-100 text-amber-700'
-                                                : 'bg-slate-100 text-slate-600'
-                                            }`}>
-                                            {selectedOrder.payoutStatus?.toUpperCase() || 'NONE'}
-                                        </span>
+                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-2">Payout Release Status</p>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`status-badge-big ${selectedOrder.payoutStatus === 'released'
+                                                ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                                                : selectedOrder.payoutStatus === 'pending'
+                                                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                                    : 'bg-slate-700 text-slate-400 border-slate-600'
+                                                }`}>
+                                                {selectedOrder.payoutStatus?.toUpperCase() || 'NONE'}
+                                            </span>
+                                            {selectedOrder.payoutStatus === 'released' && (
+                                                <span className="text-[10px] font-bold text-slate-400">Funds Transferred</span>
+                                            )}
+                                        </div>
                                     </div>
+
                                     {selectedOrder.collectionStatus === 'COLLECTED' && selectedOrder.payoutStatus !== 'released' && (
                                         <button
                                             onClick={async () => {
+                                                if (!confirm("Are you sure you have transferred funds to this vendor's account?")) return;
                                                 const { releasePayout } = await import('@/backend/actions/admin')
                                                 const res = await releasePayout(selectedOrder.id)
                                                 if (res.success) {
-                                                    alert('Payout approved! Vendor will receive payment.')
+                                                    toast.success('Payout released and vendor notified!')
                                                     setSelectedOrder(null)
-                                                    // Refresh orders
                                                     const ordersRes = await getAllOrders()
                                                     if (ordersRes.success) setOrders(ordersRes.data)
                                                 } else {
-                                                    alert('Failed to approve payout: ' + res.error)
+                                                    toast.error('Failed to release payout: ' + res.error)
                                                 }
                                             }}
-                                            className="btn-primary text-sm !py-2 !px-4"
+                                            className="w-full md:w-auto px-8 py-4 bg-[#05DF72] hover:bg-[#04c965] text-slate-900 font-black rounded-2xl transition-all shadow-lg shadow-[#05DF72]/20 flex items-center justify-center gap-2 group"
                                         >
-                                            <CheckCircleIcon size={16} />
-                                            Approve Payout
+                                            <CheckCircleIcon size={20} className="group-hover:scale-110 transition-transform" />
+                                            APPROVE & RELEASE PAYOUT
                                         </button>
                                     )}
                                 </div>
