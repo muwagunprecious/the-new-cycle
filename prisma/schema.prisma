@@ -25,6 +25,7 @@ model User {
     image String
     role  Role   @default(USER)
     cart  Json   @default("{}")
+    walletBalance Float @default(0) // Track admin platform earnings
 
     // Verification & Safety
     phone           String @unique

@@ -177,17 +177,48 @@ export async function releasePayout(orderId) {
             return { success: false, error: "Order not found" }
         }
 
+        if (order.payoutStatus === 'released') {
+            return { success: false, error: "Payout already released" }
+        }
+
+        const totalAmount = order.total
+        const commission = totalAmount * 0.05
+        const netPayout = totalAmount - commission
+
+        // Update Order
         await prisma.order.update({
             where: { id: orderId },
             data: { payoutStatus: 'released' }
         })
 
+        // Update Seller Wallet
+        await prisma.store.update({
+            where: { id: order.storeId },
+            data: {
+                walletBalance: { increment: netPayout }
+            }
+        })
+
+        // Credit 5% commission to Admin wallet
+        const admin = await prisma.user.findFirst({
+            where: { role: 'ADMIN' }
+        })
+
+        if (admin) {
+            await prisma.user.update({
+                where: { id: admin.id },
+                data: {
+                    walletBalance: { increment: commission }
+                }
+            })
+        }
+
         // Notify vendor about payout approval
         const { createNotification } = await import('./notification')
         await createNotification(
             order.store.userId,
-            "Payout Approved!",
-            `Your payout of ₦${order.total.toLocaleString()} for order ${orderId} has been approved and will be credited to ${order.store.accountNumber || 'your account'}.`,
+            "Payout Approved! 💰",
+            `Your payout of ₦${netPayout.toLocaleString()} (after 5% platform fee) for order ${orderId} has been approved and added to your wallet.`,
             "PAYMENT"
         )
 
@@ -195,7 +226,13 @@ export async function releasePayout(orderId) {
         revalidatePath('/admin/orders')
         revalidatePath('/seller')
         revalidatePath('/notifications')
-        return { success: true }
+
+        return {
+            success: true,
+            commission,
+            netPayout,
+            vendorName: order.store.name
+        }
     } catch (error) {
         console.error("Release Payout Error:", error)
         return { success: false, error: "Failed to release payout" }

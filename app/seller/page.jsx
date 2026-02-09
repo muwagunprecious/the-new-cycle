@@ -8,17 +8,25 @@ import VerificationModal from "@/components/VerificationModal"
 import Button from "@/components/Button"
 import { getSellerOrders, updateOrderStatus } from "@/backend/actions/order"
 import { getSellerProducts } from "@/backend/actions/product"
+import { getStoreDetails, updateStoreBankDetails } from "@/backend/actions/seller"
 
 export default function SellerOverview() {
     const { user } = useSelector(state => state.auth)
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState({ totalProducts: 0 })
     const [orders, setOrders] = useState([])
+    const [store, setStore] = useState(null)
     const [showVerificationModal, setShowVerificationModal] = useState(false)
 
     useEffect(() => {
         const load = async () => {
             if (user?.id) {
+                // Load store details
+                const storeResult = await getStoreDetails(user.id)
+                if (storeResult.success) {
+                    setStore(storeResult.data)
+                }
+
                 // Load seller orders
                 const orderResult = await getSellerOrders(user.id)
                 if (orderResult.success) {
@@ -49,8 +57,24 @@ export default function SellerOverview() {
         }
     }
 
-    const handleVerificationComplete = (data) => {
-        toast.success("Verification complete!")
+    const handleVerificationComplete = async (vData) => {
+        if (vData.bankResult) {
+            const result = await updateStoreBankDetails(user.id, vData.bankResult)
+            if (result.success) {
+                toast.success("Bank details saved successfully!")
+                // Refresh store local state
+                setStore({
+                    ...store,
+                    bankName: vData.bankResult.bankName,
+                    accountNumber: vData.bankResult.accountNumber,
+                    accountName: vData.bankResult.accountName
+                })
+            } else {
+                toast.error("Failed to save bank details")
+            }
+        } else {
+            toast.success("Verification complete!")
+        }
     }
 
     if (loading) return <Loading />
@@ -200,21 +224,27 @@ export default function SellerOverview() {
                                 <p className="text-xs text-slate-400 mt-2">Released after buyer confirms collection</p>
                             </div>
 
-                            {user?.bankDetails ? (
-                                <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+                            {store?.bankName ? (
+                                <div className="bg-white/5 rounded-2xl p-6 border border-white/10 group/bank relative">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-3">Bank Account</p>
+                                    <button
+                                        onClick={() => setShowVerificationModal(true)}
+                                        className="absolute top-6 right-6 text-[10px] font-black uppercase tracking-widest text-[#05DF72] hover:underline opacity-0 group-hover/bank:opacity-100 transition-opacity"
+                                    >
+                                        Edit
+                                    </button>
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-slate-400">Bank</span>
-                                            <span className="font-bold">{user.bankDetails.bankName}</span>
+                                            <span className="font-bold">{store.bankName}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-slate-400">Account</span>
-                                            <span className="font-mono">{user.bankDetails.accountNumber}</span>
+                                            <span className="font-mono">{store.accountNumber}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-slate-400">Name</span>
-                                            <span className="font-bold">{user.bankDetails.accountName}</span>
+                                            <span className="font-bold">{store.accountName}</span>
                                         </div>
                                     </div>
                                 </div>
