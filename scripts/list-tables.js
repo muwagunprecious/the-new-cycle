@@ -2,30 +2,30 @@ const { Client } = require('pg');
 
 const connectionString = "postgresql://postgres.tsjphcyurlfxmxtvkucc:WjuULVcLBKYgFCot@aws-1-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&sslmode=disable";
 
-async function checkUsersSchema() {
+async function listTables() {
     const client = new Client({
         connectionString: connectionString,
     });
 
     try {
         await client.connect();
-        console.log(`Checking schema for table: users`);
+        console.log("Connected! Listing public tables...");
 
         const res = await client.query(`
-            SELECT column_name, data_type 
-            FROM information_schema.columns 
-            WHERE table_name = 'users'
-            ORDER BY ordinal_position;
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public'
+            ORDER BY table_name;
         `);
 
-        console.log("Columns:");
-        res.rows.forEach(row => console.log(`- ${row.column_name} (${row.data_type})`));
+        console.log("Tables found:");
+        res.rows.forEach(row => console.log(`- ${row.table_name}`));
 
     } catch (err) {
-        console.error("Error:", err.message);
+        console.error("Error listing tables:", err.message);
     } finally {
         await client.end();
     }
 }
 
-checkUsersSchema();
+listTables();

@@ -22,11 +22,11 @@ export async function POST(request) {
                 bankName,
                 accountNumber,
                 accountName,
-                // Keep accountStatus as 'pending' until admin verifies
+                accountStatus: body.accountStatus || 'approved'
             }
         })
 
-        // Notify admin about new verification request
+        // Notify admin about new verification
         const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
         const { createNotification } = await import('@/backend/actions/notification')
 
