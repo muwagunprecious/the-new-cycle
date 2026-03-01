@@ -1,21 +1,18 @@
 'use server'
 
+import { ApiResponse } from "@/backend/lib/api-response"
+import { logger } from "@/backend/lib/api-utils"
 import prisma from "@/backend/lib/prisma"
 
 export async function createNotification(userId, title, message, type = "SYSTEM") {
     try {
         const notification = await prisma.notification.create({
-            data: {
-                userId,
-                title,
-                message,
-                type
-            }
+            data: { userId, title, message, type }
         })
-        return { success: true, data: notification }
+        return ApiResponse.success(notification)
     } catch (error) {
-        console.error("Error creating notification:", error)
-        return { success: false, error: "Failed to create notification" }
+        logger.error("Create Notification Error", error)
+        return ApiResponse.error("Failed to create notification")
     }
 }
 
@@ -25,10 +22,10 @@ export async function getNotifications(userId) {
             where: { userId },
             orderBy: { createdAt: 'desc' }
         })
-        return { success: true, data: notifications }
+        return ApiResponse.success({ notifications, data: notifications })
     } catch (error) {
-        console.error("Error fetching notifications:", error)
-        return { success: false, error: "Failed to fetch notifications" }
+        logger.error("Get Notifications Error", error)
+        return ApiResponse.error("Failed to fetch notifications")
     }
 }
 
@@ -38,9 +35,9 @@ export async function markNotificationAsRead(notificationId) {
             where: { id: notificationId },
             data: { status: 'read' }
         })
-        return { success: true }
+        return ApiResponse.success(null, "Notification marked as read")
     } catch (error) {
-        console.error("Error marking notification as read:", error)
-        return { success: false, error: "Failed to mark notification as read" }
+        logger.error("Mark Read Error", error)
+        return ApiResponse.error("Failed to update notification")
     }
 }

@@ -1,0 +1,14 @@
+PrismaClientKnownRequestError: 
+Invalid `prisma.user.upsert()` invocation in
+C:\Users\TINGO-AI-010\Documents\Go-cycle\scripts\seed-demo-error.js:20:37
+
+  17 const sellerPassword = await bcrypt.hash('seller123', 10);
+  18 
+  19 // 1. Create Admin
+→ 20 const admin = await prisma.user.upsert(
+Null constraint violation on the fields: (`fullName`)
+    at $n.handleRequestError (C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async main (C:\Users\TINGO-AI-010\Documents\Go-cycle\scripts\seed-demo-error.js:20:19)

@@ -20,6 +20,7 @@ enum Role {
 model User {
     id    String @id
     name  String
+    fullName String?
     email String? @unique
     password String?
     image String
@@ -143,9 +144,9 @@ model Coupon {
 
 // ENUMS
 enum BatteryType {
-    CAR_BATTERY
-    INVERTER_BATTERY
-    HEAVY_DUTY_BATTERY
+    CAR_TRUCK_WET
+    INVERTER_DRY
+    INVERTER_WET
 }
 
 enum PickupStatus {
@@ -201,7 +202,7 @@ model Product {
     price       Float
     images      String[]
     category    String      // Optional or redundancy
-    type        BatteryType @default(CAR_BATTERY) 
+    type        BatteryType @default(CAR_TRUCK_WET) 
     brand       String?     // Optional
     amps        Int         @default(0) // Capacity in Ah
     condition   String      @default("SCRAP")

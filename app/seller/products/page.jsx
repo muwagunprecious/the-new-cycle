@@ -1,7 +1,7 @@
 'use client'
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { PlusIcon, SearchIcon, Edit3Icon, TrashIcon, BatteryIcon, ImageIcon, XIcon, CalendarIcon, MapPinIcon, BoxIcon, AlertCircleIcon } from "lucide-react"
+import { PlusIcon, SearchIcon, Edit3Icon, TrashIcon, BatteryIcon, ImageIcon, XIcon, CalendarIcon, MapPinIcon, BoxIcon, AlertCircleIcon, CreditCardIcon } from "lucide-react"
 import { lagosLGAs } from "@/assets/assets"
 import toast from "react-hot-toast"
 import { useDispatch, useSelector } from "react-redux"
@@ -11,6 +11,19 @@ import ScheduleCalendar from "@/components/ScheduleCalendar"
 import { createProduct, getSellerProducts, deleteProduct as deleteProductAction } from "@/backend/actions/product"
 import { getUserStoreStatus } from "@/backend/actions/auth"
 import { CONSTANTS } from "@/lib/mockService"
+
+const BATTERY_PRICES = {
+    "Cars and Truck batt (Wet cell)": {
+        "36": 5000, "45": 7000, "65": 7500, "75": 10000, "88": 12000,
+        "100": 13000, "105": 15000, "120": 20000, "150": 25000, "200": 35000, "220": 40000
+    },
+    "Inverter Batt (Dry cell)": {
+        "100": 30000, "150": 50000, "200": 60000, "250": 70000
+    },
+    "Inverter Batt (Wet Cell)": {
+        "200": 50000, "220": 55000, "250": 60000
+    }
+}
 
 export default function SellerProducts() {
     const router = useRouter()
@@ -30,17 +43,20 @@ export default function SellerProducts() {
 
     // Form State
     const [formData, setFormData] = useState({
-        batteryType: 'Car Battery',
+        batteryType: 'Cars and Truck batt (Wet cell)',
         brand: '',
-        amps: '', // New Field
+        amps: '',
         unitsAvailable: 1,
         price: '',
-        isManualPrice: false, // New Field
+        isManualPrice: false,
         lga: '',
         address: '',
         collectionDates: [],
         comments: '',
-        images: []
+        images: [],
+        bankName: '',
+        accountNumber: '',
+        accountName: ''
     })
 
     const [selectedDates, setSelectedDates] = useState([])
@@ -55,12 +71,15 @@ export default function SellerProducts() {
 
     // Price calc logic: (Amps * 250) * units
     useEffect(() => {
-        if (formData.amps && formData.unitsAvailable && !formData.isManualPrice) {
-            const suggestedPerUnit = parseInt(formData.amps) * 250
+        if (formData.batteryType && formData.amps && formData.unitsAvailable && !formData.isManualPrice) {
+            const priceList = BATTERY_PRICES[formData.batteryType]
+            const suggestedPerUnit = priceList ? (priceList[formData.amps] || 0) : 0
             const totalSuggested = suggestedPerUnit * parseInt(formData.unitsAvailable)
-            setFormData(prev => ({ ...prev, price: totalSuggested.toString() }))
+            if (totalSuggested > 0) {
+                setFormData(prev => ({ ...prev, price: totalSuggested.toString() }))
+            }
         }
-    }, [formData.amps, formData.unitsAvailable, formData.isManualPrice])
+    }, [formData.batteryType, formData.amps, formData.unitsAvailable, formData.isManualPrice])
 
     useEffect(() => {
         if (user) {
@@ -69,11 +88,32 @@ export default function SellerProducts() {
                 const res = await getUserStoreStatus(user.id)
                 if (res.success && res.exists) {
                     setStoreInfo({ status: res.status, isActive: res.isActive })
+                    // Pre-fill location from store info
+                    if (res.data) {
+                        setFormData(prev => ({
+                            ...prev,
+                            lga: res.data.lga || prev.lga,
+                            address: res.data.address || prev.address,
+                            bankName: res.data.bankName || prev.bankName,
+                            accountNumber: res.data.accountNumber || prev.accountNumber,
+                            accountName: res.data.accountName || prev.accountName
+                        }))
+                    }
                 }
             }
             checkStatus()
         }
     }, [user])
+
+    // Pre-select tomorrow as default collection date
+    useEffect(() => {
+        if (isUploadModalOpen && selectedDates.length === 0) {
+            const tomorrow = new Date()
+            tomorrow.setDate(tomorrow.getDate() + 1)
+            const dateStr = tomorrow.toISOString().split('T')[0]
+            setSelectedDates([dateStr])
+        }
+    }, [isUploadModalOpen])
 
     const deleteProduct = async (id) => {
         if (confirm("Confirm deletion of this listing?")) {
@@ -104,8 +144,7 @@ export default function SellerProducts() {
     // Generate next 14 days for date picker
     const getAvailableDates = () => {
         const dates = []
-        const minDate = new Date()
-        minDate.setDate(minDate.getDate() + 1) // Start from tomorrow
+        const minDate = new Date() // Start from today
 
         // Limit to 2 options as requested
         for (let i = 0; i < 2; i++) {
@@ -121,12 +160,22 @@ export default function SellerProducts() {
 
     const handleImageUpload = (e) => {
         const files = Array.from(e.target.files)
+
+        // Max 5 images total
         if (files.length + formData.images.length > 5) {
             toast.error("Maximum 5 images allowed")
             return
         }
 
+        const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
         files.forEach(file => {
+            // Check size per file
+            if (file.size > MAX_FILE_SIZE) {
+                toast.error(`${file.name} is too large. Max size per image is 5MB.`)
+                return
+            }
+
             const reader = new FileReader()
             reader.onloadend = () => {
                 setFormData(prev => ({ ...prev, images: [...prev.images, reader.result] }))
@@ -162,6 +211,10 @@ export default function SellerProducts() {
             toast.error("Please enter a valid price")
             return
         }
+        if (formData.images.length < 2) {
+            toast.error("Please upload at least 2 images of the battery")
+            return
+        }
 
         // Check image size (Total base64 characters)
         const totalImageSize = formData.images.reduce((acc, img) => acc + img.length, 0)
@@ -195,7 +248,10 @@ export default function SellerProducts() {
                 address: formData.address,
                 collectionDates: selectedDates.sort(),
                 comments: formData.comments,
-                images: formData.images.length > 0 ? formData.images : ['/placeholder-battery.jpg']
+                images: formData.images.length > 0 ? formData.images : ['/placeholder-battery.jpg'],
+                bankName: formData.bankName,
+                accountNumber: formData.accountNumber,
+                accountName: formData.accountName
             }, user.id)
 
             clearTimeout(timeoutId)
@@ -210,7 +266,7 @@ export default function SellerProducts() {
 
                 // Reset form
                 setFormData({
-                    batteryType: 'Car Battery',
+                    batteryType: 'Cars and Truck batt (Wet cell)',
                     brand: '',
                     amps: '',
                     unitsAvailable: 1,
@@ -426,16 +482,17 @@ export default function SellerProducts() {
                                             required
                                         >
                                             <option value="">Select Size</option>
-                                            {[45, 60, 75, 100, 150, 200, 220].map(size => (
+                                            {Object.keys(BATTERY_PRICES[formData.batteryType] || {}).map(size => (
                                                 <option key={size} value={size}>{size} Amps</option>
                                             ))}
                                         </select>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Condition</label>
-                                        <div className="w-full p-4 bg-slate-100 rounded-2xl font-medium text-sm text-slate-500 cursor-not-allowed">
-                                            SCRAP (Default)
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-[#05DF72]">Standard Applied</label>
+                                        <div className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between text-xs">
+                                            <span className="text-slate-500">Condition: <span className="text-slate-900 font-bold">SCRAP</span></span>
+                                            <span className="text-slate-500">State: <span className="text-slate-900 font-bold">LAGOS</span></span>
                                         </div>
                                     </div>
 
@@ -452,42 +509,53 @@ export default function SellerProducts() {
                                         />
                                     </div>
 
-                                    <div className="space-y-2 md:col-span-2">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Listing Price (₦) *</label>
-                                            {formData.amps && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData(prev => ({ ...prev, isManualPrice: !prev.isManualPrice }))}
-                                                    className="text-[10px] font-bold text-[#05DF72] uppercase tracking-widest hover:underline"
-                                                >
-                                                    {formData.isManualPrice ? 'Reset to Suggested' : 'Enter My Own Price'}
-                                                </button>
-                                            )}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-2">
+                                        {/* Suggested Price Box */}
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Suggested Price (₦)</label>
+                                            </div>
+                                            <div className="relative">
+                                                <input
+                                                    value={formData.batteryType && formData.amps ? ((BATTERY_PRICES[formData.batteryType]?.[formData.amps] || 0) * parseInt(formData.unitsAvailable || 1)).toLocaleString() : ''}
+                                                    readOnly
+                                                    placeholder="Auto-calculated"
+                                                    className="w-full p-4 bg-slate-100/50 text-slate-400 border-none rounded-2xl outline-none font-medium text-sm cursor-not-allowed"
+                                                />
+                                                {formData.amps !== '' && (
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#05DF72]/10 text-[#05DF72] rounded-full text-[10px] font-bold uppercase">
+                                                        Suggested
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="relative">
-                                            <input
-                                                value={formData.price}
-                                                onChange={e => setFormData({ ...formData, price: e.target.value })}
-                                                type="number"
-                                                min="1"
-                                                placeholder="e.g. 15000"
-                                                readOnly={!formData.isManualPrice && formData.amps !== ''}
-                                                required
-                                                className={`w-full p-4 rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm transition-all ${!formData.isManualPrice && formData.amps !== '' ? 'bg-slate-100/50 text-slate-400 border-none' : 'bg-slate-50 border-none'
-                                                    }`}
-                                            />
-                                            {formData.amps && !formData.isManualPrice && (
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#05DF72]/10 text-[#05DF72] rounded-full text-[10px] font-bold uppercase">
-                                                    Suggested
-                                                </div>
-                                            )}
+
+                                        {/* Custom Price Box */}
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Your Selling Price (₦) *</label>
+                                                {formData.amps !== '' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData(prev => ({ ...prev, isManualPrice: false }))}
+                                                        className="text-[10px] font-bold text-[#05DF72] uppercase tracking-widest hover:underline"
+                                                    >
+                                                        Use Suggested
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="relative">
+                                                <input
+                                                    value={formData.price}
+                                                    onChange={e => setFormData({ ...formData, price: e.target.value, isManualPrice: true })}
+                                                    type="number"
+                                                    min="1"
+                                                    placeholder="e.g. 15000"
+                                                    required
+                                                    className={`w-full p-4 rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm transition-all ${!formData.isManualPrice && formData.amps !== '' ? 'bg-[#05DF72]/5 text-[#05DF72] border border-[#05DF72]/20' : 'bg-slate-50 border-none'}`}
+                                                />
+                                            </div>
                                         </div>
-                                        {formData.amps && !formData.isManualPrice && (
-                                            <p className="text-[10px] text-slate-400 mt-2 font-medium">
-                                                Suggested price: (₦250 × {formData.amps}Ah) × {formData.unitsAvailable} unit{formData.unitsAvailable > 1 ? 's' : ''} = ₦{parseInt(formData.price).toLocaleString()}
-                                            </p>
-                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -500,11 +568,8 @@ export default function SellerProducts() {
                                 </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">State</label>
-                                        <div className="w-full p-4 bg-slate-100 rounded-2xl font-medium text-sm text-slate-500 cursor-not-allowed">
-                                            Lagos (Fixed)
-                                        </div>
+                                    <div className="space-y-2 text-center md:text-left">
+                                        <p className="text-[10px] text-slate-400 font-medium">Using your registered shop location in Lagos.</p>
                                     </div>
 
                                     <div className="space-y-2">
@@ -527,7 +592,7 @@ export default function SellerProducts() {
                                         <input
                                             value={formData.address}
                                             onChange={e => setFormData({ ...formData, address: e.target.value })}
-                                            placeholder="e.g. 45 Ikeja Industrial Estate, Near LASUTH"
+                                            placeholder="e.g. 12 Admiralty Way, Lekki Phase 1"
                                             required
                                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
                                         />
@@ -541,7 +606,7 @@ export default function SellerProducts() {
                                     <CalendarIcon size={16} className="text-[#05DF72]" />
                                     Available Collection Dates *
                                 </h3>
-                                <p className="text-xs text-slate-500">Select dates when buyers can pickup (must be 24h+ from now)</p>
+                                <p className="text-xs text-slate-500">Select up to 2 dates when you are available for collection (including today)</p>
 
                                 <ScheduleCalendar
                                     mode="days"
@@ -561,7 +626,7 @@ export default function SellerProducts() {
                             <div className="space-y-4 pt-4 border-t border-slate-100">
                                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                     <ImageIcon size={16} className="text-[#05DF72]" />
-                                    Media Upload <span className="text-xs font-normal text-slate-400">({formData.images.length}/5)</span>
+                                    Media Upload <span className="text-xs font-normal text-slate-400">(Min 2, Max 5)</span>
                                 </h3>
 
                                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
@@ -592,10 +657,9 @@ export default function SellerProducts() {
                                         </label>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-400">Supported: JPG, PNG. Max 5 images.</p>
+                                <p className="text-xs text-slate-400">Supported: JPG, PNG. Max 5MB per picture.</p>
                             </div>
 
-                            {/* Description Section */}
                             <div className="space-y-2 pt-4 border-t border-slate-100">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Comments / Description</label>
                                 <textarea
@@ -605,6 +669,51 @@ export default function SellerProducts() {
                                     rows={3}
                                     className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm resize-none"
                                 />
+                            </div>
+
+                            {/* Payout Bank Details Section */}
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                    <CreditCardIcon size={16} className="text-[#05DF72]" />
+                                    Payout Bank Details
+                                </h3>
+                                <p className="text-xs text-slate-500">Ensure these are correct to receive your payments upon battery collection.</p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Bank Name *</label>
+                                        <input
+                                            value={formData.bankName}
+                                            onChange={e => setFormData({ ...formData, bankName: e.target.value })}
+                                            placeholder="e.g. Zenith Bank"
+                                            required
+                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Number *</label>
+                                        <input
+                                            value={formData.accountNumber}
+                                            onChange={e => setFormData({ ...formData, accountNumber: e.target.value })}
+                                            placeholder="10-digit account number"
+                                            maxLength={10}
+                                            required
+                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2 md:col-span-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Name *</label>
+                                        <input
+                                            value={formData.accountName}
+                                            onChange={e => setFormData({ ...formData, accountName: e.target.value })}
+                                            placeholder="e.g. John Doe Enterprises"
+                                            required
+                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Submit */}

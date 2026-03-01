@@ -22,7 +22,7 @@ export async function POST(request) {
                 bankName,
                 accountNumber,
                 accountName,
-                accountStatus: body.accountStatus || 'approved'
+                accountStatus: body.accountStatus || 'pending'
             }
         })
 

@@ -53,7 +53,7 @@ export default function BuyerOrders() {
         setRescheduleLoading(false)
     }
 
-    const handleVerifyCollection = async (e) => {
+    const handleVerifyCollection = async (e, orderId) => {
         e.preventDefault()
         if (!verifyToken || verifyToken.length < 6) {
             toast.error("Please enter a valid 6-digit code")
@@ -61,7 +61,7 @@ export default function BuyerOrders() {
         }
 
         setVerifying(true)
-        const res = await verifyOrderCollection(selectedOrder.id, verifyToken)
+        const res = await verifyOrderCollection(orderId, verifyToken)
         setVerifying(false)
 
         if (res.success) {

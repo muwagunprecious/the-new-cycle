@@ -1,20 +1,19 @@
 'use server'
 
-import prisma from "@/backend/lib/prisma"
+import { ApiResponse } from "@/backend/lib/api-response"
+import { logger } from "@/backend/lib/api-utils"
 import { revalidatePath } from "next/cache"
+import prisma from "@/backend/lib/prisma"
 
 /**
  * Update store bank details for persistence
  */
 export async function updateStoreBankDetails(userId, bankDetails) {
     try {
-        const store = await prisma.store.findUnique({
-            where: { userId }
-        })
+        if (!userId) return ApiResponse.unauthorized()
 
-        if (!store) {
-            return { success: false, error: "Seller store not found" }
-        }
+        const store = await prisma.store.findUnique({ where: { userId } })
+        if (!store) return ApiResponse.error("Seller store not found", 404)
 
         await prisma.store.update({
             where: { id: store.id },
@@ -27,10 +26,10 @@ export async function updateStoreBankDetails(userId, bankDetails) {
         })
 
         revalidatePath('/seller')
-        return { success: true }
+        return ApiResponse.success(null, "Bank details updated successfully")
     } catch (error) {
-        console.error("Update Bank Details Error:", error)
-        return { success: false, error: "Failed to save bank details" }
+        logger.error("Update Bank Details Error", error)
+        return ApiResponse.error("Failed to save bank details")
     }
 }
 
@@ -39,12 +38,14 @@ export async function updateStoreBankDetails(userId, bankDetails) {
  */
 export async function getStoreDetails(userId) {
     try {
-        const store = await prisma.store.findUnique({
-            where: { userId }
-        })
-        return { success: true, data: store }
+        if (!userId) return ApiResponse.unauthorized()
+
+        const store = await prisma.store.findUnique({ where: { userId } })
+        if (!store) return ApiResponse.error("Store not found", 404)
+
+        return ApiResponse.success(store)
     } catch (error) {
-        console.error("Get Store Details Error:", error)
-        return { success: false, error: "Failed to fetch store details" }
+        logger.error("Get Store Details Error", error)
+        return ApiResponse.error("Failed to fetch store details")
     }
 }

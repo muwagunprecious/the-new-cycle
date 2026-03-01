@@ -1,0 +1,15 @@
+PrismaClientUnknownRequestError: 
+Invalid `prisma.user.findMany()` invocation in
+C:\Users\TINGO-AI-010\Documents\Go-cycle\scripts\check-seller-details4.js:8:41
+
+  5 async function check() {
+  6     try {
+  7         console.log("Fetching sellers...");
+→ 8         const users = await prisma.user.findMany(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "42883", message: "operator does not exist: text = \"Role\"", severity: "ERROR", detail: None, column: None, hint: Some("No operator matches the given name and argument types. You might need to add explicit type casts.") }), transient: false })
+    at $n.handleRequestError (C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\@prisma\client\runtime\library.js:121:7505)
+    at $n.handleAndLogRequestError (C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async check (C:\Users\TINGO-AI-010\Documents\Go-cycle\scripts\check-seller-details4.js:8:23)

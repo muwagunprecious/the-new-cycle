@@ -32,9 +32,9 @@ export default function DeliveryDashboard() {
             location: "12 Admiralty Way, Lekki Phase 1"
         },
         seller: {
-            name: "EcoVolt Solutions",
-            whatsapp: "+234 801 234 5678",
-            location: "45 Ikeja Industrial Estate, Ikeja"
+            name: "Verified Merchant",
+            whatsapp: "Contact via Secure Chat",
+            location: "Authorized Collection Point"
         },
         item: "Classic Car Battery 12V",
         confirmationCode: "772 109"
@@ -199,7 +199,7 @@ export default function DeliveryDashboard() {
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-200 mt-2"></div>
-                                    <p className="text-xs font-medium text-slate-500 italic">"Pickup at the main gate of Ikeja Industrial Estate. Ask for Adebayo."</p>
+                                    <p className="text-xs font-medium text-slate-500 italic">"Pickup at the main security gate. Ask for the Hub Manager."</p>
                                 </div>
                             </div>
                         </div>

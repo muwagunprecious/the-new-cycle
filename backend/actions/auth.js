@@ -1,5 +1,8 @@
 'use server'
 
+import { ApiResponse } from "@/backend/lib/api-response"
+import { generateId, logger } from "@/backend/lib/api-utils"
+import { sendEmail, welcomeEmail } from "@/backend/lib/email"
 import prisma from "@/backend/lib/prisma"
 import bcrypt from "bcryptjs"
 
@@ -8,53 +11,37 @@ export async function registerUser(userData) {
         let { name, email, password, role, whatsapp, businessName } = userData
 
         // Map BUYER to USER for Prisma schema compatibility
-        if (role === 'BUYER') {
-            role = 'USER'
-        }
+        if (role === 'BUYER') role = 'USER'
 
-        // Primary check: Phone number must be unique
-        const phoneExists = await prisma.user.findUnique({
-            where: { phone: whatsapp }
-        })
+        // Check for unique phone
+        const phoneExists = await prisma.user.findUnique({ where: { phone: whatsapp } })
+        if (phoneExists) return ApiResponse.error("A user with this phone number already exists", 400)
 
-        if (phoneExists) {
-            return { success: false, error: "A user with this phone number already exists" }
-        }
-
-        // Secondary check: If email is provided, it must be unique
+        // Check for unique email
         if (email) {
-            const emailExists = await prisma.user.findUnique({
-                where: { email }
-            })
-            if (emailExists) {
-                return { success: false, error: "A user with this email already exists" }
-            }
+            const emailExists = await prisma.user.findUnique({ where: { email } })
+            if (emailExists) return ApiResponse.error("A user with this email already exists", 400)
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
+        const otp = "123456" // Standard demo OTP for this phase, can be made random later
 
-        // Mock OTP generation (In production, use crypto.randomInt)
-        const emailOtp = Math.floor(100000 + Math.random() * 900000).toString()
-        const phoneOtp = Math.floor(100000 + Math.random() * 900000).toString()
-
-        // Log OTPs for now (Integration Placeholder)
-        if (email) console.log(`[Validation] EMAIL OTP for ${email}: ${emailOtp}`)
-        console.log(`[Validation] PHONE OTP for ${whatsapp}: ${phoneOtp}`)
+        logger.info(`Verification code sent to ${whatsapp} and ${email || 'N/A'}: ${otp}`)
 
         const user = await prisma.user.create({
             data: {
-                id: "user_" + Math.random().toString(36).substr(2, 9),
+                id: generateId("user"),
                 name,
+                fullName: name,
                 email,
                 password: hashedPassword,
                 image: "",
                 role: role || 'USER',
                 phone: whatsapp,
-                isEmailVerified: false, // Enforce verification
+                isEmailVerified: false,
                 isPhoneVerified: false,
-                cart: "{}", // Initialize cart
-                // Buyer verification fields
-                accountStatus: role === 'USER' ? 'pending' : 'approved', // Sellers have their own store verification
+                cart: "{}",
+                accountStatus: role === 'USER' ? 'pending' : 'approved',
                 ninDocument: userData.ninDocument || null,
                 cacDocument: userData.cacDocument || null,
                 bankName: userData.bankName || null,
@@ -64,32 +51,29 @@ export async function registerUser(userData) {
         })
 
         if (role === 'USER') {
-            // Notify Admin about new buyer
             const { createNotification } = await import('./notification')
-            // Find admins
             const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
             for (const admin of admins) {
                 await createNotification(
                     admin.id,
                     "New Buyer Registration",
-                    `${name} has registered as a buyer and is awaiting verification.`,
+                    `${name} has registered and is awaiting verification.`,
                     "SYSTEM"
                 )
             }
         }
 
-        // If user is a seller, auto-create a pending store application
         if (role === 'SELLER') {
             const finalBusinessName = (businessName && businessName.trim()) || `${name}'s Store`
-            const username = finalBusinessName.toLowerCase().replace(/\s/g, '_') + "_" + Math.random().toString(36).substr(2, 4)
+            const username = generateId(finalBusinessName.toLowerCase().replace(/\s/g, '_').substr(0, 15))
 
             await prisma.store.create({
                 data: {
                     name: finalBusinessName,
-                    username: username,
+                    username,
                     description: "Battery Vendor",
-                    address: "To be updated",
-                    email: email,
+                    address: "TBD",
+                    email,
                     contact: whatsapp || "",
                     logo: "",
                     status: "approved",
@@ -99,131 +83,100 @@ export async function registerUser(userData) {
             })
         }
 
-        // Mock sending
-        // sendEmail(email, emailOtp)
+        // Send welcome & verification email if email is provided
+        if (email) {
+            const verificationTemplate = (await import("@/backend/lib/email")).verificationCodeEmail({ name, code: otp })
+            sendEmail({ to: email, ...verificationTemplate }).catch(err =>
+                logger.warn("Verification email failed", err)
+            )
 
-        return { success: true, user, requiresVerification: true }
-    } catch (error) {
-        console.error("Register Error:", error)
-
-        // Handle unique constraint violations
-        if (error.code === 'P2002') {
-            const field = error.meta?.target?.[0]
-            if (field === 'email') {
-                return { success: false, error: "This email address is already registered. Please login instead." }
-            } else if (field === 'phone') {
-                return { success: false, error: "This phone number is already registered. Please login instead." }
-            }
-            return { success: false, error: "An account with these details already exists." }
+            const welcomeTemplate = welcomeEmail({ name })
+            sendEmail({ to: email, ...welcomeTemplate }).catch(err =>
+                logger.warn("Welcome email failed", err)
+            )
         }
 
-        return { success: false, error: "Registration failed: " + error.message }
+        return ApiResponse.success({ user, requiresVerification: true }, "Registration successful")
+    } catch (error) {
+        logger.error("Register Error", error)
+        if (error.code === 'P2002') return ApiResponse.error("An account with these details already exists.", 409)
+        return ApiResponse.error(`Registration failed: ${error.message}`)
     }
 }
 
 export async function loginUser(identifier, password) {
     try {
-        // Try searching by email or phone
         const user = await prisma.user.findFirst({
             where: {
-                OR: [
-                    { email: identifier },
-                    { phone: identifier }
-                ]
+                OR: [{ email: identifier }, { phone: identifier }]
             }
         })
 
-        if (!user) {
-            console.log(`[LoginDebug] User not found for identifier: ${identifier}`)
-            return { success: false, error: "Invalid credentials" }
+        if (!user || !user.password) {
+            logger.warn(`Login failed: User not found or no password for ${identifier}`)
+            return ApiResponse.error("Invalid credentials", 401)
         }
 
-        if (user.password) {
-            const isMatch = await bcrypt.compare(password, user.password)
-            console.log(`[LoginDebug] Attempt for ${identifier}: password provided, match results: ${isMatch}`)
-            if (!isMatch) return { success: false, error: "Invalid credentials" }
-        } else {
-            console.log(`[LoginDebug] User ${identifier} has no password set.`)
-            return { success: false, error: "Invalid credentials" }
+        const isMatch = await bcrypt.compare(password, user.password)
+        if (!isMatch) return ApiResponse.error("Invalid credentials", 401)
+
+        const { password: _, ...userWithoutPassword } = user
+
+        if (!user.isEmailVerified && !user.isPhoneVerified) {
+            return ApiResponse.success({ user: userWithoutPassword, requiresVerification: true }, "Verification required")
         }
 
-        if (!user.isEmailVerified) {
-            return { success: true, user, requiresVerification: true }
-        }
-
-
-
-        return { success: true, user }
+        return ApiResponse.success({ user: userWithoutPassword }, "Login successful")
     } catch (error) {
-        console.error("Login Error Details:", error)
-        return { success: false, error: "Login failed: " + error.message }
+        logger.error("Login Error", error)
+        return ApiResponse.error(`Login failed: ${error.message}`)
     }
 }
 
-// Update verification logic to mark both verified if code is matched
 export async function verifyOTP(identifier, code, type = 'PHONE') {
-    // Simplest: Always accept '123456' for demo purposes
+    // Demo implementation
     if (code === '123456') {
         const user = await prisma.user.findFirst({
             where: {
-                OR: [
-                    { email: identifier },
-                    { phone: identifier }
-                ]
+                OR: [{ email: identifier }, { phone: identifier }]
             }
         })
 
-        if (!user) return { success: false, error: "User not found" }
+        if (!user) return ApiResponse.error("User not found", 404)
 
         await prisma.user.update({
             where: { id: user.id },
-            data: {
-                isEmailVerified: true,
-                isPhoneVerified: true
-            }
+            data: { isEmailVerified: true, isPhoneVerified: true }
         })
-        return { success: true }
+        return ApiResponse.success(null, "Account verified successfully")
     }
-    return { success: false, error: "Invalid code" }
+    return ApiResponse.error("Invalid verification code", 400)
 }
 
 export async function createStoreApplication(storeData, userId) {
     try {
-        // Check if store exists for user
-        const existingStoreWithUserId = await prisma.store.findUnique({
-            where: { userId }
-        })
+        if (!userId) return ApiResponse.unauthorized()
 
-        if (existingStoreWithUserId) {
-            return { success: false, error: "You have already submitted a store application." }
-        }
+        const existingStore = await prisma.store.findUnique({ where: { userId } })
+        if (existingStore) return ApiResponse.error("A store application already exists for this account", 400)
 
-        // Verify user exists (handling stale sessions after db wipe)
-        const userExists = await prisma.user.findUnique({ where: { id: userId } })
-        if (!userExists) {
-            return { success: false, error: "Session invalid: Your account was reset. Please Logout and Sign Up again." }
-        }
+        const user = await prisma.user.findUnique({ where: { id: userId } })
+        if (!user) return ApiResponse.error("User profile not found", 404)
 
-        // Generate username and check for duplicates
         const username = storeData.businessName.toLowerCase().replace(/\s/g, '_')
-        const existingStoreWithUsername = await prisma.store.findUnique({
-            where: { username }
-        })
-
-        if (existingStoreWithUsername) {
-            return { success: false, error: "This business name is already taken. Please try a slightly different name." }
-        }
+        const duplicateUsername = await prisma.store.findUnique({ where: { username } })
+        if (duplicateUsername) return ApiResponse.error("Business name is already taken", 400)
 
         const store = await prisma.store.create({
             data: {
                 name: storeData.businessName,
                 description: storeData.description || `Batteries: ${storeData.batteryTypes}`,
                 address: storeData.address,
-                userId: userId,
+                userId,
                 email: storeData.email,
-                username: username,
+                username,
                 contact: storeData.phone,
-                logo: "", // Handle image upload later
+                logo: "",
                 status: 'approved',
                 isActive: true,
                 nin: storeData.nin || "",
@@ -233,36 +186,28 @@ export async function createStoreApplication(storeData, userId) {
                 accountName: storeData.accountName || null
             }
         })
-        return { success: true, store }
+        return ApiResponse.success({ store }, "Store created successfully")
     } catch (error) {
-        console.error("Create Store Error:", error)
-        if (error.code === 'P2002') {
-            const field = error.meta?.target?.[0] || 'field'
-            return { success: false, error: `A store with this ${field} already exists.` }
-        }
-        return { success: false, error: "Store application failed: " + error.message }
+        logger.error("Create Store Error", error)
+        if (error.code === 'P2002') return ApiResponse.error("Store details already exist", 409)
+        return ApiResponse.error(`Store application failed: ${error.message}`)
     }
 }
 
 export async function getUserStoreStatus(userId) {
     try {
-        // Verify user exists (handling stale sessions after db wipe)
-        const userExists = await prisma.user.findUnique({ where: { id: userId } })
-        if (!userExists) {
-            return { success: false, error: "Session invalid: Your account was reset. Please Logout and Sign Up again." }
-        }
+        if (!userId) return ApiResponse.unauthorized()
 
-        const store = await prisma.store.findUnique({
-            where: { userId }
+        const store = await prisma.store.findUnique({ where: { userId } })
+        if (!store) return ApiResponse.success({ exists: false })
+
+        return ApiResponse.success({
+            exists: true,
+            status: store.status,
+            isActive: store.isActive
         })
-
-        if (!store) {
-            return { success: true, exists: false }
-        }
-
-        return { success: true, exists: true, status: store.status, isActive: store.isActive }
     } catch (error) {
-        return { success: false, error: "Failed to check store status" }
+        return ApiResponse.error("Failed to retrieve store status")
     }
 }
 
@@ -278,22 +223,23 @@ export async function approveStore(userId) {
                 data: { role: 'SELLER' }
             })
         ])
-        return { success: true }
+        return ApiResponse.success(null, "Store approved successfully")
     } catch (error) {
-        console.error("Approval logic failed:", error)
-        return { success: false, error: "Approval failed" }
+        logger.error("Approve Store Logic Error", error)
+        return ApiResponse.error("Approval process failed")
     }
 }
 
 export async function getUserProfile(userId) {
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: userId }
-        })
-        if (!user) return { success: false, error: "User not found" }
-        return { success: true, data: user }
+        if (!userId) return ApiResponse.unauthorized()
+
+        const user = await prisma.user.findUnique({ where: { id: userId } })
+        if (!user) return ApiResponse.error("Profile not found", 404)
+
+        return ApiResponse.success(user)
     } catch (error) {
-        console.error("Get Profile Error:", error)
-        return { success: false, error: "Failed to fetch profile" }
+        logger.error("Get Profile Error", error)
+        return ApiResponse.error("Failed to fetch profile details")
     }
 }

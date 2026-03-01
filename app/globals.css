@@ -3,10 +3,39 @@
 @theme {
     --color-primary: #05DF72;
     --color-primary-dark: #04b35c;
-    --color-bg-soft: #f9fafb;
+    --color-primary-light: #dcfce7;
+    --color-slate-900: #0f172a;
+    --color-slate-800: #1e293b;
+    --color-slate-500: #64748b;
+    --color-slate-400: #94a3b8;
+    --color-bg-soft: #f8fafc;
+
+    --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }
 
 @layer components {
+    .glass {
+        @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-glass;
+    }
+
+    .glass-dark {
+        @apply bg-slate-900/80 backdrop-blur-lg border border-white/10 shadow-glass;
+    }
+
+    .btn-premium {
+        @apply bg-[#05DF72] text-white px-8 py-4 rounded-2xl font-black transition-all hover:bg-[#04b35c] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-[#05DF72]/20 uppercase tracking-wider text-sm;
+    }
+
+    .btn-secondary {
+        @apply bg-white text-slate-900 px-8 py-4 rounded-2xl font-black transition-all border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center gap-2 text-sm;
+    }
+
+    .premium-card {
+        @apply bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden transition-all hover:shadow-premium hover:-translate-y-1;
+    }
+
     @keyframes marqueeScroll {
         0% {
             transform: translateX(0%);
@@ -17,45 +46,13 @@
         }
     }
 
-    .btn-primary {
-        @apply bg-[#05DF72] text-white px-6 py-2.5 rounded-lg font-medium transition-all hover:bg-[#04b35c] active:scale-95 flex items-center justify-center gap-2;
-    }
-
-    .card {
-        @apply bg-white border border-slate-200 rounded-xl overflow-hidden transition-shadow hover:shadow-lg;
-    }
-
-    .status-badge {
-        @apply px-3 py-1 rounded-full text-xs font-medium inline-block;
-    }
-
-    .status-pending {
-        @apply bg-orange-100 text-orange-600;
-    }
-
-    .status-approved {
-        @apply bg-blue-100 text-blue-600;
-    }
-
-    .status-picked {
-        @apply bg-indigo-100 text-indigo-600;
-    }
-
-    .status-transit {
-        @apply bg-purple-100 text-purple-600;
-    }
-
-    .status-completed {
-        @apply bg-green-100 text-green-600;
-    }
-
     @keyframes popBadge {
         0% {
             transform: scale(0);
         }
 
         70% {
-            transform: scale(1.2);
+            transform: scale(1.1);
         }
 
         100% {
@@ -63,12 +60,24 @@
         }
     }
 
-    .animate-pop-badge {
-        animation: popBadge 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
     }
 
-    .status-badge-big {
-        @apply px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border flex items-center gap-2;
+    .animate-float {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .animate-pop-badge {
+        animation: popBadge 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 }
 

@@ -38,25 +38,24 @@ const LatestProducts = () => {
     if (loading) return <div className="py-20"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#05DF72] mx-auto"></div></div>
 
     return (
-        <div className='px-6 my-32 max-w-7xl mx-auto'>
-            <div className="flex flex-col md:flex-row items-end justify-between gap-8 mb-16">
+        <div className='px-6 my-40 max-w-7xl mx-auto'>
+            <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-12 mb-20">
                 <div className="flex-1">
-                    <Title title='Marketplace <span className="text-[#05DF72]">Arrivals</span>' description="Browse our newest verified listings from trusted eco-vendors across Lagos." href='/shop' />
+                    <Title title='Marketplace <span className="text-emerald-500">Arrivals</span>' description="Browse our newest verified listings from trusted eco-vendors across Lagos." href='/shop' />
                 </div>
 
-                <div className="flex items-center gap-4 bg-white p-3 px-6 rounded-[2rem] shadow-sm border border-slate-100 w-full md:w-auto">
-                    <div className="flex items-center gap-2 text-slate-400 shrink-0 border-r border-slate-100 pr-4 mr-2">
-                        <MapPinIcon size={18} />
-                        <span className="text-sm font-bold text-slate-900">Lagos</span>
+                <div className="flex items-center gap-4 bg-slate-50 p-2.5 px-6 rounded-[2.5rem] border-2 border-slate-100/50 w-full md:w-auto shadow-inner group focus-within:bg-white focus-within:border-emerald-500 transition-all">
+                    <div className="flex items-center gap-2 text-slate-300 shrink-0 border-r-2 border-slate-200/50 pr-4 mr-2">
+                        <MapPinIcon size={18} className="group-focus-within:text-emerald-500 transition-colors" />
+                        <span className="text-xs font-black uppercase tracking-[0.1em] text-slate-400">Region</span>
                     </div>
                     <div className="flex items-center gap-3 w-full">
-                        <FilterIcon size={16} className="text-slate-400" />
                         <select
                             value={selectedLGA}
                             onChange={(e) => setSelectedLGA(e.target.value)}
-                            className="bg-transparent text-sm font-medium text-slate-700 outline-none w-full min-w-[150px] cursor-pointer"
+                            className="bg-transparent text-xs font-black text-slate-900 uppercase tracking-widest outline-none w-full min-w-[200px] cursor-pointer"
                         >
-                            <option value="All">All Local Governments</option>
+                            <option value="All">All of Lagos</option>
                             {lagosLGAs.sort().map(lga => (
                                 <option key={lga} value={lga}>{lga}</option>
                             ))}

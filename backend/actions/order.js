@@ -1,23 +1,26 @@
 'use server'
-import prisma from "@/backend/lib/prisma"
+
+import { ApiResponse } from "@/backend/lib/api-response"
+import { logger } from "@/backend/lib/api-utils"
+import { sendEmail, orderConfirmationEmail, buyerReceiptEmail } from "@/backend/lib/email"
 import { createNotification } from "./notification"
 import { revalidatePath } from "next/cache"
+import prisma from "@/backend/lib/prisma"
 
 export async function createOrder(orderData) {
     try {
-        const { buyerId, sellerId, productId, quantity, totalAmount, collectionDate, paymentReference } = orderData
+        const { buyerId, sellerId, productId, quantity, totalAmount, collectionDate } = orderData
 
-        // Generate collection token
+        if (!buyerId || !productId || quantity <= 0) {
+            return ApiResponse.error("Invalid order data", 400)
+        }
+
         const collectionToken = Math.floor(100000 + Math.random() * 900000).toString()
 
-        // Get store of the seller
         let store;
         if (sellerId) {
-            store = await prisma.store.findUnique({
-                where: { userId: sellerId }
-            })
+            store = await prisma.store.findUnique({ where: { userId: sellerId } })
         } else {
-            // Find store via product
             const product = await prisma.product.findUnique({
                 where: { id: productId },
                 include: { store: true }
@@ -25,21 +28,13 @@ export async function createOrder(orderData) {
             store = product?.store
         }
 
-        if (!store) {
-            return { success: false, error: "Seller store not found. Please ensure the product is listed by a valid seller." }
-        }
+        if (!store) return ApiResponse.error("Seller store not found", 404)
 
-        // Verify Buyer Status
-        const buyer = await prisma.user.findUnique({
-            where: { id: buyerId }
-        })
-
-        if (!buyer) {
-            return { success: false, error: "Buyer account not found." }
-        }
+        const buyer = await prisma.user.findUnique({ where: { id: buyerId } })
+        if (!buyer) return ApiResponse.error("Buyer account not found", 404)
 
         if (buyer.role === 'USER' && buyer.accountStatus !== 'approved') {
-            return { success: false, error: "Your account is pending verification. You cannot place orders until approved by admin." }
+            return ApiResponse.error("Your account is pending verification. Orders are restricted.", 403)
         }
 
         const order = await prisma.order.create({
@@ -52,41 +47,32 @@ export async function createOrder(orderData) {
                 userId: buyerId,
                 storeId: store.id,
                 isPaid: true,
-                paymentMethod: 'STRIPE', // Mocked as Stripe
+                paymentMethod: 'STRIPE',
                 orderItems: {
-                    create: [
-                        {
-                            productId: productId,
-                            quantity: quantity,
-                            price: totalAmount / quantity
-                        }
-                    ]
+                    create: [{
+                        productId: productId,
+                        quantity: quantity,
+                        price: totalAmount / quantity
+                    }]
                 }
             },
-            include: {
-                user: true,
-                store: true
-            }
+            include: { user: true, store: true }
         })
 
-        // Notify Seller
+        // Notify Stakeholders
         await createNotification(
-            sellerId || store.userId,
+            store.userId,
             "New Order Received!",
-            `You have a new order for ${quantity} battery(s). Total: ₦${totalAmount.toLocaleString()}`,
+            `You have a new order for ${quantity} unit(s). Total: ₦${totalAmount.toLocaleString()}`,
             "ORDER"
         )
 
-        // Notify Admin
-        const admins = await prisma.user.findMany({
-            where: { role: 'ADMIN' }
-        })
-
+        const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
         for (const admin of admins) {
             await createNotification(
                 admin.id,
                 "New Platform Sale",
-                `A new order has been placed on the platform. Total: ₦${totalAmount.toLocaleString()}`,
+                `Order #${order.id.slice(-6)} placed. Total: ₦${totalAmount.toLocaleString()}`,
                 "ORDER"
             )
         }
@@ -94,143 +80,121 @@ export async function createOrder(orderData) {
         revalidatePath('/buyer/orders')
         revalidatePath('/seller/orders')
         revalidatePath('/admin/orders')
-        revalidatePath('/admin')
-        revalidatePath('/seller')
-        revalidatePath('/notifications')
 
-        return { success: true, order }
+        // Send confirmation email to buyer
+        if (buyer.email) {
+            const product = await prisma.product.findUnique({ where: { id: productId }, select: { name: true } })
+            const emailTemplate = orderConfirmationEmail({
+                buyerName: buyer.name,
+                orderId: order.id,
+                productName: product?.name || 'Battery',
+                amount: totalAmount,
+                collectionDate: collectionDate ? new Date(collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
+                token: collectionToken
+            })
+            sendEmail({ to: buyer.email, ...emailTemplate }).catch(err =>
+                logger.warn("Order confirmation email failed", err)
+            )
+        }
+
+        return ApiResponse.success(order, "Order placed successfully")
     } catch (error) {
-        console.error("Create Order Error:", error)
-        return { success: false, error: "Failed to create order: " + error.message }
+        logger.error("Create Order Error", error)
+        return ApiResponse.error(`Order creation failed: ${error.message}`)
     }
 }
 
 export async function getUserOrders(userId) {
     try {
+        if (!userId) return ApiResponse.unauthorized()
+
         const orders = await prisma.order.findMany({
-            where: { userId }, // user is the BUYER here
+            where: { userId },
             include: {
                 store: true,
-                orderItems: {
-                    include: {
-                        product: true
-                    }
-                }
+                orderItems: { include: { product: true } }
             },
             orderBy: { createdAt: 'desc' }
         })
 
-        // Sanitize orders to remove collectionToken before sending to buyer
-        const sanitizedOrders = orders.map(order => {
-            const { collectionToken, ...safeOrder } = order
-            return safeOrder
-        })
-
-        return { success: true, data: sanitizedOrders }
+        // Sanitize sensitive tokens
+        const sanitizedOrders = orders.map(({ collectionToken, ...safeOrder }) => safeOrder)
+        return ApiResponse.success({ orders: sanitizedOrders, data: sanitizedOrders })
     } catch (error) {
-        console.error("Error fetching user orders:", error)
-        return { success: false, error: "Failed to fetch orders" }
+        logger.error("Get User Orders Error", error)
+        return ApiResponse.error("Failed to fetch order history")
     }
 }
 
 export async function getSellerOrders(userId) {
     try {
-        if (!userId) {
-            return { success: true, orders: [] }
-        }
+        if (!userId) return ApiResponse.unauthorized()
 
-        // Find store for this user
-        const store = await prisma.store.findUnique({
-            where: { userId }
-        })
-
-        if (!store) {
-            return { success: true, orders: [] }
-        }
+        const store = await prisma.store.findUnique({ where: { userId } })
+        if (!store) return ApiResponse.success({ orders: [], data: [] })
 
         const orders = await prisma.order.findMany({
             where: { storeId: store.id },
             include: {
-                user: { // Buyer details
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        image: true,
-                        phone: true
-                    }
-                },
-                orderItems: {
-                    include: {
-                        product: true
-                    }
-                }
+                user: { select: { id: true, name: true, email: true, image: true, phone: true } },
+                orderItems: { include: { product: true } }
             },
             orderBy: { createdAt: 'desc' }
         })
 
-        return { success: true, orders }
-
+        return ApiResponse.success({ orders: orders, data: orders })
     } catch (error) {
-        console.error("Get Seller Orders Error:", error)
-        return { success: false, error: "Failed to fetch seller orders" }
+        logger.error("Get Seller Orders Error", error)
+        return ApiResponse.error("Failed to fetch seller orders")
     }
 }
+
 export async function updateOrderStatus(orderId, status) {
     try {
         const order = await prisma.order.update({
             where: { id: orderId },
-            data: {
-                status: status,
-            }
+            data: { status }
         })
 
         revalidatePath('/seller/orders')
         revalidatePath('/admin/orders')
         revalidatePath('/buyer/orders')
-        revalidatePath('/admin')
-        revalidatePath('/seller')
-        return { success: true, order }
-    } catch (error) {
-        console.error("Update Order Status Error:", error)
 
-        return { success: false, error: "Failed to update order status" }
+        return ApiResponse.success(order, "Order status updated")
+    } catch (error) {
+        logger.error("Update Order Status Error", error)
+        return ApiResponse.error("Failed to update status")
     }
 }
 
 export async function verifyOrderCollection(orderId, token) {
     try {
         const order = await prisma.order.findUnique({
-            where: { id: orderId }
+            where: { id: orderId },
+            include: {
+                user: true,
+                store: true,
+                orderItems: { include: { product: true } }
+            }
         })
-
-        if (!order) {
-            return { success: false, error: "Order not found" }
-        }
-
-        if (order.collectionToken !== token) {
-            return { success: false, error: "Invalid collection token" }
-        }
+        if (!order) return ApiResponse.error("Order not found", 404)
+        if (order.collectionToken !== token) return ApiResponse.error("Invalid collection token", 400)
 
         const updatedOrder = await prisma.order.update({
             where: { id: orderId },
             data: {
                 status: 'PICKED_UP',
                 collectionStatus: 'COLLECTED',
-                payoutStatus: 'pending' // Changed from 'released' to require admin approval
+                payoutStatus: 'pending'
             }
         })
 
-        // Notify Admin of successful collection and payout
-        const admins = await prisma.user.findMany({
-            where: { role: 'ADMIN' }
-        })
-
+        const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
         for (const admin of admins) {
             await createNotification(
                 admin.id,
                 "Order Collected - Payout Pending",
-                `Order ${orderId} has been successfully collected. Please review and approve payout of ₦${order.total.toLocaleString()} to vendor.`,
+                `Order ${orderId.slice(-6)} collected. Review payout of ₦${order.total.toLocaleString()} to vendor.`,
                 "PAYMENT"
             )
         }
@@ -238,12 +202,29 @@ export async function verifyOrderCollection(orderId, token) {
         revalidatePath('/seller/orders')
         revalidatePath('/admin/orders')
         revalidatePath('/buyer/orders')
-        revalidatePath('/admin')
-        revalidatePath('/seller')
-        return { success: true, order: updatedOrder }
+
+        // Send receipt email to buyer
+        if (order.user?.email) {
+            const firstItem = order.orderItems?.[0]
+            const emailTemplate = buyerReceiptEmail({
+                buyerName: order.user.name,
+                orderId: order.id,
+                productName: firstItem?.product?.name || 'Battery',
+                quantity: firstItem?.quantity || 1,
+                unitPrice: firstItem?.price || order.total,
+                totalAmount: order.total,
+                collectionDate: new Date().toLocaleDateString('en-NG', { dateStyle: 'long' }),
+                storeName: order.store?.name || 'Seller'
+            })
+            sendEmail({ to: order.user.email, ...emailTemplate }).catch(err =>
+                logger.warn("Buyer receipt email failed", err)
+            )
+        }
+
+        return ApiResponse.success(updatedOrder, "Collection verified successfully")
     } catch (error) {
-        console.error("Verify Collection Error:", error)
-        return { success: false, error: "Verification failed" }
+        logger.error("Verify Collection Error", error)
+        return ApiResponse.error("Verification failed")
     }
 }
 
@@ -253,18 +234,14 @@ export async function getAllOrders() {
             include: {
                 user: true,
                 store: true,
-                orderItems: {
-                    include: {
-                        product: true
-                    }
-                }
+                orderItems: { include: { product: true } }
             },
             orderBy: { createdAt: 'desc' }
         })
-        return { success: true, data: orders }
+        return ApiResponse.success({ orders: orders, data: orders })
     } catch (error) {
-        console.error("Get All Orders Error:", error)
-        return { success: false, error: "Failed to fetch all orders" }
+        logger.error("Get All Orders Error", error)
+        return ApiResponse.error("Failed to fetch platform orders")
     }
 }
 
@@ -279,31 +256,28 @@ export async function requestReschedule(orderId, newDate) {
             include: { store: true }
         })
 
-        // Notify Buyer
         await createNotification(
             order.userId,
             "Reschedule Requested",
-            `Vendor at ${order.store.name} has requested to reschedule your pickup to ${newDate}. Please review and accept or propose another date.`,
+            `Vendor at ${order.store.name} proposed a new pickup date: ${newDate}.`,
             "ORDER"
         )
 
         revalidatePath('/seller/orders')
         revalidatePath('/buyer/orders')
-        revalidatePath('/seller')
-        revalidatePath('/buyer')
 
-        return { success: true, order }
+        return ApiResponse.success(order, "Reschedule request sent")
     } catch (error) {
-        console.error("Request Reschedule Error:", error)
-        return { success: false, error: "Failed to request reschedule" }
+        logger.error("Reschedule Request Error", error)
+        return ApiResponse.error("Failed to request reschedule")
     }
 }
 
 export async function respondToReschedule(orderId, action, alternateDate = null) {
     try {
         let updateData = {}
-        let notificationTitle = ""
-        let notificationMessage = ""
+        let notifyTitle = ""
+        let notifyMsg = ""
 
         if (action === 'ACCEPT') {
             const order = await prisma.order.findUnique({ where: { id: orderId } })
@@ -312,43 +286,36 @@ export async function respondToReschedule(orderId, action, alternateDate = null)
                 collectionStatus: 'PENDING',
                 proposedDate: null
             }
-            notificationTitle = "Reschedule Accepted"
-            notificationMessage = `The buyer has accepted the rescheduled date of ${order.proposedDate}.`
+            notifyTitle = "Reschedule Accepted"
+            notifyMsg = `The buyer accepted the rescheduled date: ${order.proposedDate}.`
         } else if (action === 'RESCHEDULE') {
             updateData = {
                 proposedDate: alternateDate,
                 collectionStatus: 'RESCHEDULE_REQUESTED'
             }
-            notificationTitle = "Buyer Proposed New Date"
-            notificationMessage = `The buyer has proposed a different date: ${alternateDate}.`
+            notifyTitle = "Buyer Counter-Proposal"
+            notifyMsg = `The buyer proposed an alternative date: ${alternateDate}.`
         }
 
         const updatedOrder = await prisma.order.update({
             where: { id: orderId },
             data: updateData,
-            include: {
-                user: true,
-                store: true
-            }
+            include: { store: true }
         })
 
-        // Notify Seller
         await createNotification(
             updatedOrder.store.userId,
-            notificationTitle,
-            notificationMessage,
+            notifyTitle,
+            notifyMsg,
             "ORDER"
         )
 
         revalidatePath('/seller/orders')
         revalidatePath('/buyer/orders')
-        revalidatePath('/seller')
-        revalidatePath('/buyer')
 
-        return { success: true, order: updatedOrder }
+        return ApiResponse.success(updatedOrder, "Reschedule response processed")
     } catch (error) {
-        console.error("Respond to Reschedule Error:", error)
-        return { success: false, error: "Failed to respond to reschedule" }
+        logger.error("Reschedule Response Error", error)
+        return ApiResponse.error("Failed to process reschedule response")
     }
 }
-

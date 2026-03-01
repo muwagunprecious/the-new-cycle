@@ -38,10 +38,14 @@ export default function BuyerDashboard() {
                 if (ordersRes.success) setOrders(ordersRes.data)
                 if (notifyRes.success) setNotifications(notifyRes.data)
 
-                // Update Redux state with latest profile data (includes latest accountStatus)
+                // Update Redux state with latest profile data
                 if (profileRes.success && profileRes.data) {
-                    // Only update if accountStatus has changed to prevent infinite loops
-                    if (profileRes.data.accountStatus !== user?.accountStatus) {
+                    const hasChanged =
+                        profileRes.data.accountStatus !== user?.accountStatus ||
+                        profileRes.data.ninDocument !== user?.ninDocument ||
+                        profileRes.data.isPhoneVerified !== user?.isPhoneVerified;
+
+                    if (hasChanged) {
                         dispatch(updateProfile(profileRes.data))
                     }
                 }

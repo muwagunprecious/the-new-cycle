@@ -21,7 +21,15 @@ async function getAccessToken() {
         return cachedToken;
     }
 
+    if (!CLIENT_ID || !SECRET_KEY) {
+        const errorMsg = "QoreID Credentials Missing: Please check QOREID_CLIENT_ID and QOREID_SECRET_KEY in your .env file.";
+        console.error(errorMsg);
+        throw new Error(errorMsg);
+    }
+
     try {
+        console.log('Requesting QoreID Token from:', `${BASE_URL}/token`);
+
         const response = await fetch(`${BASE_URL}/token`, {
             method: 'POST',
             headers: {
@@ -34,18 +42,34 @@ async function getAccessToken() {
             })
         });
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = `Token Request Failed (${response.status})`;
+
+            try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch (e) {
+                errorMessage = errorText || errorMessage;
+            }
+
+            console.error('QoreID Token Error Details:', errorText);
+            throw new Error(`QoreID Authentication Failed: ${errorMessage}`);
+        }
+
         const data = await response.json();
 
         if (data.accessToken) {
             cachedToken = data.accessToken;
             // Token usually expires in 1 hour (3600s)
             tokenExpiry = Date.now() + (data.expiresIn || 3600) * 1000;
+            console.log('QoreID Token successfully obtained.');
             return cachedToken;
         } else {
-            throw new Error(data.message || 'Failed to obtain access token');
+            throw new Error(data.message || 'Failed to obtain access token: No accessToken in response');
         }
     } catch (error) {
-        console.error('QoreID Token Error:', error);
+        console.error('QoreID Token Exception:', error.message);
         throw error;
     }
 }
@@ -61,17 +85,46 @@ async function qoreidRequest(endpoint, method = 'POST', body = null) {
             method,
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'x-api-key': CLIENT_ID,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
             body: body ? JSON.stringify(body) : null
         });
 
-        const data = await response.json();
-        return data;
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            return data;
+        } else {
+            const text = await response.text();
+            console.error(`QoreID Non-JSON Response (${endpoint}):`, text);
+
+            if (response.status === 404) {
+                return {
+                    success: false,
+                    error: "Verification service endpoint not found. Please contact support.",
+                    details: text
+                };
+            }
+
+            if (response.status === 403) {
+                return {
+                    success: false,
+                    error: "Permission denied: Forbidden resource. Please check if your QoreID API keys are valid and have NIN verification enabled.",
+                    details: text
+                };
+            }
+
+            return {
+                success: false,
+                error: `External service error (${response.status}): Forbidden or Unauthorized`,
+                details: text
+            };
+        }
     } catch (error) {
         console.error(`QoreID API Error (${endpoint}):`, error);
-        return { success: false, error: error.message };
+        return { success: false, error: "Connection to verification service failed. Please try again later." };
     }
 }
 
@@ -81,11 +134,10 @@ async function qoreidRequest(endpoint, method = 'POST', body = null) {
  * @param {object} userData - {firstname, lastname, dob} for matching
  */
 export async function verifyNIN(nin, userData = {}) {
-    const endpoint = '/v1/ng/identities/nin';
+    const endpoint = `/v1/ng/identities/nin/${nin}`;
     const body = {
         firstname: userData.firstname,
-        lastname: userData.lastname,
-        idNumber: nin
+        lastname: userData.lastname
     };
 
     return await qoreidRequest(endpoint, 'POST', body);

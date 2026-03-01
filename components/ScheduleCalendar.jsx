@@ -20,22 +20,20 @@ const ScheduleCalendar = ({
     multiSelect = false,
     preSelected = []
 }) => {
-    const [currentWeekStart, setCurrentWeekStart] = useState(new Date())
+    const [currentWeekStart, setCurrentWeekStart] = useState(() => {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        return today
+    })
     const [selectedItems, setSelectedItems] = useState(multiSelect ? preSelected : null)
     const [weekDays, setWeekDays] = useState([])
 
-    // Generate Mon-Fri for the current week view
+    // Generate 5 days starting from currentWeekStart
     useEffect(() => {
-        const start = new Date(currentWeekStart)
-        // Adjust to Monday of the current week if not already
-        const day = start.getDay()
-        const diff = start.getDate() - day + (day === 0 ? -6 : 1)
-        const monday = new Date(start.setDate(diff))
-
         const days = []
         for (let i = 0; i < 5; i++) {
-            const d = new Date(monday)
-            d.setDate(monday.getDate() + i)
+            const d = new Date(currentWeekStart)
+            d.setDate(currentWeekStart.getDate() + i)
             days.push(d)
         }
         setWeekDays(days)
@@ -43,26 +41,26 @@ const ScheduleCalendar = ({
 
     const handlePrevWeek = () => {
         const newDate = new Date(currentWeekStart)
-        newDate.setDate(newDate.getDate() - 7)
-        // Prevent going to past weeks (simple check: tomorrow's week)
-        const minStartDate = new Date()
-        minStartDate.setDate(minStartDate.getDate() - 7)
-        if (newDate > minStartDate) {
+        newDate.setDate(newDate.getDate() - 5) // Use 5 for rolling view
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        if (newDate >= today) {
             setCurrentWeekStart(newDate)
         }
     }
 
     const handleNextWeek = () => {
         const newDate = new Date(currentWeekStart)
-        newDate.setDate(newDate.getDate() + 7)
+        newDate.setDate(newDate.getDate() + 5) // Use 5 for rolling view
         setCurrentWeekStart(newDate)
     }
 
     const isDateInPast = (date) => {
-        const minDate = new Date()
-        minDate.setDate(minDate.getDate() + 1) // 24h buffer
-        minDate.setHours(0, 0, 0, 0)
-        return date < minDate
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        return date < today
     }
 
     const handleItemClick = (date, slot = null) => {
@@ -76,6 +74,7 @@ const ScheduleCalendar = ({
             if (newItems.includes(selection)) {
                 newItems = newItems.filter(i => i !== selection)
             } else {
+                if (newItems.length >= 2) return // Strict 2 date limit
                 newItems.push(selection)
             }
             setSelectedItems(newItems)
@@ -110,6 +109,9 @@ const ScheduleCalendar = ({
             <div className="flex items-center justify-between mb-8">
                 <h3 className="font-bold text-slate-800 text-lg uppercase tracking-wider">
                     {weekDays[0]?.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    {weekDays[0]?.getMonth() !== weekDays[4]?.getMonth() && (
+                        <span className="text-slate-400"> / {weekDays[4]?.toLocaleDateString('en-US', { month: 'short' })}</span>
+                    )}
                 </h3>
                 <div className="flex gap-2">
                     <button onClick={handlePrevWeek} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { mockAdminService, mockNotificationService } from "@/lib/mockService"
 import Button from "@/components/Button"
-import { getPendingSellers, approveSeller, rejectSeller, getAllUsers, banUser, releasePayout } from "@/backend/actions/admin"
+import { getPendingSellers, approveSeller, rejectSeller, getAllUsers, banUser, releasePayout, sendAdminNotification } from "@/backend/actions/admin"
 import { getAllOrders } from "@/backend/actions/order"
 import { getAllProducts } from "@/backend/actions/product"
 
@@ -29,9 +29,12 @@ export default function AdminDashboard() {
     })
     const [sendingNotification, setSendingNotification] = useState(false)
     const [notificationForm, setNotificationForm] = useState({
+        target: 'all',      // 'all' | 'buyers' | 'sellers' | 'specific'
         userId: '',
         title: '',
-        message: ''
+        message: '',
+        type: 'SYSTEM',
+        withEmail: false
     })
 
     useEffect(() => {
@@ -90,24 +93,29 @@ export default function AdminDashboard() {
 
     const handleSendNotification = async (e) => {
         e.preventDefault()
-        if (!notificationForm.userId || !notificationForm.title || !notificationForm.message) {
-            toast.error("All fields are required")
+        if (!notificationForm.title || !notificationForm.message) {
+            toast.error("Title and message are required")
+            return
+        }
+        if (notificationForm.target === 'specific' && !notificationForm.userId) {
+            toast.error("Please select a user")
             return
         }
 
         setSendingNotification(true)
         try {
-            const { createNotification } = await import("@/backend/actions/notification")
-            const result = await createNotification(
-                notificationForm.userId,
-                notificationForm.title,
-                notificationForm.message,
-                "SYSTEM"
-            )
+            const result = await sendAdminNotification({
+                target: notificationForm.target,
+                userId: notificationForm.userId || undefined,
+                title: notificationForm.title,
+                message: notificationForm.message,
+                type: notificationForm.type,
+                sendEmail: notificationForm.withEmail
+            })
 
             if (result.success) {
-                toast.success("Notification sent!")
-                setNotificationForm({ userId: '', title: '', message: '' })
+                toast.success(result.message || "Notification sent!")
+                setNotificationForm(f => ({ ...f, title: '', message: '', userId: '' }))
             } else {
                 toast.error(result.error || "Failed to send notification")
             }
@@ -135,6 +143,7 @@ export default function AdminDashboard() {
         { id: 'users', label: `Users (${users.length})` },
         { id: 'orders', label: `Orders (${orders.length})` },
         { id: 'payouts', label: 'Payouts' },
+        { id: 'notify', label: '📣 Notify' },
     ]
 
     const statsCards = [
@@ -208,23 +217,12 @@ export default function AdminDashboard() {
 
                         {/* Send Notification */}
                         <div className="bg-slate-900 rounded-2xl p-6 text-white">
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
                                 <SendIcon size={18} className="text-[#05DF72]" />
-                                Send Notification
+                                Quick Notification
                             </h3>
-                            <form onSubmit={handleSendNotification} className="space-y-4">
-                                <select
-                                    value={notificationForm.userId}
-                                    onChange={e => setNotificationForm({ ...notificationForm, userId: e.target.value })}
-                                    className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white"
-                                >
-                                    <option value="" className="text-slate-900">Select user</option>
-                                    {users.map(u => (
-                                        <option key={u.id} value={u.id} className="text-slate-900">
-                                            {u.name} ({u.email})
-                                        </option>
-                                    ))}
-                                </select>
+                            <p className="text-slate-400 text-xs mb-4">Send to all users from the <span className="text-[#05DF72] font-bold">📣 Notify</span> tab</p>
+                            <form onSubmit={handleSendNotification} className="space-y-3">
                                 <input
                                     placeholder="Notification title"
                                     value={notificationForm.title}
@@ -244,7 +242,7 @@ export default function AdminDashboard() {
                                     loadingText="Sending..."
                                     className="w-full"
                                 >
-                                    Send Notification
+                                    Broadcast to All Users
                                 </Button>
                             </form>
                         </div>
@@ -416,6 +414,149 @@ export default function AdminDashboard() {
                                 </div>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Notify Tab */}
+            {activeTab === 'notify' && (
+                <div className="max-w-2xl space-y-6">
+                    <div className="bg-slate-900 rounded-2xl p-6 text-white">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#05DF72]/20 rounded-xl flex items-center justify-center">
+                                <SendIcon className="text-[#05DF72]" size={20} />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold">Send Notification</h2>
+                                <p className="text-slate-400 text-xs">Reach your users with in-app messages and optionally email</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                        <form onSubmit={handleSendNotification} className="space-y-5">
+
+                            {/* Audience */}
+                            <div>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3">Audience</label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {[
+                                        { value: 'all', label: '🌐 Everyone', desc: `${users.filter(u => u.role !== 'ADMIN').length} users` },
+                                        { value: 'buyers', label: '🛒 Buyers', desc: `${users.filter(u => u.role === 'USER').length} buyers` },
+                                        { value: 'sellers', label: '🏪 Sellers', desc: `${users.filter(u => u.role === 'SELLER').length} sellers` },
+                                        { value: 'specific', label: '👤 One User', desc: 'Pick from list' },
+                                    ].map(opt => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => setNotificationForm(f => ({ ...f, target: opt.value, userId: '' }))}
+                                            className={`p-3 rounded-xl border-2 text-left transition-all ${notificationForm.target === opt.value
+                                                ? 'border-[#05DF72] bg-[#05DF72]/5'
+                                                : 'border-slate-100 hover:border-slate-200'
+                                                }`}
+                                        >
+                                            <p className="font-bold text-sm text-slate-900">{opt.label}</p>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">{opt.desc}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Specific User Picker */}
+                            {notificationForm.target === 'specific' && (
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Select User</label>
+                                    <select
+                                        value={notificationForm.userId}
+                                        onChange={e => setNotificationForm(f => ({ ...f, userId: e.target.value }))}
+                                        className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
+                                        required
+                                    >
+                                        <option value="">Choose a user...</option>
+                                        {users.filter(u => u.role !== 'ADMIN').map(u => (
+                                            <option key={u.id} value={u.id}>
+                                                {u.name} – {u.role} ({u.email || u.phone})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Notification Type */}
+                            <div>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Type</label>
+                                <select
+                                    value={notificationForm.type}
+                                    onChange={e => setNotificationForm(f => ({ ...f, type: e.target.value }))}
+                                    className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
+                                >
+                                    <option value="SYSTEM">📢 System Announcement</option>
+                                    <option value="PROMO">🎁 Promotion / Offer</option>
+                                    <option value="ORDER">📦 Order Update</option>
+                                    <option value="PAYMENT">💳 Payment</option>
+                                </select>
+                            </div>
+
+                            {/* Title */}
+                            <div>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Title</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. New Feature Available!"
+                                    value={notificationForm.title}
+                                    onChange={e => setNotificationForm(f => ({ ...f, title: e.target.value }))}
+                                    className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
+                                    maxLength={80}
+                                    required
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1 text-right">{notificationForm.title.length}/80</p>
+                            </div>
+
+                            {/* Message */}
+                            <div>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Message</label>
+                                <textarea
+                                    placeholder="Write your message here..."
+                                    value={notificationForm.message}
+                                    onChange={e => setNotificationForm(f => ({ ...f, message: e.target.value }))}
+                                    className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium resize-none"
+                                    rows={4}
+                                    maxLength={500}
+                                    required
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1 text-right">{notificationForm.message.length}/500</p>
+                            </div>
+
+                            {/* Email Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                <div>
+                                    <p className="font-bold text-sm text-slate-900">Also send via Email</p>
+                                    <p className="text-xs text-slate-400">Sends an email alongside the in-app notification</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setNotificationForm(f => ({ ...f, withEmail: !f.withEmail }))}
+                                    className={`relative w-11 h-6 rounded-full transition-colors ${notificationForm.withEmail ? 'bg-[#05DF72]' : 'bg-slate-200'}`}
+                                >
+                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notificationForm.withEmail ? 'translate-x-5' : ''}`} />
+                                </button>
+                            </div>
+
+                            {/* Submit */}
+                            <Button
+                                type="submit"
+                                loading={sendingNotification}
+                                loadingText="Sending..."
+                                className="w-full"
+                            >
+                                Send to {
+                                    notificationForm.target === 'all' ? 'All Users' :
+                                        notificationForm.target === 'buyers' ? 'All Buyers' :
+                                            notificationForm.target === 'sellers' ? 'All Sellers' :
+                                                'Selected User'
+                                }
+                            </Button>
+                        </form>
                     </div>
                 </div>
             )}

@@ -1,65 +1,42 @@
 'use server'
 
-import prisma from "@/backend/lib/prisma"
+import { ApiResponse } from "@/backend/lib/api-response"
+import { mapProductToFrontend, logger } from "@/backend/lib/api-utils"
 import { revalidatePath } from "next/cache"
+import prisma from "@/backend/lib/prisma"
 
 export async function createProduct(data, userId) {
-    const startTime = Date.now()
-    const log = (msg) => console.log(`[${new Date().toISOString()}] SERVER PRODUCT: ${msg}`)
-
     try {
-        log(`[START] Creating product for UserID: ${userId}`)
-        log(`PAYLOAD_KEYS: ${Object.keys(data).join(', ')}`)
-
-        // 1. Basic validation
-        if (!userId) {
-            log("ERROR: User ID missing from session context")
-            return { success: false, error: "Authentication Error: Please re-login" }
-        }
-        if (!data.collectionDates || data.collectionDates.length === 0) {
-            log("ERROR: No collection dates provided")
-            return { success: false, error: "Please select at least one collection date" }
-        }
+        console.log("SERVER: Received createProduct request", { userId, batteryType: data.batteryType, amps: data.amps })
+        if (!userId) return ApiResponse.unauthorized("Authentication required")
+        if (!data.collectionDates?.length) return ApiResponse.error("Please select at least one collection date", 400)
 
         const price = parseFloat(data.price)
-        const units = parseInt(data.unitsAvailable)
+        const units = parseInt(data.unitsAvailable) || 0
         const amps = parseInt(data.amps) || 0
 
-        if (isNaN(price)) { log("ERROR: Price is NaN"); return { success: false, error: "Invalid price" } }
-        if (isNaN(units)) { log("ERROR: Units is NaN"); return { success: false, error: "Invalid units/quantity" } }
+        if (isNaN(price) || price <= 0) return ApiResponse.error("Invalid price", 400)
+        if (units < 0) return ApiResponse.error("Invalid quantity", 400)
 
-        log(`VALIDATED: Price=${price}, Units=${units}, Amps=${amps}`)
-        if (data.images) log(`IMAGES: Count=${data.images.length}, TotalLen=${JSON.stringify(data.images).length}`)
+        const store = await prisma.store.findUnique({ where: { userId } })
+        if (!store) return ApiResponse.error("Store not found. Please create a store first.", 404)
+        if (store.status !== 'approved' || !store.isActive) {
+            return ApiResponse.error("Your store must be 'Approved' and 'Active' to list batteries.", 403)
+        }
 
-        // 2. Database Lookup: Store
-        log("DB: Looking up store for seller...")
-        const store = await prisma.store.findUnique({
-            where: { userId }
+        const collectionDateStart = data.collectionDates?.length ? new Date(data.collectionDates[0]) : new Date()
+        const collectionDateEnd = data.collectionDates?.length ? new Date(data.collectionDates[data.collectionDates.length - 1]) : new Date()
+
+        // Update store bank details on every publish to ensure they are current
+        await prisma.store.update({
+            where: { id: store.id },
+            data: {
+                bankName: data.bankName || store.bankName,
+                accountNumber: data.accountNumber || store.accountNumber,
+                accountName: data.accountName || store.accountName
+            }
         })
 
-        if (!store) {
-            log(`ERROR: Store not found for user ${userId}`)
-            return { success: false, error: "Store not found. Please create a store first." }
-        }
-        log(`STORE: Found ID ${store.id}, Status: ${store.status}`)
-
-        if (store.status !== 'approved' || !store.isActive) {
-            log(`ERROR: Store not ready. Status=${store.status}, Active=${store.isActive}`)
-            return { success: false, error: "Your store must be 'Approved' and 'Active' to list batteries." }
-        }
-
-        // 3. Prepare Dates
-        const startRaw = data.collectionDates[0]
-        const collectionDateStart = new Date(startRaw)
-        const collectionDateEnd = new Date(data.collectionDates[data.collectionDates.length - 1])
-
-        if (isNaN(collectionDateStart.getTime())) {
-            log(`ERROR: Date conversion failed for ${startRaw}`)
-            return { success: false, error: "Invalid collection date format" }
-        }
-
-        // 4. Create Product
-        log("DB: Attempting product creation...")
         const product = await prisma.product.create({
             data: {
                 name: data.name,
@@ -68,8 +45,8 @@ export async function createProduct(data, userId) {
                 price: price,
                 images: data.images || [],
                 category: "Battery",
-                type: data.batteryType === 'Car Battery' ? 'CAR_BATTERY' :
-                    data.batteryType === 'Inverter Battery' ? 'INVERTER_BATTERY' : 'HEAVY_DUTY_BATTERY',
+                type: data.batteryType === 'Cars and Truck batt (Wet cell)' ? 'CAR_TRUCK_WET' :
+                    data.batteryType === 'Inverter Batt (Dry cell)' ? 'INVERTER_DRY' : 'INVERTER_WET',
                 brand: data.brand || "",
                 amps: amps,
                 condition: data.condition || "SCRAP",
@@ -82,90 +59,57 @@ export async function createProduct(data, userId) {
                 inStock: true
             }
         })
-        log(`SUCCESS: Product created with ID ${product.id}`)
 
-        // 5. Safe Revalidation
-        log("CACHE: Starting revalidation...")
-        try {
-            revalidatePath('/seller/products')
-            // revalidatePath('/') // Skip heavy revalidation in dev to prevent hangs
-        } catch (revalErr) {
-            log(`CACHE_WARN: Revalidation non-fatal error: ${revalErr.message}`)
-        }
+        revalidatePath('/seller/products')
+        revalidatePath('/')
 
-        const duration = (Date.now() - startTime) / 1000
-        log(`[DONE] Total server time: ${duration}s`)
-
-        return { success: true, product }
-
+        return ApiResponse.success(product, "Product created successfully")
     } catch (error) {
-        log(`FATAL_ERROR: ${error.message}`)
-        console.error(error)
-        return { success: false, error: "Publication failed: " + (error.message || "Internal Server Error") }
+        logger.error("Create Product Error", error)
+        return ApiResponse.error(`Publication failed: ${error.message}`)
     }
 }
 
 export async function getSellerProducts(userId) {
     try {
-        const store = await prisma.store.findUnique({
-            where: { userId }
-        })
+        if (!userId) return ApiResponse.unauthorized()
 
-        if (!store) {
-            return { success: true, products: [] } // No store = no products
-        }
+        const store = await prisma.store.findUnique({ where: { userId } })
+        if (!store) return ApiResponse.success({ products: [], data: [] }, "No store found")
 
         const products = await prisma.product.findMany({
             where: { storeId: store.id },
             orderBy: { createdAt: 'desc' }
         })
 
-        // Hydrate products for frontend compatibility
-        const hydratedProducts = products.map(p => ({
-            ...p,
-            unitsAvailable: p.quantity,
-            batteryType: p.type === 'CAR_BATTERY' ? 'Car Battery' :
-                p.type === 'INVERTER_BATTERY' ? 'Inverter Battery' : 'Heavy Duty Battery'
-        }))
-
-        return { success: true, products: hydratedProducts }
-
+        const formatted = products.map(mapProductToFrontend)
+        return ApiResponse.success({ products: formatted, data: formatted })
     } catch (error) {
-        console.error("Get Seller Products Error:", error)
-        return { success: false, error: "Failed to fetch products" }
+        logger.error("Get Seller Products Error", error)
+        return ApiResponse.error("Failed to fetch products")
     }
 }
 
 export async function deleteProduct(productId, userId) {
     try {
-        // Verify ownership via store
-        const store = await prisma.store.findUnique({
-            where: { userId }
-        })
+        if (!userId) return ApiResponse.unauthorized()
 
-        if (!store) {
-            return { success: false, error: "Unauthorized" }
-        }
+        const store = await prisma.store.findUnique({ where: { userId } })
+        if (!store) return ApiResponse.unauthorized()
 
-        // Check if product belongs to this store
-        const product = await prisma.product.findUnique({
-            where: { id: productId }
-        })
-
+        const product = await prisma.product.findUnique({ where: { id: productId } })
         if (!product || product.storeId !== store.id) {
-            return { success: false, error: "Product not found or unauthorized" }
+            return ApiResponse.error("Product not found or unauthorized", 404)
         }
 
-        await prisma.product.delete({
-            where: { id: productId }
-        })
+        await prisma.product.delete({ where: { id: productId } })
 
         revalidatePath('/seller/products')
-        return { success: true }
-
+        revalidatePath('/')
+        return ApiResponse.success(null, "Product deleted successfully")
     } catch (error) {
-        console.error("Delete Product Error:", error)
-        return { success: false, error: "Failed to delete product" }
+        logger.error("Delete Product Error", error)
+        return ApiResponse.error("Failed to delete product")
     }
 }
 
@@ -173,35 +117,21 @@ export async function getAllProducts() {
     try {
         const products = await prisma.product.findMany({
             where: {
-                store: {
-                    status: 'approved',
-                    isActive: true
-                }
+                store: { status: 'approved', isActive: true }
             },
             include: {
                 store: {
-                    select: {
-                        name: true,
-                        address: true,
-                        isVerified: true
-                    }
+                    select: { name: true, address: true, isVerified: true }
                 }
             },
             orderBy: { createdAt: 'desc' }
         })
 
-        // Hydrate products for frontend compatibility
-        const hydratedProducts = products.map(p => ({
-            ...p,
-            unitsAvailable: p.quantity,
-            batteryType: p.type === 'CAR_BATTERY' ? 'Car Battery' :
-                p.type === 'INVERTER_BATTERY' ? 'Inverter Battery' : 'Heavy Duty Battery'
-        }))
-
-        return { success: true, products: hydratedProducts }
+        const formatted = products.map(mapProductToFrontend)
+        return ApiResponse.success({ products: formatted, data: formatted })
     } catch (error) {
-        console.error("Get All Products Error:", error)
-        return { success: false, error: "Failed to fetch products" }
+        logger.error("Get All Products Error", error)
+        return ApiResponse.error("Failed to fetch products")
     }
 }
 
@@ -211,33 +141,17 @@ export async function getProductById(productId) {
             where: { id: productId },
             include: {
                 store: {
-                    select: {
-                        name: true,
-                        address: true,
-                        isVerified: true,
-                        logo: true
-                    }
+                    select: { name: true, address: true, isVerified: true, logo: true }
                 }
             }
         })
 
-        if (!product) {
-            return { success: false, error: "Product not found" }
-        }
+        if (!product) return ApiResponse.error("Product not found", 404)
 
-        // Hydrate product for frontend compatibility
-        const hydratedProduct = {
-            ...product,
-            unitsAvailable: product.quantity,
-            batteryType: product.type === 'CAR_BATTERY' ? 'Car Battery' :
-                product.type === 'INVERTER_BATTERY' ? 'Inverter Battery' : 'Heavy Duty Battery'
-        }
-
-        return { success: true, product: hydratedProduct }
-
+        return ApiResponse.success(mapProductToFrontend(product))
     } catch (error) {
-        console.error("Get Product By Id Error:", error)
-        return { success: false, error: "Failed to fetch product" }
+        logger.error("Get Product By ID Error", error)
+        return ApiResponse.error("Failed to fetch product details")
     }
 }
 
@@ -247,46 +161,30 @@ export async function getAdminProducts() {
             include: {
                 store: {
                     include: {
-                        user: {
-                            select: {
-                                name: true,
-                                email: true
-                            }
-                        }
+                        user: { select: { name: true, email: true } }
                     }
                 }
             },
             orderBy: { createdAt: 'desc' }
         })
 
-        // Hydrate products for admin view
-        const hydratedProducts = products.map(p => ({
-            ...p,
-            unitsAvailable: p.quantity,
-            batteryType: p.type === 'CAR_BATTERY' ? 'Car Battery' :
-                p.type === 'INVERTER_BATTERY' ? 'Inverter Battery' : 'Heavy Duty Battery',
-            // Since Product doesn't have status, we use store status or default to Approved
-            status: p.store?.status === 'approved' ? 'Approved' : 'Pending'
-        }))
-
-        return { success: true, products: hydratedProducts }
+        const formatted = products.map(mapProductToFrontend)
+        return ApiResponse.success({ products: formatted, data: formatted })
     } catch (error) {
-        console.error("Get Admin Products Error:", error)
-        return { success: false, error: "Failed to fetch admin products" }
+        logger.error("Get Admin Products Error", error)
+        return ApiResponse.error("Failed to fetch admin products")
     }
 }
 
 export async function adminDeleteProduct(productId) {
     try {
-        await prisma.product.delete({
-            where: { id: productId }
-        })
+        await prisma.product.delete({ where: { id: productId } })
         revalidatePath('/admin/products')
         revalidatePath('/')
         revalidatePath('/shop')
-        return { success: true }
+        return ApiResponse.success(null, "Product deleted by admin successfully")
     } catch (error) {
-        console.error("Admin Delete Product Error:", error)
-        return { success: false, error: "Failed to delete product" }
+        logger.error("Admin Delete Product Error", error)
+        return ApiResponse.error("Failed to delete product")
     }
 }

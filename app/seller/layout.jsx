@@ -4,6 +4,7 @@ import { HomeIcon, ShoppingBagIcon, PackageIcon, SettingsIcon, LogOutIcon, MenuI
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
+import { getUserStoreStatus } from "@/backend/actions/auth"
 
 export default function SellerLayout({ children }) {
     const pathname = usePathname()
@@ -28,7 +29,6 @@ export default function SellerLayout({ children }) {
                 // Since this is client component, we trust Redux user.id
                 if (!user?.id) return
 
-                const { getUserStoreStatus } = await import("@/backend/actions/auth")
                 const result = await getUserStoreStatus(user.id)
 
                 if (result.success) {

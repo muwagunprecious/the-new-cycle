@@ -14,10 +14,10 @@ const AdminSidebar = () => {
         { name: 'Dashboard', href: '/admin', icon: HomeIcon },
         { name: 'Pending Sellers', href: '/admin/approve', icon: ShieldCheckIcon },
         { name: 'Verified Sellers', href: '/admin/sellers', icon: StoreIcon },
+        { name: 'Pending Buyers', href: '/admin/verify-buyers', icon: ShieldCheckIcon },
+        { name: 'Verified Buyers', href: '/admin/users', icon: UsersIcon },
         { name: 'Products', href: '/admin/products', icon: ShoppingBagIcon },
-        { name: 'Users', href: '/admin/users', icon: UsersIcon },
         { name: 'Orders', href: '/admin/orders', icon: ShieldCheckIcon },
-        { name: 'Verify Buyers', href: '/admin/verify-buyers', icon: ShieldCheckIcon },
         { name: 'Notifications', href: '/admin/notifications', icon: BellIcon },
     ]
 

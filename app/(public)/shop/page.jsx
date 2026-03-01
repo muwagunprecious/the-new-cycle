@@ -8,6 +8,8 @@ import { ProductCardSkeleton } from "@/components/Skeleton"
 import { lagosLGAs } from "@/assets/assets"
 import { getAllProducts } from "@/backend/actions/product"
 import { setProduct } from "@/lib/features/product/productSlice"
+import CheckoutModal from "@/components/CheckoutModal"
+import toast from "react-hot-toast"
 
 function ShopContent() {
     const searchParams = useSearchParams()
@@ -22,6 +24,27 @@ function ShopContent() {
     const [activeLga, setActiveLga] = useState('All')
     const [activeType, setActiveType] = useState('All')
     const [filteredProducts, setFilteredProducts] = useState(products)
+
+    // Quick Buy State
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
+    const [selectedProduct, setSelectedProduct] = useState(null)
+    const { isLoggedIn } = useSelector(state => state.auth)
+
+    const handleQuickBuy = (product) => {
+        if (!isLoggedIn) {
+            toast.error("Please login to buy instantly")
+            router.push('/login?redirect=/shop')
+            return
+        }
+
+        if (!product.collectionDates || product.collectionDates.length === 0) {
+            toast.error("This seller has no available collection dates")
+            return
+        }
+
+        setSelectedProduct(product)
+        setIsCheckoutOpen(true)
+    }
 
     const batteryTypes = ["All", "Car Battery", "Inverter Battery", "Heavy Duty Battery"]
 
@@ -133,7 +156,13 @@ function ShopContent() {
                     <>
                         {filteredProducts.length > 0 ? (
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-8 mb-32">
-                                {filteredProducts.map((product) => <ProductCard key={product.id} product={product} />)}
+                                {filteredProducts.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        product={product}
+                                        onQuickBuy={() => handleQuickBuy(product)}
+                                    />
+                                ))}
                             </div>
                         ) : (
                             <div className="text-center py-20 bg-slate-50 rounded-[3rem] border border-dashed border-slate-200 mb-32">
@@ -153,6 +182,16 @@ function ShopContent() {
                     </>
                 )}
             </div>
+
+            {selectedProduct && (
+                <CheckoutModal
+                    isOpen={isCheckoutOpen}
+                    onClose={() => setIsCheckoutOpen(false)}
+                    product={selectedProduct}
+                    quantity={1}
+                    selectedDate={selectedProduct.collectionDates[0]} // Smart default: first available date
+                />
+            )}
         </div>
     )
 }

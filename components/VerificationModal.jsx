@@ -22,7 +22,8 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
         cacNumber: '',
         ninNumber: '',
         accountNumber: '',
-        bankCode: ''
+        bankCode: '',
+        phoneNumber: ''
     })
 
     if (!isOpen) return null
@@ -52,19 +53,11 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
         }
     }
 
-    const handleSellerPhoneCheck = async () => {
-        setIsLoading(true)
-        try {
-            const result = await mockVerificationService.checkPhoneIntelligence('+234 000 000 0000')
-            if (result.success) {
-                setPhoneResult(result.data)
-                setStep(2)
-            }
-        } catch (error) {
-            alert(error.message)
-        } finally {
-            setIsLoading(false)
-        }
+
+    const handleSellerPhoneSubmit = (e) => {
+        e.preventDefault()
+        if (!formData.phoneNumber.trim()) return
+        setStep(2)
     }
 
     const handleBankVerification = async (e) => {
@@ -121,15 +114,17 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                     >
                         <XIcon size={20} />
                     </button>
-                    <div className="flex items-center gap-2 text-[#05DF72] mb-2 font-black uppercase tracking-widest text-[10px]">
-                        <ShieldCheckIcon size={14} /> Account Verification
-                    </div>
+                    {userRole !== 'SELLER' && (
+                        <div className="flex items-center gap-2 text-[#05DF72] mb-2 font-black uppercase tracking-widest text-[10px]">
+                            <ShieldCheckIcon size={14} /> Account Verification
+                        </div>
+                    )}
                     <h2 className="text-xl font-bold">
-                        {(userRole === 'BUYER' || userRole === 'USER') ? 'Buyer Verification' : 'Seller Verification'}
+                        {(userRole === 'BUYER' || userRole === 'USER') ? 'Buyer Verification' : (userRole === 'SELLER' ? '' : 'Verification')}
                     </h2>
                     <p className="text-sm text-slate-400 mt-1">
-                        {step === 1 && ((userRole === 'BUYER' || userRole === 'USER') ? 'Verify via CAC or NIN' : 'Phone intelligence check')}
-                        {step === 2 && 'Validate your bank account'}
+                        {step === 1 && ((userRole === 'BUYER' || userRole === 'USER') ? 'Verify via CAC or NIN' : 'Enter your phone number')}
+                        {step === 2 && (userRole !== 'SELLER' ? 'Validate your bank account' : '')}
                         {step === 3 && 'Verification complete!'}
                     </p>
                 </div>
@@ -212,31 +207,29 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                             </div>
                         </form>
                     )}
-
-                    {/* SELLER FLOW - Step 1: Phone Intelligence */}
+                    {/* SELLER FLOW - Step 1: Phone Number */}
                     {userRole === 'SELLER' && step === 1 && (
-                        <div className="space-y-6">
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <PhoneIcon className="text-blue-600" size={28} />
-                                </div>
-                                <h3 className="font-bold text-slate-900">Phone Intelligence Check</h3>
-                                <p className="text-sm text-slate-500 mt-2">
-                                    We'll verify your registered phone number to ensure account security
-                                </p>
+                        <form onSubmit={handleSellerPhoneSubmit} className="space-y-6">
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">
+                                    Phone Number
+                                </label>
+                                <input
+                                    type="tel"
+                                    placeholder="e.g. 08012345678"
+                                    className="w-full px-4 py-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
+                                    value={formData.phoneNumber}
+                                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                    required
+                                />
+                                <p className="text-xs text-slate-400 mt-2 ml-4">Enter the phone number linked to this account</p>
                             </div>
-
-                            <Button
-                                type="button"
-                                onClick={handleSellerPhoneCheck}
-                                loading={isLoading}
-                                loadingText="Checking..."
-                                className="w-full"
-                            >
-                                Start Phone Check
+                            <Button type="submit" className="w-full">
+                                Continue
                             </Button>
-                        </div>
+                        </form>
                     )}
+
 
                     {/* Step 2: Bank Account Verification */}
                     {step === 2 && (
@@ -252,7 +245,8 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                             )}
 
                             {/* Show phone intelligence for seller */}
-                            {userRole === 'SELLER' && phoneResult && (
+                            {/* Show phone intelligence for seller - REMOVED AS REQUESTED */}
+                            {/* {userRole === 'SELLER' && phoneResult && (
                                 <div className="bg-slate-50 rounded-2xl p-4 space-y-3 mb-4">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-slate-500">Network</span>
@@ -269,7 +263,7 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                                         </span>
                                     </div>
                                 </div>
-                            )}
+                            )} */}
 
                             <div>
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4 mb-2 block">

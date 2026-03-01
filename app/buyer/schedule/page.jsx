@@ -116,8 +116,8 @@ function ScheduleContent() {
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Pickup Location</p>
-                                <p className="font-bold text-white">EcoVolt Solutions</p>
-                                <p className="text-sm text-slate-400">45 Ikeja Industrial Estate, Lagos</p>
+                                <p className="font-bold text-white">Verified Merchant Hub</p>
+                                <p className="text-sm text-slate-400">Authorized Collection Point</p>
                             </div>
                         </div>
                     </div>

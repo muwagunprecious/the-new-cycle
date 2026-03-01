@@ -13,15 +13,16 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "@reduxjs/toolkit": "2.5.0",
     "@supabase/supabase-js": "^2.90.1",
-    "@prisma/client": "5.22.0",
-    "prisma": "5.22.0",
     "bcryptjs": "^3.0.3",
     "date-fns": "4.1.0",
     "lucide-react": "0.556.0",
     "next": "16.0.10",
+    "nodemailer": "^8.0.1",
     "pg": "^8.16.3",
+    "prisma": "^5.22.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "2.5.2",
@@ -40,8 +41,8 @@
     "typescript": "5.7.2"
   },
   "optionalDependencies": {
-    "lightningcss-linux-x64-gnu": "1.30.2",
-    "@tailwindcss/oxide-linux-x64-gnu": "4.0.0-beta.8"
+    "@tailwindcss/oxide-linux-x64-gnu": "4.0.0-beta.8",
+    "lightningcss-linux-x64-gnu": "1.30.2"
   },
   "prisma": {
     "seed": "node scripts/seed-demo.js"

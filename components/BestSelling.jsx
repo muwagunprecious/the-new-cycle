@@ -15,13 +15,13 @@ const BestSelling = () => {
         .slice(0, displayQuantity)
 
     return (
-        <div className='px-6 my-32 max-w-7xl mx-auto'>
+        <div className='px-6 my-40 max-w-7xl mx-auto'>
             <Title
-                title='Best <span className="text-[#05DF72]">Selling</span> Batteries'
-                description="High demand batteries moving fast in the marketplace."
+                title='High Demand <span className="text-emerald-500">Power</span>'
+                description="Most preferred battery solutions moving fast in our marketplace."
                 href='/shop'
             />
-            <div className='mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
+            <div className='mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
                 {bestSellers.map((product, index) => (
                     <ProductCard key={index} product={product} />
                 ))}

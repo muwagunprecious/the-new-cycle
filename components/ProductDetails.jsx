@@ -39,7 +39,7 @@ const ProductDetails = ({ product }) => {
 
     const [mainImage, setMainImage] = useState(product.images?.[0])
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
-    const [selectedDate, setSelectedDate] = useState(null)
+    const [selectedDate, setSelectedDate] = useState(product?.collectionDates?.[0] || null)
     const [quantity, setQuantity] = useState(1)
 
     const handlePayNow = () => {
@@ -83,20 +83,20 @@ const ProductDetails = ({ product }) => {
     }
 
     return (
-        <div className="flex max-lg:flex-col gap-12 p-4">
+        <div className="flex max-lg:flex-col gap-16 p-6 max-w-7xl mx-auto">
 
-            {/* LEFT: Images */}
-            <div className="flex max-sm:flex-col-reverse gap-4 flex-1">
+            {/* LEFT: Images Showcase */}
+            <div className="flex max-sm:flex-col-reverse gap-6 flex-1 h-full sticky top-24">
                 <div className="flex sm:flex-col gap-4">
                     {product.images?.map((image, index) => (
                         <div
                             key={index}
                             onClick={() => setMainImage(product.images[index])}
-                            className={`bg-slate-50 flex items-center justify-center size-24 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden ${mainImage === image ? 'border-[#05DF72]' : 'border-transparent'}`}
+                            className={`bg-white flex items-center justify-center size-20 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden hover:border-emerald-200 ${mainImage === image ? 'border-emerald-500 ring-4 ring-emerald-500/10' : 'border-transparent'}`}
                         >
                             <img
                                 src={getImageUrl(image)}
-                                className="hover:scale-110 transition-transform duration-500 w-full h-full object-cover"
+                                className="hover:scale-110 transition-transform duration-500 w-full h-full object-contain p-2"
                                 alt=""
                                 onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
                             />
@@ -104,79 +104,81 @@ const ProductDetails = ({ product }) => {
                     ))}
                 </div>
 
-                <div className="flex-1 flex justify-center items-center bg-slate-50 rounded-[2.5rem] p-10 relative group overflow-hidden border border-slate-100 min-h-[400px]">
+                <div className="flex-1 flex justify-center items-center glass rounded-[3rem] p-12 relative group overflow-hidden border border-slate-100 min-h-[500px]">
                     <img
                         src={getImageUrl(mainImage || product.images?.[0])}
                         alt=""
-                        className="group-hover:scale-105 transition-transform duration-700 relative z-10 w-full max-w-[400px] h-full object-cover rounded-2xl shadow-sm"
+                        className="group-hover:scale-105 transition-transform duration-700 relative z-10 w-full max-w-[450px] h-full object-contain p-4 drop-shadow-2xl"
                         onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
                     />
 
                     {/* Condition Badge */}
-                    <div className="absolute top-6 left-6 z-20">
-                        <span className="bg-amber-500 text-white text-xs font-black uppercase px-3 py-1.5 rounded-full">
+                    <div className="absolute top-8 left-8 z-20">
+                        <span className="bg-slate-900/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-xl border border-white/10 shadow-2xl">
                             {product.condition || 'SCRAP'}
                         </span>
                     </div>
 
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#05DF72]/5 rounded-full blur-[80px]"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-emerald-500/5 rounded-full blur-[100px]"></div>
                 </div>
             </div>
 
-            {/* RIGHT: Product info - Ordered as per requirements */}
-            <div className="flex-1 lg:max-w-xl space-y-8">
+            {/* RIGHT: Product Information */}
+            <div className="flex-1 lg:max-w-xl space-y-10">
 
-                {/* Header */}
+                {/* Header Context */}
                 <div>
-                    <div className="inline-flex items-center gap-2 bg-green-50 text-[#05DF72] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4 border border-green-100">
-                        <ShieldCheckIcon size={12} /> GoCycle Verified
-                    </div>
-                    <h1 className="text-3xl font-black text-slate-900 leading-tight">{product.name}</h1>
-                    <p className="text-slate-500 mt-2">{product.description}</p>
-                </div>
-
-                {/* SECTION 1: Battery Specifications */}
-                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <h2 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <Battery className="text-[#05DF72]" size={18} />
-                        Battery Specifications
-                    </h2>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase">Type</span>
-                            <p className="text-sm font-bold text-slate-800">{product.batteryType || product.category}</p>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+                            <ShieldCheckIcon size={12} /> GoCycle Verified
                         </div>
-                        <div className="space-y-1">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase">Brand</span>
-                            <p className="text-sm font-bold text-slate-800">{product.brand || 'Not specified'}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase">Condition</span>
-                            <p className="text-sm font-bold text-amber-600">{product.condition || 'SCRAP'}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase">Price Per Unit</span>
-                            <p className="text-lg font-black text-slate-900">{currency}{(product.price || 0).toLocaleString()}</p>
+                        <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100">
+                            {product.batteryType || 'BATTERY'}
                         </div>
                     </div>
+
+                    <h1 className="text-4xl sm:text-5xl font-black text-slate-900 leading-tight mb-4 tracking-tight">{product.name}</h1>
+                    <p className="text-slate-500 text-lg leading-relaxed font-medium">{product.description}</p>
                 </div>
 
-                {/* SECTION 2: Logistics & Collection Dates */}
-                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <h2 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <CalendarIcon className="text-[#05DF72]" size={18} />
-                        Collection Dates
-                    </h2>
-                    <p className="text-xs text-slate-500 mb-4">Select your preferred pickup date:</p>
+                {/* Price Display */}
+                <div className="flex items-end gap-3">
+                    <span className="text-4xl font-black text-slate-900">{currency}{(product.price || 0).toLocaleString()}</span>
+                    <span className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-1">Per Unit</span>
+                </div>
 
-                    <div className="flex flex-wrap gap-2">
+                {/* Specifications Grid */}
+                <div className="grid grid-cols-2 gap-4 p-8 glass rounded-[2.5rem] border-slate-100">
+                    {[
+                        { label: 'Battery Type', value: product.batteryType || product.category, icon: Battery },
+                        { label: 'Brand', value: product.brand || 'Original', icon: InfoIcon },
+                        { label: 'Condition', value: product.condition || 'SCRAP', color: 'text-amber-600' },
+                        { label: 'Stock Status', value: `${product.unitsAvailable || 0} Units In Stock`, color: 'text-emerald-600' }
+                    ].map((spec, i) => (
+                        <div key={i} className="space-y-1.5">
+                            <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{spec.label}</span>
+                            <p className={`text-sm font-black ${spec.color || 'text-slate-800'}`}>{spec.value}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Logistics Section */}
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            Collection Schedule
+                        </h2>
+                        <span className="text-[10px] font-bold text-slate-400 px-2 py-1 bg-slate-50 rounded-lg">Lagos LGA: {product.lga || 'Verified'}</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
                         {product.collectionDates?.map(date => (
                             <button
                                 key={date}
                                 onClick={() => setSelectedDate(date)}
-                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedDate === date
-                                    ? 'bg-[#05DF72] text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600 hover:border-[#05DF72]'
+                                className={`px-6 py-4 rounded-2xl text-xs font-black transition-all border-2 ${selectedDate === date
+                                    ? 'bg-slate-900 border-slate-900 text-white shadow-xl translate-y-[-2px]'
+                                    : 'bg-white border-slate-100 text-slate-500 hover:border-emerald-200 hover:text-emerald-600'
                                     }`}
                             >
                                 {formatDate(date)}
@@ -185,108 +187,54 @@ const ProductDetails = ({ product }) => {
                     </div>
 
                     {!product.collectionDates?.length && (
-                        <p className="text-sm text-slate-400">No collection dates available. Contact seller.</p>
+                        <div className="p-4 bg-slate-50 rounded-2xl text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
+                            No dates scheduled. Contact seller.
+                        </div>
                     )}
                 </div>
 
-                {/* SECTION 3: Units Available */}
-                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <h2 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <BoxIcon className="text-[#05DF72]" size={18} />
-                        Units Available
-                    </h2>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-2xl font-black text-slate-900">{product.unitsAvailable || 1}</p>
-                            <p className="text-xs text-slate-500">units in stock</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs text-slate-500 font-medium">Quantity:</span>
-                            <div className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 p-1">
+                {/* Purchase Controls */}
+                <div className="space-y-6 pt-6 border-t border-slate-100">
+                    <div className="flex items-center justify-between bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
+                        <div className="flex items-center gap-4">
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Quantity:</span>
+                            <div className="flex items-center gap-4 bg-white rounded-xl border border-slate-200 p-1.5 shadow-sm">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors"
+                                    className="w-10 h-10 rounded-lg bg-slate-50 text-slate-600 font-black hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 >
                                     -
                                 </button>
-                                <span className="w-8 text-center font-bold text-slate-900">{quantity}</span>
+                                <span className="w-8 text-center font-black text-slate-900 text-lg">{quantity}</span>
                                 <button
                                     onClick={() => setQuantity(Math.min(product.unitsAvailable || 1, quantity + 1))}
-                                    className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors"
+                                    className="w-10 h-10 rounded-lg bg-slate-50 text-slate-600 font-black hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 >
                                     +
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* SECTION 4: Seller Location */}
-                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <h2 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <MapPinIcon className="text-[#05DF72]" size={18} />
-                        Pickup Location
-                    </h2>
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs text-slate-500 font-medium w-16">LGA:</span>
-                            <span className="text-sm font-bold text-slate-800">{product.lga || 'Lagos'}</span>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <span className="text-xs text-slate-500 font-medium w-16">Address:</span>
-                            <span className="text-sm font-medium text-slate-700">{product.address || product.store?.address || 'Contact seller for address'}</span>
+                        <div className="text-right">
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Subtotal</p>
+                            <p className="text-3xl font-black text-slate-900">{currency}{(product.price * quantity).toLocaleString()}</p>
                         </div>
                     </div>
 
-                    {/* Seller Contact Info */}
-                    {product.store && (
-                        <div className="mt-4 pt-4 border-t border-slate-200">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                                    <span className="text-sm font-bold text-slate-600">
-                                        {product.store.name?.charAt(0) || 'S'}
-                                    </span>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-slate-800">{product.store.name}</p>
-                                    <p className="text-xs text-slate-500">Verified Seller</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* SECTION 5: Pay Now Button */}
-                <div className="space-y-4">
-                    {/* Total */}
-                    <div className="flex items-center justify-between p-4 bg-slate-900 rounded-2xl text-white">
-                        <span className="text-sm font-medium">Total ({quantity} unit{quantity > 1 ? 's' : ''}):</span>
-                        <span className="text-2xl font-black">{currency}{(product.price * quantity).toLocaleString()}</span>
-                    </div>
-
-                    {/* Pay Now Button */}
                     <Button
                         onClick={handlePayNow}
-                        className="w-full !py-5 !rounded-2xl shadow-xl shadow-[#05DF72]/20 text-lg"
+                        className="w-full !py-6 !rounded-[2rem] text-lg shadow-2xl"
                     >
-                        <WalletIcon size={20} className="mr-2" />
-                        Pay Now
+                        <WalletIcon size={22} className="mr-2" />
+                        PROCEED TO SECURE CHECKOUT
                     </Button>
 
-                    {/* Info Note */}
-                    <p className="text-xs text-slate-400 text-center flex items-center justify-center gap-1">
-                        <InfoIcon size={12} />
-                        Payment goes to GoCycle. Seller receives payment after collection is confirmed.
-                    </p>
+                    <div className="flex items-center justify-center gap-4 text-center">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                            <ShieldCheckIcon size={12} className="text-emerald-500" /> Secure Payment via GoCycle Escrow
+                        </p>
+                    </div>
                 </div>
 
-                {/* Comments/Description */}
-                {product.comments && (
-                    <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100">
-                        <h2 className="text-sm font-bold text-amber-800 mb-2">Seller Notes</h2>
-                        <p className="text-sm text-amber-700">{product.comments}</p>
-                    </div>
-                )}
             </div>
 
             <CheckoutModal
