@@ -40,10 +40,6 @@
     "tailwindcss": "4.1.18",
     "typescript": "5.7.2"
   },
-  "optionalDependencies": {
-    "@tailwindcss/oxide-linux-x64-gnu": "4.0.0-beta.8",
-    "lightningcss-linux-x64-gnu": "1.30.2"
-  },
   "prisma": {
     "seed": "node scripts/seed-demo.js"
   }
