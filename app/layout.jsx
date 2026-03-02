@@ -17,7 +17,9 @@ export default function RootLayout({ children }) {
         <html lang="en" suppressHydrationWarning>
             <body className={`${outfit.className} antialiased`} suppressHydrationWarning>
                 <StoreProvider>
-                    <Toaster />
+                    <div suppressHydrationWarning>
+                        <Toaster />
+                    </div>
                     <GlobalLoader />
                     {children}
                 </StoreProvider>

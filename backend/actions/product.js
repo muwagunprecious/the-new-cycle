@@ -137,20 +137,27 @@ export async function getAllProducts() {
 
 export async function getProductById(productId) {
     try {
+        console.log("SERVER: Fetching product by ID:", productId)
         const product = await prisma.product.findUnique({
             where: { id: productId },
             include: {
                 store: {
-                    select: { name: true, address: true, isVerified: true, logo: true }
+                    select: { name: true, address: true, isVerified: true, logo: true, status: true }
                 }
             }
         })
 
-        if (!product) return ApiResponse.error("Product not found", 404)
+        if (!product) {
+            console.log("SERVER: Product NOT FOUND in database for ID:", productId)
+            return ApiResponse.error("Product not found", 404)
+        }
 
-        return ApiResponse.success(mapProductToFrontend(product))
+        console.log("SERVER: Product FOUND:", product.name)
+        const mapped = mapProductToFrontend(product)
+        console.log("SERVER: Product MAPPED successfully. Image count:", mapped.images?.length || 0)
+        return ApiResponse.success(mapped)
     } catch (error) {
-        logger.error("Get Product By ID Error", error)
+        console.error("SERVER: getProductById EXCEPTION:", error)
         return ApiResponse.error("Failed to fetch product details")
     }
 }

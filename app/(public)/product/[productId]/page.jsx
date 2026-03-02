@@ -16,7 +16,7 @@ export default function Product() {
     useEffect(() => {
         const loadProduct = async () => {
             // 1. Try to find in Redux first (instant)
-            const cachedProduct = products.find((p) => p.id === productId);
+            const cachedProduct = products?.find((p) => p.id === productId);
 
             if (cachedProduct) {
                 setProduct(cachedProduct);
