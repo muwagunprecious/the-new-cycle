@@ -121,7 +121,7 @@ export async function getAllProducts() {
             },
             include: {
                 store: {
-                    select: { name: true, address: true, isVerified: true }
+                    select: { name: true, address: true, isVerified: true, status: true }
                 }
             },
             orderBy: { createdAt: 'desc' }

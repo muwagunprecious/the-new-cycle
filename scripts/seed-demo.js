@@ -69,7 +69,34 @@ async function main() {
     });
     console.log("Store seeded and approved for:", seller.email);
 
-    console.log("Seed complete! You can now login as Adebayo (Seller) and upload products.");
+    // 4. Create Sample Product
+    const product = await prisma.product.upsert({
+        where: { id: 'cmm8b9fol0001sw04gtxkjtw5' },
+        update: { inStock: true, quantity: 5 },
+        create: {
+            id: 'cmm8b9fol0001sw04gtxkjtw5',
+            name: "Scrap Inverter Batt (Dry cell) (100Ah) - Apapa",
+            description: "Verified scrap inverter battery. High lead content, ready for recycling.",
+            mrp: 35000,
+            price: 30000,
+            images: ["/placeholder-battery.jpg"],
+            category: "Battery",
+            type: 'INVERTER_DRY',
+            brand: "EcoVolt",
+            amps: 100,
+            condition: "SCRAP",
+            pickupAddress: "Apapa, Lagos",
+            collectionDateStart: new Date(),
+            collectionDateEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            collectionDates: [new Date().toISOString().split('T')[0]],
+            quantity: 5,
+            storeId: store.id,
+            inStock: true
+        }
+    });
+    console.log("Sample product seeded:", product.name);
+
+    console.log("Seed complete! You can now see verified listings on the marketplace.");
 }
 
 main()
