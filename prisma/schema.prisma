@@ -234,7 +234,12 @@ model Order {
     collectionStatus PickupStatus  @default(PENDING)
     collectionToken  String?       // 6-digit code generated on purchase
     collectionDate   String?
-    proposedDate     String?       // For rescheduling
+    // Fee Structure
+    subtotal      Float         @default(0) // Base price * quantity
+    buyerFee      Float         @default(0) // 5% added to buyer
+    sellerFee     Float         @default(0) // 5% deducted from seller
+    payoutAmount  Float         @default(0) // subtotal - sellerFee
+    
     payoutStatus     String        @default("none") // none, pending, released
     
     userId        String

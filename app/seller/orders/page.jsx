@@ -93,13 +93,19 @@ export default function SellerOrders() {
                         </div>
 
                         <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0">
-                            <span className="text-xl font-bold text-slate-900">₦{(order.total || 0).toLocaleString()}</span>
+                            <span className="text-xl font-black text-slate-900">₦{(order.payoutAmount || order.total || 0).toLocaleString()}</span>
+                            <div className="bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 flex items-center gap-1.5 mb-2 mt-1 w-full md:w-auto">
+                                <AlertCircleIcon size={12} className="text-amber-500 shrink-0" />
+                                <span className="text-[9px] font-bold text-amber-700 uppercase tracking-widest leading-tight text-left md:text-right">
+                                    5% Admin Platform Fee Deducted
+                                </span>
+                            </div>
                             <div className="flex gap-2 w-full md:w-auto mt-2">
-                                {order.status === 'COMPLETED' ? (
+                                {order.status === 'COMPLETED' || order.payoutStatus === 'released' ? (
                                     <div className="flex items-center gap-2 bg-green-50 text-green-600 px-4 py-2 rounded-xl border border-green-100">
                                         <WalletIcon size={14} />
                                         <span className="text-xs font-black uppercase tracking-widest">
-                                            {order.payoutStatus === 'released' ? 'Paid to Wallet' : 'Payout Pending'}
+                                            Paid to Wallet
                                         </span>
                                     </div>
                                 ) : (

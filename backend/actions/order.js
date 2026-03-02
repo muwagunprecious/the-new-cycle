@@ -9,7 +9,7 @@ import prisma from "@/backend/lib/prisma"
 
 export async function createOrder(orderData) {
     try {
-        const { buyerId, sellerId, productId, quantity, totalAmount, collectionDate } = orderData
+        const { buyerId, sellerId, productId, quantity, totalAmount, collectionDate, subtotal, buyerFee } = orderData
 
         if (!buyerId || !productId || quantity <= 0) {
             return ApiResponse.error("Invalid order data", 400)
@@ -37,9 +37,17 @@ export async function createOrder(orderData) {
             return ApiResponse.error("Your account is pending verification. Orders are restricted.", 403)
         }
 
+        // Calculate seller fee and net payout
+        const sellerFee = subtotal * 0.05
+        const payoutAmount = subtotal - sellerFee
+
         const order = await prisma.order.create({
             data: {
                 total: totalAmount,
+                subtotal,
+                buyerFee,
+                sellerFee,
+                payoutAmount,
                 status: 'ORDER_PLACED',
                 collectionStatus: 'PENDING',
                 collectionToken: collectionToken,
@@ -185,19 +193,40 @@ export async function verifyOrderCollection(orderId, token) {
             data: {
                 status: 'PICKED_UP',
                 collectionStatus: 'COLLECTED',
-                payoutStatus: 'pending'
+                payoutStatus: 'released' // Setting to released immediately for MVP
             }
+        })
+
+        // 1. Pay the Seller their net amount (payoutAmount)
+        await prisma.store.update({
+            where: { id: order.storeId },
+            data: { walletBalance: { increment: order.payoutAmount } }
+        })
+
+        // 2. Pay the Admin the total platform fees (buyerFee + sellerFee)
+        const totalFee = order.buyerFee + order.sellerFee
+        await prisma.user.updateMany({
+            where: { role: 'ADMIN' },
+            data: { walletBalance: { increment: totalFee } }
         })
 
         const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
         for (const admin of admins) {
             await createNotification(
                 admin.id,
-                "Order Collected - Payout Pending",
-                `Order ${orderId.slice(-6)} collected. Review payout of ₦${order.total.toLocaleString()} to vendor.`,
+                "Order Collected - Platform Fee Earned",
+                `Order ${orderId.slice(-6)} collected. Platform earned ₦${totalFee.toLocaleString()} (Buyer: ₦${order.buyerFee.toLocaleString()}, Seller: ₦${order.sellerFee.toLocaleString()}).`,
                 "PAYMENT"
             )
         }
+
+        // Notify Seller of their earnings
+        await createNotification(
+            order.store.userId,
+            "Earnings Released",
+            `A buyer picked up their order. ₦${order.payoutAmount.toLocaleString()} has been added to your wallet (5% platform fee deducted).`,
+            "PAYMENT"
+        )
 
         revalidatePath('/seller/orders')
         revalidatePath('/admin/orders')

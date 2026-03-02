@@ -178,9 +178,38 @@ export default function OrderManagement() {
                             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#05DF72]/10 rounded-full blur-3xl"></div>
 
-                                <h3 className="text-xs font-bold text-[#05DF72] uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#05DF72]"></div>
-                                    Vendor Payout Information
+                                <h3 className="text-xs font-bold text-[#05DF72] uppercase tracking-[0.2em] mb-6 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#05DF72]"></div>
+                                        Financials & Target Payout
+                                    </div>
+                                    <div className="bg-[#05DF72]/20 text-[#05DF72] px-3 py-1 rounded-full text-[9px] font-black">
+                                        PLATFORM EARNINGS: ₦{((selectedOrder.buyerFee || 0) + (selectedOrder.sellerFee || 0)).toLocaleString()}
+                                    </div>
+                                </h3>
+
+                                <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Base Price (Subtotal)</p>
+                                        <p className="font-bold text-lg">₦{(selectedOrder.subtotal || 0).toLocaleString()}</p>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Buyer Paid (+5% Fee)</p>
+                                        <p className="font-bold text-lg">₦{(selectedOrder.total || 0).toLocaleString()}</p>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-xl border border-rose-500/20">
+                                        <p className="text-[10px] text-rose-400 uppercase font-black mb-1">Seller -5% Fee</p>
+                                        <p className="font-bold text-lg text-rose-400">- ₦{(selectedOrder.sellerFee || 0).toLocaleString()}</p>
+                                    </div>
+                                    <div className="bg-[#05DF72]/10 p-4 rounded-xl border border-[#05DF72]/30">
+                                        <p className="text-[10px] text-[#05DF72] uppercase font-black mb-1">Net Vendor Payout</p>
+                                        <p className="font-black text-xl text-[#05DF72]">₦{(selectedOrder.payoutAmount || 0).toLocaleString()}</p>
+                                    </div>
+                                </div>
+
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                    Vendor Bank Details
                                 </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative z-10">

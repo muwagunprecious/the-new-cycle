@@ -33,7 +33,9 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     if (!isOpen) return null
 
     const currency = '₦'
-    const totalAmount = (product?.price || 0) * quantity
+    const subtotal = (product?.price || 0) * quantity
+    const platformFee = subtotal * 0.05
+    const totalAmount = subtotal + platformFee
 
     const handlePayNow = async () => {
         setIsLoading(true)
@@ -60,6 +62,8 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                 sellerId: product.sellerId || product.userId || product.store?.userId,
                 productId: product.id,
                 quantity,
+                subtotal,
+                buyerFee: platformFee,
                 totalAmount,
                 collectionDate: selectedDate,
                 paymentReference: paymentResult.reference
@@ -185,13 +189,22 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             </div>
 
                             {/* Total Bill */}
-                            <div className="flex items-center justify-between p-6 bg-slate-900 rounded-[2rem] text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden">
-                                <div className="relative z-10">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Total Payable</p>
+                            <div className="p-6 bg-slate-900 rounded-[2rem] text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden space-y-4">
+                                <div className="relative z-10 flex justify-between items-center text-slate-300 font-medium text-sm">
+                                    <span>Item Subtotal</span>
+                                    <span>{currency}{subtotal.toLocaleString()}</span>
+                                </div>
+                                <div className="relative z-10 flex justify-between items-center text-slate-300 font-medium text-sm pb-4 border-b border-white/10">
+                                    <span className="flex items-center gap-2">Platform Fee (5%) <span className="p-1 min-w-[16px] h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[8px]">+</span></span>
+                                    <span className="text-emerald-400">{currency}{platformFee.toLocaleString()}</span>
+                                </div>
+                                <div className="relative z-10 flex items-center justify-between pt-2">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total Payable</p>
                                     <span className="text-3xl font-black">{currency}{totalAmount.toLocaleString()}</span>
                                 </div>
-                                <div className="p-4 bg-emerald-500 rounded-3xl relative z-10 rotate-3 shadow-lg shadow-emerald-500/20">
-                                    <WalletIcon size={24} className="text-white" />
+
+                                <div className="absolute -top-4 -right-4 p-4 bg-emerald-500 rounded-3xl z-10 rotate-12 shadow-lg shadow-emerald-500/20 opacity-50">
+                                    <span className="text-white text-3xl">🔋</span>
                                 </div>
                                 {/* Decorative Blur */}
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
