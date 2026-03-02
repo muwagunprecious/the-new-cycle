@@ -13,6 +13,7 @@ async function main() {
 
     const password = await bcrypt.hash('admin123', 10);
     const sellerPassword = await bcrypt.hash('seller123', 10);
+    const buyerPassword = await bcrypt.hash('buyer123', 10);
 
     // 1. Create Admin
     const admin = await prisma.user.upsert({
@@ -47,6 +48,23 @@ async function main() {
         }
     });
     console.log("Seller seeded:", seller.email);
+
+    // 3. Create Buyer
+    const buyer = await prisma.user.upsert({
+        where: { email: 'buyer@gocycle.com' },
+        update: { role: 'USER' },
+        create: {
+            id: 'buyer_demo',
+            email: 'buyer@gocycle.com',
+            name: 'Demo Buyer',
+            password: buyerPassword,
+            role: 'USER',
+            image: '',
+            isEmailVerified: true,
+            phone: '08000000003'
+        }
+    });
+    console.log("Buyer seeded:", buyer.email);
 
     // 3. Create Approved Store for Seller
     const store = await prisma.store.upsert({
