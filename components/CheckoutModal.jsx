@@ -238,54 +238,34 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                     {/* STEP 3: Success */}
                     {step === 'SUCCESS' && orderResult && (
                         <div className="py-10 text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
-                            <div className="w-24 h-24 bg-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20 rotate-6 animate-float">
+                            <div className="w-24 h-24 bg-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20 rotate-6">
                                 <CheckCircleIcon className="text-white" size={48} />
                             </div>
 
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">Order Confirmed!</h3>
-                                <p className="text-sm text-slate-400 font-medium">Funds held in escrow for your security.</p>
+                                <p className="text-sm text-slate-400 font-medium">Funds are held securely in escrow.</p>
                             </div>
 
-                            {/* Verification Input Section */}
-                            <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white text-left relative overflow-hidden shadow-2xl">
-                                <div className="relative z-10">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-xl font-black tracking-tight">Final Step: Verify Pickup</h3>
-                                        <span className="bg-emerald-500 text-white text-[9px] uppercase font-black px-3 py-1.2 rounded-full tracking-[0.1em] shadow-lg shadow-emerald-500/20">Action Required</span>
-                                    </div>
-                                    <p className="text-xs text-slate-400 mb-6 font-medium leading-relaxed">
-                                        Once you arrive at the pickup location, ask the seller for the <span className="text-emerald-400 font-black">6-digit pickup code</span> to release funds.
-                                    </p>
-
-                                    <form onSubmit={handleVerifyCollection} className="flex gap-3">
-                                        <input
-                                            type="text"
-                                            maxLength={6}
-                                            placeholder="ENTER CODE"
-                                            className="flex-1 bg-white/10 border-2 border-white/10 rounded-2xl px-6 py-4 text-center font-black tracking-[0.3em] text-xl text-white placeholder:text-white/20 focus:border-emerald-500 focus:bg-white/15 outline-none uppercase transition-all"
-                                            value={verifyToken}
-                                            onChange={(e) => setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))}
-                                        />
-                                        <button
-                                            type="submit"
-                                            disabled={verifying || verifyToken.length < 6}
-                                            className="bg-emerald-500 text-white px-8 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-emerald-500/20"
-                                        >
-                                            {verifying ? <LoaderIcon className="animate-spin" /> : "Verify"}
-                                        </button>
-                                    </form>
+                            {/* Info banner */}
+                            <div className="bg-emerald-50 border border-emerald-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
+                                <div className="p-2.5 bg-emerald-500 rounded-xl shrink-0">
+                                    <ShieldCheckIcon size={16} className="text-white" />
                                 </div>
-                                {/* Decorative Blur */}
-                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-black text-slate-900 uppercase tracking-widest">What happens next?</p>
+                                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                        When you arrive for pickup, enter the <span className="font-black text-emerald-600">6-digit code</span> from the seller on your Orders dashboard to release payment.
+                                    </p>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 gap-3">
-                                <Button onClick={handleClose} className="w-full !py-5 !rounded-2xl !bg-slate-100 !text-slate-900 hover:!bg-slate-200 shadow-none text-xs font-black uppercase tracking-widest">
-                                    Manage My Orders
+                                <Button onClick={handleClose} className="w-full !py-5 !rounded-2xl shadow-none text-xs font-black uppercase tracking-widest">
+                                    Go to My Orders
                                 </Button>
-                                <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                                    <ShieldCheckIcon size={12} /> Transaction ID: {orderResult?.id?.slice(0, 12) || 'N/A'}
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                                    <ShieldCheckIcon size={12} /> Ref: {orderResult?.id?.slice(0, 12) || 'N/A'}
                                 </p>
                             </div>
                         </div>
