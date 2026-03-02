@@ -123,7 +123,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
 
     return (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="glass rounded-[3rem] w-full max-w-lg shadow-glass border border-white/40 overflow-hidden animate-in zoom-in-95 duration-500">
+            <div className="glass rounded-[3rem] w-full max-w-lg shadow-glass border border-white/40 overflow-hidden animate-in zoom-in-95 duration-500 max-h-[90vh] flex flex-col">
 
                 {/* Header */}
                 <div className="bg-slate-900/90 p-8 text-white relative border-b border-white/10">
@@ -149,7 +149,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                 </div>
 
                 {/* Content */}
-                <div className="p-8 sm:p-10 bg-white/60">
+                <div className="p-8 sm:p-10 bg-white/60 overflow-y-auto flex-1">
 
                     {/* STEP 1: Order Summary */}
                     {step === 'SUMMARY' && (
@@ -173,26 +173,14 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                 </div>
                             </div>
 
-                            {/* Collection Details Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="p-5 bg-white/40 rounded-3xl border border-white/40 flex items-start gap-4">
-                                    <div className="p-2.5 bg-emerald-500/10 rounded-xl">
-                                        <CalendarIcon size={16} className="text-emerald-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pickup Date</p>
-                                        <p className="font-black text-slate-900 text-xs">{formatDate(selectedDate)}</p>
-                                    </div>
+                            {/* Collection Date */}
+                            <div className="p-5 bg-white/40 rounded-3xl border border-white/40 flex items-start gap-4">
+                                <div className="p-2.5 bg-emerald-500/10 rounded-xl">
+                                    <CalendarIcon size={16} className="text-emerald-500" />
                                 </div>
-                                <div className="p-5 bg-white/40 rounded-3xl border border-white/40 flex items-start gap-4">
-                                    <div className="p-2.5 bg-emerald-500/10 rounded-xl">
-                                        <MapPinIcon size={16} className="text-emerald-500" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Location</p>
-                                        <p className="font-black text-slate-900 text-xs truncate">{product?.lga}, Lagos</p>
-                                        <p className="text-[10px] text-slate-400 font-medium truncate mt-0.5">{product?.address}</p>
-                                    </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pickup Date</p>
+                                    <p className="font-black text-slate-900 text-xs">{formatDate(selectedDate)}</p>
                                 </div>
                             </div>
 
