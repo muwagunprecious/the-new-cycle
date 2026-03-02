@@ -13,9 +13,21 @@ export async function registerUser(userData) {
         // Map BUYER to USER for Prisma schema compatibility
         if (role === 'BUYER') role = 'USER'
 
-        // Check for unique phone
-        const phoneExists = await prisma.user.findUnique({ where: { phone: whatsapp } })
-        if (phoneExists) return ApiResponse.error("A user with this phone number already exists", 400)
+        // Check for existing user
+        const existingUser = await prisma.user.findUnique({ where: { phone: whatsapp } })
+
+        if (existingUser) {
+            // If already verified, they should login
+            if (existingUser.isPhoneVerified || existingUser.isEmailVerified) {
+                return ApiResponse.error("A user with this phone number already exists. Please log in instead.", 400)
+            }
+
+            // If NOT verified, allow them to "resume" - technically we'll just send them to the OTP screen
+            // with a new OTP (or the standard one for now)
+            const otp = "123456"
+            logger.info(`Resending verification code to unverified user ${whatsapp}: ${otp}`)
+            return ApiResponse.success({ user: existingUser, requiresVerification: true }, "Account already exists but is unverified. Please verify your phone number.")
+        }
 
         // Check for unique email
         if (email) {
@@ -24,30 +36,54 @@ export async function registerUser(userData) {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
-        const otp = "123456" // Standard demo OTP for this phase, can be made random later
+        const otp = "123456" // Standard demo OTP
 
         logger.info(`Verification code sent to ${whatsapp} and ${email || 'N/A'}: ${otp}`)
 
-        const user = await prisma.user.create({
-            data: {
-                id: generateId("user"),
-                name,
-                fullName: name,
-                email,
-                password: hashedPassword,
-                image: "",
-                role: role || 'USER',
-                phone: whatsapp,
-                isEmailVerified: false,
-                isPhoneVerified: false,
-                cart: "{}",
-                accountStatus: role === 'USER' ? 'pending' : 'approved',
-                ninDocument: userData.ninDocument || null,
-                cacDocument: userData.cacDocument || null,
-                bankName: userData.bankName || null,
-                accountNumber: userData.accountNumber || null,
-                accountName: userData.accountName || null
+        // Use transaction for SELLER to ensure User and Store are created together
+        const user = await prisma.$transaction(async (tx) => {
+            const newUser = await tx.user.create({
+                data: {
+                    id: generateId("user"),
+                    name,
+                    fullName: name,
+                    email,
+                    password: hashedPassword,
+                    image: "",
+                    role: role || 'USER',
+                    phone: whatsapp,
+                    isEmailVerified: false,
+                    isPhoneVerified: false,
+                    cart: "{}",
+                    accountStatus: role === 'USER' ? 'pending' : 'approved',
+                    ninDocument: userData.ninDocument || null,
+                    cacDocument: userData.cacDocument || null,
+                    bankName: userData.bankName || null,
+                    accountNumber: userData.accountNumber || null,
+                    accountName: userData.accountName || null
+                }
+            })
+
+            if (role === 'SELLER') {
+                const finalBusinessName = (businessName && businessName.trim()) || `${name}'s Store`
+                const username = generateId(finalBusinessName.toLowerCase().replace(/\s/g, '_').substr(0, 15))
+
+                await tx.store.create({
+                    data: {
+                        name: finalBusinessName,
+                        username,
+                        description: "Battery Vendor",
+                        address: "TBD",
+                        email,
+                        contact: whatsapp || "",
+                        logo: "",
+                        status: "approved",
+                        isActive: true,
+                        userId: newUser.id
+                    }
+                })
             }
+            return newUser
         })
 
         if (role === 'USER') {
@@ -63,26 +99,6 @@ export async function registerUser(userData) {
             }
         }
 
-        if (role === 'SELLER') {
-            const finalBusinessName = (businessName && businessName.trim()) || `${name}'s Store`
-            const username = generateId(finalBusinessName.toLowerCase().replace(/\s/g, '_').substr(0, 15))
-
-            await prisma.store.create({
-                data: {
-                    name: finalBusinessName,
-                    username,
-                    description: "Battery Vendor",
-                    address: "TBD",
-                    email,
-                    contact: whatsapp || "",
-                    logo: "",
-                    status: "approved",
-                    isActive: true,
-                    userId: user.id
-                }
-            })
-        }
-
         // Send welcome & verification email if email is provided
         if (email) {
             const verificationTemplate = (await import("@/backend/lib/email")).verificationCodeEmail({ name, code: otp })
@@ -90,7 +106,7 @@ export async function registerUser(userData) {
                 logger.warn("Verification email failed", err)
             )
 
-            const welcomeTemplate = welcomeEmail({ name })
+            const welcomeTemplate = (await import("@/backend/lib/email")).welcomeEmail({ name })
             sendEmail({ to: email, ...welcomeTemplate }).catch(err =>
                 logger.warn("Welcome email failed", err)
             )
