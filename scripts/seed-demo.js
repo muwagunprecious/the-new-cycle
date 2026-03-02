@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient({
     datasources: {
         db: {
-            url: process.env.DIRECT_URL || process.env.DATABASE_URL,
+            url: process.env.DATABASE_URL, // pooler URL (port 6543)
         },
     },
 });
@@ -52,7 +52,7 @@ async function main() {
     // 3. Create Buyer
     const buyer = await prisma.user.upsert({
         where: { email: 'buyer@gocycle.com' },
-        update: { role: 'USER' },
+        update: { role: 'USER', isEmailVerified: true },
         create: {
             id: 'buyer_demo',
             email: 'buyer@gocycle.com',
