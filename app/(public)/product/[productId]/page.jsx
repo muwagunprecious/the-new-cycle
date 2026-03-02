@@ -24,7 +24,10 @@ export default function Product() {
                 // 2. Fallback to server fetch
                 const res = await getProductById(productId);
                 if (res.success) {
-                    setProduct(res.product);
+                    // ApiResponse.success() spreads data fields at top-level
+                    // so the product IS the response object itself
+                    const { success, message, error, ...productData } = res;
+                    setProduct(productData);
                 }
             }
         }
