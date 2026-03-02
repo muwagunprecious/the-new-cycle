@@ -40,7 +40,7 @@ const ProductDetails = ({ product }) => {
     const [mainImage, setMainImage] = useState(product.images?.[0])
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
     const [selectedDate, setSelectedDate] = useState(product?.collectionDates?.[0] || null)
-    const [quantity, setQuantity] = useState(1)
+    const quantity = product?.unitsAvailable || product?.quantity || 1
 
     const handlePayNow = () => {
         // Check if user is logged in
@@ -197,25 +197,11 @@ const ProductDetails = ({ product }) => {
                 <div className="space-y-6 pt-6 border-t border-slate-100">
                     <div className="flex items-center justify-between bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
                         <div className="flex items-center gap-4">
-                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Quantity:</span>
-                            <div className="flex items-center gap-4 bg-white rounded-xl border border-slate-200 p-1.5 shadow-sm">
-                                <button
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="w-10 h-10 rounded-lg bg-slate-50 text-slate-600 font-black hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                >
-                                    -
-                                </button>
-                                <span className="w-8 text-center font-black text-slate-900 text-lg">{quantity}</span>
-                                <button
-                                    onClick={() => setQuantity(Math.min(product.unitsAvailable || 1, quantity + 1))}
-                                    className="w-10 h-10 rounded-lg bg-slate-50 text-slate-600 font-black hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                >
-                                    +
-                                </button>
-                            </div>
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Available Units:</span>
+                            <span className="text-2xl font-black text-slate-900">{quantity}</span>
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Subtotal</p>
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Total</p>
                             <p className="text-3xl font-black text-slate-900">{currency}{(product.price * quantity).toLocaleString()}</p>
                         </div>
                     </div>
