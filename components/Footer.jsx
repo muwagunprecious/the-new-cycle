@@ -7,28 +7,28 @@ const Footer = () => {
         {
             title: "Marketplace",
             links: [
-                { text: "Solar Batteries", path: '/shop?category=Solar' },
-                { text: "Inverter Systems", path: '/shop?category=Inverter' },
-                { text: "Automotive Power", path: '/shop?category=Car' },
-                { text: "Recycling Center", path: '/recycling' },
+                { text: "Solar Batteries", path: '/shop' },
+                { text: "Inverter Systems", path: '/shop' },
+                { text: "Automotive Power", path: '/shop' },
+                { text: "Recycling Center", path: '/shop' },
             ]
         },
         {
             title: "Network",
             links: [
                 { text: "Become a Merchant", path: '/signup?role=SELLER' },
-                { text: "Logistics Partners", path: '/partners' },
-                { text: "Sustainability Report", path: '/impact' },
-                { text: "API Documentation", path: '/docs' },
+                { text: "Logistics Partners", path: '/' },
+                { text: "Sustainability Report", path: '/' },
+                { text: "API Documentation", path: '/' },
             ]
         },
         {
             title: "Support",
             links: [
-                { text: "Help Center", path: '/help' },
-                { text: "Trust & Safety", path: '/safety' },
-                { text: "Terms of Service", path: '/terms' },
-                { text: "Privacy Policy", path: '/privacy' },
+                { text: "Help Center", path: '/' },
+                { text: "Trust & Safety", path: '/' },
+                { text: "Terms of Service", path: '/' },
+                { text: "Privacy Policy", path: '/' },
             ]
         }
     ];

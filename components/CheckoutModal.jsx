@@ -285,7 +285,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                     Manage My Orders
                                 </Button>
                                 <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                                    <ShieldCheckIcon size={12} /> Transaction ID: {orderResult.id.slice(0, 12)}
+                                    <ShieldCheckIcon size={12} /> Transaction ID: {orderResult?.id?.slice(0, 12) || 'N/A'}
                                 </p>
                             </div>
                         </div>
