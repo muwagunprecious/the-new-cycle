@@ -83,10 +83,10 @@ const ProductDetails = ({ product }) => {
     }
 
     return (
-        <div className="flex max-lg:flex-col gap-16 p-6 max-w-7xl mx-auto">
+        <div className="flex max-lg:flex-col gap-8 lg:gap-16 p-4 sm:p-6 max-w-7xl mx-auto">
 
             {/* LEFT: Images Showcase */}
-            <div className="flex max-sm:flex-col-reverse gap-6 flex-1 h-full sticky top-24">
+            <div className="flex max-sm:flex-col-reverse gap-4 sm:gap-6 flex-1 lg:sticky lg:top-24 lg:self-start">
                 <div className="flex sm:flex-col gap-4">
                     {product.images?.map((image, index) => (
                         <div
@@ -104,7 +104,7 @@ const ProductDetails = ({ product }) => {
                     ))}
                 </div>
 
-                <div className="flex-1 flex justify-center items-center glass rounded-[3rem] p-12 relative group overflow-hidden border border-slate-100 min-h-[500px]">
+                <div className="flex-1 flex justify-center items-center glass rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-12 relative group overflow-hidden border border-slate-100 min-h-[280px] sm:min-h-[400px] lg:min-h-[500px]">
                     <img
                         src={getImageUrl(mainImage || product.images?.[0])}
                         alt=""
@@ -124,7 +124,7 @@ const ProductDetails = ({ product }) => {
             </div>
 
             {/* RIGHT: Product Information */}
-            <div className="flex-1 lg:max-w-xl space-y-10">
+            <div className="flex-1 lg:max-w-xl space-y-6 sm:space-y-10">
 
                 {/* Header Context */}
                 <div>
@@ -137,18 +137,18 @@ const ProductDetails = ({ product }) => {
                         </div>
                     </div>
 
-                    <h1 className="text-4xl sm:text-5xl font-black text-slate-900 leading-tight mb-4 tracking-tight">{product.name}</h1>
-                    <p className="text-slate-500 text-lg leading-relaxed font-medium">{product.description}</p>
+                    <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight mb-3 sm:mb-4 tracking-tight">{product.name}</h1>
+                    <p className="text-slate-500 text-sm sm:text-lg leading-relaxed font-medium">{product.description}</p>
                 </div>
 
                 {/* Price Display */}
                 <div className="flex items-end gap-3">
-                    <span className="text-4xl font-black text-slate-900">{currency}{(product.price || 0).toLocaleString()}</span>
+                    <span className="text-2xl sm:text-4xl font-black text-slate-900">{currency}{(product.price || 0).toLocaleString()}</span>
                     <span className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-1">Per Unit</span>
                 </div>
 
                 {/* Specifications Grid */}
-                <div className="grid grid-cols-2 gap-4 p-8 glass rounded-[2.5rem] border-slate-100">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 p-5 sm:p-8 glass rounded-[1.5rem] sm:rounded-[2.5rem] border-slate-100">
                     {[
                         { label: 'Battery Type', value: product.batteryType || product.category, icon: Battery },
                         { label: 'Brand', value: product.brand || 'Original', icon: InfoIcon },
@@ -195,20 +195,20 @@ const ProductDetails = ({ product }) => {
 
                 {/* Purchase Controls */}
                 <div className="space-y-6 pt-6 border-t border-slate-100">
-                    <div className="flex items-center justify-between bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
+                    <div className="flex items-center justify-between bg-slate-50 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100">
                         <div className="flex items-center gap-4">
                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Available Units:</span>
                             <span className="text-2xl font-black text-slate-900">{quantity}</span>
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Total</p>
-                            <p className="text-3xl font-black text-slate-900">{currency}{(product.price * quantity).toLocaleString()}</p>
+                            <p className="text-xl sm:text-3xl font-black text-slate-900">{currency}{(product.price * quantity).toLocaleString()}</p>
                         </div>
                     </div>
 
                     <Button
                         onClick={handlePayNow}
-                        className="w-full !py-6 !rounded-[2rem] text-lg shadow-2xl"
+                        className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] text-sm sm:text-lg shadow-2xl"
                     >
                         <WalletIcon size={22} className="mr-2" />
                         PROCEED TO SECURE CHECKOUT

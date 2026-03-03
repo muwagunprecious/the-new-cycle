@@ -82,7 +82,12 @@ const ProductCard = ({ product, onQuickBuy }) => {
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (onQuickBuy) onQuickBuy();
+                            if (onQuickBuy) {
+                                onQuickBuy();
+                            } else {
+                                router.push(`/product/${product.id}`);
+                                scrollTo(0, 0);
+                            }
                         }}
                         className="h-10 px-4 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all flex items-center gap-2"
                     >

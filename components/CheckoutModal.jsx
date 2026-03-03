@@ -105,11 +105,11 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     }
 
     return (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="glass rounded-[3rem] w-full max-w-lg shadow-glass border border-white/40 overflow-hidden animate-in zoom-in-95 duration-500 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center sm:p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="glass rounded-t-[2rem] sm:rounded-[3rem] w-full max-w-lg shadow-glass border border-white/40 overflow-hidden animate-in zoom-in-95 duration-500 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
 
                 {/* Header */}
-                <div className="bg-slate-900/90 p-8 text-white relative border-b border-white/10">
+                <div className="bg-slate-900/90 p-5 sm:p-8 text-white relative border-b border-white/10">
                     <button
                         onClick={handleClose}
                         className="absolute top-6 right-6 p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all border border-white/10"
@@ -123,7 +123,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                         {step === 'SUCCESS' && 'Verified Payment'}
                         {step === 'FAILED' && 'Transaction Error'}
                     </div>
-                    <h2 className="text-3xl font-black tracking-tight">
+                    <h2 className="text-xl sm:text-3xl font-black tracking-tight">
                         {step === 'SUMMARY' && 'Confirm Order'}
                         {step === 'PROCESSING' && 'Processing...'}
                         {step === 'SUCCESS' && 'Order Secured!'}
@@ -132,13 +132,13 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                 </div>
 
                 {/* Content */}
-                <div className="p-8 sm:p-10 bg-white/60 overflow-y-auto flex-1">
+                <div className="p-5 sm:p-8 md:p-10 bg-white/60 overflow-y-auto flex-1">
 
                     {/* STEP 1: Order Summary */}
                     {step === 'SUMMARY' && (
                         <div className="space-y-8">
                             {/* Product Info */}
-                            <div className="flex gap-6 p-6 bg-white/80 rounded-[2rem] border border-white/60 shadow-sm relative group">
+                            <div className="flex gap-4 sm:gap-6 p-4 sm:p-6 bg-white/80 rounded-[1.5rem] sm:rounded-[2rem] border border-white/60 shadow-sm relative group">
                                 <div className="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner">
                                     🔋
                                 </div>
@@ -168,7 +168,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             </div>
 
                             {/* Total Bill */}
-                            <div className="p-6 bg-slate-900 rounded-[2rem] text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden space-y-4">
+                            <div className="p-4 sm:p-6 bg-slate-900 rounded-[1.5rem] sm:rounded-[2rem] text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden space-y-3 sm:space-y-4">
                                 <div className="relative z-10 flex justify-between items-center text-slate-300 font-medium text-sm">
                                     <span>Item Subtotal</span>
                                     <span>{currency}{subtotal.toLocaleString()}</span>
@@ -179,7 +179,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                 </div>
                                 <div className="relative z-10 flex items-center justify-between pt-2">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total Payable</p>
-                                    <span className="text-3xl font-black">{currency}{totalAmount.toLocaleString()}</span>
+                                    <span className="text-2xl sm:text-3xl font-black">{currency}{totalAmount.toLocaleString()}</span>
                                 </div>
 
                                 <div className="absolute -top-4 -right-4 p-4 bg-emerald-500 rounded-3xl z-10 rotate-12 shadow-lg shadow-emerald-500/20 opacity-50">
@@ -194,7 +194,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                 onClick={handlePayNow}
                                 loading={isLoading}
                                 loadingText="ENCRYPTING..."
-                                className="w-full !py-6 !rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-sm font-black tracking-widest uppercase"
+                                className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
                             >
                                 <ShieldCheckIcon size={18} className="mr-2" />
                                 Pay {currency}{totalAmount.toLocaleString()} Securely

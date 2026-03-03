@@ -12,12 +12,12 @@ const ProductDescription = ({ product }) => {
     return (
         <div className="my-16">
             {/* Tab Bar */}
-            <div className="flex items-center gap-12 border-b border-slate-100">
+            <div className="flex items-center gap-6 sm:gap-12 border-b border-slate-100 overflow-x-auto no-scrollbar">
                 {tabs.map(tab => (
                     <button
                         key={tab}
                         onClick={() => setSelectedTab(tab)}
-                        className={`pb-6 text-sm font-black uppercase tracking-[0.2em] transition-all relative ${selectedTab === tab
+                        className={`pb-4 sm:pb-6 text-[10px] sm:text-sm font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all relative whitespace-nowrap ${selectedTab === tab
                             ? 'text-slate-900 border-b-2 border-emerald-500'
                             : 'text-slate-400 hover:text-slate-600'
                             }`}
@@ -34,14 +34,14 @@ const ProductDescription = ({ product }) => {
             <div className="mt-12 min-h-[200px] animate-in fade-in slide-in-from-bottom-2 duration-500">
                 {selectedTab === 'Description' && (
                     <div className="max-w-3xl">
-                        <p className="text-slate-600 leading-relaxed text-lg whitespace-pre-line font-medium">
+                        <p className="text-slate-600 leading-relaxed text-sm sm:text-lg whitespace-pre-line font-medium">
                             {product.description || 'No detailed description available for this verified battery.'}
                         </p>
                     </div>
                 )}
 
                 {selectedTab === 'Specifications' && (
-                    <div className="max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-8 bg-slate-50 p-10 rounded-[2.5rem] border border-slate-100">
+                    <div className="max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 bg-slate-50 p-6 sm:p-10 rounded-[1.5rem] sm:rounded-[2.5rem] border border-slate-100">
                         <div className="space-y-1">
                             <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Model capacity</span>
                             <p className="font-black text-slate-900">{product.amps} Ah</p>
@@ -62,7 +62,7 @@ const ProductDescription = ({ product }) => {
                 )}
 
                 {selectedTab === 'Seller Notes' && (
-                    <div className="max-w-3xl flex items-start gap-4 p-8 bg-amber-50 rounded-[2rem] border border-amber-100">
+                    <div className="max-w-3xl flex items-start gap-3 sm:gap-4 p-5 sm:p-8 bg-amber-50 rounded-[1.5rem] sm:rounded-[2rem] border border-amber-100">
                         <div className="p-3 bg-white rounded-xl shadow-sm">
                             <InfoIcon className="text-amber-600" size={20} />
                         </div>
