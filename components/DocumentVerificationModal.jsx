@@ -208,7 +208,7 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                                 disabled={ninVerified || verifyingNIN}
                                 maxLength={11}
                                 inputMode="numeric"
-                                className="w-full pl-14 pr-32 py-5 bg-white border-2 border-slate-100 rounded-[1.5rem] outline-none transition-all focus:border-emerald-500 font-black text-slate-900 tracking-[0.2em] placeholder:tracking-normal placeholder:font-medium placeholder:text-slate-300 text-lg disabled:bg-slate-50 disabled:text-slate-400"
+                                className="w-full pl-14 pr-4 sm:pr-32 py-5 bg-white border-2 border-slate-100 rounded-[1.5rem] outline-none transition-all focus:border-emerald-500 font-black text-slate-900 tracking-[0.2em] placeholder:tracking-normal placeholder:font-medium placeholder:text-slate-300 text-lg disabled:bg-slate-50 disabled:text-slate-400"
                                 value={formData.ninDocument || ''}
                                 onChange={(e) => {
                                     const val = e.target.value.replace(/\D/g, '')
@@ -222,7 +222,7 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                                     type="button"
                                     onClick={handleVerifyNIN}
                                     disabled={verifyingNIN || !formData.ninDocument || formData.ninDocument.length !== 11}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-slate-900/10"
+                                    className="relative sm:absolute mt-4 sm:mt-0 sm:right-3 sm:top-1/2 sm:-translate-y-1/2 w-full sm:w-auto px-6 py-4 sm:py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-slate-900/10"
                                 >
                                     {verifyingNIN ? <LoaderIcon className="animate-spin" size={14} /> : 'Authenticate'}
                                 </button>
@@ -265,7 +265,7 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                                 type="text"
                                 placeholder="CAC RC Number (e.g. RC123456)"
                                 disabled={cacVerified || verifyingCAC}
-                                className="w-full pl-14 pr-32 py-5 bg-white/50 border-2 border-slate-100 rounded-[1.5rem] outline-none transition-all focus:border-emerald-500 font-black text-slate-900 tracking-wider placeholder:font-medium placeholder:text-slate-300 disabled:bg-slate-50 disabled:text-slate-400"
+                                className="w-full pl-14 pr-4 sm:pr-32 py-5 bg-white/50 border-2 border-slate-100 rounded-[1.5rem] outline-none transition-all focus:border-emerald-500 font-black text-slate-900 tracking-wider placeholder:font-medium placeholder:text-slate-300 disabled:bg-slate-50 disabled:text-slate-400"
                                 value={formData.cacDocument || ''}
                                 onChange={(e) => setFormData({ ...formData, cacDocument: e.target.value })}
                             />
@@ -274,7 +274,7 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                                     type="button"
                                     onClick={handleVerifyCAC}
                                     disabled={verifyingCAC}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50 shadow-sm"
+                                    className="relative sm:absolute mt-4 sm:mt-0 sm:right-3 sm:top-1/2 sm:-translate-y-1/2 w-full sm:w-auto px-6 py-4 sm:py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50 shadow-sm"
                                 >
                                     {verifyingCAC ? <LoaderIcon className="animate-spin" size={14} /> : 'Verify'}
                                 </button>
