@@ -59,6 +59,7 @@ export default function Product() {
     const { productId } = useParams();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState(null);
     const products = useSelector(state => state.product.list);
 
     useEffect(() => {
@@ -71,11 +72,13 @@ export default function Product() {
                 setProduct(cachedProduct);
                 setLoading(false);
             } else {
-                // 2. Fallback to server fetch
                 const res = await getProductById(productId);
                 if (res.success) {
                     const { success, message, error, ...productData } = res;
                     setProduct(productData);
+                } else {
+                    setErrorMsg(res.error || "Failed to fetch product details");
+                    console.error("Product fetch error:", res.error);
                 }
                 setLoading(false);
             }
@@ -106,7 +109,7 @@ export default function Product() {
                 {/* Not found */}
                 {!loading && !product && (
                     <div className="text-center py-32 space-y-4">
-                        <p className="text-slate-400 font-bold text-lg">Product not found.</p>
+                        <p className="text-slate-400 font-bold text-lg">{errorMsg || "Product not found."}</p>
                         <a href="/" className="text-emerald-500 font-black text-sm underline">Back to marketplace</a>
                     </div>
                 )}
