@@ -27,8 +27,6 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     const [step, setStep] = useState('SUMMARY') // SUMMARY | PROCESSING | SUCCESS | FAILED
     const [isLoading, setIsLoading] = useState(false)
     const [orderResult, setOrderResult] = useState(null)
-    const [verifyToken, setVerifyToken] = useState('')
-    const [verifying, setVerifying] = useState(false)
 
     if (!isOpen) return null
 
@@ -85,25 +83,6 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
         }
 
         setIsLoading(false)
-    }
-
-    const handleVerifyCollection = async (e) => {
-        e.preventDefault()
-        if (!verifyToken || verifyToken.length < 6) return
-
-        setVerifying(true)
-        try {
-            const res = await verifyOrderCollection(orderResult.id, verifyToken)
-            if (res.success) {
-                toast.success("Pickup verified successfully!")
-                router.push('/buyer') // Redirect to orders after verification
-            } else {
-                toast.error(res.error || "Invalid code")
-            }
-        } catch (error) {
-            toast.error("Verification failed")
-        }
-        setVerifying(false)
     }
 
     const handleClose = () => {
@@ -268,7 +247,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                 <div className="space-y-1">
                                     <p className="text-xs font-black text-slate-900 uppercase tracking-widest">What happens next?</p>
                                     <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                        When you arrive for pickup, enter the <span className="font-black text-emerald-600">6-digit code</span> from the seller on your Orders dashboard to release payment.
+                                        Your order has been recorded. You can track your purchase and access the <span className="font-black text-emerald-600">Verification Steps</span> directly from your buyer dashboard.
                                     </p>
                                 </div>
                             </div>

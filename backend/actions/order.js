@@ -37,8 +37,8 @@ export async function createOrder(orderData) {
             return ApiResponse.error("Your account is pending verification. Orders are restricted.", 403)
         }
 
-        // Calculate seller fee and net payout
-        const sellerFee = subtotal * 0.05
+        // Calculate seller fee and net payout with rounding
+        const sellerFee = Math.round(subtotal * 0.05)
         const payoutAmount = subtotal - sellerFee
 
         const order = await prisma.order.create({
@@ -60,7 +60,7 @@ export async function createOrder(orderData) {
                     create: [{
                         productId: productId,
                         quantity: quantity,
-                        price: totalAmount / quantity
+                        price: subtotal / quantity
                     }]
                 }
             },
