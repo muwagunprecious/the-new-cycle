@@ -1,4 +1,5 @@
 'use client'
+// Admin User Management - Platform Governance
 import { useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { toggleUserStatus } from "@/lib/features/auth/authSlice"
