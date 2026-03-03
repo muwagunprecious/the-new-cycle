@@ -2,7 +2,7 @@
 
 import { ApiResponse } from "@/backend/lib/api-response"
 import { logger } from "@/backend/lib/api-utils"
-import { sendEmail, sellerWalletCreditEmail } from "@/backend/lib/email"
+import { sendEmail, sellerWalletCreditEmail, buyerVerifiedEmail } from "@/backend/lib/email"
 import { revalidatePath } from "next/cache"
 import prisma from "@/backend/lib/prisma"
 
@@ -239,7 +239,7 @@ export async function getPendingBuyers() {
 
 export async function approveBuyer(userId) {
     try {
-        await prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
                 accountStatus: 'approved',
@@ -256,6 +256,16 @@ export async function approveBuyer(userId) {
             "Your buyer account has been verified. You can now place orders on the platform.",
             "SYSTEM"
         )
+
+        // Send Email Notification
+        if (updatedUser.email) {
+            const { subject, html } = buyerVerifiedEmail({ name: updatedUser.name })
+            await sendEmail({
+                to: updatedUser.email,
+                subject,
+                html
+            })
+        }
 
         revalidatePath('/admin/verify-buyers')
         revalidatePath('/buyer')

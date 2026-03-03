@@ -302,3 +302,52 @@ export function sellerWalletCreditEmail({ sellerName, amount, newBalance, orderI
         </div>`
     }
 }
+
+/**
+ * Buyer Verified Email — sent when an admin manually verifies/approves a buyer's account
+ */
+export function buyerVerifiedEmail({ name }) {
+    const yr = new Date().getFullYear()
+    return {
+        subject: 'Account Verified – Ready to Trade on Go-Cycle 🎉',
+        html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <!-- Header -->
+            <div style="background:#0f172a;padding:28px;text-align:center;">
+                <h1 style="color:#05DF72;margin:0 0 4px;font-size:24px;letter-spacing:-0.5px;">Go-Cycle</h1>
+                <p style="color:#94a3b8;margin:0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Account Status: Verified</p>
+            </div>
+
+            <!-- Hero Section -->
+            <div style="background:#f0fdf4;padding:32px 28px;text-align:center;">
+                <p style="font-size:40px;margin:0 0 16px;">Verified!</p>
+                <h2 style="color:#15803d;margin:0;font-size:20px;">Congratulations, ${name}</h2>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:28px;">
+                <p style="color:#475569;margin-top:0;line-height:1.6;">Your identity verification has been successful. Your Go-Cycle account is now <strong>fully approved</strong> and active!</p>
+                
+                <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin:24px 0;">
+                    <h3 style="color:#0f172a;margin-top:0;font-size:14px;text-transform:uppercase;letter-spacing:1px;">What's Next?</h3>
+                    <ul style="color:#475569;font-size:14px;padding-left:20px;line-height:1.8;">
+                        <li>Browse live battery listings across Lagos</li>
+                        <li>Coordinate secure pick-ups with verified sellers</li>
+                        <li>Track your sustainability impact in your dashboard</li>
+                    </ul>
+                </div>
+
+                <div style="text-align:center;margin:32px 0;">
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://the-new-cycle-m8zx.vercel.app'}" style="background:#05DF72;color:#052e16;text-decoration:none;padding:14px 32px;border-radius:30px;font-weight:bold;font-size:14px;display:inline-block;">Start Trading Now</a>
+                </div>
+
+                <p style="color:#94a3b8;font-size:12px;">If you have any questions, feel free to reply to this email or reach us on WhatsApp.</p>
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle Nigeria. All rights reserved.</p>
+            </div>
+        </div>`
+    }
+}
