@@ -195,13 +195,13 @@ const ProductDetails = ({ product }) => {
 
                 {/* Purchase Controls */}
                 <div className="space-y-6 pt-6 border-t border-slate-100">
-                    <div className="flex items-center justify-between bg-slate-50 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100">
-                        <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-50 p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 gap-6 sm:gap-0">
+                        <div className="flex items-center justify-between sm:justify-start gap-4">
                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Available Units:</span>
                             <span className="text-2xl font-black text-slate-900">{quantity}</span>
                         </div>
-                        <div className="text-right">
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Total</p>
+                        <div className="text-left sm:text-right border-t sm:border-t-0 border-slate-100 pt-5 sm:pt-0">
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Total Amount</p>
                             <p className="text-xl sm:text-3xl font-black text-slate-900">{currency}{(product.price * quantity).toLocaleString()}</p>
                         </div>
                     </div>
