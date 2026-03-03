@@ -2,14 +2,14 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import {
-    CheckCircleIcon,
-    PackageCheckIcon,
-    TruckIcon,
-    HomeIcon,
-    UserIcon,
-    ShieldCheckIcon,
-    ArrowLeftIcon,
-    MapPinIcon
+    CheckCircle as CheckCircleIcon,
+    PackageCheck as PackageCheckIcon,
+    Truck as TruckIcon,
+    Home as HomeIcon,
+    User as UserIcon,
+    ShieldCheck as ShieldCheckIcon,
+    ArrowLeft as ArrowLeftIcon,
+    MapPin as MapPinIcon
 } from "lucide-react"
 import Link from "next/link"
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LeafIcon, MailIcon, PhoneIcon, MapPinIcon, FacebookIcon, InstagramIcon, TwitterIcon, LinkedinIcon, ArrowUpRightIcon } from "lucide-react";
+import { Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon, MapPin as MapPinIcon, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon, ArrowUpRight as ArrowUpRightIcon } from "lucide-react";
 
 const Footer = () => {
 

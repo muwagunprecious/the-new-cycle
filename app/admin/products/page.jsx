@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from "react"
-import { SearchIcon, ShoppingBagIcon, CheckCircleIcon, XCircleIcon, Trash2Icon, ExternalLinkIcon, BatteryIcon } from "lucide-react"
+import { Search as SearchIcon, ShoppingBag as ShoppingBagIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, Trash2 as Trash2Icon, ExternalLink as ExternalLinkIcon, Battery as BatteryIcon } from "lucide-react"
 import { lagosLGAs } from "@/assets/assets"
 import toast from "react-hot-toast"
 import { getAdminProducts, adminDeleteProduct } from "@/backend/actions/product"

@@ -1,5 +1,5 @@
 'use client'
-import { MapPinIcon, ShieldCheckIcon, ChevronRightIcon } from 'lucide-react'
+import { MapPin as MapPinIcon, ShieldCheck as ShieldCheckIcon, ChevronRight as ChevronRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import React, { useState, useEffect } from 'react'

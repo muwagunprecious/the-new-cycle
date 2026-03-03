@@ -1,5 +1,5 @@
 'use client'
-import { ArrowRight, InfoIcon } from "lucide-react"
+import { ArrowRight, Info as InfoIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
@@ -18,8 +18,8 @@ const ProductDescription = ({ product }) => {
                         key={tab}
                         onClick={() => setSelectedTab(tab)}
                         className={`pb-6 text-sm font-black uppercase tracking-[0.2em] transition-all relative ${selectedTab === tab
-                                ? 'text-slate-900 border-b-2 border-emerald-500'
-                                : 'text-slate-400 hover:text-slate-600'
+                            ? 'text-slate-900 border-b-2 border-emerald-500'
+                            : 'text-slate-400 hover:text-slate-600'
                             }`}
                     >
                         {tab}

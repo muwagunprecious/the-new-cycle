@@ -1,5 +1,5 @@
 'use client'
-import { PlusIcon, SquarePenIcon, XIcon, ShieldCheckIcon, WalletIcon, TruckIcon } from 'lucide-react';
+import { Plus as PlusIcon, SquarePen as SquarePenIcon, X as XIcon, ShieldCheck as ShieldCheckIcon, Wallet as WalletIcon, Truck as TruckIcon } from 'lucide-react';
 import React, { useState } from 'react'
 import AddressModal from './AddressModal';
 import { useSelector } from 'react-redux';

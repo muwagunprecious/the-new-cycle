@@ -1,6 +1,6 @@
 'use client'
 import Link from "next/link"
-import { BellIcon } from "lucide-react"
+import { Bell as BellIcon } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useSelector } from "react-redux"
 import { getNotifications } from "@/backend/actions/notification"

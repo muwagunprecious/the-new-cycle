@@ -4,7 +4,7 @@ import { useSelector } from "react-redux"
 import { useRouter } from "next/navigation"
 import Loading from "../Loading"
 import Link from "next/link"
-import { ArrowRightIcon } from "lucide-react"
+import { ArrowRight as ArrowRightIcon } from "lucide-react"
 import AdminNavbar from "./AdminNavbar"
 import AdminSidebar from "./AdminSidebar"
 

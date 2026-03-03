@@ -3,7 +3,7 @@ import Counter from "@/components/Counter";
 import OrderSummary from "@/components/OrderSummary";
 import PageTitle from "@/components/PageTitle";
 import { deleteItemFromCart } from "@/lib/features/cart/cartSlice";
-import { Trash2Icon } from "lucide-react";
+import { Trash2 as Trash2Icon } from "lucide-react"
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 export default function Cart() {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '₦';
-    
+
     const { cartItems } = useSelector(state => state.cart);
     const products = useSelector(state => state.product.list);
 

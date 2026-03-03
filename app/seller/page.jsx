@@ -1,5 +1,5 @@
 'use client'
-import { BatteryIcon, CircleDollarSignIcon, PackageIcon, ClockIcon, PhoneIcon, ShieldCheckIcon, CheckCircleIcon, AlertCircleIcon, WalletIcon, CopyIcon } from "lucide-react"
+import { Battery as BatteryIcon, CircleDollarSign as CircleDollarSignIcon, Package as PackageIcon, Clock as ClockIcon, Phone as PhoneIcon, ShieldCheck as ShieldCheckIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Wallet as WalletIcon, Copy as CopyIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 import Loading from "@/components/Loading"
 import { useSelector } from "react-redux"

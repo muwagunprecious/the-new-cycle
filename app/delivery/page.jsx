@@ -3,15 +3,15 @@ import { useState, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
 import {
-    TruckIcon,
-    MapPinIcon,
-    PhoneIcon,
-    ShieldCheckIcon,
-    CheckCircleIcon,
-    AlertCircleIcon,
-    PackageIcon,
-    Navigation2Icon,
-    UserIcon
+    Truck as TruckIcon,
+    MapPin as MapPinIcon,
+    Phone as PhoneIcon,
+    ShieldCheck as ShieldCheckIcon,
+    CheckCircle as CheckCircleIcon,
+    AlertCircle as AlertCircleIcon,
+    Package as PackageIcon,
+    Navigation2 as Navigation2Icon,
+    User as UserIcon
 } from "lucide-react"
 import { addNotification } from "@/lib/features/notification/notificationSlice"
 import toast from "react-hot-toast"

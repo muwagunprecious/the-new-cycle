@@ -1,6 +1,6 @@
 'use client'
 import { useState } from "react"
-import { CircleDollarSignIcon, SearchIcon, ArrowUpRightIcon, ArrowDownLeftIcon, FilterIcon, MoreVerticalIcon, AlertCircleIcon, CheckCircleIcon } from "lucide-react"
+import { CircleDollarSign as CircleDollarSignIcon, Search as SearchIcon, ArrowUpRight as ArrowUpRightIcon, ArrowDownLeft as ArrowDownLeftIcon, Filter as FilterIcon, MoreVertical as MoreVerticalIcon, AlertCircle as AlertCircleIcon, CheckCircle as CheckCircleIcon } from "lucide-react"
 
 export default function AdminPayments() {
     const [filter, setFilter] = useState('All')

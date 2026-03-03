@@ -1,6 +1,6 @@
 'use client'
 import { useState } from "react"
-import { SearchIcon, FilterIcon, EyeIcon, TruckIcon, CalendarIcon, MessageSquareIcon, XCircleIcon, CheckCircleIcon } from "lucide-react"
+import { Search as SearchIcon, Filter as FilterIcon, Eye as EyeIcon, Truck as TruckIcon, Calendar as CalendarIcon, MessageSquare as MessageSquareIcon, XCircle as XCircleIcon, CheckCircle as CheckCircleIcon } from "lucide-react"
 import { getAllOrders } from "@/backend/actions/order"
 import { useEffect } from "react"
 import Loading from "@/components/Loading"

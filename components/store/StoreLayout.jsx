@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import Loading from "../Loading"
 import Link from "next/link"
-import { ArrowRightIcon } from "lucide-react"
+import { ArrowRight as ArrowRightIcon } from "lucide-react"
 import SellerNavbar from "./StoreNavbar"
 import SellerSidebar from "./StoreSidebar"
 import { dummyStoreData } from "@/assets/assets"

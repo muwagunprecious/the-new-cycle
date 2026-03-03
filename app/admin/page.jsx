@@ -1,7 +1,7 @@
 'use client'
 import { dummyAdminDashboardData, productDummyData, orderDummyData, dummyUsers } from "@/assets/assets"
 import Loading from "@/components/Loading"
-import { CircleDollarSignIcon, ShoppingBasketIcon, StoreIcon, TagsIcon, UsersIcon, PackageCheckIcon, ShieldCheckIcon, ShieldXIcon, BanIcon, CheckCircleIcon, AlertCircleIcon, WalletIcon, EyeIcon, SendIcon } from "lucide-react"
+import { CircleDollarSign as CircleDollarSignIcon, ShoppingBasket as ShoppingBasketIcon, Store as StoreIcon, Tags as TagsIcon, Users as UsersIcon, PackageCheck as PackageCheckIcon, ShieldCheck as ShieldCheckIcon, ShieldX as ShieldXIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Wallet as WalletIcon, Eye as EyeIcon, Send as SendIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { mockAdminService, mockNotificationService } from "@/lib/mockService"
@@ -56,7 +56,7 @@ export default function AdminDashboard() {
                 setProducts(productsData)
 
                 // Calculate dashboard stats
-                const verifiedCount = usersData.filter(u => u.isEmailVerified || u.verificationStatus === 'verified').length
+                const verifiedCount = usersData.filter(u => u.accountStatus === 'approved').length
                 const revenue = ordersData.reduce((sum, o) => sum + (o.total || 0), 0)
                 const pendingPayouts = ordersData
                     .filter(o => o.status === 'COMPLETED' && o.payoutStatus === 'pending')
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {user.verificationStatus === 'verified' ? (
+                                            {user.accountStatus === 'approved' ? (
                                                 <span className="flex items-center gap-1 text-[#05DF72] text-xs font-bold">
                                                     <CheckCircleIcon size={14} /> Verified
                                                 </span>

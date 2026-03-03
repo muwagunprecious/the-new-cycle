@@ -1,10 +1,10 @@
 'use client'
 import { usePathname } from "next/navigation"
-import { HomeIcon, LayoutListIcon, SquarePenIcon, SquarePlusIcon } from "lucide-react"
+import { Home as HomeIcon, LayoutList as LayoutListIcon, SquarePen as SquarePenIcon, SquarePlus as SquarePlusIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
-const StoreSidebar = ({storeInfo}) => {
+const StoreSidebar = ({ storeInfo }) => {
 
     const pathname = usePathname()
 

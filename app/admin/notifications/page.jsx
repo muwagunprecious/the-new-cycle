@@ -1,5 +1,5 @@
 'use client'
-import { BellIcon, CheckCircleIcon, AlertTriangleIcon, PackageIcon, UserCheckIcon, InfoIcon } from "lucide-react"
+import { Bell as BellIcon, CheckCircle as CheckCircleIcon, AlertTriangle as AlertTriangleIcon, Package as PackageIcon, UserCheck as UserCheckIcon, Info as InfoIcon } from "lucide-react"
 import { useState, useEffect, useCallback } from "react"
 import { useSelector } from "react-redux"
 import { getNotifications, markNotificationAsRead } from "@/backend/actions/notification"

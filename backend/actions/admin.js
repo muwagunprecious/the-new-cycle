@@ -241,7 +241,12 @@ export async function approveBuyer(userId) {
     try {
         await prisma.user.update({
             where: { id: userId },
-            data: { accountStatus: 'approved', verifiedAt: new Date() }
+            data: {
+                accountStatus: 'approved',
+                verifiedAt: new Date(),
+                isPhoneVerified: true,
+                isEmailVerified: true
+            }
         })
 
         const { createNotification } = await import('./notification')

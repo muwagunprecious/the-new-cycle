@@ -2,7 +2,7 @@
 
 import { Star } from 'lucide-react';
 import React, { useState } from 'react'
-import { XIcon } from 'lucide-react';
+import { X as XIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const RatingModal = ({ ratingModal, setRatingModal }) => {

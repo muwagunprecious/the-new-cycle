@@ -1,4 +1,4 @@
-import { Search, ShoppingCart, LeafIcon, BellIcon, LogOutIcon, LayoutDashboardIcon } from "lucide-react";
+import { Search, ShoppingCart, Leaf as LeafIcon, Bell as BellIcon, LogOut as LogOutIcon, LayoutDashboard as LayoutDashboardIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";

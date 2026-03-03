@@ -1,7 +1,7 @@
 'use client'
 import { Suspense, useState, useEffect } from "react"
 import ProductCard from "@/components/ProductCard"
-import { MoveLeftIcon, MapPin, FilterIcon, ChevronDown, BatteryIcon } from "lucide-react"
+import { MoveLeft as MoveLeftIcon, MapPin, Filter as FilterIcon, ChevronDown, Battery as BatteryIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSelector, useDispatch } from "react-redux"
 import { ProductCardSkeleton } from "@/components/Skeleton"

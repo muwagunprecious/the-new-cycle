@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import Title from './Title'
 import ProductCard from './ProductCard'
 import { lagosLGAs } from '@/assets/assets'
-import { MapPinIcon, FilterIcon } from 'lucide-react'
+import { MapPin as MapPinIcon, Filter as FilterIcon } from 'lucide-react'
 import { getAllProducts } from '@/backend/actions/product'
 import Loading from './Loading'
 

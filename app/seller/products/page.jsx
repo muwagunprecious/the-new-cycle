@@ -1,7 +1,7 @@
 'use client'
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { PlusIcon, SearchIcon, Edit3Icon, TrashIcon, BatteryIcon, ImageIcon, XIcon, CalendarIcon, MapPinIcon, BoxIcon, AlertCircleIcon, CreditCardIcon } from "lucide-react"
+import { Plus as PlusIcon, Search as SearchIcon, Edit3 as Edit3Icon, Trash as TrashIcon, Battery as BatteryIcon, Image as ImageIcon, X as XIcon, Calendar as CalendarIcon, MapPin as MapPinIcon, Box as BoxIcon, AlertCircle as AlertCircleIcon, CreditCard as CreditCardIcon } from "lucide-react"
 import { lagosLGAs } from "@/assets/assets"
 import toast from "react-hot-toast"
 import { useDispatch, useSelector } from "react-redux"

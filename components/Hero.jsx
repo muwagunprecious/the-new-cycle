@@ -1,6 +1,6 @@
 'use client'
 import { assets } from '@/assets/assets'
-import { ArrowRightIcon, ChevronRightIcon, LeafIcon, RecycleIcon, ZapIcon, ShieldCheckIcon } from 'lucide-react'
+import { ArrowRight as ArrowRightIcon, ChevronRight as ChevronRightIcon, Leaf as LeafIcon, Recycle as RecycleIcon, Zap as ZapIcon, ShieldCheck as ShieldCheckIcon } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import React from 'react'

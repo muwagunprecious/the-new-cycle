@@ -2,13 +2,13 @@
 
 import {
     Battery,
-    MapPinIcon,
-    BoxIcon,
-    CalendarIcon,
-    ShieldCheckIcon,
-    WalletIcon,
-    PhoneIcon,
-    InfoIcon
+    MapPin as MapPinIcon,
+    Box as BoxIcon,
+    Calendar as CalendarIcon,
+    ShieldCheck as ShieldCheckIcon,
+    Wallet as WalletIcon,
+    Phone as PhoneIcon,
+    Info as InfoIcon
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";

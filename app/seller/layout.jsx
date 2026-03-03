@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter } from "next/navigation"
-import { HomeIcon, ShoppingBagIcon, PackageIcon, SettingsIcon, LogOutIcon, MenuIcon, XIcon, BatteryIcon } from "lucide-react"
+import { Home as HomeIcon, ShoppingBag as ShoppingBagIcon, Package as PackageIcon, Settings as SettingsIcon, LogOut as LogOutIcon, Menu as MenuIcon, X as XIcon, Battery as BatteryIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"

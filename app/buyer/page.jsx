@@ -1,5 +1,5 @@
 'use client'
-import { PackageIcon, ShoppingCartIcon, CreditCardIcon, ShieldCheckIcon, MapPinIcon, CalendarIcon, CopyIcon, CheckCircleIcon, AlertCircleIcon, ClockIcon, CheckIcon } from "lucide-react"
+import { Package as PackageIcon, ShoppingCart as ShoppingCartIcon, CreditCard as CreditCardIcon, ShieldCheck as ShieldCheckIcon, MapPin as MapPinIcon, Calendar as CalendarIcon, Copy as CopyIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Clock as ClockIcon, Check as CheckIcon } from "lucide-react"
 import Loading from "@/components/Loading"
 import { useState, useEffect } from "react"
 import { productDummyData, orderDummyData } from "@/assets/assets"
@@ -13,7 +13,7 @@ import DocumentVerificationModal from "@/components/DocumentVerificationModal"
 import toast from "react-hot-toast"
 import { getUserOrders, verifyOrderCollection } from "@/backend/actions/order"
 import { getNotifications } from "@/backend/actions/notification"
-import { MessageSquareIcon } from "lucide-react"
+import { MessageSquare as MessageSquareIcon } from "lucide-react"
 
 export default function BuyerDashboard() {
     const dispatch = useDispatch()

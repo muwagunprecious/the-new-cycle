@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { getSellerOrders, updateOrderStatus, requestReschedule } from "@/backend/actions/order"
 import { useSelector } from "react-redux"
 import Loading from "@/components/Loading"
-import { AlertCircleIcon, CheckCircleIcon, CalendarIcon, TruckIcon, WalletIcon, XIcon, ClockIcon } from "lucide-react"
+import { AlertCircle as AlertCircleIcon, CheckCircle as CheckCircleIcon, Calendar as CalendarIcon, Truck as TruckIcon, Wallet as WalletIcon, X as XIcon, Clock as ClockIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import ScheduleCalendar from "@/components/ScheduleCalendar"
 

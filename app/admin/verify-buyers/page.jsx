@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from "react"
 import { getPendingBuyers, approveBuyer, rejectBuyer } from "@/backend/actions/admin"
-import { UserCircleIcon, CheckCircleIcon, XCircleIcon, FileText, CreditCardIcon } from "lucide-react"
+import { UserCircle as UserCircleIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, FileText, CreditCard as CreditCardIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import Loading from "@/components/Loading"
 import Image from "next/image"

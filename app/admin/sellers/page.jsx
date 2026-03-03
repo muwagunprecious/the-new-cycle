@@ -4,7 +4,7 @@ import StoreInfo from "@/components/admin/StoreInfo"
 import Loading from "@/components/Loading"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
-import { WalletIcon, PlusIcon, MinusIcon, SearchIcon } from "lucide-react"
+import { Wallet as WalletIcon, Plus as PlusIcon, Minus as MinusIcon, Search as SearchIcon } from "lucide-react"
 
 export default function AdminSellers() {
     const [sellers, setSellers] = useState([])

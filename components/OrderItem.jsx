@@ -1,6 +1,6 @@
 'use client'
 import Image from "next/image";
-import { DotIcon } from "lucide-react";
+import { Dot as DotIcon } from "lucide-react";
 import { useSelector } from "react-redux";
 import Rating from "./Rating";
 import { useState } from "react";

@@ -7,6 +7,7 @@ import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import { useEffect } from "react"
 import { getAllUsers, banUser } from "@/backend/actions/admin"
 import Loading from "@/components/Loading"
+import { ShieldCheck as ShieldCheckIcon, Search as SearchIcon, Mail as MailIcon, Phone as PhoneIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon } from "lucide-react"
 
 export default function UserManagement() {
     const dispatch = useDispatch()
@@ -77,6 +78,7 @@ export default function UserManagement() {
                                 <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px] first:rounded-tl-[3rem]">User Identity</th>
                                 <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px]">Role</th>
                                 <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px]">Contact (Admin View)</th>
+                                <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px]">Verification</th>
                                 <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px]">Security Status</th>
                                 <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px] last:rounded-tr-[3rem] text-right">Actions</th>
                             </tr>
@@ -113,6 +115,17 @@ export default function UserManagement() {
                                                 <PhoneIcon size={12} className="text-[#05DF72]" /> {user.whatsapp}
                                             </div>
                                         </div>
+                                    </td>
+                                    <td className="px-8 py-6">
+                                        {user.accountStatus === 'approved' ? (
+                                            <span className="flex items-center gap-1 text-[#05DF72] text-[10px] font-black uppercase tracking-widest">
+                                                <CheckCircleIcon size={14} /> Verified
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-amber-500 text-[10px] font-black uppercase tracking-widest">
+                                                <AlertCircleIcon size={14} /> Pending
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-2">

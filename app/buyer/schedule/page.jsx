@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CalendarIcon, MapPinIcon, ShieldCheckIcon, AlertCircleIcon, CheckCircleIcon } from 'lucide-react'
+import { Calendar as CalendarIcon, MapPin as MapPinIcon, ShieldCheck as ShieldCheckIcon, AlertCircle as AlertCircleIcon, CheckCircle as CheckCircleIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ScheduleCalendar from '@/components/ScheduleCalendar'
 import { dummyScheduleData } from '@/assets/assets'

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import toast from 'react-hot-toast'
 import { updateProfile } from '@/lib/features/auth/authSlice'
-import { XIcon, FileText, CreditCard, ShieldCheckIcon, LockIcon, CheckCircleIcon, LoaderIcon, ZapIcon, BuildingIcon } from 'lucide-react'
+import { X as XIcon, FileText, CreditCard, ShieldCheck as ShieldCheckIcon, Lock as LockIcon, CheckCircle as CheckCircleIcon, Loader as LoaderIcon, Zap as ZapIcon, Building as BuildingIcon } from 'lucide-react'
 import Button from './Button'
 import { performNINVerification, performCACVerification } from '@/backend/actions/verification'
 

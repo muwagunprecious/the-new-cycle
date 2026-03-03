@@ -1,5 +1,5 @@
 'use client'
-import { ArrowRightIcon } from 'lucide-react'
+import { ArrowRight as ArrowRightIcon } from 'lucide-react'
 import Link from 'next/link'
 
 const PageTitle = ({ heading, text, path = "/", linkText }) => {
