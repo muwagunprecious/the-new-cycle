@@ -117,15 +117,16 @@ export async function getAllProducts() {
     try {
         const products = await prisma.product.findMany({
             where: {
-                store: { status: 'approved', isActive: true }
+                store: { status: 'approved', isActive: true },
+                inStock: true
             },
             include: {
                 store: {
-                    select: { name: true, address: true, isVerified: true, status: true }
+                    select: { name: true, address: true, isVerified: true, status: true, isActive: true }
                 }
             },
             orderBy: { createdAt: 'desc' }
-        })
+        });
 
         const formatted = products.map(mapProductToFrontend)
         return ApiResponse.success({ products: formatted, data: formatted })
