@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { XIcon, ShieldCheckIcon, PhoneIcon, BuildingIcon, CreditCardIcon, LoaderIcon, CheckCircleIcon, AlertCircleIcon, UserIcon } from 'lucide-react'
+import { X as XIcon, ShieldCheck as ShieldCheckIcon, Phone as PhoneIcon, Building as BuildingIcon, CreditCard as CreditCardIcon, Loader as LoaderIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, User as UserIcon } from 'lucide-react'
 import { mockVerificationService } from '@/lib/mockService'
 import Button from './Button'
 

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from "react"
-import { PackageIcon, SearchIcon, ArrowRightIcon, CalendarIcon, WalletIcon, ShieldCheckIcon, AlertCircleIcon } from "lucide-react"
+import { Package as PackageIcon, Search as SearchIcon, ArrowRight as ArrowRightIcon, Calendar as CalendarIcon, Wallet as WalletIcon, ShieldCheck as ShieldCheckIcon, AlertCircle as AlertCircleIcon } from "lucide-react"
 import Loading from "@/components/Loading"
 import { useRouter } from "next/navigation"
 import { useSelector, useDispatch } from "react-redux"
@@ -8,7 +8,7 @@ import { showLoader } from "@/lib/features/ui/uiSlice"
 import { getUserOrders, respondToReschedule, verifyOrderCollection } from "@/backend/actions/order"
 import ScheduleCalendar from "@/components/ScheduleCalendar"
 import toast from "react-hot-toast"
-import { XIcon, CheckIcon, ClockIcon } from "lucide-react"
+import { X as XIcon, Check as CheckIcon, Clock as ClockIcon } from "lucide-react"
 
 export default function BuyerOrders() {
     const router = useRouter()

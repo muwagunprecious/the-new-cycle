@@ -16,7 +16,7 @@ import product_img9 from "./battery 10.jpg"
 import product_img10 from "./battery 11.jpg"
 import product_img11 from "./battery 12.jpg"
 import product_img12 from "./battery 13.jpg"
-import { BatteryIcon, RecycleIcon, ShieldCheckIcon, TruckIcon } from "lucide-react";
+import { Battery as BatteryIcon, Recycle as RecycleIcon, ShieldCheck as ShieldCheckIcon, Truck as TruckIcon } from "lucide-react";
 import profile_pic1 from "./profile_pic1.jpg"
 import profile_pic2 from "./profile_pic2.jpg"
 import profile_pic3 from "./profile_pic3.jpg"

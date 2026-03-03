@@ -1,6 +1,6 @@
 'use client'
 import { useState } from "react"
-import { XIcon, WalletIcon, CheckCircleIcon, CopyIcon, CalendarIcon, MapPinIcon, LoaderIcon, AlertCircleIcon, ShieldCheckIcon } from "lucide-react"
+import { X as XIcon, Wallet as WalletIcon, CheckCircle as CheckCircleIcon, Copy as CopyIcon, Calendar as CalendarIcon, MapPin as MapPinIcon, Loader as LoaderIcon, AlertCircle as AlertCircleIcon, ShieldCheck as ShieldCheckIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
