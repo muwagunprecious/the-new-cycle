@@ -44,10 +44,6 @@ export default function DocumentVerificationModal({ user, onComplete }) {
             if (result.success) {
                 toast.success('NIN Verified Successfully!')
                 setNinVerified(true)
-                dispatch(updateProfile({
-                    ninDocument: formData.ninDocument,
-                    isPhoneVerified: true
-                }))
             } else {
                 // If it's a name mismatch, give a hint
                 let errorMsg = result.error || 'NIN Verification Failed'
@@ -82,9 +78,6 @@ export default function DocumentVerificationModal({ user, onComplete }) {
             if (result.success) {
                 toast.success('CAC Verified Successfully!')
                 setCacVerified(true)
-                dispatch(updateProfile({
-                    cacDocument: formData.cacDocument
-                }))
             } else {
                 toast.error(result.error || 'CAC Verification Failed')
             }

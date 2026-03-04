@@ -2,7 +2,7 @@
 
 import { ApiResponse } from "@/backend/lib/api-response"
 import { logger } from "@/backend/lib/api-utils"
-import { sendEmail, orderConfirmationEmail, buyerReceiptEmail } from "@/backend/lib/email"
+import { sendEmail, orderConfirmationEmail, buyerReceiptEmail, sellerNewOrderEmail } from "@/backend/lib/email"
 import { createNotification } from "./notification"
 import { revalidatePath } from "next/cache"
 import prisma from "@/backend/lib/prisma"
@@ -103,6 +103,24 @@ export async function createOrder(orderData) {
             sendEmail({ to: buyer.email, ...emailTemplate }).catch(err =>
                 logger.warn("Order confirmation email failed", err)
             )
+
+            // Send order notification email to seller with collection token
+            const seller = await prisma.user.findUnique({ where: { id: store.userId } })
+            if (seller?.email) {
+                const sellerEmailTemplate = sellerNewOrderEmail({
+                    sellerName: seller.name,
+                    orderId: order.id,
+                    productName: product?.name || 'Battery',
+                    amount: totalAmount,
+                    quantity: quantity,
+                    collectionDate: collectionDate ? new Date(collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
+                    token: collectionToken,
+                    buyerName: buyer.name
+                })
+                sendEmail({ to: seller.email, ...sellerEmailTemplate }).catch(err =>
+                    logger.warn("Seller order notification email failed", err)
+                )
+            }
         }
 
         return ApiResponse.success(order, "Order placed successfully")
@@ -134,23 +152,53 @@ export async function getUserOrders(userId) {
     }
 }
 
-export async function getSellerOrders(userId) {
+export async function getSellerOrders(userId, page = 1, limit = 50) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
         const store = await prisma.store.findUnique({ where: { userId } })
-        if (!store) return ApiResponse.success({ orders: [], data: [] })
+        if (!store) return ApiResponse.success({ orders: [], data: [], pagination: { page, totalPages: 0, totalCount: 0 } })
 
-        const orders = await prisma.order.findMany({
-            where: { storeId: store.id },
-            include: {
-                user: { select: { id: true, name: true, email: true, image: true, phone: true } },
-                orderItems: { include: { product: true } }
-            },
-            orderBy: { createdAt: 'desc' }
+        const skip = (page - 1) * limit
+
+        const [orders, totalCount] = await Promise.all([
+            prisma.order.findMany({
+                where: { storeId: store.id },
+                include: {
+                    user: { select: { id: true, name: true, email: true, image: true, phone: true } },
+                    orderItems: {
+                        include: {
+                            product: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    price: true,
+                                    category: true,
+                                    type: true,
+                                    brand: true
+                                    // EXCLUDE heavy images field
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.order.count({ where: { storeId: store.id } })
+        ])
+
+        return ApiResponse.success({
+            orders: orders,
+            data: orders,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit)
+            }
         })
-
-        return ApiResponse.success({ orders: orders, data: orders })
     } catch (error) {
         logger.error("Get Seller Orders Error", error)
         return ApiResponse.error("Failed to fetch seller orders")
@@ -257,17 +305,33 @@ export async function verifyOrderCollection(orderId, token) {
     }
 }
 
-export async function getAllOrders() {
+export async function getAllOrders(page = 1, limit = 50) {
     try {
-        const orders = await prisma.order.findMany({
-            include: {
-                user: true,
-                store: true,
-                orderItems: { include: { product: true } }
-            },
-            orderBy: { createdAt: 'desc' }
+        const skip = (page - 1) * limit
+        const [orders, total] = await Promise.all([
+            prisma.order.findMany({
+                skip,
+                take: limit,
+                include: {
+                    user: { select: { name: true, email: true } },
+                    store: { select: { name: true } }
+                    // Only include necessary product details indirectly through orderItems if needed, 
+                    // or keep it simple for the list.
+                },
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.order.count()
+        ])
+        return ApiResponse.success({
+            orders,
+            data: orders,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
         })
-        return ApiResponse.success({ orders: orders, data: orders })
     } catch (error) {
         logger.error("Get All Orders Error", error)
         return ApiResponse.error("Failed to fetch platform orders")

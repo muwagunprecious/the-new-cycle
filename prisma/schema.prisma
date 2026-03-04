@@ -1,12 +1,200 @@
 generator client {
-    provider = "prisma-client-js"
-    binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                String         @id
+  name              String
+  fullName          String?
+  email             String?        @unique
+  password          String?
+  image             String
+  role              Role           @default(USER)
+  cart              Json           @default("{}")
+  walletBalance     Float          @default(0)
+  phone             String         @unique
+  isEmailVerified   Boolean        @default(false)
+  isPhoneVerified   Boolean        @default(false)
+  bankName          String?
+  accountNumber     String?
+  accountName       String?
+  accountStatus     String         @default("pending")
+  status            String         @default("active")
+  ninDocument       String?
+  cacDocument       String?
+  verificationNotes String?
+  verificationCode  String?
+  verifiedAt        DateTime?
+  identityToken     String?
+  businessToken     String?
+  Address           Address[]
+  notifications     Notification[]
+  buyerOrders       Order[]        @relation("BuyerRelation")
+  ratings           Rating[]
+  store             Store?
+
+  @@map("users")
+}
+
+model OrderItem {
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@id([orderId, productId])
+  @@map("OrderItem")
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  rating    Int
+  review    String
+  userId    String
+  productId String
+  orderId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId, orderId])
+  @@map("Rating")
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  email     String
+  street    String
+  city      String
+  state     String
+  zip       String
+  country   String
+  phone     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Order     Order[]
+}
+
+model Coupon {
+  code        String   @id
+  description String
+  discount    Float
+  forNewUser  Boolean
+  forMember   Boolean  @default(false)
+  isPublic    Boolean
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+}
+
+model Store {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  name            String
+  description     String
+  username        String    @unique
+  address         String
+  status          String    @default("pending")
+  isActive        Boolean   @default(false)
+  logo            String
+  email           String
+  contact         String
+  bankName        String?
+  accountNumber   String?
+  accountName     String?
+  isVerified      Boolean   @default(false)
+  nin             String?
+  cac             String?
+  walletBalance   Float     @default(0)
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  Order           Order[]
+  Product         Product[]
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@map("Store")
+}
+
+model Product {
+  id                  String      @id @default(cuid())
+  name                String
+  description         String
+  mrp                 Float
+  price               Float
+  images              String[]
+  category            String
+  type                BatteryType @default(CAR_TRUCK_WET)
+  brand               String?
+  amps                Int         @default(0)
+  condition           String      @default("SCRAP")
+  pickupAddress       String
+  collectionDateStart DateTime
+  collectionDateEnd   DateTime
+  collectionDates     String[]
+  quantity            Int         @default(1)
+  inStock             Boolean     @default(true)
+  status              String      @default("pending")
+  rejectionReason     String?
+  storeId             String
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  orderItems          OrderItem[]
+  store               Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  rating              Rating[]
+
+  @@map("Product")
+}
+
+model Order {
+  id               String        @id @default(cuid())
+  total            Float
+  status           OrderStatus   @default(ORDER_PLACED)
+  collectionStatus PickupStatus  @default(PENDING)
+  collectionToken  String?
+  collectionDate   String?
+  payoutStatus     String        @default("none")
+  userId           String
+  storeId          String
+  addressId        String?
+  isPaid           Boolean       @default(false)
+  paymentMethod    PaymentMethod
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  isCouponUsed     Boolean       @default(false)
+  coupon           Json          @default("{}")
+  buyerFee         Float         @default(0)
+  payoutAmount     Float         @default(0)
+  sellerFee        Float         @default(0)
+  subtotal         Float         @default(0)
+  address          Address?      @relation(fields: [addressId], references: [id])
+  store            Store         @relation(fields: [storeId], references: [id])
+  user             User          @relation("BuyerRelation", fields: [userId], references: [id])
+  orderItems       OrderItem[]
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  status    String   @default("unread")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("Notification")
 }
 
 enum Role {
@@ -15,261 +203,32 @@ enum Role {
   SELLER
 }
 
-// Required for creating a User: id, name, email, image, cart (optional JSON string)
-
-model User {
-    id    String @id
-    name  String
-    fullName String?
-    email String? @unique
-    password String?
-    image String
-    role  Role   @default(USER)
-    cart  Json   @default("{}")
-    walletBalance Float @default(0) // Track admin platform earnings
-
-    // Verification & Safety
-    phone           String @unique
-    isEmailVerified Boolean @default(false)
-    isPhoneVerified Boolean @default(false)
-    
-    
-    // Bank Details (For refunds/payments)
-    bankName      String?
-    accountNumber String?
-    accountName   String?
-    
-    // Buyer Verification
-    accountStatus     String  @default("pending") // pending, approved, rejected
-    ninDocument       String? // Base64 encoded NIN document
-    cacDocument       String? // Base64 encoded CAC document (optional)
-    verificationNotes String? // Admin notes for rejection
-    verifiedAt        DateTime?
-    
-    // Placeholders for Future verification
-    identityToken   String?
-    businessToken   String?
-    
-    // Relations
-    ratings       Rating[]
-    Address       Address[]
-    store         Store?
-    buyerOrders   Order[]        @relation("BuyerRelation")
-    notifications Notification[]
-
-    @@map("users")
-}
-
 enum OrderStatus {
-    ORDER_PLACED
-    PAID
-    APPROVED
-    PROCESSING
-    SHIPPED
-    PICKED_UP
-    DELIVERED
-    COMPLETED
-    CANCELLED
+  ORDER_PLACED
+  PAID
+  APPROVED
+  PROCESSING
+  SHIPPED
+  PICKED_UP
+  DELIVERED
+  COMPLETED
+  CANCELLED
 }
 
 enum PaymentMethod {
-    // COD Removed
-    STRIPE
+  STRIPE
 }
 
-// Required for creating an OrderItem: orderId, productId, quantity, price
-model OrderItem {
-    orderId   String
-    productId String
-    quantity  Int
-    price     Float
-
-    // Relations
-    order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-    product Product @relation(fields: [productId], references: [id])
-
-    @@id([orderId, productId])
-    @@map("OrderItem")
-}
-
-// Required for creating a Rating: rating, review, userId, productId
-model Rating {
-    id        String   @id @default(cuid())
-    rating    Int
-    review    String
-    userId    String
-    productId String
-    orderId   String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    // Relations
-    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-    @@unique([userId, productId, orderId])
-    @@map("Rating")
-}
-
-// Required for creating an Address: userId, name, email, street, city, state, zip, country, phone
-model Address {
-    id        String   @id @default(cuid())
-    userId    String
-    name      String
-    email     String
-    street    String
-    city      String
-    state     String
-    zip       String
-    country   String
-    phone     String
-    createdAt DateTime @default(now())
-
-    // Relations
-    Order Order[]
-    user  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// Required for creating a Coupon: code, description, discount, forNewUser, isPublic, expiresAt
-model Coupon {
-    code        String   @id
-    description String
-    discount    Float
-    forNewUser  Boolean
-    forMember   Boolean  @default(false)
-    isPublic    Boolean
-    expiresAt   DateTime
-    createdAt   DateTime @default(now())
-}
-
-// ENUMS
 enum BatteryType {
-    CAR_TRUCK_WET
-    INVERTER_DRY
-    INVERTER_WET
+  CAR_TRUCK_WET
+  INVERTER_DRY
+  INVERTER_WET
 }
 
 enum PickupStatus {
-    PENDING
-    COLLECTED
-    DISPUTED
-    RESCHEDULE_REQUESTED
-    RESCHEDULED
+  PENDING
+  COLLECTED
+  DISPUTED
+  RESCHEDULE_REQUESTED
+  RESCHEDULED
 }
-
-// Required for creating a Store: userId, name, username, email, contact, logo, description, address, bank details
-model Store {
-    id          String   @id @default(cuid())
-    userId      String   @unique
-    name        String
-    description String
-    username    String   @unique
-    address     String
-    status      String   @default("pending")
-    isActive    Boolean  @default(false)
-    logo        String
-    email       String
-    contact     String
-    
-    // Bank Details
-    bankName      String?
-    accountNumber String?
-    accountName   String?
-    isVerified    Boolean @default(false)
-
-    nin           String? // National Identification Number
-    cac           String? // Corporate Affairs Commission Number
-
-    walletBalance    Float   @default(0)
-    rejectionReason  String?
-
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-
-    Product Product[]
-    Order   Order[]
-    user    User      @relation(fields: [userId], references: [id])
-
-    @@map("Store")
-}
-
-// Required for creating a Product: ... + type, brand, condition, dates, pickupAddress, quantity
-model Product {
-    id          String      @id @default(cuid())
-    name        String
-    description String      // Simple comments/description
-    mrp         Float
-    price       Float
-    images      String[]
-    category    String      // Optional or redundancy
-    type        BatteryType @default(CAR_TRUCK_WET) 
-    brand       String?     // Optional
-    amps        Int         @default(0) // Capacity in Ah
-    condition   String      @default("SCRAP")
-    pickupAddress String    // Explicit pickup address
-    
-    collectionDateStart DateTime 
-    collectionDateEnd   DateTime 
-    collectionDates     String[]
-    quantity    Int         @default(1)
-
-    inStock     Boolean  @default(true)
-    storeId     String
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-
-    // Relations
-    store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
-    orderItems OrderItem[]
-    rating     Rating[]
-
-    @@map("Product")
-}
-
-// Required for creating an Order: ... + pickupToken, pickupStatus
-model Order {
-    id            String        @id @default(cuid())
-    total         Float
-    status        OrderStatus   @default(ORDER_PLACED)
-    collectionStatus PickupStatus  @default(PENDING)
-    collectionToken  String?       // 6-digit code generated on purchase
-    collectionDate   String?
-    // Fee Structure
-    subtotal      Float         @default(0) // Base price * quantity
-    buyerFee      Float         @default(0) // 5% added to buyer
-    sellerFee     Float         @default(0) // 5% deducted from seller
-    payoutAmount  Float         @default(0) // subtotal - sellerFee
-    
-    payoutStatus     String        @default("none") // none, pending, released
-    
-    userId        String
-    storeId       String
-    addressId     String?
-    isPaid        Boolean       @default(false)
-    paymentMethod PaymentMethod
-    createdAt     DateTime      @default(now())
-    updatedAt     DateTime      @updatedAt
-    isCouponUsed  Boolean       @default(false)
-    coupon        Json          @default("{}")
-    orderItems    OrderItem[]
-
-    // Relations
-    user    User    @relation("BuyerRelation", fields: [userId], references: [id])
-    store   Store   @relation(fields: [storeId], references: [id])
-    address Address? @relation(fields: [addressId], references: [id])
-}
-
-model Notification {
-    id        String   @id @default(cuid())
-    userId    String
-    title     String
-    message   String
-    type      String // e.g., "ORDER", "PAYMENT", "SYSTEM"
-    status    String @default("unread") // unread, read
-    createdAt DateTime @default(now())
-
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@map("Notification")
-}
-

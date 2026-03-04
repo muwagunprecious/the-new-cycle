@@ -2,7 +2,7 @@
 
 import { ApiResponse } from "@/backend/lib/api-response"
 import { logger } from "@/backend/lib/api-utils"
-import { sendEmail, sellerWalletCreditEmail, buyerVerifiedEmail } from "@/backend/lib/email"
+import { sendEmail, sellerWalletCreditEmail, buyerVerifiedEmail, buyerRejectedEmail } from "@/backend/lib/email"
 import { revalidatePath } from "next/cache"
 import prisma from "@/backend/lib/prisma"
 
@@ -130,12 +130,92 @@ export async function updateSellerWallet(storeId, amount, type = 'CREDIT') {
     }
 }
 
-export async function getAllUsers() {
+/**
+ * Performance-optimized aggregate summary for the admin dashboard.
+ * Bypasses fetching all records by using Prisma aggregate/count functions.
+ */
+export async function getAdminDashboardSummary() {
     try {
-        const users = await prisma.user.findMany({
-            orderBy: { name: 'asc' }
+        const [
+            sellerCount,
+            productCount,
+            orderCount,
+            revenueData,
+            verifiedCount,
+            userCount,
+            pendingPayoutsData,
+            recentOrders
+        ] = await Promise.all([
+            prisma.user.count({ where: { role: 'SELLER' } }),
+            prisma.product.count(),
+            prisma.order.count(),
+            prisma.order.aggregate({
+                _sum: { total: true }
+            }),
+            prisma.user.count({ where: { accountStatus: 'approved' } }),
+            prisma.user.count(),
+            prisma.order.aggregate({
+                where: { status: 'COMPLETED', payoutStatus: 'pending' },
+                _sum: { total: true }
+            }),
+            prisma.order.findMany({
+                take: 5,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    user: { select: { name: true } },
+                    store: { select: { name: true } }
+                }
+            })
+        ])
+
+        return ApiResponse.success({
+            products: productCount,
+            revenue: revenueData._sum.total || 0,
+            orders: orderCount,
+            stores: sellerCount,
+            pendingPayouts: pendingPayoutsData._sum.total || 0,
+            verifiedUsers: verifiedCount,
+            unverifiedUsers: userCount - verifiedCount,
+            totalUsers: userCount,
+            recentOrders: recentOrders
         })
-        return ApiResponse.success({ users, data: users })
+    } catch (error) {
+        logger.error("Get Dashboard Summary Error", error)
+        return ApiResponse.error("Failed to fetch dashboard stats")
+    }
+}
+
+export async function getAllUsers(page = 1, limit = 50) {
+    try {
+        const skip = (page - 1) * limit
+        const [users, total] = await Promise.all([
+            prisma.user.findMany({
+                skip,
+                take: limit,
+                orderBy: { name: 'asc' },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    accountStatus: true,
+                    createdAt: true
+                    // Exclude heavy fields like 'image' if not needed in the list
+                }
+            }),
+            prisma.user.count()
+        ])
+
+        return ApiResponse.success({
+            users,
+            data: users,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        })
     } catch (error) {
         logger.error("Get All Users Error", error)
         return ApiResponse.error("Failed to fetch users")
@@ -278,7 +358,7 @@ export async function approveBuyer(userId) {
 
 export async function rejectBuyer(userId, reason) {
     try {
-        await prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
                 accountStatus: 'rejected',
@@ -293,6 +373,19 @@ export async function rejectBuyer(userId, reason) {
             `We're sorry, but your account verification was not approved. Reason: ${reason || "Please contact support."}`,
             "SYSTEM"
         )
+
+        // Send Rejection Email
+        if (updatedUser.email) {
+            const { subject, html } = buyerRejectedEmail({
+                name: updatedUser.name,
+                reason: reason || "Your verification documents did not meet our requirements."
+            })
+            sendEmail({
+                to: updatedUser.email,
+                subject,
+                html
+            }).catch(err => logger.warn("Buyer rejection email failed", err))
+        }
 
         revalidatePath('/admin/verify-buyers')
         return ApiResponse.success(null, "Buyer application rejected")

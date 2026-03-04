@@ -6,9 +6,8 @@ import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { mockAdminService, mockNotificationService } from "@/lib/mockService"
 import Button from "@/components/Button"
-import { getPendingSellers, approveSeller, rejectSeller, getAllUsers, banUser, releasePayout, sendAdminNotification } from "@/backend/actions/admin"
+import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification } from "@/backend/actions/admin"
 import { getAllOrders } from "@/backend/actions/order"
-import { getAllProducts } from "@/backend/actions/product"
 
 export default function AdminDashboard() {
     const currency = '₦'
@@ -25,7 +24,8 @@ export default function AdminDashboard() {
         stores: 0,
         pendingPayouts: 0,
         verifiedUsers: 0,
-        unverifiedUsers: 0
+        unverifiedUsers: 0,
+        totalUsers: 0
     })
     const [sendingNotification, setSendingNotification] = useState(false)
     const [notificationForm, setNotificationForm] = useState({
@@ -37,48 +37,66 @@ export default function AdminDashboard() {
         withEmail: false
     })
 
+    const [pagination, setPagination] = useState({
+        users: { page: 1, totalPages: 1 },
+        orders: { page: 1, totalPages: 1 }
+    })
+
+    // Fetch initial dashboard summary
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchSummary = async () => {
             setLoading(true)
             try {
-                const [usersRes, ordersRes, productsRes] = await Promise.all([
-                    getAllUsers(),
-                    getAllOrders(),
-                    getAllProducts()
-                ])
-
-                const usersData = usersRes.success ? usersRes.data : []
-                const ordersData = ordersRes.success ? ordersRes.data : []
-                const productsData = productsRes.success ? productsRes.products : []
-
-                setUsers(usersData)
-                setOrders(ordersData)
-                setProducts(productsData)
-
-                // Calculate dashboard stats
-                const verifiedCount = usersData.filter(u => u.accountStatus === 'approved').length
-                const revenue = ordersData.reduce((sum, o) => sum + (o.total || 0), 0)
-                const pendingPayouts = ordersData
-                    .filter(o => o.status === 'COMPLETED' && o.payoutStatus === 'pending')
-                    .reduce((sum, o) => sum + (o.total || 0), 0)
-
-                setDashboardData({
-                    products: productsData.length,
-                    revenue: revenue,
-                    orders: ordersData.length,
-                    stores: usersData.filter(u => u.role === 'SELLER').length,
-                    pendingPayouts,
-                    verifiedUsers: verifiedCount,
-                    unverifiedUsers: usersData.length - verifiedCount
-                })
+                const res = await getAdminDashboardSummary()
+                if (res.success) {
+                    setDashboardData(res.data)
+                }
             } catch (error) {
-                console.error("Dashboard Fetch Error:", error)
+                console.error("Dashboard Summary Error:", error)
             } finally {
                 setLoading(false)
             }
         }
-        fetchData()
+        fetchSummary()
     }, [])
+
+    // Fetch tab-specific data when activeTab or page changes
+    useEffect(() => {
+        const fetchTabData = async () => {
+            if (activeTab === 'users' && users.length === 0) {
+                const res = await getAllUsers(1, 50)
+                if (res.success) {
+                    setUsers(res.data)
+                    setPagination(prev => ({ ...prev, users: res.pagination }))
+                }
+            } else if (activeTab === 'orders' && orders.length === 0) {
+                const res = await getAllOrders(1, 50)
+                if (res.success) {
+                    setOrders(res.data)
+                    setPagination(prev => ({ ...prev, orders: res.pagination }))
+                }
+            }
+        }
+        fetchTabData()
+    }, [activeTab])
+
+    const loadMoreUsers = async () => {
+        const nextPage = pagination.users.page + 1
+        const res = await getAllUsers(nextPage, 50)
+        if (res.success) {
+            setUsers([...users, ...res.data])
+            setPagination(prev => ({ ...prev, users: res.pagination }))
+        }
+    }
+
+    const loadMoreOrders = async () => {
+        const nextPage = pagination.orders.page + 1
+        const res = await getAllOrders(nextPage, 50)
+        if (res.success) {
+            setOrders([...orders, ...res.data])
+            setPagination(prev => ({ ...prev, orders: res.pagination }))
+        }
+    }
 
     const handleBanUser = async (userId, currentStatus) => {
         const newStatus = currentStatus === 'active' ? 'banned' : 'active'
@@ -140,8 +158,8 @@ export default function AdminDashboard() {
 
     const tabs = [
         { id: 'overview', label: 'Overview' },
-        { id: 'users', label: `Users (${users.length})` },
-        { id: 'orders', label: `Orders (${orders.length})` },
+        { id: 'users', label: `Users (${dashboardData.totalUsers})` },
+        { id: 'orders', label: `Orders (${dashboardData.orders})` },
         { id: 'payouts', label: 'Payouts' },
         { id: 'notify', label: '📣 Notify' },
     ]
@@ -203,15 +221,18 @@ export default function AdminDashboard() {
                         <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
                             <h3 className="text-lg font-bold text-slate-900 mb-4">Recent Orders</h3>
                             <div className="space-y-3">
-                                {orders.slice(0, 5).map(order => (
+                                {(dashboardData.recentOrders || []).map(order => (
                                     <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                                         <div>
-                                            <p className="font-bold text-sm text-slate-900">{order.product?.name || 'Battery Order'}</p>
-                                            <p className="text-xs text-slate-500">{order.status}</p>
+                                            <p className="font-bold text-sm text-slate-900">{order.store?.name || 'Store Order'}</p>
+                                            <p className="text-[10px] text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</p>
                                         </div>
                                         <p className="font-bold text-slate-900">{currency}{(order.total || 0).toLocaleString()}</p>
                                     </div>
                                 ))}
+                                {(!dashboardData.recentOrders || dashboardData.recentOrders.length === 0) && (
+                                    <p className="text-center text-slate-500 py-4">No recent orders</p>
+                                )}
                             </div>
                         </div>
 
@@ -298,7 +319,7 @@ export default function AdminDashboard() {
                                         <td className="px-6 py-4">
                                             <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full ${user.status === 'banned' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
                                                 }`}>
-                                                {user.status || 'Active'}
+                                                {user.status || 'active'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -322,6 +343,16 @@ export default function AdminDashboard() {
                             </tbody>
                         </table>
                     </div>
+                    {pagination.users.page < pagination.users.totalPages && (
+                        <div className="p-6 text-center border-t border-slate-100">
+                            <button
+                                onClick={loadMoreUsers}
+                                className="text-sm font-bold text-[#05DF72] hover:underline"
+                            >
+                                Load More Users
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -370,6 +401,16 @@ export default function AdminDashboard() {
                             </tbody>
                         </table>
                     </div>
+                    {pagination.orders.page < pagination.orders.totalPages && (
+                        <div className="p-6 text-center border-t border-slate-100">
+                            <button
+                                onClick={loadMoreOrders}
+                                className="text-sm font-bold text-[#05DF72] hover:underline"
+                            >
+                                Load More Orders
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 

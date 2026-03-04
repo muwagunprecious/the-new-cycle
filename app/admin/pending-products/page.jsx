@@ -3,9 +3,9 @@ import { useState, useEffect } from "react"
 import { Search as SearchIcon, ShoppingBag as ShoppingBagIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, Trash2 as Trash2Icon, ExternalLink as ExternalLinkIcon, Battery as BatteryIcon } from "lucide-react"
 import { lagosLGAs } from "@/assets/assets"
 import toast from "react-hot-toast"
-import { getAdminProducts, adminDeleteProduct, adminApproveProduct, adminRejectProduct } from "@/backend/actions/product"
+import { getPendingAdminProducts, adminDeleteProduct, adminApproveProduct, adminRejectProduct } from "@/backend/actions/product"
 
-export default function AdminProducts() {
+export default function AdminPendingProducts() {
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
@@ -16,7 +16,7 @@ export default function AdminProducts() {
 
     const fetchProducts = async () => {
         setLoading(true)
-        const res = await getAdminProducts()
+        const res = await getPendingAdminProducts()
         if (res.success) {
             setProducts(res.products)
         } else {
@@ -79,8 +79,8 @@ export default function AdminProducts() {
     return (
         <div className="p-6">
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900">Inventory <span className="text-[#05DF72]">Moderation</span></h1>
-                <p className="text-slate-500 mt-1">Approve or reject battery listings from sellers.</p>
+                <h1 className="text-2xl font-bold text-slate-900">Pending <span className="text-[#05DF72]">Inventory</span></h1>
+                <p className="text-slate-500 mt-1">Review new battery listings from sellers awaiting approval.</p>
             </div>
 
             <div className="card bg-white">

@@ -6,9 +6,9 @@ import { toggleUserStatus } from "@/lib/features/auth/authSlice"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import { useEffect } from "react"
-import { getAllUsers, banUser } from "@/backend/actions/admin"
+import { getAllUsers, banUser, approveBuyer } from "@/backend/actions/admin"
 import Loading from "@/components/Loading"
-import { ShieldCheck as ShieldCheckIcon, Search as SearchIcon, Mail as MailIcon, Phone as PhoneIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon } from "lucide-react"
+import { ShieldCheck as ShieldCheckIcon, Search as SearchIcon, Mail as MailIcon, Phone as PhoneIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Check as CheckIcon } from "lucide-react"
 
 export default function UserManagement() {
     const dispatch = useDispatch()
@@ -46,6 +46,21 @@ export default function UserManagement() {
             toast.success(`${name} has been ${isBanning ? 'banned' : 'restored'}`)
         } else {
             toast.error(res.error || "Failed to update status")
+        }
+    }
+
+    const handleApprove = async (userId, name) => {
+        if (!confirm(`Are you sure you want to approve ${name}'s account?`)) return
+
+        dispatch(showLoader(`Approving ${name}...`))
+        const res = await approveBuyer(userId)
+        dispatch(hideLoader())
+
+        if (res.success) {
+            setDbUsers(prev => prev.map(u => u.id === userId ? { ...u, accountStatus: 'approved' } : u))
+            toast.success(`${name} has been approved successfully!`)
+        } else {
+            toast.error(res.error || "Failed to approve account")
         }
     }
 
@@ -137,16 +152,26 @@ export default function UserManagement() {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">
-                                        <button
-                                            disabled={user.role === 'ADMIN'}
-                                            onClick={() => handleToggleStatus(user.id, user.name)}
-                                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${(user.status === 'active' || !user.status)
-                                                ? 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
-                                                : 'bg-[#05DF72]/10 text-[#05DF72] hover:bg-[#05DF72] hover:text-white'
-                                                } disabled:opacity-30 disabled:cursor-not-allowed`}
-                                        >
-                                            {(user.status === 'active' || !user.status) ? <><BanIcon size={14} /> Ban Access</> : <><CheckCircleIcon size={14} /> Restore</>}
-                                        </button>
+                                        <div className="flex justify-end gap-2">
+                                            {user.accountStatus !== 'approved' && user.role !== 'ADMIN' && (
+                                                <button
+                                                    onClick={() => handleApprove(user.id, user.name)}
+                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                                >
+                                                    <CheckIcon size={14} /> Approve
+                                                </button>
+                                            )}
+                                            <button
+                                                disabled={user.role === 'ADMIN'}
+                                                onClick={() => handleToggleStatus(user.id, user.name)}
+                                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${(user.status === 'active' || !user.status)
+                                                    ? 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
+                                                    : 'bg-[#05DF72]/10 text-[#05DF72] hover:bg-[#05DF72] hover:text-white'
+                                                    } disabled:opacity-30 disabled:cursor-not-allowed`}
+                                            >
+                                                {(user.status === 'active' || !user.status) ? <><BanIcon size={14} /> Ban Access</> : <><CheckCircleIcon size={14} /> Restore</>}
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

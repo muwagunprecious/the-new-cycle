@@ -17,6 +17,7 @@ const transporter = nodemailer.createTransport({
  * @param {string} [options.text] - Optional plain text fallback
  */
 export async function sendEmail({ to, subject, html, text }) {
+    console.log(`[Email] Attempting to send to ${to}... Subject: ${subject}`);
     const mailOptions = {
         from: process.env.EMAIL_FROM,
         to,
@@ -27,10 +28,11 @@ export async function sendEmail({ to, subject, html, text }) {
 
     try {
         const info = await transporter.sendMail(mailOptions)
-        console.log(`[Email] Sent to ${to} — MessageId: ${info.messageId}`)
+        console.log(`[Email] SUCCESS: Sent to ${to} — MessageId: ${info.messageId}`)
         return { success: true, messageId: info.messageId }
     } catch (error) {
-        console.error(`[Email] Failed to send to ${to}:`, error.message)
+        console.error(`[Email] FAILED to send to ${to}:`, error.message)
+        console.error(`[Email] Error details:`, error)
         return { success: false, error: error.message }
     }
 }
@@ -351,3 +353,182 @@ export function buyerVerifiedEmail({ name }) {
         </div>`
     }
 }
+/**
+ * Buyer Rejected Email — sent when an admin rejects a buyer's verification
+ */
+export function buyerRejectedEmail({ name, reason }) {
+    const yr = new Date().getFullYear()
+    return {
+        subject: 'Update Regarding Your Go-Cycle Verification ⚠️',
+        html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <!-- Header -->
+            <div style="background:#0f172a;padding:28px;text-align:center;">
+                <h1 style="color:#05DF72;margin:0 0 4px;font-size:24px;letter-spacing:-0.5px;">Go-Cycle</h1>
+                <p style="color:#94a3b8;margin:0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Account Status: Action Required</p>
+            </div>
+
+            <!-- Hero Section -->
+            <div style="background:#fef2f2;padding:32px 28px;text-align:center;">
+                <p style="font-size:40px;margin:0 0-16px;">⚠️</p>
+                <h2 style="color:#991b1b;margin:0;font-size:20px;">Verification Update for ${name}</h2>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:28px;">
+                <p style="color:#475569;margin-top:0;line-height:1.6;">Thank you for your interest in Go-Cycle. Our team has reviewed your verification documents, and unfortunately, we cannot approve your account at this time.</p>
+                
+                <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin:24px 0;">
+                    <h3 style="color:#0f172a;margin-top:0;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Reason for Rejection</h3>
+                    <p style="color:#ef4444;font-size:15px;font-weight:bold;margin:10px 0 0;">"${reason || "Your documents did not meet our verification requirements."}"</p>
+                </div>
+
+                <div style="background:#fff7ed;border-left:4px solid #f97316;padding:16px;margin:24px 0;">
+                    <p style="color:#9a3412;font-size:13px;margin:0;"><strong>What should you do?</strong> Please log in to your dashboard to re-upload the correct documents or contact our support team if you believe this was an error.</p>
+                </div>
+
+                <div style="text-align:center;margin:32px 0;">
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://the-new-cycle-m8zx.vercel.app'}" style="background:#0f172a;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:30px;font-weight:bold;font-size:14px;display:inline-block;">Go to Dashboard</a>
+                </div>
+
+                <p style="color:#94a3b8;font-size:12px;">If you have any questions, feel free to reply to this email or reach us on WhatsApp.</p>
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle Nigeria. All rights reserved.</p>
+            </div>
+        </div>`
+    }
+}
+
+/**
+ * Product Approved Email — sent when an admin approves a seller's product listing
+ */
+export function productApprovedEmail({ sellerName, productName }) {
+    const yr = new Date().getFullYear()
+    return {
+        subject: `Product Approved: ${productName} ✅`,
+        html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <!-- Header -->
+            <div style="background:#0f172a;padding:28px;text-align:center;">
+                <h1 style="color:#05DF72;margin:0 0 4px;font-size:24px;letter-spacing:-0.5px;">Go-Cycle</h1>
+                <p style="color:#94a3b8;margin:0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Listing Approved</p>
+            </div>
+
+            <!-- Hero Section -->
+            <div style="background:#f0fdf4;padding:32px 28px;text-align:center;">
+                <p style="font-size:40px;margin:0 0 16px;">✅</p>
+                <h2 style="color:#15803d;margin:0;font-size:20px;">Great news, ${sellerName}!</h2>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:28px;">
+                <p style="color:#475569;margin-top:0;line-height:1.6;">Your product listing for <strong>"${productName}"</strong> has been reviewed and approved by our moderation team.</p>
+                
+                <p style="color:#475569;line-height:1.6;">It is now live on the Go-Cycle marketplace and available for buyers to purchase.</p>
+
+                <div style="text-align:center;margin:32px 0;">
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://the-new-cycle-m8zx.vercel.app'}" style="background:#05DF72;color:#052e16;text-decoration:none;padding:14px 32px;border-radius:30px;font-weight:bold;font-size:14px;display:inline-block;">View Marketplace</a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle Nigeria. All rights reserved.</p>
+            </div>
+        </div>`
+    }
+}
+
+/**
+ * Product Rejected Email — sent when an admin rejects a seller's product listing
+ */
+export function productRejectedEmail({ sellerName, productName, reason }) {
+    const yr = new Date().getFullYear()
+    return {
+        subject: `Listing Action Required: ${productName} ⚠️`,
+        html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <!-- Header -->
+            <div style="background:#0f172a;padding:28px;text-align:center;">
+                <h1 style="color:#05DF72;margin:0 0 4px;font-size:24px;letter-spacing:-0.5px;">Go-Cycle</h1>
+                <p style="color:#94a3b8;margin:0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Listing Action Required</p>
+            </div>
+
+            <!-- Hero Section -->
+            <div style="background:#fef2f2;padding:32px 28px;text-align:center;">
+                <p style="font-size:40px;margin:0 0-16px;">⚠️</p>
+                <h2 style="color:#991b1b;margin:0;font-size:20px;">Update on your listing, ${sellerName}</h2>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:28px;">
+                <p style="color:#475569;margin-top:0;line-height:1.6;">Our moderation team has reviewed your listing for <strong>"${productName}"</strong> and unfortunately, it cannot be approved at this time.</p>
+                
+                <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin:24px 0;">
+                    <h3 style="color:#0f172a;margin-top:0;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Reason for Rejection</h3>
+                    <p style="color:#ef4444;font-size:15px;font-weight:bold;margin:10px 0 0;">"${reason || "Your listing did not meet our marketplace guidelines."}"</p>
+                </div>
+
+                <div style="background:#fff7ed;border-left:4px solid #f97316;padding:16px;margin:24px 0;">
+                    <p style="color:#9a3412;font-size:13px;margin:0;"><strong>What should you do?</strong> Please log in to your seller dashboard to correct the listing or contact support if you believe this was an error.</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle Nigeria. All rights reserved.</p>
+            </div>
+        </div>`
+    }
+}
+
+/**
+ * Seller New Order Email — sent to the seller when a buyer places an order, includes the collection token
+ */
+export function sellerNewOrderEmail({ sellerName, orderId, productName, amount, quantity, collectionDate, token, buyerName }) {
+    const yr = new Date().getFullYear()
+    const shortId = orderId.slice(-6).toUpperCase()
+    return {
+        subject: `New Order Received – #${shortId} 🎉`,
+        html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <!-- Header -->
+            <div style="background:#0f172a;padding:28px;text-align:center;">
+                <h1 style="color:#05DF72;margin:0 0 4px;font-size:24px;letter-spacing:-0.5px;">Go-Cycle</h1>
+                <p style="color:#94a3b8;margin:0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">New Order Notification</p>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:28px;">
+                <h2 style="color:#0f172a;margin-top:0;">Hi ${sellerName},</h2>
+                <p style="color:#475569;">Great news! You have a new order from <strong>${buyerName}</strong>.</p>
+
+                <div style="background:#f0fdf4;border:2px dashed #05DF72;border-radius:12px;padding:24px;margin:20px 0;text-align:center;">
+                    <p style="margin:0 0 8px;font-size:12px;color:#15803d;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Collection Token</p>
+                    <h2 style="margin:0;font-size:32px;color:#0f172a;letter-spacing:8px;">${token}</h2>
+                    <p style="margin:8px 0 0;font-size:11px;color:#64748b;">The buyer will present this code at point of pickup</p>
+                </div>
+
+                <div style="background:#f8fafc;border-radius:10px;padding:16px;margin:20px 0;">
+                    <p style="margin:0 0 8px;font-size:13px;color:#64748b;">ORDER DETAILS</p>
+                    <p style="margin:4px 0;"><strong>Order ID:</strong> #${shortId}</p>
+                    <p style="margin:4px 0;"><strong>Product:</strong> ${productName}</p>
+                    <p style="margin:4px 0;"><strong>Quantity:</strong> ${quantity} unit(s)</p>
+                    <p style="margin:4px 0;"><strong>Amount:</strong> ₦${Number(amount).toLocaleString()}</p>
+                    <p style="margin:4px 0;"><strong>Collection Date:</strong> ${collectionDate}</p>
+                </div>
+
+                <p style="color:#475569;font-size:14px;">Please ensure the batteries are ready for pickup on the collection date. The buyer will present the 6-digit token above to confirm collection.</p>
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle Nigeria. All rights reserved.</p>
+            </div>
+        </div>`
+    }
+}
+

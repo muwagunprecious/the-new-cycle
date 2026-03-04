@@ -14,7 +14,11 @@ export async function registerUser(userData) {
         if (role === 'BUYER') role = 'USER'
 
         // Check for existing user
-        const existingUser = await prisma.user.findUnique({ where: { phone: whatsapp } })
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [{ email }, { phone: whatsapp }]
+            }
+        })
 
         if (existingUser) {
             // If already verified, they should login
@@ -22,10 +26,30 @@ export async function registerUser(userData) {
                 return ApiResponse.error("A user with this phone number already exists. Please log in instead.", 400)
             }
 
-            // If NOT verified, allow them to "resume" - technically we'll just send them to the OTP screen
-            // with a new OTP (or the standard one for now)
-            const otp = "123456"
+            const hashedPassword = await bcrypt.hash(password, 10)
+            const otp = Math.floor(100000 + Math.random() * 900000).toString()
+            await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { password: hashedPassword, verificationCode: otp }
+            })
             logger.info(`Resending verification code to unverified user ${whatsapp}: ${otp}`)
+
+            // Send email again if they provided one
+            if (email || existingUser.email) {
+                const targetEmail = email || existingUser.email;
+                const name = userData.name || existingUser.name;
+
+                const { verificationCodeEmail } = await import("@/backend/lib/email")
+                const verificationTemplate = verificationCodeEmail({ name, code: otp })
+
+                // Fire and forget email sending with logging
+                import("@/backend/lib/email").then(m => {
+                    m.sendEmail({ to: targetEmail, ...verificationTemplate }).catch(err =>
+                        logger.warn("Verification email retry failed", err)
+                    )
+                })
+            }
+
             return ApiResponse.success({ user: existingUser, requiresVerification: true }, "Account already exists but is unverified. Please verify your phone number.")
         }
 
@@ -36,7 +60,7 @@ export async function registerUser(userData) {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
-        const otp = "123456" // Standard demo OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
         logger.info(`Verification code sent to ${whatsapp} and ${email || 'N/A'}: ${otp}`)
 
@@ -60,7 +84,8 @@ export async function registerUser(userData) {
                     cacDocument: userData.cacDocument || null,
                     bankName: userData.bankName || null,
                     accountNumber: userData.accountNumber || null,
-                    accountName: userData.accountName || null
+                    accountName: userData.accountName || null,
+                    verificationCode: otp
                 }
             })
 
@@ -150,8 +175,7 @@ export async function loginUser(identifier, password) {
 }
 
 export async function verifyOTP(identifier, code, type = 'PHONE') {
-    // Demo implementation
-    if (code === '123456') {
+    try {
         const user = await prisma.user.findFirst({
             where: {
                 OR: [{ email: identifier }, { phone: identifier }]
@@ -160,13 +184,24 @@ export async function verifyOTP(identifier, code, type = 'PHONE') {
 
         if (!user) return ApiResponse.error("User not found", 404)
 
+        // Check OTP against the stored verification code
+        if (user.verificationCode !== code) {
+            return ApiResponse.error("Invalid verification code", 400)
+        }
+
         await prisma.user.update({
             where: { id: user.id },
-            data: { isEmailVerified: true, isPhoneVerified: true }
+            data: {
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                verificationCode: null // Clear the code after use
+            }
         })
         return ApiResponse.success(null, "Account verified successfully")
+    } catch (error) {
+        logger.error("Verify OTP Error", error)
+        return ApiResponse.error("Verification failed")
     }
-    return ApiResponse.error("Invalid verification code", 400)
 }
 
 export async function createStoreApplication(storeData, userId) {
@@ -259,3 +294,27 @@ export async function getUserProfile(userId) {
         return ApiResponse.error("Failed to fetch profile details")
     }
 }
+
+export async function changePassword(userId, currentPassword, newPassword) {
+    try {
+        if (!userId) return ApiResponse.unauthorized()
+
+        const user = await prisma.user.findUnique({ where: { id: userId } })
+        if (!user || !user.password) return ApiResponse.error("User not found", 404)
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password)
+        if (!isMatch) return ApiResponse.error("Current password is incorrect", 400)
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10)
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedNewPassword }
+        })
+
+        return ApiResponse.success(null, "Password changed successfully")
+    } catch (error) {
+        logger.error("Change Password Error", error)
+        return ApiResponse.error("Failed to change password")
+    }
+}
+

@@ -1,12 +1,25 @@
 'use client'
-import { usePathname } from "next/navigation"
-import { Home as HomeIcon, LayoutList as LayoutListIcon, SquarePen as SquarePenIcon, SquarePlus as SquarePlusIcon } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { Home as HomeIcon, LayoutList as LayoutListIcon, SquarePen as SquarePenIcon, SquarePlus as SquarePlusIcon, LogOut as LogOutIcon } from "lucide-react"
+import { useDispatch } from "react-redux"
+import { logout } from "@/lib/features/auth/authSlice"
+import { showLoader } from "@/lib/features/ui/uiSlice"
 import Image from "next/image"
 import Link from "next/link"
 
 const StoreSidebar = ({ storeInfo }) => {
 
     const pathname = usePathname()
+    const router = useRouter()
+    const dispatch = useDispatch()
+
+    const handleLogout = () => {
+        dispatch(showLoader("Signing you out..."))
+        setTimeout(() => {
+            dispatch(logout())
+            router.push('/')
+        }, 800)
+    }
 
     const sidebarLinks = [
         { name: 'Dashboard', href: '/store', icon: HomeIcon },
@@ -32,6 +45,13 @@ const StoreSidebar = ({ storeInfo }) => {
                         </Link>
                     ))
                 }
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 text-slate-400 hover:text-rose-500 p-2.5 transition w-full text-left mt-4 border-t border-slate-50 pt-4"
+                >
+                    <LogOutIcon size={18} className="sm:ml-5" />
+                    <p className="max-sm:hidden">Logout</p>
+                </button>
             </div>
         </div>
     )

@@ -321,9 +321,16 @@ function SignupContent() {
                                 <p className="text-slate-300 text-lg font-medium max-w-xs mx-auto">
                                     Enter the 6-digit security code sent to your device and email.
                                 </p>
-                                <div className="mt-4 inline-flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10">
-                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></span>
-                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Demo Code: 123456</span>
+                                <div className="mt-6 flex flex-col items-center gap-4">
+                                    <div className="inline-flex items-center gap-3 bg-emerald-500/20 px-8 py-4 rounded-3xl border-2 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                                        <span className="w-3 h-3 bg-emerald-500 rounded-full animate-ping"></span>
+                                        <span className="text-sm font-black text-emerald-400 uppercase tracking-[0.2em] animate-pulse">
+                                            Demo Code: 123456
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center max-w-[200px]">
+                                        Use this universal code for the demo environment
+                                    </p>
                                 </div>
                             </div>
 

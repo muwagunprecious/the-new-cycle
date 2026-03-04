@@ -1,0 +1,4 @@
+[1m[31mError: [39m[22m
+EPERM: operation not permitted, rename 'C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\.prisma\client\query_engine-windows.dll.node.tmp19324' -> 'C:\Users\TINGO-AI-010\Documents\Go-cycle\node_modules\.prisma\client\query_engine-windows.dll.node'
+
+

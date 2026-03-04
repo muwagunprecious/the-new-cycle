@@ -42,7 +42,7 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
 
             if (result.success) {
                 setVerificationResult(result.data)
-                setStep(2) // Move to bank verification
+                setStep(3) // Skip bank verification, go straight to success
             } else {
                 throw new Error(result.error)
             }
@@ -124,7 +124,7 @@ export default function VerificationModal({ isOpen, onClose, userRole, onVerific
                     </h2>
                     <p className="text-sm text-slate-400 mt-1">
                         {step === 1 && ((userRole === 'BUYER' || userRole === 'USER') ? 'Verify via CAC or NIN' : 'Enter your phone number')}
-                        {step === 2 && (userRole !== 'SELLER' ? 'Validate your bank account' : '')}
+                        {step === 2 && 'Validate your bank account'}
                         {step === 3 && 'Verification complete!'}
                     </p>
                 </div>

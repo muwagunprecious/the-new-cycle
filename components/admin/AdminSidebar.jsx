@@ -1,9 +1,10 @@
 'use client'
 
 import { usePathname, useRouter } from "next/navigation"
-import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon } from "lucide-react"
+import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon } from "lucide-react"
 import { useDispatch } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
+import { logout } from "@/lib/features/auth/authSlice"
 
 const AdminSidebar = () => {
     const pathname = usePathname()
@@ -16,10 +17,19 @@ const AdminSidebar = () => {
         { name: 'Verified Sellers', href: '/admin/sellers', icon: StoreIcon },
         { name: 'Pending Buyers', href: '/admin/verify-buyers', icon: ShieldCheckIcon },
         { name: 'Verified Buyers', href: '/admin/users', icon: UsersIcon },
+        { name: 'Pending Products', href: '/admin/pending-products', icon: ShoppingBagIcon },
         { name: 'Products', href: '/admin/products', icon: ShoppingBagIcon },
         { name: 'Orders', href: '/admin/orders', icon: ShieldCheckIcon },
         { name: 'Notifications', href: '/admin/notifications', icon: BellIcon },
     ]
+
+    const handleLogout = () => {
+        dispatch(showLoader("Signing you out..."))
+        setTimeout(() => {
+            dispatch(logout())
+            router.push('/')
+        }, 800)
+    }
 
     const handleNavigation = (href, message) => {
         dispatch(showLoader(message))
@@ -54,6 +64,13 @@ const AdminSidebar = () => {
                         </button>
                     ))
                 }
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-4 text-slate-500 hover:bg-rose-50 hover:text-rose-500 p-3.5 rounded-xl transition w-full text-left mt-4 border-t border-slate-50 pt-6"
+                >
+                    <LogOutIcon size={20} />
+                    <p className="max-sm:hidden text-sm font-semibold">Sign Out</p>
+                </button>
             </div>
         </div>
     )

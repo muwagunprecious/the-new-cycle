@@ -1,15 +1,28 @@
 'use client'
 import Link from "next/link"
-import { Bell as BellIcon } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
+import { useRouter } from "next/navigation"
+import { logout } from "@/lib/features/auth/authSlice"
+import { showLoader } from "@/lib/features/ui/uiSlice"
+import { Bell as BellIcon, LogOut as LogOutIcon } from "lucide-react"
 import { getNotifications } from "@/backend/actions/notification"
 import toast from "react-hot-toast"
 
 const AdminNavbar = () => {
     const { user } = useSelector(state => state.auth)
+    const dispatch = useDispatch()
+    const router = useRouter()
     const [unreadCount, setUnreadCount] = useState(0)
     const lastNotifiedId = useRef(null)
+
+    const handleLogout = () => {
+        dispatch(showLoader("Signing you out..."))
+        setTimeout(() => {
+            dispatch(logout())
+            router.push('/')
+        }, 800)
+    }
 
     const checkNotifications = useCallback(async () => {
         if (!user?.id) return
@@ -45,7 +58,7 @@ const AdminNavbar = () => {
     return (
         <div className="flex items-center justify-between px-12 py-3 border-b border-slate-200 transition-all">
             <Link href="/" className="relative text-4xl font-semibold text-slate-700">
-                <span className="text-green-600">go</span>cart<span className="text-green-600 text-5xl leading-0">.</span>
+                <span className="text-green-600">go</span>Cycle<span className="text-green-600 text-5xl leading-0">.</span>
                 <p className="absolute text-xs font-semibold -top-1 -right-13 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-500">
                     Admin
                 </p>
@@ -65,6 +78,13 @@ const AdminNavbar = () => {
                         A
                     </div>
                 </div>
+                <button
+                    onClick={handleLogout}
+                    className="p-2 text-slate-400 hover:text-rose-500 transition-all border border-transparent hover:border-rose-100 rounded-lg"
+                    title="Logout"
+                >
+                    <LogOutIcon size={20} />
+                </button>
             </div>
         </div>
     )

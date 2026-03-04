@@ -1,3 +1,19 @@
+const fs = require('fs');
+const path = require('path');
+
+// Manual .env loading (don't rely on dotenv package)
+const envPath = path.resolve(process.cwd(), '.env');
+if (fs.existsSync(envPath)) {
+    const envConfig = fs.readFileSync(envPath, 'utf8');
+    envConfig.split('\n').forEach(line => {
+        const parts = line.split('=');
+        if (parts.length >= 2) {
+            const key = parts[0].trim();
+            const value = parts.slice(1).join('=').trim().replace(/^["']|["']$/g, '');
+            process.env[key] = value;
+        }
+    });
+}
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient({
@@ -9,6 +25,63 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
+    console.log("Starting DB Cleanup...");
+    console.log("DATABASE_URL:", process.env.DATABASE_URL ? "FOUND" : "NOT FOUND");
+
+    // 0. Identify Demo Users to protect
+    const demoEmails = ['admin@gocycle.com', 'adebayo@ecovolt.com', 'buyer@gocycle.com'];
+
+    console.log("Fetching existing seller ID for email: adebayo@ecovolt.com ...");
+    // Get seller ID specifically for product protection
+    const existingSeller = await prisma.user.findUnique({ where: { email: 'adebayo@ecovolt.com' } });
+    console.log("Existing seller found:", !!existingSeller);
+    const sellerId = existingSeller?.id || 'seller_demo';
+    console.log("Using Seller ID:", sellerId);
+
+    // 1. Delete all non-demo products
+    console.log("Counting non-demo products...");
+    try {
+        const deletedProductsCount = await prisma.product.count({
+            where: {
+                OR: [
+                    { store: { userId: { notIn: [sellerId] } } },
+                    { store: { email: { notIn: demoEmails } } }
+                ],
+                // Protect hardcoded ID from seed script
+                id: { not: 'cmm8b9fol0001sw04gtxkjtw5' }
+            }
+        });
+        console.log("Counted:", deletedProductsCount);
+    } catch (e) {
+        console.log("Error counting products (might be empty):", e.message);
+    }
+
+    console.log("Clearing orders, orderItems, ratings, and notifications...");
+    await prisma.orderItem.deleteMany({});
+    await prisma.rating.deleteMany({});
+    await prisma.order.deleteMany({});
+    await prisma.notification.deleteMany({});
+    console.log("Cleared all orders, orderItems, ratings, and notifications.");
+
+    console.log("Deleting non-demo products...");
+    const deletedProducts = await prisma.product.deleteMany({
+        where: {
+            OR: [
+                { store: { userId: { notIn: [sellerId] } } },
+                { store: { email: { notIn: demoEmails } } }
+            ],
+            // Protect hardcoded ID from seed script
+            id: { not: 'cmm8b9fol0001sw04gtxkjtw5' }
+        }
+    });
+    console.log(`Deleted ${deletedProducts.count} non-demo products.`);
+
+    // 3. Delete all non-demo users
+    const deletedUsers = await prisma.user.deleteMany({
+        where: { email: { notIn: demoEmails } }
+    });
+    console.log(`Deleted ${deletedUsers.count} non-demo users.`);
+
     console.log("Seeding demo data...");
 
     const password = await bcrypt.hash('admin123', 10);

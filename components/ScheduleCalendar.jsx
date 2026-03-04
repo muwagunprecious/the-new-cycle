@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Clock, MapPin, CheckCircle, AlertCircle } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 /**
  * ScheduleCalendar Component
@@ -21,9 +22,10 @@ const ScheduleCalendar = ({
     preSelected = []
 }) => {
     const [currentWeekStart, setCurrentWeekStart] = useState(() => {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        return today
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        tomorrow.setHours(0, 0, 0, 0)
+        return tomorrow
     })
     const [selectedItems, setSelectedItems] = useState(multiSelect ? preSelected : null)
     const [weekDays, setWeekDays] = useState([])
@@ -41,12 +43,13 @@ const ScheduleCalendar = ({
 
     const handlePrevWeek = () => {
         const newDate = new Date(currentWeekStart)
-        newDate.setDate(newDate.getDate() - 5) // Use 5 for rolling view
+        newDate.setDate(newDate.getDate() - 5)
 
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        tomorrow.setHours(0, 0, 0, 0)
 
-        if (newDate >= today) {
+        if (newDate >= tomorrow) {
             setCurrentWeekStart(newDate)
         }
     }
@@ -58,14 +61,20 @@ const ScheduleCalendar = ({
     }
 
     const isDateInPast = (date) => {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        return date < today
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        tomorrow.setHours(0, 0, 0, 0)
+        return date < tomorrow // Today and earlier are blocked
     }
 
     const handleItemClick = (date, slot = null) => {
         const dateStr = date.toISOString().split('T')[0]
-        if (isDateBlocked(date) || isDateInPast(date)) return
+
+        if (isDateInPast(date)) {
+            toast.error("You cannot select today's date. Pickup must be at least 24 hours from now.")
+            return
+        }
+        if (isDateBlocked(date)) return
 
         if (multiSelect) {
             let newItems = [...(selectedItems || [])]
@@ -74,7 +83,10 @@ const ScheduleCalendar = ({
             if (newItems.includes(selection)) {
                 newItems = newItems.filter(i => i !== selection)
             } else {
-                if (newItems.length >= 2) return // Strict 2 date limit
+                if (newItems.length >= 2) {
+                    toast.error("You can select a maximum of 2 collection dates.")
+                    return
+                }
                 newItems.push(selection)
             }
             setSelectedItems(newItems)

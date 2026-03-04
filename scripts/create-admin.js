@@ -32,6 +32,7 @@ async function main() {
             password: hashedPassword,
             role: 'ADMIN',
             image: '',
+            phone: '00000000000',
             cart: {}
         }
     })

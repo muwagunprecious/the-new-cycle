@@ -4,6 +4,7 @@ import { ApiResponse } from "@/backend/lib/api-response"
 import { mapProductToFrontend, logger } from "@/backend/lib/api-utils"
 import { revalidatePath } from "next/cache"
 import prisma from "@/backend/lib/prisma"
+import { sendEmail, productApprovedEmail, productRejectedEmail } from "@/backend/lib/email"
 
 export async function createProduct(data, userId) {
     try {
@@ -27,15 +28,6 @@ export async function createProduct(data, userId) {
         const collectionDateStart = data.collectionDates?.length ? new Date(data.collectionDates[0]) : new Date()
         const collectionDateEnd = data.collectionDates?.length ? new Date(data.collectionDates[data.collectionDates.length - 1]) : new Date()
 
-        // Update store bank details on every publish to ensure they are current
-        await prisma.store.update({
-            where: { id: store.id },
-            data: {
-                bankName: data.bankName || store.bankName,
-                accountNumber: data.accountNumber || store.accountNumber,
-                accountName: data.accountName || store.accountName
-            }
-        })
 
         const product = await prisma.product.create({
             data: {
@@ -56,7 +48,8 @@ export async function createProduct(data, userId) {
                 collectionDates: data.collectionDates,
                 quantity: units,
                 storeId: store.id,
-                inStock: true
+                inStock: true,
+                status: "pending"
             }
         })
 
@@ -70,20 +63,60 @@ export async function createProduct(data, userId) {
     }
 }
 
-export async function getSellerProducts(userId) {
+export async function getSellerProducts(userId, page = 1, limit = 50) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
         const store = await prisma.store.findUnique({ where: { userId } })
-        if (!store) return ApiResponse.success({ products: [], data: [] }, "No store found")
+        if (!store) return ApiResponse.success({ products: [], data: [], pagination: { page, totalPages: 0, totalCount: 0 } }, "No store found")
 
-        const products = await prisma.product.findMany({
-            where: { storeId: store.id },
-            orderBy: { createdAt: 'desc' }
-        })
+        const skip = (page - 1) * limit
+
+        const [products, totalCount] = await Promise.all([
+            prisma.product.findMany({
+                where: { storeId: store.id },
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    mrp: true,
+                    price: true,
+                    category: true,
+                    type: true,
+                    brand: true,
+                    amps: true,
+                    condition: true,
+                    pickupAddress: true,
+                    collectionDateStart: true,
+                    collectionDateEnd: true,
+                    collectionDates: true,
+                    quantity: true,
+                    inStock: true,
+                    status: true,
+                    rejectionReason: true,
+                    storeId: true,
+                    createdAt: true,
+                    updatedAt: true
+                    // Excluding images for list view efficiency
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.product.count({ where: { storeId: store.id } })
+        ])
 
         const formatted = products.map(mapProductToFrontend)
-        return ApiResponse.success({ products: formatted, data: formatted })
+        return ApiResponse.success({
+            products: formatted,
+            data: formatted,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit)
+            }
+        })
     } catch (error) {
         logger.error("Get Seller Products Error", error)
         return ApiResponse.error("Failed to fetch products")
@@ -117,6 +150,7 @@ export async function getAllProducts() {
     try {
         const products = await prisma.product.findMany({
             where: {
+                status: 'approved',
                 store: { status: 'approved', isActive: true },
                 inStock: true
             },
@@ -163,24 +197,111 @@ export async function getProductById(productId) {
     }
 }
 
-export async function getAdminProducts() {
+export async function getAdminProducts(page = 1, limit = 50) {
     try {
-        const products = await prisma.product.findMany({
-            include: {
-                store: {
-                    include: {
-                        user: { select: { name: true, email: true } }
+        const skip = (page - 1) * limit
+        const [products, total] = await Promise.all([
+            prisma.product.findMany({
+                skip,
+                take: limit,
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    price: true,
+                    mrp: true,
+                    category: true,
+                    type: true,
+                    brand: true,
+                    amps: true,
+                    condition: true,
+                    status: true,
+                    inStock: true,
+                    createdAt: true,
+                    storeId: true,
+                    store: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            user: { select: { name: true, email: true } }
+                        }
                     }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        })
+                    // EXCLUDE heavy images field
+                },
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.product.count()
+        ])
 
         const formatted = products.map(mapProductToFrontend)
-        return ApiResponse.success({ products: formatted, data: formatted })
+        return ApiResponse.success({
+            products: formatted,
+            data: formatted,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        })
     } catch (error) {
         logger.error("Get Admin Products Error", error)
         return ApiResponse.error("Failed to fetch admin products")
+    }
+}
+
+export async function getPendingAdminProducts(page = 1, limit = 50) {
+    try {
+        const skip = (page - 1) * limit
+        const [products, total] = await Promise.all([
+            prisma.product.findMany({
+                where: { status: 'pending' },
+                skip,
+                take: limit,
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    price: true,
+                    mrp: true,
+                    category: true,
+                    type: true,
+                    brand: true,
+                    amps: true,
+                    condition: true,
+                    status: true,
+                    inStock: true,
+                    createdAt: true,
+                    storeId: true,
+                    store: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            user: { select: { name: true, email: true } }
+                        }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.product.count({ where: { status: 'pending' } })
+        ])
+
+        const formatted = products.map(mapProductToFrontend)
+        return ApiResponse.success({
+            products: formatted,
+            data: formatted,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        })
+    } catch (error) {
+        logger.error("Get Pending Admin Products Error", error)
+        return ApiResponse.error("Failed to fetch pending admin products")
     }
 }
 
@@ -194,5 +315,76 @@ export async function adminDeleteProduct(productId) {
     } catch (error) {
         logger.error("Admin Delete Product Error", error)
         return ApiResponse.error("Failed to delete product")
+    }
+}
+
+export async function adminApproveProduct(productId) {
+    try {
+        const product = await prisma.product.update({
+            where: { id: productId },
+            data: { status: 'approved', rejectionReason: null },
+            include: {
+                store: {
+                    include: { user: true }
+                }
+            }
+        })
+
+        if (product.store?.user?.email) {
+            const { subject, html } = productApprovedEmail({
+                sellerName: product.store.name,
+                productName: product.name
+            })
+            sendEmail({
+                to: product.store.user.email,
+                subject,
+                html
+            }).catch(err => logger.warn("Failed to send product approval email", err))
+        }
+
+        revalidatePath('/admin/products')
+        revalidatePath('/seller/products')
+        revalidatePath('/')
+        revalidatePath('/shop')
+        return ApiResponse.success(null, "Product approved successfully")
+    } catch (error) {
+        logger.error("Admin Approve Product Error", error)
+        return ApiResponse.error("Failed to approve product")
+    }
+}
+
+export async function adminRejectProduct(productId, reason) {
+    try {
+        const product = await prisma.product.update({
+            where: { id: productId },
+            data: { status: 'rejected', rejectionReason: reason || "Listing does not meet guidelines." },
+            include: {
+                store: {
+                    include: { user: true }
+                }
+            }
+        })
+
+        if (product.store?.user?.email) {
+            const { subject, html } = productRejectedEmail({
+                sellerName: product.store.name,
+                productName: product.name,
+                reason: reason || "Listing does not meet guidelines."
+            })
+            sendEmail({
+                to: product.store.user.email,
+                subject,
+                html
+            }).catch(err => logger.warn("Failed to send product rejection email", err))
+        }
+
+        revalidatePath('/admin/products')
+        revalidatePath('/seller/products')
+        revalidatePath('/')
+        revalidatePath('/shop')
+        return ApiResponse.success(null, "Product rejected")
+    } catch (error) {
+        logger.error("Admin Reject Product Error", error)
+        return ApiResponse.error("Failed to reject product")
     }
 }

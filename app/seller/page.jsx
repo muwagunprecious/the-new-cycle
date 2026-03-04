@@ -8,7 +8,7 @@ import VerificationModal from "@/components/VerificationModal"
 import Button from "@/components/Button"
 import { getSellerOrders, updateOrderStatus } from "@/backend/actions/order"
 import { getSellerProducts } from "@/backend/actions/product"
-import { getStoreDetails, updateStoreBankDetails } from "@/backend/actions/seller"
+import { getStoreDetails, updateStoreBankDetails, getSellerDashboardSummary } from "@/backend/actions/seller"
 
 export default function SellerOverview() {
     const { user } = useSelector(state => state.auth)
@@ -21,25 +21,34 @@ export default function SellerOverview() {
     useEffect(() => {
         const load = async () => {
             if (user?.id) {
-                // Load store details
-                const storeResult = await getStoreDetails(user.id)
-                if (storeResult.success) {
-                    setStore(storeResult.data)
-                }
+                setLoading(true)
+                try {
+                    // 1. Load store details
+                    const storeResult = await getStoreDetails(user.id)
+                    if (storeResult.success) {
+                        setStore(storeResult.data)
+                    }
 
-                // Load seller orders
-                const orderResult = await getSellerOrders(user.id)
-                if (orderResult.success) {
-                    setOrders(orderResult.orders)
-                }
-
-                // Load seller products count
-                const productResult = await getSellerProducts(user.id)
-                if (productResult.success) {
-                    setData({ totalProducts: productResult.products.length })
+                    // 2. Load Dashboard Summary (Aggregated)
+                    const summaryResult = await getSellerDashboardSummary(user.id)
+                    if (summaryResult.success) {
+                        const s = summaryResult.data
+                        setData({
+                            totalProducts: s.totalProducts,
+                            totalEarnings: s.totalEarnings,
+                            pendingPickups: s.pendingPickups,
+                            completedOrdersCount: s.completedOrdersCount,
+                            pendingPayouts: s.pendingPayouts
+                        })
+                        setOrders(s.recentOrders)
+                    }
+                } catch (error) {
+                    console.error("Seller Load Error:", error)
+                    toast.error("Failed to load dashboard data")
+                } finally {
+                    setLoading(false)
                 }
             }
-            setLoading(false)
         }
         load()
     }, [user])
@@ -79,16 +88,13 @@ export default function SellerOverview() {
 
     if (loading) return <Loading />
 
-    const pendingOrders = orders.filter(o => ['AWAITING_PICKUP', 'PAID', 'ORDER_PLACED', 'APPROVED'].includes(o.status))
-    const completedOrders = orders.filter(o => o.status === 'COMPLETED' || o.status === 'PICKED_UP')
-    const totalEarnings = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0)
-    const pendingPayouts = orders.filter(o => o.payoutStatus === 'pending').reduce((sum, o) => sum + (o.total || 0), 0)
+    if (loading) return <Loading />
 
     const stats = [
         { label: 'Listed Batteries', value: data.totalProducts, icon: BatteryIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
-        { label: 'Total Earnings', value: '₦' + totalEarnings.toLocaleString(), icon: CircleDollarSignIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Pending Pickups', value: pendingOrders.length, icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
-        { label: 'Completed Orders', value: completedOrders.length, icon: PackageIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { label: 'Total Earnings', value: '₦' + data.totalEarnings.toLocaleString(), icon: CircleDollarSignIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Pending Pickups', value: data.pendingPickups, icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { label: 'Completed Orders', value: data.completedOrdersCount, icon: PackageIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
     ]
 
     const getStatusBadge = (status) => {
@@ -220,7 +226,7 @@ export default function SellerOverview() {
                         <div className="space-y-6">
                             <div className="bg-white/10 rounded-2xl p-6">
                                 <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Pending Payout</p>
-                                <p className="text-3xl font-black text-[#05DF72]">₦{pendingPayouts.toLocaleString()}</p>
+                                <p className="text-3xl font-black text-[#05DF72]">₦{data.pendingPayouts.toLocaleString()}</p>
                                 <p className="text-xs text-slate-400 mt-2">Released after buyer confirms collection</p>
                             </div>
 

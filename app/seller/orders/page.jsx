@@ -11,25 +11,39 @@ export default function SellerOrders() {
     const { user } = useSelector(state => state.auth)
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
+    const [pagination, setPagination] = useState({ page: 1, totalPages: 1 })
     const [selectedOrder, setSelectedOrder] = useState(null)
     const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
     const [rescheduleLoading, setRescheduleLoading] = useState(false)
 
     useEffect(() => {
         if (user?.id) {
-            fetchOrders()
+            fetchOrders(1)
         } else {
             setLoading(false)
         }
     }, [user])
 
-    const fetchOrders = async () => {
-        const res = await getSellerOrders(user.id)
+    const fetchOrders = async (page) => {
+        if (page === 1) setLoading(true)
+        const res = await getSellerOrders(user.id, page, 20)
         if (res.success) {
-            setOrders(res.orders)
+            if (page === 1) {
+                setOrders(res.orders)
+            } else {
+                setOrders(prev => [...prev, ...res.orders])
+            }
+            setPagination(res.pagination)
         }
         setLoading(false)
     }
+
+    const loadMoreOrders = () => {
+        if (pagination.page < pagination.totalPages) {
+            fetchOrders(pagination.page + 1)
+        }
+    }
+
 
     const handleRescheduleRequest = async (newDate) => {
         setRescheduleLoading(true)
@@ -152,6 +166,17 @@ export default function SellerOrders() {
                     </div>
                 ))}
             </div>
+
+            {pagination.page < pagination.totalPages && (
+                <div className="flex justify-center pt-8">
+                    <button
+                        onClick={loadMoreOrders}
+                        className="btn-primary !bg-white !text-slate-900 border border-slate-200 hover:border-[#05DF72] !shadow-none hover:!bg-[#05DF72]/5"
+                    >
+                        Load More Orders
+                    </button>
+                </div>
+            )}
 
             {orders.length === 0 && (
                 <div className="p-20 text-center card bg-slate-50 border-dashed">

@@ -32,6 +32,7 @@ export default function SellerProducts() {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const [products, setProducts] = useState([])
     const [isLoading, setIsLoading] = useState(false)
+    const [pagination, setPagination] = useState({ page: 1, totalPages: 1 })
     const [storeInfo, setStoreInfo] = useState({ status: null, isActive: false })
 
     // Get minimum date (24h from now)
@@ -53,19 +54,29 @@ export default function SellerProducts() {
         address: '',
         collectionDates: [],
         comments: '',
-        images: [],
-        bankName: '',
-        accountNumber: '',
-        accountName: ''
+        images: []
     })
 
     const [selectedDates, setSelectedDates] = useState([])
 
-    const loadProducts = async () => {
+    const loadProducts = async (page = 1) => {
         if (!user) return
-        const result = await getSellerProducts(user.id)
+        if (page === 1) setIsLoading(true)
+        const result = await getSellerProducts(user.id, page, 20)
         if (result.success) {
-            setProducts(result.products)
+            if (page === 1) {
+                setProducts(result.products)
+            } else {
+                setProducts(prev => [...prev, ...result.products])
+            }
+            setPagination(result.pagination)
+        }
+        setIsLoading(false)
+    }
+
+    const loadMoreProducts = () => {
+        if (pagination.page < pagination.totalPages) {
+            loadProducts(pagination.page + 1)
         }
     }
 
@@ -83,7 +94,7 @@ export default function SellerProducts() {
 
     useEffect(() => {
         if (user) {
-            loadProducts()
+            loadProducts(1)
             const checkStatus = async () => {
                 const res = await getUserStoreStatus(user.id)
                 if (res.success && res.exists) {
@@ -94,9 +105,6 @@ export default function SellerProducts() {
                             ...prev,
                             lga: res.data.lga || prev.lga,
                             address: res.data.address || prev.address,
-                            bankName: res.data.bankName || prev.bankName,
-                            accountNumber: res.data.accountNumber || prev.accountNumber,
-                            accountName: res.data.accountName || prev.accountName
                         }))
                     }
                 }
@@ -130,6 +138,12 @@ export default function SellerProducts() {
     }
 
     const handleDateToggle = (date) => {
+        // Prevent selecting today's date
+        const today = new Date().toISOString().split('T')[0]
+        if (date === today) {
+            toast.error("You cannot select today's date. Please choose from tomorrow onwards.")
+            return
+        }
         if (selectedDates.includes(date)) {
             setSelectedDates(selectedDates.filter(d => d !== date))
         } else {
@@ -141,14 +155,14 @@ export default function SellerProducts() {
         }
     }
 
-    // Generate next 14 days for date picker
+    // Generate next 14 days for date picker (starting from tomorrow)
     const getAvailableDates = () => {
         const dates = []
-        const minDate = new Date() // Start from today
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
 
-        // Limit to 2 options as requested
-        for (let i = 0; i < 2; i++) {
-            const date = new Date(minDate)
+        for (let i = 0; i < 14; i++) {
+            const date = new Date(tomorrow)
             date.setDate(date.getDate() + i)
             dates.push({
                 value: date.toISOString().split('T')[0],
@@ -249,9 +263,6 @@ export default function SellerProducts() {
                 collectionDates: selectedDates.sort(),
                 comments: formData.comments,
                 images: formData.images.length > 0 ? formData.images : ['/placeholder-battery.jpg'],
-                bankName: formData.bankName,
-                accountNumber: formData.accountNumber,
-                accountName: formData.accountName
             }, user.id)
 
             clearTimeout(timeoutId)
@@ -259,7 +270,10 @@ export default function SellerProducts() {
             setIsLoading(false)
 
             if (result.success) {
-                toast.success("Listing published successfully!")
+                toast.success(
+                    "Listing published successfully! The product is pending approval from the admin before it can be listed.",
+                    { duration: 10000 }
+                )
                 setIsUploadModalOpen(false)
                 // Refresh products
                 loadProducts()
@@ -351,81 +365,106 @@ export default function SellerProducts() {
                         </button>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-                                <tr>
-                                    <th className="px-6 py-4 font-semibold">Product</th>
-                                    <th className="px-6 py-4 font-semibold">Location</th>
-                                    <th className="px-6 py-4 font-semibold">Price & Units</th>
-                                    <th className="px-6 py-4 font-semibold">Collection Dates</th>
-                                    <th className="px-6 py-4 font-semibold">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {products.map((product) => (
-                                    <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
-                                                    {getImageUrl(product.images?.[0]) ? (
-                                                        <img
-                                                            src={getImageUrl(product.images[0])}
-                                                            alt={product.name}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
-                                                        />
-                                                    ) : (
-                                                        <BatteryIcon size={20} />
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th className="px-6 py-4 font-semibold">Product</th>
+                                        <th className="px-6 py-4 font-semibold">Location</th>
+                                        <th className="px-6 py-4 font-semibold">Price & Units</th>
+                                        <th className="px-6 py-4 font-semibold">Status</th>
+                                        <th className="px-6 py-4 font-semibold">Collection Dates</th>
+                                        <th className="px-6 py-4 font-semibold">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {products.map((product) => (
+                                        <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
+                                                        {getImageUrl(product.images?.[0]) ? (
+                                                            <img
+                                                                src={getImageUrl(product.images?.[0])}
+                                                                alt={product.name}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
+                                                            />
+                                                        ) : (
+                                                            <BatteryIcon size={20} />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-slate-900">{product.name}</span>
+                                                        <span className="text-xs text-slate-400">{product.batteryType} • {product.amps}Ah • {product.brand || 'No Brand'}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <MapPinIcon size={14} className="text-slate-400" />
+                                                    <span className="text-sm text-slate-600">{product.lga}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-slate-900 text-sm">₦{product.price?.toLocaleString()}</span>
+                                                    <span className="text-xs text-slate-400">{product.unitsAvailable} units</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <span className={`status-badge ${product.status === 'approved' ? 'status-completed' : product.status === 'rejected' ? 'status-cancelled' : 'status-pending'}`}>
+                                                        {product.status?.charAt(0).toUpperCase() + product.status?.slice(1)}
+                                                    </span>
+                                                    {product.status === 'rejected' && product.rejectionReason && (
+                                                        <p className="text-[10px] text-rose-500 mt-1 max-w-[150px] line-clamp-2" title={product.rejectionReason}>
+                                                            {product.rejectionReason}
+                                                        </p>
                                                     )}
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-slate-900">{product.name}</span>
-                                                    <span className="text-xs text-slate-400">{product.batteryType} • {product.amps}Ah • {product.brand || 'No Brand'}</span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {product.collectionDates?.slice(0, 2).map(date => (
+                                                        <span key={date} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
+                                                            {new Date(date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}
+                                                        </span>
+                                                    ))}
+                                                    {product.collectionDates?.length > 2 && (
+                                                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full">
+                                                            +{product.collectionDates.length - 2}
+                                                        </span>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <MapPinIcon size={14} className="text-slate-400" />
-                                                <span className="text-sm text-slate-600">{product.lga}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-slate-900 text-sm">₦{product.price?.toLocaleString()}</span>
-                                                <span className="text-xs text-slate-400">{product.unitsAvailable} units</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-wrap gap-1">
-                                                {product.collectionDates?.slice(0, 2).map(date => (
-                                                    <span key={date} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
-                                                        {new Date(date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}
-                                                    </span>
-                                                ))}
-                                                {product.collectionDates?.length > 2 && (
-                                                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full">
-                                                        +{product.collectionDates.length - 2}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500 transition-colors">
-                                                    <Edit3Icon size={18} />
-                                                </button>
-                                                <button onClick={() => deleteProduct(product.id)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-rose-500 transition-colors">
-                                                    <TrashIcon size={18} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500 transition-colors">
+                                                        <Edit3Icon size={18} />
+                                                    </button>
+                                                    <button onClick={() => deleteProduct(product.id)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-rose-500 transition-colors">
+                                                        <TrashIcon size={18} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {pagination.page < pagination.totalPages && (
+                            <div className="p-6 text-center border-t border-slate-100">
+                                <button
+                                    onClick={loadMoreProducts}
+                                    className="text-sm font-bold text-[#05DF72] hover:underline"
+                                >
+                                    Load More Products
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
@@ -606,7 +645,7 @@ export default function SellerProducts() {
                                     <CalendarIcon size={16} className="text-[#05DF72]" />
                                     Available Collection Dates *
                                 </h3>
-                                <p className="text-xs text-slate-500">Select up to 2 dates when you are available for collection (including today)</p>
+                                <p className="text-xs text-slate-500">Select up to 2 dates when you are available for collection (starting from tomorrow)</p>
 
                                 <ScheduleCalendar
                                     mode="days"
@@ -669,51 +708,6 @@ export default function SellerProducts() {
                                     rows={3}
                                     className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm resize-none"
                                 />
-                            </div>
-
-                            {/* Payout Bank Details Section */}
-                            <div className="space-y-4 pt-4 border-t border-slate-100">
-                                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <CreditCardIcon size={16} className="text-[#05DF72]" />
-                                    Payout Bank Details
-                                </h3>
-                                <p className="text-xs text-slate-500">Ensure these are correct to receive your payments upon battery collection.</p>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Bank Name *</label>
-                                        <input
-                                            value={formData.bankName}
-                                            onChange={e => setFormData({ ...formData, bankName: e.target.value })}
-                                            placeholder="e.g. Zenith Bank"
-                                            required
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Number *</label>
-                                        <input
-                                            value={formData.accountNumber}
-                                            onChange={e => setFormData({ ...formData, accountNumber: e.target.value })}
-                                            placeholder="10-digit account number"
-                                            maxLength={10}
-                                            required
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2 md:col-span-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Name *</label>
-                                        <input
-                                            value={formData.accountName}
-                                            onChange={e => setFormData({ ...formData, accountName: e.target.value })}
-                                            placeholder="e.g. John Doe Enterprises"
-                                            required
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                        />
-                                    </div>
-                                </div>
                             </div>
 
                             {/* Submit */}

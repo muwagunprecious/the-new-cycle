@@ -8,7 +8,8 @@ export function mapProductToFrontend(product) {
         unitsAvailable: product.quantity,
         batteryType: product.type === 'CAR_TRUCK_WET' ? 'Cars and Truck batt (Wet cell)' :
             product.type === 'INVERTER_DRY' ? 'Inverter Batt (Dry cell)' : 'Inverter Batt (Wet Cell)',
-        status: product.store?.status === 'approved' ? 'Approved' : 'Pending',
+        status: product.status || 'pending',
+        rejectionReason: product.rejectionReason,
     };
 }
 
