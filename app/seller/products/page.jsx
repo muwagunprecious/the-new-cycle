@@ -1,7 +1,7 @@
 'use client'
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { Plus as PlusIcon, Search as SearchIcon, Edit3 as Edit3Icon, Trash as TrashIcon, Battery as BatteryIcon, Image as ImageIcon, X as XIcon, Calendar as CalendarIcon, MapPin as MapPinIcon, Box as BoxIcon, AlertCircle as AlertCircleIcon, CreditCard as CreditCardIcon } from "lucide-react"
+import { Plus as PlusIcon, Search as SearchIcon, Edit3 as Edit3Icon, Trash as TrashIcon, Battery as BatteryIcon, Image as ImageIcon, X as XIcon, Calendar as CalendarIcon, MapPin as MapPinIcon, Box as BoxIcon, AlertCircle as AlertCircleIcon, CreditCard as CreditCardIcon, Loader as LoaderIcon, CheckCircle as CheckCircleIcon } from "lucide-react"
 import { lagosLGAs } from "@/assets/assets"
 import toast from "react-hot-toast"
 import { useDispatch, useSelector } from "react-redux"
@@ -10,6 +10,7 @@ import Button from "@/components/Button"
 import ScheduleCalendar from "@/components/ScheduleCalendar"
 import { createProduct, getSellerProducts, deleteProduct as deleteProductAction } from "@/backend/actions/product"
 import { getUserStoreStatus } from "@/backend/actions/auth"
+import { updateStoreBankDetails } from "@/backend/actions/seller"
 import { CONSTANTS } from "@/lib/mockService"
 
 const BATTERY_PRICES = {
@@ -25,6 +26,34 @@ const BATTERY_PRICES = {
     }
 }
 
+const NIGERIAN_BANKS = {
+    "Access Bank": "044",
+    "Citibank": "023",
+    "Ecobank": "050",
+    "Fidelity Bank": "070",
+    "First Bank": "011",
+    "First City Monument Bank (FCMB)": "214",
+    "Guaranty Trust Bank (GTBank)": "058",
+    "Heritage Bank": "030",
+    "Jaiz Bank": "301",
+    "Keystone Bank": "082",
+    "Kuda Bank": "50211",
+    "Moniepoint": "50515",
+    "Opay": "999992",
+    "Palmpay": "999991",
+    "Polaris Bank": "076",
+    "Providus Bank": "101",
+    "Stanbic IBTC Bank": "221",
+    "Standard Chartered Bank": "068",
+    "Sterling Bank": "232",
+    "Suntrust Bank": "100",
+    "Union Bank": "032",
+    "United Bank for Africa (UBA)": "033",
+    "Unity Bank": "215",
+    "Wema Bank": "035",
+    "Zenith Bank": "057",
+}
+
 export default function SellerProducts() {
     const router = useRouter()
     const dispatch = useDispatch()
@@ -34,6 +63,44 @@ export default function SellerProducts() {
     const [isLoading, setIsLoading] = useState(false)
     const [pagination, setPagination] = useState({ page: 1, totalPages: 1 })
     const [storeInfo, setStoreInfo] = useState({ status: null, isActive: false })
+    const [acceptedTerms, setAcceptedTerms] = useState(false)
+    const [showPaymentModal, setShowPaymentModal] = useState(false)
+    const [saveAccount, setSaveAccount] = useState(true)
+    const [bankLookupLoading, setBankLookupLoading] = useState(false)
+    const [bankDetails, setBankDetails] = useState({
+        bankName: '',
+        bankCode: '',
+        accountNumber: '',
+        accountName: ''
+    })
+
+    const lookupAccountName = async (accNum, bankCode) => {
+        if (accNum.length !== 10 || !bankCode) return
+        setBankLookupLoading(true)
+        try {
+            const res = await fetch('/api/verify-bank', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    accountNumber: accNum,
+                    bankCode: bankCode,
+                    firstname: user?.name?.split(' ')[0] || 'N/A',
+                    lastname: user?.name?.split(' ').slice(1).join(' ') || 'N/A'
+                })
+            })
+            const data = await res.json()
+            if (data.success) {
+                setBankDetails(prev => ({ ...prev, accountName: data.accountName }))
+                toast.success(`Account verified: ${data.accountName}`)
+            } else {
+                toast.error(data.message || 'Could not resolve account name')
+            }
+        } catch {
+            toast.error('Failed to verify account')
+        } finally {
+            setBankLookupLoading(false)
+        }
+    }
 
     // Get minimum date (24h from now)
     const getMinDate = () => {
@@ -98,7 +165,13 @@ export default function SellerProducts() {
             const checkStatus = async () => {
                 const res = await getUserStoreStatus(user.id)
                 if (res.success && res.exists) {
-                    setStoreInfo({ status: res.status, isActive: res.isActive })
+                    setStoreInfo({
+                        status: res.status,
+                        isActive: res.isActive,
+                        bankName: res.bankName,
+                        accountNumber: res.accountNumber,
+                        accountName: res.accountName
+                    })
                     // Pre-fill location from store info
                     if (res.data) {
                         setFormData(prev => ({
@@ -111,7 +184,7 @@ export default function SellerProducts() {
             }
             checkStatus()
         }
-    }, [user])
+    }, [user?.id])
 
     // Pre-select tomorrow as default collection date
     useEffect(() => {
@@ -230,6 +303,21 @@ export default function SellerProducts() {
             return
         }
 
+        // If seller already has saved bank details, skip the popup
+        if (storeInfo.bankName && storeInfo.accountNumber) {
+            setBankDetails({
+                bankName: storeInfo.bankName,
+                accountNumber: storeInfo.accountNumber,
+                accountName: storeInfo.accountName || ''
+            })
+            doPublish()
+        } else {
+            // Show the payment account modal
+            setShowPaymentModal(true)
+        }
+    }
+
+    const doPublish = async () => {
         // Check image size (Total base64 characters)
         const totalImageSize = formData.images.reduce((acc, img) => acc + img.length, 0)
         if (totalImageSize > 10 * 1024 * 1024) { // ~7.5MB decoded
@@ -303,6 +391,28 @@ export default function SellerProducts() {
             console.error("CLIENT: Publication Exception:", error)
             toast.error("Failed to publish listing: Network or Server Error")
         }
+    }
+
+    const handlePaymentSubmitAndPublish = async () => {
+        if (!bankDetails.bankName.trim() || !bankDetails.accountNumber.trim() || !bankDetails.accountName.trim()) {
+            toast.error("Please fill in all bank details")
+            return
+        }
+        if (bankDetails.accountNumber.length < 10) {
+            toast.error("Account number must be at least 10 digits")
+            return
+        }
+
+        // Save bank details if checkbox is checked
+        if (saveAccount && user?.id) {
+            const res = await updateStoreBankDetails(user.id, bankDetails)
+            if (res.success) {
+                setStoreInfo(prev => ({ ...prev, ...bankDetails }))
+            }
+        }
+
+        setShowPaymentModal(false)
+        doPublish()
     }
 
     const getImageUrl = (image) => {
@@ -710,6 +820,21 @@ export default function SellerProducts() {
                                 />
                             </div>
 
+                            {/* Terms and Conditions */}
+                            <div className="pt-4 border-t border-slate-100">
+                                <label className="flex items-start gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        checked={acceptedTerms}
+                                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                        className="mt-0.5 w-5 h-5 rounded-md border-2 border-slate-300 text-[#05DF72] focus:ring-[#05DF72] focus:ring-offset-0 cursor-pointer accent-[#05DF72]"
+                                    />
+                                    <span className="text-xs text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
+                                        I agree to Go-Cycle's <a href="/terms" target="_blank" className="text-[#05DF72] font-bold hover:underline">Terms and Conditions</a> and confirm that the battery details provided are accurate. I understand that misrepresentation may result in account suspension.
+                                    </span>
+                                </label>
+                            </div>
+
                             {/* Submit */}
                             <div className="flex gap-4 pt-6">
                                 <button
@@ -724,11 +849,117 @@ export default function SellerProducts() {
                                     loading={isLoading}
                                     loadingText="Publishing..."
                                     className="flex-1"
+                                    disabled={!acceptedTerms}
                                 >
                                     Publish Listing
                                 </Button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Payment Account Modal */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full border border-slate-100 animate-in fade-in zoom-in duration-300">
+                        <div className="p-6 border-b border-slate-100">
+                            <h2 className="text-lg font-bold text-slate-900">Payment <span className="text-[#05DF72]">Details</span></h2>
+                            <p className="text-xs text-slate-400 mt-1">Enter your bank account to receive payment for this listing</p>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            {/* Bank Selection Dropdown */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Select Bank *</label>
+                                <select
+                                    value={bankDetails.bankName}
+                                    onChange={e => {
+                                        const name = e.target.value
+                                        const code = NIGERIAN_BANKS[name] || ''
+                                        setBankDetails(prev => ({ ...prev, bankName: name, bankCode: code, accountName: '' }))
+                                        // Auto-lookup if 10-digit account already entered
+                                        if (bankDetails.accountNumber.length === 10 && code) {
+                                            lookupAccountName(bankDetails.accountNumber, code)
+                                        }
+                                    }}
+                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                >
+                                    <option value="">-- Select your bank --</option>
+                                    {Object.keys(NIGERIAN_BANKS).map(bank => (
+                                        <option key={bank} value={bank}>{bank}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Account Number */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Number *</label>
+                                <div className="relative">
+                                    <input
+                                        value={bankDetails.accountNumber}
+                                        onChange={e => {
+                                            const val = e.target.value.replace(/\D/g, '')
+                                            setBankDetails(prev => ({ ...prev, accountNumber: val, accountName: '' }))
+                                            if (val.length === 10 && bankDetails.bankCode) {
+                                                lookupAccountName(val, bankDetails.bankCode)
+                                            }
+                                        }}
+                                        placeholder="0123456789"
+                                        maxLength={10}
+                                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-bold text-lg tracking-[0.15em]"
+                                    />
+                                    {bankLookupLoading && (
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                            <LoaderIcon className="animate-spin text-[#05DF72]" size={20} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Account Name (auto-resolved) */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Name</label>
+                                {bankDetails.accountName ? (
+                                    <div className="w-full p-4 bg-[#05DF72]/5 border border-[#05DF72]/20 rounded-2xl flex items-center gap-3">
+                                        <CheckCircleIcon className="text-[#05DF72] shrink-0" size={20} />
+                                        <span className="font-bold text-slate-900">{bankDetails.accountName}</span>
+                                    </div>
+                                ) : (
+                                    <div className="w-full p-4 bg-slate-50 rounded-2xl text-sm text-slate-400 font-medium">
+                                        {bankLookupLoading ? 'Verifying account...' : 'Will auto-resolve when you select bank and enter account number'}
+                                    </div>
+                                )}
+                            </div>
+
+                            <label className="flex items-start gap-3 cursor-pointer group pt-2">
+                                <input
+                                    type="checkbox"
+                                    checked={saveAccount}
+                                    onChange={(e) => setSaveAccount(e.target.checked)}
+                                    className="mt-0.5 w-5 h-5 rounded-md border-2 border-slate-300 text-[#05DF72] focus:ring-[#05DF72] cursor-pointer accent-[#05DF72]"
+                                />
+                                <span className="text-xs text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
+                                    Save this account number for future transactions
+                                </span>
+                            </label>
+                        </div>
+
+                        <div className="p-6 border-t border-slate-100 flex gap-3">
+                            <button
+                                onClick={() => setShowPaymentModal(false)}
+                                className="flex-1 py-3 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <Button
+                                onClick={handlePaymentSubmitAndPublish}
+                                className="flex-1"
+                                disabled={!bankDetails.accountName || bankLookupLoading}
+                            >
+                                Proceed to Publish
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}

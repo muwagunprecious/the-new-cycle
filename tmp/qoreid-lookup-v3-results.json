@@ -1,0 +1,20 @@
+[
+  {
+    "name": "NIN Root JSON Body",
+    "url": "https://api.qoreid.com/v1/ng/identities/nin",
+    "status": 404,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /v1/ng/identities/nin\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "NIN Root JSON Body (id)",
+    "url": "https://api.qoreid.com/v1/ng/identities/nin",
+    "status": 404,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /v1/ng/identities/nin\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "NIN ID Retrieval",
+    "url": "https://api.qoreid.com/v1/ng/identities/nin-id-retrieval/63184876213",
+    "status": 404,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /v1/ng/identities/nin-id-retrieval/63184876213\",\"error\":\"Not Found\"}"
+  }
+]

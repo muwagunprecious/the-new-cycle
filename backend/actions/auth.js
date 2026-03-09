@@ -8,7 +8,7 @@ import bcrypt from "bcryptjs"
 
 export async function registerUser(userData) {
     try {
-        let { name, email, password, role, whatsapp, businessName } = userData
+        let { name, email, password, role, whatsapp, businessName, gender, state, lga, address } = userData
 
         // Map BUYER to USER for Prisma schema compatibility
         if (role === 'BUYER') role = 'USER'
@@ -77,11 +77,14 @@ export async function registerUser(userData) {
                     role: role || 'USER',
                     phone: whatsapp,
                     isEmailVerified: false,
-                    isPhoneVerified: false,
+                    isPhoneVerified: userData.isPhoneVerified || false,
                     cart: "{}",
                     accountStatus: role === 'USER' ? 'pending' : 'approved',
                     ninDocument: userData.ninDocument || null,
                     cacDocument: userData.cacDocument || null,
+                    gender: gender || null,
+                    state: state || "Lagos",
+                    lga: lga || null,
                     bankName: userData.bankName || null,
                     accountNumber: userData.accountNumber || null,
                     accountName: userData.accountName || null,
@@ -98,7 +101,7 @@ export async function registerUser(userData) {
                         name: finalBusinessName,
                         username,
                         description: "Battery Vendor",
-                        address: "TBD",
+                        address: address || "TBD",
                         email,
                         contact: whatsapp || "",
                         logo: "",
@@ -142,6 +145,32 @@ export async function registerUser(userData) {
         logger.error("Register Error", error)
         if (error.code === 'P2002') return ApiResponse.error("An account with these details already exists.", 409)
         return ApiResponse.error(`Registration failed: ${error.message}`)
+    }
+}
+
+export async function checkPhoneAvailability(phone) {
+    try {
+        const existingUser = await prisma.user.findUnique({
+            where: { phone }
+        })
+        if (existingUser) {
+            return ApiResponse.error("This phone number is already registered.", 400)
+        }
+        return ApiResponse.success({ available: true })
+    } catch (error) {
+        return ApiResponse.error("Failed to verify phone availability.")
+    }
+}
+
+export async function verifyPhoneStandalone(phone, code) {
+    try {
+        // In demo mode, we use 123456. In production, this would check a TOTP/OTP table or cache.
+        if (code === "123456") {
+            return ApiResponse.success({ verified: true }, "Phone number verified successfully!")
+        }
+        return ApiResponse.error("Invalid verification code. Please try again.", 400)
+    } catch (error) {
+        return ApiResponse.error("Verification failed.")
     }
 }
 
@@ -255,7 +284,10 @@ export async function getUserStoreStatus(userId) {
         return ApiResponse.success({
             exists: true,
             status: store.status,
-            isActive: store.isActive
+            isActive: store.isActive,
+            bankName: store.bankName || null,
+            accountNumber: store.accountNumber || null,
+            accountName: store.accountName || null
         })
     } catch (error) {
         return ApiResponse.error("Failed to retrieve store status")

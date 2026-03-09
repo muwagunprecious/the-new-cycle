@@ -1,0 +1,58 @@
+[
+  {
+    "name": "JSON POST /token",
+    "url": "https://api.qoreid.com/token",
+    "status": 201,
+    "duration": 1121,
+    "response": "{\"accessToken\":\"eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIzaVgtaEFrS3RmNUlsYWhRcElrNWwwbFBRVlNmVnpBdG9WVWQ4UXZ1OHJFIn0.eyJleHAiOjE3NzI2Njk3MzMsImlhdCI6MTc3MjY2MjUzMywianRpIjoiNDVkOTQ5ODgtMGVhYS00MmIxLTlkYzMtYzc4NTY5ZGE3YWMxIiwiaXNzIjoiaHR0cHM6Ly9hdXRoLnFvcmVpZC5jb20vYXV0aC9yZWFsbXMvcW9yZWlkIiwiYXVkIjpbInFvcmVpZGFwaSIsImFjY291bnQiXSwic3ViIjoiZGViMDc1Y2YtNzZjYS00OTcyLWIxYTgtODYyOGVmZWJmYTIwIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiUFQ5V0hUQVFLTjBGVjhHTEdWSlIiLCJhY3IiOiIxIiwicmVhbG1fYWNjZXNzIjp7InJv"
+  },
+  {
+    "name": "JSON POST /oauth/token",
+    "url": "https://api.qoreid.com/oauth/token",
+    "status": 404,
+    "duration": 1126,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /oauth/token\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "JSON POST /v1/auth/token",
+    "url": "https://api.qoreid.com/v1/auth/token",
+    "status": 404,
+    "duration": 1087,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /v1/auth/token\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "JSON POST /auth/token",
+    "url": "https://api.qoreid.com/auth/token",
+    "status": 404,
+    "duration": 229,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /auth/token\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "Basic Auth /token",
+    "url": "https://api.qoreid.com/token",
+    "status": 400,
+    "duration": 305,
+    "response": "{\"status\":400,\"statusCode\":400,\"message\":\"clientId must be a string\",\"error\":\"Bad Request\"}"
+  },
+  {
+    "name": "Basic Auth /oauth/token",
+    "url": "https://api.qoreid.com/oauth/token",
+    "status": 404,
+    "duration": 515,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /oauth/token\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "Basic Auth /v1/auth/token",
+    "url": "https://api.qoreid.com/v1/auth/token",
+    "status": 404,
+    "duration": 308,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /v1/auth/token\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "Basic Auth /auth/token",
+    "url": "https://api.qoreid.com/auth/token",
+    "status": 404,
+    "duration": 281,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /auth/token\",\"error\":\"Not Found\"}"
+  }
+]

@@ -20,38 +20,42 @@ export default function SellerOverview() {
 
     useEffect(() => {
         const load = async () => {
-            if (user?.id) {
-                setLoading(true)
-                try {
-                    // 1. Load store details
-                    const storeResult = await getStoreDetails(user.id)
-                    if (storeResult.success) {
-                        setStore(storeResult.data)
-                    }
+            if (!user?.id) {
+                setLoading(false)
+                return
+            }
+            setLoading(true)
+            try {
+                // Run both calls in parallel instead of sequentially
+                const [storeResult, summaryResult] = await Promise.all([
+                    getStoreDetails(user.id),
+                    getSellerDashboardSummary(user.id)
+                ])
 
-                    // 2. Load Dashboard Summary (Aggregated)
-                    const summaryResult = await getSellerDashboardSummary(user.id)
-                    if (summaryResult.success) {
-                        const s = summaryResult.data
-                        setData({
-                            totalProducts: s.totalProducts,
-                            totalEarnings: s.totalEarnings,
-                            pendingPickups: s.pendingPickups,
-                            completedOrdersCount: s.completedOrdersCount,
-                            pendingPayouts: s.pendingPayouts
-                        })
-                        setOrders(s.recentOrders)
-                    }
-                } catch (error) {
-                    console.error("Seller Load Error:", error)
-                    toast.error("Failed to load dashboard data")
-                } finally {
-                    setLoading(false)
+                if (storeResult.success) {
+                    setStore(storeResult.data)
                 }
+
+                if (summaryResult.success) {
+                    const s = summaryResult.data
+                    setData({
+                        totalProducts: s.totalProducts,
+                        totalEarnings: s.totalEarnings,
+                        pendingPickups: s.pendingPickups,
+                        completedOrdersCount: s.completedOrdersCount,
+                        pendingPayouts: s.pendingPayouts
+                    })
+                    setOrders(s.recentOrders)
+                }
+            } catch (error) {
+                console.error("Seller Load Error:", error)
+                toast.error("Failed to load dashboard data")
+            } finally {
+                setLoading(false)
             }
         }
         load()
-    }, [user])
+    }, [user?.id])
 
 
     const handleCompleteOrder = async (orderId) => {
@@ -85,8 +89,6 @@ export default function SellerOverview() {
             toast.success("Verification complete!")
         }
     }
-
-    if (loading) return <Loading />
 
     if (loading) return <Loading />
 

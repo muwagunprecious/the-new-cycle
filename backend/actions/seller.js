@@ -63,21 +63,38 @@ export async function getSellerDashboardSummary(userId) {
         })
         if (!store) return ApiResponse.error("Store not found", 404)
 
-        // 1. Total Products Count
-        const totalProducts = await prisma.product.count({
-            where: { storeId: store.id }
-        })
-
-        // 2. Orders Stats
-        const orders = await prisma.order.findMany({
-            where: { storeId: store.id },
-            select: {
-                status: true,
-                payoutStatus: true,
-                payoutAmount: true,
-                total: true
-            }
-        })
+        // Run all 3 queries in parallel
+        const [totalProducts, orders, recentOrders] = await Promise.all([
+            // 1. Total Products Count
+            prisma.product.count({
+                where: { storeId: store.id }
+            }),
+            // 2. Orders Stats
+            prisma.order.findMany({
+                where: { storeId: store.id },
+                select: {
+                    status: true,
+                    payoutStatus: true,
+                    payoutAmount: true,
+                    total: true
+                }
+            }),
+            // 3. Recent Orders (Latest 5)
+            prisma.order.findMany({
+                where: { storeId: store.id },
+                take: 5,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    orderItems: {
+                        include: {
+                            product: {
+                                select: { name: true }
+                            }
+                        }
+                    }
+                }
+            })
+        ])
 
         const pendingPickupStatuses = ['ORDER_PLACED', 'PAID', 'APPROVED', 'PROCESSING']
         const completionStatuses = ['COMPLETED', 'PICKED_UP']
@@ -99,22 +116,6 @@ export async function getSellerDashboardSummary(userId) {
             completedOrdersCount: 0,
             totalEarnings: 0,
             pendingPayouts: 0
-        })
-
-        // 3. Recent Orders (Latest 5)
-        const recentOrders = await prisma.order.findMany({
-            where: { storeId: store.id },
-            take: 5,
-            orderBy: { createdAt: 'desc' },
-            include: {
-                orderItems: {
-                    include: {
-                        product: {
-                            select: { name: true }
-                        }
-                    }
-                }
-            }
         })
 
         return ApiResponse.success({

@@ -532,3 +532,62 @@ export function sellerNewOrderEmail({ sellerName, orderId, productName, amount, 
     }
 }
 
+/**
+ * Reschedule Request Email — sent when buyer or seller proposes a new pickup date
+ */
+export function rescheduleRequestEmail({ recipientName, proposedDate, proposedBy, orderId }) {
+    const yr = new Date().getFullYear()
+    const shortId = orderId.slice(-6).toUpperCase()
+    return {
+        subject: `Pickup Date Change Proposed – Order #${shortId}`,
+        html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <div style="background:#0f172a;padding:24px;text-align:center;">
+                <h1 style="color:#05DF72;margin:0;font-size:22px;">Go-Cycle</h1>
+                <p style="color:#94a3b8;margin:4px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Pickup Reschedule</p>
+            </div>
+            <div style="padding:28px;">
+                <h2 style="color:#0f172a;margin-top:0;">Hi ${recipientName},</h2>
+                <p style="color:#475569;"><strong>${proposedBy}</strong> has proposed a new pickup date for your order <strong>#${shortId}</strong>.</p>
+                <div style="background:#fff7ed;border:2px solid #fed7aa;border-radius:12px;padding:24px;margin:20px 0;text-align:center;">
+                    <p style="margin:0 0 8px;font-size:12px;color:#9a3412;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Proposed Date</p>
+                    <h2 style="margin:0;font-size:24px;color:#0f172a;">${proposedDate}</h2>
+                </div>
+                <p style="color:#475569;font-size:14px;">Please log in to your dashboard to <strong>accept</strong> this date or <strong>propose an alternative</strong>.</p>
+            </div>
+            <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle. All rights reserved.</p>
+            </div>
+        </div>`
+    }
+}
+
+/**
+ * Reschedule Accepted Email — sent when the proposed date is confirmed by either party
+ */
+export function rescheduleAcceptedEmail({ recipientName, confirmedDate, orderId }) {
+    const yr = new Date().getFullYear()
+    const shortId = orderId.slice(-6).toUpperCase()
+    return {
+        subject: `Pickup Date Confirmed – Order #${shortId} ✅`,
+        html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <div style="background:#0f172a;padding:24px;text-align:center;">
+                <h1 style="color:#05DF72;margin:0;font-size:22px;">Go-Cycle</h1>
+                <p style="color:#94a3b8;margin:4px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Date Confirmed</p>
+            </div>
+            <div style="padding:28px;">
+                <h2 style="color:#0f172a;margin-top:0;">Hi ${recipientName},</h2>
+                <p style="color:#475569;">The pickup date for order <strong>#${shortId}</strong> has been confirmed.</p>
+                <div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;padding:24px;margin:20px 0;text-align:center;">
+                    <p style="margin:0 0 8px;font-size:12px;color:#15803d;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Confirmed Date</p>
+                    <h2 style="margin:0;font-size:24px;color:#0f172a;">${confirmedDate}</h2>
+                </div>
+                <p style="color:#475569;font-size:14px;">Please ensure you are available on this date for battery collection.</p>
+            </div>
+            <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle. All rights reserved.</p>
+            </div>
+        </div>`
+    }
+}

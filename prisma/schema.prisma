@@ -34,6 +34,9 @@ model User {
   verifiedAt        DateTime?
   identityToken     String?
   businessToken     String?
+  gender            String?
+  state             String?        @default("Lagos")
+  lga               String?
   Address           Address[]
   notifications     Notification[]
   buyerOrders       Order[]        @relation("BuyerRelation")
@@ -164,6 +167,8 @@ model Order {
   collectionStatus PickupStatus  @default(PENDING)
   collectionToken  String?
   collectionDate   String?
+  proposedDate     String?
+  proposedBy       String?
   payoutStatus     String        @default("none")
   userId           String
   storeId          String

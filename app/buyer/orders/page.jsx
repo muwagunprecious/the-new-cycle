@@ -5,7 +5,7 @@ import Loading from "@/components/Loading"
 import { useRouter } from "next/navigation"
 import { useSelector, useDispatch } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
-import { getUserOrders, respondToReschedule, verifyOrderCollection } from "@/backend/actions/order"
+import { getUserOrders, respondToReschedule, verifyOrderCollection, requestReschedule } from "@/backend/actions/order"
 import ScheduleCalendar from "@/components/ScheduleCalendar"
 import toast from "react-hot-toast"
 import { X as XIcon, Check as CheckIcon, Clock as ClockIcon } from "lucide-react"
@@ -41,7 +41,7 @@ export default function BuyerOrders() {
 
     const handleRescheduleAction = async (orderId, action, alternateDate = null) => {
         setRescheduleLoading(true)
-        const res = await respondToReschedule(orderId, action, alternateDate)
+        const res = await respondToReschedule(orderId, action, alternateDate, 'BUYER')
         if (res.success) {
             setOrders(orders.map(o => o.id === orderId ? res.order : o))
             toast.success(action === 'ACCEPT' ? "Date accepted!" : "New date proposed!")
@@ -49,6 +49,20 @@ export default function BuyerOrders() {
             setSelectedOrder(null)
         } else {
             toast.error(res.error || "Failed to respond")
+        }
+        setRescheduleLoading(false)
+    }
+
+    const handleBuyerReschedule = async (orderId, newDate) => {
+        setRescheduleLoading(true)
+        const res = await requestReschedule(orderId, newDate, 'BUYER')
+        if (res.success) {
+            setOrders(orders.map(o => o.id === orderId ? res.order : o))
+            toast.success("Reschedule request sent to seller!")
+            setIsRescheduleModalOpen(false)
+            setSelectedOrder(null)
+        } else {
+            toast.error(res.error || "Failed to request reschedule")
         }
         setRescheduleLoading(false)
     }
@@ -213,10 +227,10 @@ export default function BuyerOrders() {
                                     </p>
                                 </div>
 
-                                {order.collectionStatus === 'RESCHEDULE_REQUESTED' ? (
+                                {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'SELLER' ? (
                                     <div className="flex flex-col gap-2">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1 flex items-center gap-1">
-                                            <ClockIcon size={12} /> Reschedule Requested: {order.proposedDate}
+                                            <ClockIcon size={12} /> Seller proposed: {order.proposedDate}
                                         </p>
                                         <div className="flex gap-2">
                                             <button
@@ -227,19 +241,26 @@ export default function BuyerOrders() {
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    setSelectedOrder(order)
+                                                    setSelectedOrder({ ...order, rescheduleMode: 'COUNTER' })
                                                     setIsRescheduleModalOpen(true)
                                                 }}
-                                                className="px-4 py-2 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 transition-all font-inter"
+                                                className="px-4 py-2 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 transition-all"
                                             >
                                                 Propose New
                                             </button>
                                         </div>
                                     </div>
+                                ) : order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'BUYER' ? (
+                                    <div className="flex flex-col items-end gap-1">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-1">
+                                            <ClockIcon size={12} /> Awaiting seller confirmation
+                                        </p>
+                                        <p className="text-[10px] text-slate-400">You proposed: {order.proposedDate}</p>
+                                    </div>
                                 ) : ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) ? (
                                     <form onSubmit={(e) => {
                                         e.preventDefault()
-                                        handleVerifyCollection(e, order.id) // Pass ID here if needed, or set selectedOrder
+                                        handleVerifyCollection(e, order.id)
                                     }} className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2">
                                             <input
@@ -262,7 +283,19 @@ export default function BuyerOrders() {
                                                 <CheckIcon size={18} />
                                             </button>
                                         </div>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Enter seller code to confirm</p>
+                                        <div className="flex items-center gap-3">
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Enter seller code to confirm</p>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedOrder({ ...order, rescheduleMode: 'INITIATE' })
+                                                    setIsRescheduleModalOpen(true)
+                                                }}
+                                                className="text-[10px] font-bold text-amber-500 hover:text-amber-600 uppercase tracking-wide flex items-center gap-1"
+                                            >
+                                                <CalendarIcon size={10} /> Reschedule
+                                            </button>
+                                        </div>
                                     </form>
                                 ) : (
                                     <button
@@ -328,7 +361,13 @@ export default function BuyerOrders() {
                             </div>
 
                             <div className="p-8">
-                                <ScheduleCalendar onSelect={(dateInfo) => handleRescheduleAction(selectedOrder.id, 'RESCHEDULE', dateInfo.date)} />
+                                <ScheduleCalendar onSelect={(dateInfo) => {
+                                    if (selectedOrder?.rescheduleMode === 'INITIATE') {
+                                        handleBuyerReschedule(selectedOrder.id, dateInfo.date)
+                                    } else {
+                                        handleRescheduleAction(selectedOrder.id, 'COUNTER', dateInfo.date)
+                                    }
+                                }} />
 
                                 {rescheduleLoading && (
                                     <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center z-10">

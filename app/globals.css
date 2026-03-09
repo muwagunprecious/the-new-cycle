@@ -16,8 +16,12 @@
 }
 
 @layer components {
+    .max-container {
+        @apply max-w-[1200px] mx-auto px-6;
+    }
+
     .glass {
-        @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-glass;
+        @apply bg-white/70 backdrop-blur-md border border-black/[0.06] shadow-premium;
     }
 
     .glass-dark {
@@ -25,69 +29,57 @@
     }
 
     .btn-premium {
-        @apply bg-[#05DF72] text-white px-8 py-4 rounded-2xl font-black transition-all hover:bg-[#04b35c] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-[#05DF72]/20 uppercase tracking-wider text-sm;
+        @apply bg-[#05DF72] text-white px-8 py-4 rounded-xl font-bold transition-all duration-200 ease-in-out hover:bg-[#04b35c] hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-3 shadow-lg shadow-[#05DF72]/20 uppercase tracking-widest text-[10px];
     }
 
     .btn-secondary {
-        @apply bg-white text-slate-900 px-8 py-4 rounded-2xl font-black transition-all border border-slate-200 hover:bg-slate-50 active:scale-95 flex items-center justify-center gap-2 text-sm;
+        @apply bg-white text-slate-950 px-8 py-4 rounded-xl font-bold transition-all duration-200 ease-in-out border border-black/[0.08] hover:bg-slate-50 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest;
     }
 
     .premium-card {
-        @apply bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden transition-all hover:shadow-premium hover:-translate-y-1;
+        @apply bg-white border border-black/[0.06] rounded-[20px] overflow-hidden transition-all duration-300 ease-in-out hover:shadow-premium hover:-translate-y-1;
     }
 
-    @keyframes marqueeScroll {
-        0% {
-            transform: translateX(0%);
-        }
-
-        100% {
-            transform: translateX(-50%);
-        }
+    .section-card {
+        @apply bg-white border border-black/[0.06] rounded-[24px] shadow-soft p-8 md:p-12 mb-8;
     }
 
-    @keyframes popBadge {
-        0% {
-            transform: scale(0);
-        }
-
-        70% {
-            transform: scale(1.1);
-        }
-
-        100% {
-            transform: scale(1);
-        }
+    .text-heading {
+        @apply font-bold tracking-tighter text-slate-950 uppercase;
     }
 
-    @keyframes float {
-
-        0%,
-        100% {
-            transform: translateY(0);
-        }
-
-        50% {
-            transform: translateY(-10px);
-        }
+    .text-subheading {
+        @apply font-semibold tracking-tight text-slate-500 uppercase;
     }
 
-    .animate-float {
-        animation: float 3s ease-in-out infinite;
-    }
-
-    .animate-pop-badge {
-        animation: popBadge 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    .text-body {
+        @apply font-normal leading-[1.6] text-slate-600 tracking-wide;
     }
 }
 
 @layer base {
+    * {
+        @apply transition-colors duration-200 ease-in-out;
+    }
+
     button {
         cursor: pointer;
     }
 
     body {
-        @apply text-slate-800 bg-[#f9fafb];
+        @apply text-slate-800 bg-white antialiased selection:bg-emerald-100 selection:text-emerald-900;
+    }
+
+    h1 {
+        @apply text-slate-950 font-bold tracking-tighter uppercase leading-[0.9] text-5xl md:text-7xl;
+    }
+
+    h2 {
+        @apply text-slate-950 font-bold tracking-tighter uppercase leading-[1.0] text-3xl md:text-5xl;
+    }
+
+    h3 {
+        @apply text-slate-950 font-semibold tracking-tight uppercase leading-[1.1] text-xl md:text-2xl;
     }
 }
 

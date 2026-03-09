@@ -1,0 +1,14 @@
+[
+  {
+    "name": "NIN Premium Lookup",
+    "url": "https://api.qoreid.com/v1/ng/identities/nin-premium/63184876213",
+    "status": 403,
+    "response": "{\"status\":403,\"statusCode\":403,\"message\":\"Forbidden resource\",\"error\":\"Forbidden\"}"
+  },
+  {
+    "name": "NIN Standard Dummy Match",
+    "url": "https://api.qoreid.com/v1/ng/identities/nin/63184876213",
+    "status": 200,
+    "response": "{\"id\":141903788,\"applicant\":{\"firstname\":\"John\",\"lastname\":\"Doe\"},\"summary\":{\"nin_check\":{\"status\":\"NO_MATCH\",\"fieldMatches\":{\"firstname\":false,\"lastname\":false}}},\"status\":{\"state\":\"complete\",\"status\":\"id_mismatch\"}}"
+  }
+]

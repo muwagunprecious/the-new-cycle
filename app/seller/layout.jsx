@@ -17,29 +17,26 @@ export default function SellerLayout({ children }) {
 
     // Auth Protection
     useEffect(() => {
-        // Give time for hydration
         const checkAuth = async () => {
+            // Not logged in → redirect to login
             if (!isLoggedIn) {
                 router.push('/login')
                 return
             }
 
+            // Logged in but user data not hydrated yet → wait for next render
+            if (!user?.id) return
+
             // Check store status from DB
             try {
-                // Determine user ID from Redux if available, or rely on session if we had it. 
-                // Since this is client component, we trust Redux user.id
-                if (!user?.id) return
-
                 const result = await getUserStoreStatus(user.id)
 
                 if (result.success) {
                     if (!result.exists) {
-                        // No store -> Create one
                         router.push('/create-store')
                         return
                     }
                     if (result.status === 'pending' || result.status === 'approved' || result.isActive) {
-                        // Allowed to access
                         setLoading(false)
                         return
                     }
@@ -62,17 +59,12 @@ export default function SellerLayout({ children }) {
             setLoading(false)
         }
 
-        if (user) {
-            checkAuth()
-        } else if (!isLoggedIn && !loading) {
-            // If not logged in and not loading (initial state), redirect
-            router.push('/login')
-        }
-    }, [isLoggedIn, user, router])
+        checkAuth()
+    }, [isLoggedIn, user?.id])
 
     const sellerLinks = [
         { name: 'Overview', href: '/seller', icon: HomeIcon },
-        { name: 'My Batteries', href: '/seller/products', icon: BatteryIcon },
+        { name: 'List My Battery', href: '/seller/products', icon: BatteryIcon },
         { name: 'Incoming Orders', href: '/seller/orders', icon: PackageIcon },
         { name: 'Settings', href: '/seller/settings', icon: SettingsIcon },
     ]

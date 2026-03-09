@@ -8,8 +8,6 @@ import { useDispatch, useSelector } from "react-redux"
 import { updateProfile } from "@/lib/features/auth/authSlice"
 import { getUserProfile } from "@/backend/actions/auth"
 import ProductCard from "@/components/ProductCard"
-import VerificationModal from "@/components/VerificationModal"
-import DocumentVerificationModal from "@/components/DocumentVerificationModal"
 import toast from "react-hot-toast"
 import { getUserOrders, verifyOrderCollection } from "@/backend/actions/order"
 import { getNotifications } from "@/backend/actions/notification"
@@ -24,7 +22,6 @@ export default function BuyerDashboard() {
     const [verifyToken, setVerifyToken] = useState('')
     const [verifying, setVerifying] = useState(false)
     const [selectedOrder, setSelectedOrder] = useState(null)
-    const [documentsSubmitted, setDocumentsSubmitted] = useState(false)
     const [notifications, setNotifications] = useState([])
 
     useEffect(() => {
@@ -46,7 +43,14 @@ export default function BuyerDashboard() {
                         profileRes.data.isPhoneVerified !== user?.isPhoneVerified;
 
                     if (hasChanged) {
-                        dispatch(updateProfile(profileRes.data))
+                        // Serialize Date objects before dispatching to Redux
+                        const serialized = { ...profileRes.data }
+                        for (const key of Object.keys(serialized)) {
+                            if (serialized[key] instanceof Date) {
+                                serialized[key] = serialized[key].toISOString()
+                            }
+                        }
+                        dispatch(updateProfile(serialized))
                     }
                 }
             }
@@ -113,32 +117,17 @@ export default function BuyerDashboard() {
     const isPending = user?.accountStatus === 'pending'
     const isRejected = user?.accountStatus === 'rejected'
 
-    // Check if user has submitted documents (either in DB or in current session)
-    const hasSubmitted = !!user?.ninDocument || documentsSubmitted
+    // Check if user has submitted NIN (saved during signup)
+    const hasSubmitted = !!user?.ninDocument
 
-    // Strict Blocking Logic - Priority: Rejected > Pending Review > Input Required
+    // Strict Blocking Logic - Priority: Rejected > Pending Review
     const showRejectedOverlay = isRejected
-    const showUnderReviewOverlay = !isRejected && isPending && hasSubmitted
-    const showInputModal = !isRejected && isPending && !hasSubmitted
-
-    const handleDocumentSubmissionComplete = () => {
-        setDocumentsSubmitted(true)
-        toast.success('Documents submitted! Account under review.')
-        // Removed forced reload to allow Redux state update to handle the UI transition
-    }
+    const showUnderReviewOverlay = !isRejected && isPending
 
     return (
         <div className="relative space-y-12 min-h-[80vh]">
 
-            {/* STATE 1: INPUT REQUIRED (Blocking Modal) */}
-            {showInputModal && (
-                <DocumentVerificationModal
-                    user={user}
-                    onComplete={handleDocumentSubmissionComplete}
-                />
-            )}
-
-            {/* STATE 2: UNDER REVIEW (Blocking Overlay) */}
+            {/* Pending Approval Overlay — shown for ALL pending users since NIN is verified at signup */}
             {showUnderReviewOverlay && (
                 <div className="fixed inset-0 z-50 bg-slate-50/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500">
                     <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl max-w-xl border border-slate-100 relative overflow-hidden">
@@ -235,7 +224,7 @@ export default function BuyerDashboard() {
             )}
 
             {/* Main Content (Blurred if any blocking state is active) */}
-            <div className={(showInputModal || showUnderReviewOverlay || showRejectedOverlay) ? 'blur-xl pointer-events-none opacity-50 select-none grayscale' : ''}>
+            <div className={(showUnderReviewOverlay || showRejectedOverlay) ? 'blur-xl pointer-events-none opacity-50 select-none grayscale' : ''}>
 
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -441,13 +430,6 @@ export default function BuyerDashboard() {
                     </div>
                 )}
 
-                {/* Verification Modal */}
-                <VerificationModal
-                    isOpen={showVerificationModal}
-                    onClose={() => setShowVerificationModal(false)}
-                    userRole="BUYER"
-                    onVerificationComplete={handleVerificationComplete}
-                />
             </div>
         </div>
     )

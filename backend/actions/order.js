@@ -338,23 +338,60 @@ export async function getAllOrders(page = 1, limit = 50) {
     }
 }
 
-export async function requestReschedule(orderId, newDate) {
+export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER') {
     try {
         const order = await prisma.order.update({
             where: { id: orderId },
             data: {
                 collectionStatus: 'RESCHEDULE_REQUESTED',
-                proposedDate: newDate
+                proposedDate: newDate,
+                proposedBy: requestedBy
             },
-            include: { store: true }
+            include: { store: true, user: true }
         })
 
-        await createNotification(
-            order.userId,
-            "Reschedule Requested",
-            `Vendor at ${order.store.name} proposed a new pickup date: ${newDate}.`,
-            "ORDER"
-        )
+        // Notify the OTHER party
+        if (requestedBy === 'SELLER') {
+            // Seller proposed → notify buyer
+            await createNotification(
+                order.userId,
+                "Pickup Date Change Proposed",
+                `${order.store.name} has proposed a new pickup date: ${newDate}. Please accept or suggest an alternative.`,
+                "ORDER"
+            )
+            // Send email to buyer
+            if (order.user?.email) {
+                const { rescheduleRequestEmail } = await import('@/backend/lib/email')
+                sendEmail({
+                    to: order.user.email, ...rescheduleRequestEmail({
+                        recipientName: order.user.name,
+                        proposedDate: newDate,
+                        proposedBy: order.store.name,
+                        orderId: order.id
+                    })
+                }).catch(err => logger.warn('Reschedule email failed', err))
+            }
+        } else {
+            // Buyer proposed → notify seller
+            await createNotification(
+                order.store.userId,
+                "Buyer Requested Reschedule",
+                `${order.user.name} has requested a new pickup date: ${newDate}. Please accept or suggest an alternative.`,
+                "ORDER"
+            )
+            // Send email to seller
+            if (order.store?.email) {
+                const { rescheduleRequestEmail } = await import('@/backend/lib/email')
+                sendEmail({
+                    to: order.store.email, ...rescheduleRequestEmail({
+                        recipientName: order.store.name,
+                        proposedDate: newDate,
+                        proposedBy: order.user.name,
+                        orderId: order.id
+                    })
+                }).catch(err => logger.warn('Reschedule email failed', err))
+            }
+        }
 
         revalidatePath('/seller/orders')
         revalidatePath('/buyer/orders')
@@ -366,47 +403,102 @@ export async function requestReschedule(orderId, newDate) {
     }
 }
 
-export async function respondToReschedule(orderId, action, alternateDate = null) {
+export async function respondToReschedule(orderId, action, alternateDate = null, respondedBy = 'BUYER') {
     try {
         let updateData = {}
+        let notifyUserId = ""
         let notifyTitle = ""
         let notifyMsg = ""
+        let emailTo = ""
+        let emailName = ""
+
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: { store: true, user: true }
+        })
+        if (!order) return ApiResponse.error("Order not found")
 
         if (action === 'ACCEPT') {
-            const order = await prisma.order.findUnique({ where: { id: orderId } })
             updateData = {
                 collectionDate: order.proposedDate,
                 collectionStatus: 'PENDING',
-                proposedDate: null
+                proposedDate: null,
+                proposedBy: null
             }
-            notifyTitle = "Reschedule Accepted"
-            notifyMsg = `The buyer accepted the rescheduled date: ${order.proposedDate}.`
-        } else if (action === 'RESCHEDULE') {
+
+            if (respondedBy === 'BUYER') {
+                // Buyer accepted seller's date → notify seller
+                notifyUserId = order.store.userId
+                notifyTitle = "Pickup Date Confirmed"
+                notifyMsg = `${order.user.name} accepted the proposed pickup date: ${order.proposedDate}.`
+                emailTo = order.store?.email
+                emailName = order.store?.name
+            } else {
+                // Seller accepted buyer's date → notify buyer
+                notifyUserId = order.userId
+                notifyTitle = "Pickup Date Confirmed"
+                notifyMsg = `${order.store.name} confirmed the pickup date: ${order.proposedDate}.`
+                emailTo = order.user?.email
+                emailName = order.user?.name
+            }
+        } else if (action === 'COUNTER') {
             updateData = {
                 proposedDate: alternateDate,
+                proposedBy: respondedBy,
                 collectionStatus: 'RESCHEDULE_REQUESTED'
             }
-            notifyTitle = "Buyer Counter-Proposal"
-            notifyMsg = `The buyer proposed an alternative date: ${alternateDate}.`
+
+            if (respondedBy === 'BUYER') {
+                notifyUserId = order.store.userId
+                notifyTitle = "Buyer Counter-Proposal"
+                notifyMsg = `${order.user.name} proposed an alternative date: ${alternateDate}.`
+                emailTo = order.store?.email
+                emailName = order.store?.name
+            } else {
+                notifyUserId = order.userId
+                notifyTitle = "Seller Counter-Proposal"
+                notifyMsg = `${order.store.name} proposed an alternative date: ${alternateDate}.`
+                emailTo = order.user?.email
+                emailName = order.user?.name
+            }
         }
 
         const updatedOrder = await prisma.order.update({
             where: { id: orderId },
             data: updateData,
-            include: { store: true }
+            include: { store: true, user: true }
         })
 
-        await createNotification(
-            updatedOrder.store.userId,
-            notifyTitle,
-            notifyMsg,
-            "ORDER"
-        )
+        await createNotification(notifyUserId, notifyTitle, notifyMsg, "ORDER")
+
+        // Send email
+        if (emailTo) {
+            if (action === 'ACCEPT') {
+                const { rescheduleAcceptedEmail } = await import('@/backend/lib/email')
+                sendEmail({
+                    to: emailTo, ...rescheduleAcceptedEmail({
+                        recipientName: emailName,
+                        confirmedDate: order.proposedDate,
+                        orderId: order.id
+                    })
+                }).catch(err => logger.warn('Reschedule accepted email failed', err))
+            } else {
+                const { rescheduleRequestEmail } = await import('@/backend/lib/email')
+                sendEmail({
+                    to: emailTo, ...rescheduleRequestEmail({
+                        recipientName: emailName,
+                        proposedDate: alternateDate,
+                        proposedBy: respondedBy === 'BUYER' ? order.user.name : order.store.name,
+                        orderId: order.id
+                    })
+                }).catch(err => logger.warn('Reschedule counter email failed', err))
+            }
+        }
 
         revalidatePath('/seller/orders')
         revalidatePath('/buyer/orders')
 
-        return ApiResponse.success(updatedOrder, "Reschedule response processed")
+        return ApiResponse.success(updatedOrder, action === 'ACCEPT' ? "Date confirmed!" : "Counter-proposal sent")
     } catch (error) {
         logger.error("Reschedule Response Error", error)
         return ApiResponse.error("Failed to process reschedule response")

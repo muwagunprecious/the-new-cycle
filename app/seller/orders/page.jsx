@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from "react"
-import { getSellerOrders, updateOrderStatus, requestReschedule } from "@/backend/actions/order"
+import { getSellerOrders, updateOrderStatus, requestReschedule, respondToReschedule } from "@/backend/actions/order"
 import { useSelector } from "react-redux"
 import Loading from "@/components/Loading"
 import { AlertCircle as AlertCircleIcon, CheckCircle as CheckCircleIcon, Calendar as CalendarIcon, Truck as TruckIcon, Wallet as WalletIcon, X as XIcon, Clock as ClockIcon } from "lucide-react"
@@ -47,7 +47,7 @@ export default function SellerOrders() {
 
     const handleRescheduleRequest = async (newDate) => {
         setRescheduleLoading(true)
-        const res = await requestReschedule(selectedOrder.id, newDate.date)
+        const res = await requestReschedule(selectedOrder.id, newDate.date, 'SELLER')
         if (res.success) {
             setOrders(orders.map(o => o.id === selectedOrder.id ? res.order : o))
             toast.success("Reschedule request sent to buyer")
@@ -55,6 +55,20 @@ export default function SellerOrders() {
             setSelectedOrder(null)
         } else {
             toast.error(res.error || "Failed to send reschedule request")
+        }
+        setRescheduleLoading(false)
+    }
+
+    const handleSellerRescheduleAction = async (orderId, action, alternateDate = null) => {
+        setRescheduleLoading(true)
+        const res = await respondToReschedule(orderId, action, alternateDate, 'SELLER')
+        if (res.success) {
+            setOrders(orders.map(o => o.id === orderId ? res.order : o))
+            toast.success(action === 'ACCEPT' ? "Pickup date confirmed!" : "Counter-proposal sent!")
+            setIsRescheduleModalOpen(false)
+            setSelectedOrder(null)
+        } else {
+            toast.error(res.error || "Failed to respond")
         }
         setRescheduleLoading(false)
     }
@@ -138,12 +152,35 @@ export default function SellerOrders() {
                                                 </button>
                                             </>
                                         )}
-                                        {order.collectionStatus === 'RESCHEDULE_REQUESTED' && (
-                                            <div className="flex items-center gap-2 bg-amber-50 text-amber-600 px-3 py-2 rounded-lg border border-amber-100">
-                                                <ClockIcon size={14} />
-                                                <span className="text-xs font-bold uppercase tracking-widest">Reschedule Requested</span>
+                                        {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'BUYER' ? (
+                                            <div className="flex flex-col items-end gap-2">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1">
+                                                    <ClockIcon size={14} /> Buyer proposed: {order.proposedDate}
+                                                </p>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => handleSellerRescheduleAction(order.id, 'ACCEPT')}
+                                                        className="px-3 py-1.5 bg-[#05DF72] text-white font-bold text-[10px] rounded-lg hover:shadow-lg transition-all flex items-center gap-1"
+                                                    >
+                                                        <CheckCircleIcon size={12} /> Accept
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedOrder({ ...order, rescheduleMode: 'COUNTER' })
+                                                            setIsRescheduleModalOpen(true)
+                                                        }}
+                                                        className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 transition-all"
+                                                    >
+                                                        Counter
+                                                    </button>
+                                                </div>
                                             </div>
-                                        )}
+                                        ) : order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'SELLER' ? (
+                                            <div className="flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg border border-blue-100">
+                                                <ClockIcon size={14} />
+                                                <span className="text-xs font-bold uppercase tracking-widest">Awaiting Buyer Response</span>
+                                            </div>
+                                        ) : null}
                                         {order.status === 'APPROVED' && (
                                             <div className="flex flex-col items-end">
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Collection Code</span>
@@ -204,7 +241,13 @@ export default function SellerOrders() {
                         </div>
 
                         <div className="p-8">
-                            <ScheduleCalendar onSelect={(dateInfo) => handleRescheduleRequest(dateInfo)} />
+                            <ScheduleCalendar onSelect={(dateInfo) => {
+                                if (selectedOrder?.rescheduleMode === 'COUNTER') {
+                                    handleSellerRescheduleAction(selectedOrder.id, 'COUNTER', dateInfo.date)
+                                } else {
+                                    handleRescheduleRequest(dateInfo)
+                                }
+                            }} />
 
                             {rescheduleLoading && (
                                 <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center z-10">

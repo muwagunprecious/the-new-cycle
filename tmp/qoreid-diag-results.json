@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Auth Token v1",
+    "url": "https://api.qoreid.com/v1/auth/token",
+    "status": 404,
+    "duration": 990,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /v1/auth/token\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "Get Client Token v1",
+    "url": "https://api.qoreid.com/v1/get-client-token",
+    "status": 404,
+    "duration": 242,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /v1/get-client-token\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "Auth v1",
+    "url": "https://api.qoreid.com/v1/auth",
+    "status": 404,
+    "duration": 232,
+    "response": "{\"status\":404,\"statusCode\":404,\"message\":\"Cannot POST /v1/auth\",\"error\":\"Not Found\"}"
+  },
+  {
+    "name": "Direct Bearer (Secret)",
+    "url": "https://api.qoreid.com/v1/ng/identities/nin/12345678901",
+    "status": 401,
+    "duration": 227,
+    "response": "{\"status\":401,\"statusCode\":401,\"message\":\"Unauthorized\",\"error\":\"UnauthorizedException\"}"
+  },
+  {
+    "name": "Direct x-api-key (Secret)",
+    "url": "https://api.qoreid.com/v1/ng/identities/nin/12345678901",
+    "status": 401,
+    "duration": 717,
+    "response": "{\"status\":401,\"statusCode\":401,\"message\":\"Unauthorized\",\"error\":\"UnauthorizedException\"}"
+  },
+  {
+    "name": "Direct x-api-key + x-client-id",
+    "url": "https://api.qoreid.com/v1/ng/identities/nin/12345678901",
+    "status": 401,
+    "duration": 307,
+    "response": "{\"status\":401,\"statusCode\":401,\"message\":\"Unauthorized\",\"error\":\"UnauthorizedException\"}"
+  }
+]
