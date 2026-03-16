@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { Wallet, Truck, ShieldCheck, History, ArrowRight, Zap, Coins, Fingerprint } from 'lucide-react'
+import { Wallet, Truck, ShieldCheck, History, ArrowRight, Zap, Coins, Fingerprint, CheckCircle2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 const PaymentLogisticsPage = () => {

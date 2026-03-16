@@ -1,4 +1,5 @@
-import { Search, ShoppingCart, Leaf as LeafIcon, Bell as BellIcon, LogOut as LogOutIcon, LayoutDashboard as LayoutDashboardIcon } from "lucide-react";
+import { Search, ShoppingCart, Recycle as RecycleIcon, Leaf as LeafIcon, Bell as BellIcon, LogOut as LogOutIcon, LayoutDashboard as LayoutDashboardIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -45,19 +46,16 @@ const Navbar = () => {
     }
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-[60] bg-white/80 backdrop-blur-xl border-b border-black/[0.04]">
-            <div className="max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between gap-8">
+        <nav className="sticky top-0 z-50 bg-white border-b border-black/[0.04]">
+            <div className={`max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between`}>
 
-                {/* Logo Section */}
-                <div onClick={() => handleNavigation('/')} className="flex items-center gap-3 group shrink-0 cursor-pointer">
-                    <div className="bg-emerald-500 p-2.5 rounded-xl shadow-lg shadow-emerald-500/10 transition-all duration-300 group-hover:shadow-emerald-500/20 group-hover:-translate-y-0.5">
-                        <LeafIcon className="text-white fill-white" size={20} />
+                {/* Logo */}
+                <Link href="/" className="flex items-center gap-2.5 group">
+                    <div className="bg-emerald-500 p-2 rounded-xl shadow-sm transition-transform group-hover:scale-105">
+                        <RecycleIcon className="text-white" size={20} />
                     </div>
-                    <div className="flex flex-col">
-                        <span className="text-xl font-bold text-slate-900 tracking-tighter leading-none">Go<span className="text-emerald-500">Cycle</span></span>
-                        <span className="text-[8px] font-semibold uppercase tracking-[0.3em] text-slate-500 mt-1 leading-none">Circular Economy</span>
-                    </div>
-                </div>
+                    <span className="text-2xl font-bold tracking-tighter text-slate-950">Go<span className="text-emerald-500">Cycle</span></span>
+                </Link>
 
                 {/* Desktop Menu */}
                 <div className="hidden lg:flex items-center gap-10">

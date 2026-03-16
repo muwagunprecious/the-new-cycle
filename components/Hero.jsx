@@ -52,7 +52,7 @@ const Hero = () => {
                                     onClick={() => router.push('/signup?role=SELLER')}
                                     className='px-10 py-4 bg-white/[0.05] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/[0.1] border border-white/[0.1] transition-all duration-300 active:scale-95'
                                 >
-                                    Partner With Us
+                                    Sell
                                 </button>
                             </div>
                         </div>

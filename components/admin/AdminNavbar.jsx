@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
 import { logout } from "@/lib/features/auth/authSlice"
 import { showLoader } from "@/lib/features/ui/uiSlice"
-import { Bell as BellIcon, LogOut as LogOutIcon } from "lucide-react"
+import { Bell as BellIcon, LogOut as LogOutIcon, Recycle as RecycleIcon } from "lucide-react"
 import { getNotifications } from "@/backend/actions/notification"
 import toast from "react-hot-toast"
 
@@ -57,9 +57,12 @@ const AdminNavbar = () => {
 
     return (
         <div className="flex items-center justify-between px-12 py-3 border-b border-slate-200 transition-all">
-            <Link href="/" className="relative text-4xl font-semibold text-slate-700">
-                <span className="text-green-600">go</span>Cycle<span className="text-green-600 text-5xl leading-0">.</span>
-                <p className="absolute text-xs font-semibold -top-1 -right-13 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-500">
+            <Link href="/" className="flex items-center gap-2.5 group relative">
+                <div className="bg-emerald-500 p-2 rounded-xl shadow-sm transition-transform group-hover:scale-105">
+                    <RecycleIcon className="text-white" size={20} />
+                </div>
+                <span className="text-2xl font-bold tracking-tighter text-slate-950">Go<span className="text-emerald-500">Cycle</span></span>
+                <p className="absolute text-[9px] font-bold -top-2 -right-10 px-2 py-0.5 rounded-full flex items-center gap-2 text-emerald-600 bg-emerald-50 border border-emerald-500/20 uppercase tracking-widest">
                     Admin
                 </p>
             </Link>

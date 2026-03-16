@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon, MapPin as MapPinIcon, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon, ArrowUpRight as ArrowUpRightIcon } from "lucide-react";
+import { Recycle as RecycleIcon, Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon, MapPin as MapPinIcon, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon, ArrowUpRight as ArrowUpRightIcon } from "lucide-react";
 
 const Footer = () => {
 
@@ -38,7 +38,7 @@ const Footer = () => {
                     <div className="space-y-8 pr-6">
                         <div className="flex items-center gap-3 group cursor-pointer">
                             <div className="bg-emerald-500 p-2.5 rounded-xl shadow-lg shadow-emerald-500/10 transition-transform group-hover:scale-105">
-                                <LeafIcon className="text-white fill-white" size={18} />
+                                <RecycleIcon className="text-white fill-white" size={18} />
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-xl font-bold text-white tracking-tighter leading-none">Go<span className="text-emerald-500">Cycle</span></span>

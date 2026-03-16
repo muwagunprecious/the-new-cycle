@@ -62,6 +62,19 @@ function SignupContent() {
         }
     }, [roleParam])
 
+    // Auto-scroll to form top when step changes so user doesn't have to scroll down
+    useEffect(() => {
+        const formTop = document.getElementById('signup-form-card')
+        if (formTop) {
+            // Slight delay to allow DOM to render
+            setTimeout(() => {
+                const yOffset = -100; // Account for 80px fixed navbar
+                const y = formTop.getBoundingClientRect().top + window.scrollY + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }, 100)
+        }
+    }, [step, roleParam])
+
     // Dismiss global loader on mount
     useEffect(() => {
         dispatch(hideLoader())
