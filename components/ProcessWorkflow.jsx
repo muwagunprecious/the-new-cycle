@@ -80,10 +80,10 @@ const ProcessWorkflow = () => {
                             <p className='text-emerald-100/60 font-medium uppercase tracking-tight text-base'>Join Africa's most professionalized, transparent e-waste supply chain.</p>
                         </div>
                         <button
-                            onClick={() => router.push('/signup')}
+                            onClick={() => router.push('/signup?role=SELLER')}
                             className='px-10 py-5 bg-emerald-500 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-emerald-400 hover:-translate-y-1 transition-all duration-300 shadow-xl shadow-emerald-500/20 active:scale-95 whitespace-nowrap'
                         >
-                            Onboard as Merchant
+                            Join as Seller
                         </button>
                     </div>
                 </div>

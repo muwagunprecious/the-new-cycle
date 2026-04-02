@@ -56,17 +56,40 @@ export async function performNINVerification(userId, nin, userData) {
 /**
  * Server action to verify CAC
  */
-export async function performCACVerification(userId, rcNumber, companyName) {
+export async function performCACVerification(userId, rcNumber) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        const result = await verifyCAC(rcNumber, companyName)
-        const isVerified = result.status === 'success' ||
-            result.status?.status === 'verified' ||
-            result.status?.state === 'complete' ||
-            result.summary?.status === 'VERIFIED'
+        // Fetch user to get NIN details for director matching
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        })
 
-        if (isVerified) {
+        // TEST MODE BYPASS for CAC
+        if (rcNumber === 'RC0000000') {
+            logger.info('TEST MODE: Bypassing QoreID for CAC', { userId })
+            
+            const mockResult = {
+                success: true,
+                status: 'success',
+                cac: {
+                    companyName: "GO-CYCLE TEST CORP",
+                    companyType: "PRIVATE LIMITED COMPANY",
+                    rcNumber: "RC0000000",
+                    status: "ACTIVE",
+                    directors: [
+                        { firstname: user?.name?.split(' ')[0] || "Test", lastname: user?.name?.split(' ').pop() || "Director" }
+                    ]
+                }
+            };
+
+            // Using our logic with mock data
+            const businessData = mockResult.cac;
+            const businessName = businessData.companyName;
+            const businessType = businessData.companyType;
+            const isDirectorVerified = true; // Force true for test mode
+
+            // Update Store
             const store = await prisma.store.findUnique({ where: { userId } })
             if (store) {
                 await prisma.store.update({
@@ -74,21 +97,98 @@ export async function performCACVerification(userId, rcNumber, companyName) {
                     data: {
                         cac: rcNumber,
                         status: 'approved',
-                        isVerified: true
+                        isVerified: true,
+                        isDirectorVerified: isDirectorVerified
                     }
                 })
             }
 
+            // Update User
             await prisma.user.update({
                 where: { id: userId },
                 data: {
                     cacDocument: rcNumber,
+                    businessName: businessName,
+                    businessType: businessType,
+                    isDirectorVerified: isDirectorVerified,
+                    verifiedAt: new Date()
+                }
+            })
+
+            return ApiResponse.success({
+                ...mockResult,
+                businessName,
+                businessType,
+                isDirectorVerified
+            }, "CAC verification successful (TEST MODE)")
+        }
+
+        const result = await verifyCAC(rcNumber)
+        
+        // QoreID Premium response structure handling
+        const isVerified = result.status === 'success' || 
+                          result.status?.status === 'verified' || 
+                          result.summary?.cac_check === 'verified' ||
+                          result.summary?.status === 'VERIFIED';
+
+        if (isVerified) {
+            const businessData = result.cac || result.data || {};
+            const businessName = businessData.companyName || businessData.entityName || "Unknown Business";
+            const businessType = businessData.companyType || businessData.entityType || "N/A";
+            
+            // Director Matching Logic
+            let isDirectorVerified = false;
+            const directors = businessData.directors || businessData.fiduciaries || [];
+            
+            if (user && user.ninDocument && directors.length > 0) {
+                // We use the names from the user profile (which should ideally be verified via NIN)
+                const userFullName = (user.fullName || user.name || "").toLowerCase();
+                
+                isDirectorVerified = directors.some(director => {
+                    const dFirst = (director.firstname || director.first_name || "").toLowerCase();
+                    const dLast = (director.lastname || director.last_name || director.surname || "").toLowerCase();
+                    
+                    // Simple check: if both names are present in the user's full name
+                    return (dFirst.length > 1 && userFullName.includes(dFirst)) && 
+                           (dLast.length > 1 && userFullName.includes(dLast));
+                });
+                
+                logger.info('Director Matching result', { userId, businessName, isDirectorVerified });
+            }
+
+            // Update Store if it exists
+            const store = await prisma.store.findUnique({ where: { userId } })
+            if (store) {
+                await prisma.store.update({
+                    where: { id: store.id },
+                    data: {
+                        cac: rcNumber,
+                        status: 'approved',
+                        isVerified: true,
+                        isDirectorVerified: isDirectorVerified
+                    }
+                })
+            }
+
+            // Update User
+            await prisma.user.update({
+                where: { id: userId },
+                data: {
+                    cacDocument: rcNumber,
+                    businessName: businessName,
+                    businessType: businessType,
+                    isDirectorVerified: isDirectorVerified,
                     verifiedAt: new Date()
                 }
             })
 
             revalidatePath('/admin/verify-buyers')
-            return ApiResponse.success(result, "CAC verification successful")
+            return ApiResponse.success({
+                ...result,
+                businessName,
+                businessType,
+                isDirectorVerified
+            }, "CAC verification successful")
         }
 
         const errorMessage = result.summary?.description || result.message || result.error || 'CAC verification failed'

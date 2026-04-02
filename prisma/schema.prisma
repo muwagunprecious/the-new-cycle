@@ -12,6 +12,8 @@ datasource db {
 model User {
   id                String         @id
   name              String
+  firstName         String?
+  lastName          String?
   fullName          String?
   email             String?        @unique
   password          String?
@@ -29,6 +31,9 @@ model User {
   status            String         @default("active")
   ninDocument       String?
   cacDocument       String?
+  businessName      String?
+  businessType      String?
+  isDirectorVerified Boolean        @default(false)
   verificationNotes String?
   verificationCode  String?
   verifiedAt        DateTime?
@@ -117,6 +122,7 @@ model Store {
   accountNumber   String?
   accountName     String?
   isVerified      Boolean   @default(false)
+  isDirectorVerified Boolean   @default(false)
   nin             String?
   cac             String?
   walletBalance   Float     @default(0)
@@ -162,6 +168,7 @@ model Product {
 
 model Order {
   id               String        @id @default(cuid())
+  transactionId    String?       @unique
   total            Float
   status           OrderStatus   @default(ORDER_PLACED)
   collectionStatus PickupStatus  @default(PENDING)
@@ -236,4 +243,13 @@ enum PickupStatus {
   DISPUTED
   RESCHEDULE_REQUESTED
   RESCHEDULED
+}
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  group     String?  @default("general")
+  updatedAt DateTime @updatedAt
+
+  @@map("Setting")
 }

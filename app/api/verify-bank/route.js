@@ -49,6 +49,15 @@ export async function POST(req) {
             );
         }
 
+        // Test Mode Bypass
+        if (accountNumber === "0000000000") {
+            return NextResponse.json({
+                success: true,
+                accountName: "TEST ACCOUNT (GoCycle)",
+                accountNumber: "0000000000"
+            });
+        }
+
         const BASE_URL = "https://api.qoreid.com";
 
         const getQoreIDToken = async () => {
@@ -71,19 +80,50 @@ export async function POST(req) {
 
         console.log(`QoreID NUBAN Request: POST ${endpoint} — account: ${accountNumber}, bank: ${bankCode}`);
 
-        const response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${API_KEY}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                accountNumber,
-                bankCode,
-                firstname: (firstname && firstname !== 'N/A' ? firstname : "Go"),
-                lastname: (lastname && lastname !== 'N/A' ? lastname : "Cycle")
-            }),
-        });
+        const makeRequest = async () => {
+            return await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${API_KEY}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    accountNumber,
+                    bankCode,
+                    firstname: (firstname && firstname !== 'N/A' ? firstname : ""),
+                    lastname: (lastname && lastname !== 'N/A' ? lastname : "")
+                }),
+                signal: AbortSignal.timeout(30000) // Increased to 30s timeout
+            });
+        };
+
+        let response;
+        let retryCount = 0;
+        const maxRetries = 1;
+
+        while (retryCount <= maxRetries) {
+            try {
+                response = await makeRequest();
+                
+                // If it's a 500 error, retry once after a short delay
+                if (response.status === 500 && retryCount < maxRetries) {
+                    console.log(`QoreID returned 500. Retrying (${retryCount + 1}/${maxRetries}) after 2s...`);
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    retryCount++;
+                    continue;
+                }
+                
+                break; // Break loop if we got a response (even if not ok, as long as not 500)
+            } catch (err) {
+                // Handle timeout specifically for retry
+                if (err.name === 'TimeoutError' && retryCount < maxRetries) {
+                    console.log(`QoreID Request Timed Out. Retrying (${retryCount + 1}/${maxRetries})...`);
+                    retryCount++;
+                    continue;
+                }
+                throw err; // Rethrow other errors to the main catch block
+            }
+        }
 
         const data = await response.json();
 
@@ -95,12 +135,23 @@ export async function POST(req) {
                 data
             });
 
-            // Special handling for 500 errors which are common for certain banks on QoreID
+            // Special handling for 500 errors which are common for certain banks on QoreID (especially OPay)
             if (response.status === 500) {
+                let errorMsg = "The bank provider is currently unavailable. Please try again in a few minutes or use a different bank.";
+                
+                if (bankCode === "100004") { // OPay
+                    errorMsg = "OPay verification is currently experiencing downtime on the provider's end. Please double-check your account number or try a different bank.";
+                } else if (bankCode === "100033") { // Palmpay
+                    errorMsg = "Palmpay verification is currently experiencing regional downtime. Please try a different bank.";
+                } else if (bankCode === "50515") { // Moniepoint
+                    errorMsg = "Moniepoint MFB verification is currently experiencing downtime. Please try a different bank.";
+                }
+
                 return NextResponse.json(
                     {
                         success: false,
-                        message: "The bank provider is currently unavailable or the account number is invalid for this bank. Please double-check the bank and account number."
+                        message: errorMsg,
+                        debug: { originalError: data.message || "Internal Provider Error" }
                     },
                     { status: 500 }
                 );
@@ -112,22 +163,58 @@ export async function POST(req) {
             );
         }
 
-        if (data.nuban?.accountName) {
+        console.log("QoreID NUBAN API Success Response:", JSON.stringify(data, null, 2));
+
+        // Handle specific Identity Mismatch from QoreID - BYPASS ENABLED
+        if (data.status?.status === "id_mismatch" || data.summary?.nuban_check?.status === "NO_MATCH") {
+            // Soft-fail: Accept the account as valid but with a mismatch warning
+            console.warn("KYC Mismatch Bypassed for:", accountNumber);
             return NextResponse.json({
                 success: true,
-                accountName: data.nuban.accountName,
-                accountNumber: data.nuban.accountNumber || accountNumber,
+                accountName: `${data.applicant?.firstname || firstname || ''} ${data.applicant?.lastname || lastname || ''}`.trim() + " (Unverified Match)",
+                accountNumber: data.applicant?.accountNumber || accountNumber,
+                message: "Account found, but the spelling of the name is an unverified match.",
+            });
+        }
+
+        // Try to extract the account name from various possible QoreID payload structures
+        let accountName = data.nuban?.accountName || data.accountName || data.data?.accountName;
+
+        // If no explicit account name was returned but the check passed/completed successfully, use the provided matched names
+        if (!accountName && data.status?.state === "complete" && data.applicant) {
+            accountName = `${data.applicant.firstname || ''} ${data.applicant.lastname || ''}`.trim();
+        }
+
+        if (accountName) {
+            return NextResponse.json({
+                success: true,
+                accountName: accountName,
+                accountNumber: data.applicant?.accountNumber || data.nuban?.accountNumber || accountNumber,
             });
         } else {
             return NextResponse.json({
                 success: false,
-                message: "Could not resolve account name. Please check your bank and account number.",
+                message: "Could not resolve account details. Please check your bank and account number.",
             });
         }
+
     } catch (error) {
-        console.error("QoreID NUBAN Error:", error);
+        console.error("QoreID NUBAN API EXCEPTION:", {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
+
+        const isTimeout = error.name === 'TimeoutError' || error.message.includes('aborted');
+        
         return NextResponse.json(
-            { success: false, message: "Verification service error. Please try again later." },
+            { 
+                success: false, 
+                message: isTimeout 
+                    ? "The bank's server is responding too slowly. Please try again or use a different bank." 
+                    : "Verification service error. Please try again later.",
+                debug: error.message 
+            },
             { status: 500 }
         );
     }

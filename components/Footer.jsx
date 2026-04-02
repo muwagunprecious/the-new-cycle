@@ -126,7 +126,7 @@ const Footer = () => {
                             <div className='flex bg-white/[0.03] text-[12px] p-1.5 rounded-xl w-full border border-white/[0.08] focus-within:border-emerald-500/40 transition-all'>
                                 <input className='flex-1 bg-transparent pl-3 outline-none text-white placeholder:text-slate-500 font-medium' type="text" placeholder='Email address' />
                                 <button className='font-bold text-[9px] uppercase tracking-widest bg-emerald-600 text-white px-5 py-3 rounded-lg hover:bg-emerald-500 transition-all'>
-                                    Join
+                                    Subscribe
                                 </button>
                             </div>
                         </div>

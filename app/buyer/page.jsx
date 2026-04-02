@@ -120,72 +120,32 @@ export default function BuyerDashboard() {
     // Check if user has submitted NIN (saved during signup)
     const hasSubmitted = !!user?.ninDocument
 
-    // Strict Blocking Logic - Priority: Rejected > Pending Review
-    const showRejectedOverlay = isRejected
-    const showUnderReviewOverlay = !isRejected && isPending
-
     return (
         <div className="relative space-y-12 min-h-[80vh]">
 
-            {/* Pending Approval Overlay — shown for ALL pending users since NIN is verified at signup */}
-            {showUnderReviewOverlay && (
-                <div className="fixed inset-0 z-50 bg-slate-50/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500">
-                    <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl max-w-xl border border-slate-100 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-2 bg-[#05DF72] animate-pulse"></div>
-                        <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8">
-                            <ClockIcon className="text-[#05DF72] animate-spin-slow" size={48} />
+            {/* Rejected Status Overlay */}
+            {isRejected && (
+                <div className="fixed inset-0 z-50 bg-red-50/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500">
+                    <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl max-w-xl border border-red-100 relative overflow-hidden">
+                        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
+                            <AlertCircleIcon className="text-red-500" size={48} />
                         </div>
-                        <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Account <span className="text-[#05DF72]">Pending Approval</span></h2>
-                        <div className="space-y-4 text-slate-500 font-medium mb-10 leading-relaxed text-lg">
-                            <p>
-                                Thank you for completing your verification! Your documents have been successfully received and are currently being reviewed by our administrative team.
-                            </p>
-                            <div className="bg-slate-50 p-6 rounded-3xl text-sm border border-slate-100">
-                                <p className="text-slate-700 font-bold mb-2 uppercase tracking-widest text-[10px]">What happens next?</p>
-                                <ul className="text-left space-y-2 text-slate-600">
-                                    <li className="flex gap-2">
-                                        <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-full mt-1.5 shrink-0"></div>
-                                        <span>Our team will verify your identity and bank details.</span>
-                                    </li>
-                                    <li className="flex gap-2">
-                                        <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-full mt-1.5 shrink-0"></div>
-                                        <span>You will receive an email notification once your account is active.</span>
-                                    </li>
-                                    <li className="flex gap-2">
-                                        <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-full mt-1.5 shrink-0"></div>
-                                        <span>This usually takes between <span className="text-slate-900 font-bold">2-24 hours</span>.</span>
-                                    </li>
-                                </ul>
+                        <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Verification <span className="text-red-500">Rejected</span></h2>
+                        <p className="text-slate-500 font-medium mb-10 leading-relaxed text-lg">
+                            Unfortunately, your buyer account verification was not approved. 
+                        </p>
+                        {user?.verificationNotes && (
+                            <div className="bg-red-50 p-6 rounded-3xl text-sm border border-red-100 mb-10 text-red-700 font-bold italic">
+                                "{user.verificationNotes}"
                             </div>
-
-                            {/* Admin Messages section */}
-                            {notifications.length > 0 && (
-                                <div className="mt-8 space-y-3">
-                                    <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
-                                        <MessageSquareIcon size={16} className="text-[#05DF72]" />
-                                        <span>Messages from Admin</span>
-                                    </div>
-                                    <div className="space-y-2 max-h-32 overflow-y-auto no-scrollbar">
-                                        {notifications.map(n => (
-                                            <div key={n.id} className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50 text-left">
-                                                <p className="text-xs font-bold text-slate-800 mb-1">{n.title}</p>
-                                                <p className="text-xs text-slate-600">{n.message}</p>
-                                                <p className="text-[10px] text-slate-400 mt-2 font-medium">
-                                                    {new Date(n.createdAt).toLocaleDateString()} at {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
+                        )}
                         <div className="flex flex-col gap-4">
-                            <div className="flex justify-center gap-2">
-                                <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-bounce"></div>
-                                <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-bounce delay-100"></div>
-                                <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-bounce delay-200"></div>
-                            </div>
+                            <button
+                                onClick={() => window.location.href = 'mailto:support@gocycle.com'}
+                                className="bg-slate-900 text-white px-10 py-5 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg"
+                            >
+                                Contact Support
+                            </button>
                             <button
                                 onClick={() => window.location.href = '/'}
                                 className="text-slate-400 text-sm font-bold hover:text-slate-600 transition-colors"
@@ -197,34 +157,8 @@ export default function BuyerDashboard() {
                 </div>
             )}
 
-            {/* STATE 3: REJECTED (Blocking Overlay) */}
-            {showRejectedOverlay && (
-                <div className="fixed inset-0 z-50 bg-red-50/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl max-w-lg border border-red-100">
-                        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <AlertCircleIcon className="text-red-500" size={48} />
-                        </div>
-                        <h2 className="text-3xl font-black text-slate-900 mb-3">Verification Failed</h2>
-                        <p className="text-slate-500 font-medium mb-6">
-                            Unfortunately, your account application was not approved.
-                        </p>
-                        {user?.verificationNotes && (
-                            <div className="bg-red-50 p-4 rounded-2xl border border-red-100 text-sm text-red-700 font-bold mb-8">
-                                " {user.verificationNotes} "
-                            </div>
-                        )}
-                        <button
-                            onClick={() => window.location.href = 'mailto:support@gocycle.com'}
-                            className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-colors"
-                        >
-                            Contact Support
-                        </button>
-                    </div>
-                </div>
-            )}
-
             {/* Main Content (Blurred if any blocking state is active) */}
-            <div className={(showUnderReviewOverlay || showRejectedOverlay) ? 'blur-xl pointer-events-none opacity-50 select-none grayscale' : ''}>
+            <div className={isRejected ? 'blur-xl pointer-events-none opacity-50 select-none grayscale' : ''}>
 
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

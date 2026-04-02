@@ -16,11 +16,61 @@ export default function SellerSettings() {
         accountNumber: '',
         accountName: ''
     })
+    const [banks, setBanks] = useState({})
+
+    useEffect(() => {
+        const fetchBanks = async () => {
+            const res = await fetch('/api/verify-bank')
+            const data = await res.json()
+            if (data.banks) setBanks(data.banks)
+        }
+        fetchBanks()
+    }, [])
+
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     })
+
+    const handleBankVerification = async (accountNumber, bankName) => {
+        try {
+            // Use banks from state
+            const bankCode = banks[bankName]
+
+            if (!bankCode) return
+
+            toast.loading("Verifying account...", { id: 'bank-verify' })
+            const res = await fetch('/api/verify-bank', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accountNumber, bankCode })
+            })
+
+            const data = await res.json()
+            if (data.success) {
+                setFormData(prev => ({ ...prev, accountName: data.accountName }))
+                toast.success("Account verified: " + data.accountName, { id: 'bank-verify' })
+            } else {
+                toast.error(data.message || "Could not verify account", { id: 'bank-verify' })
+            }
+        } catch (error) {
+            console.error("Bank verification error:", error)
+            toast.error("Bank verification failed", { id: 'bank-verify' })
+        }
+    }
+
+    const onBankInputChange = (e) => {
+        const { name, value } = e.target
+        setFormData(prev => ({ ...prev, [name]: value }))
+
+        // Trigger bank verification if account number is 10 digits and bank is selected
+        if (name === 'accountNumber' && value.length === 10 && formData.bankName) {
+            handleBankVerification(value, formData.bankName)
+        } else if (name === 'bankName' && value && formData.accountNumber.length === 10) {
+            handleBankVerification(formData.accountNumber, value)
+        }
+    }
 
     useEffect(() => {
         if (user?.id) {
@@ -114,20 +164,25 @@ export default function SellerSettings() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Bank Name *</label>
-                            <input
+                            <select
+                                name="bankName"
                                 value={formData.bankName}
-                                onChange={e => setFormData({ ...formData, bankName: e.target.value })}
-                                placeholder="e.g. Zenith Bank"
+                                onChange={onBankInputChange}
                                 required
                                 className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                            />
+                            >
+                                <option value="">Select Bank</option>
+                                {Object.keys(banks).map(bankName => (
+                                    <option key={bankName} value={bankName}>{bankName}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Number *</label>
                             <input
                                 value={formData.accountNumber}
-                                onChange={e => setFormData({ ...formData, accountNumber: e.target.value })}
+                                onChange={onBankInputChange}
                                 placeholder="10-digit account number"
                                 maxLength={10}
                                 required
@@ -139,7 +194,7 @@ export default function SellerSettings() {
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Name *</label>
                             <input
                                 value={formData.accountName}
-                                onChange={e => setFormData({ ...formData, accountName: e.target.value })}
+                                onChange={onBankInputChange}
                                 placeholder="e.g. John Doe Enterprises"
                                 required
                                 className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"

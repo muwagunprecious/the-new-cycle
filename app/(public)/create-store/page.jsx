@@ -18,6 +18,16 @@ export default function CreateStore() {
     const [message, setMessage] = useState("")
     const [isSessionInvalid, setIsSessionInvalid] = useState(false)
     const { user, isLoggedIn } = useSelector((state) => state.auth)
+    const [banks, setBanks] = useState({})
+
+    useEffect(() => {
+        const fetchBanks = async () => {
+            const res = await fetch('/api/verify-bank')
+            const data = await res.json()
+            if (data.banks) setBanks(data.banks)
+        }
+        fetchBanks()
+    }, [])
 
     const [storeInfo, setStoreInfo] = useState({
         businessName: "",
@@ -37,7 +47,42 @@ export default function CreateStore() {
     })
 
     const onChangeHandler = (e) => {
-        setStoreInfo({ ...storeInfo, [e.target.name]: e.target.value })
+        const { name, value } = e.target
+        setStoreInfo(prev => ({ ...prev, [name]: value }))
+
+        // Trigger bank verification if account number is 10 digits and bank is selected
+        if (name === 'accountNumber' && value.length === 10 && storeInfo.bankName) {
+            handleBankVerification(value, storeInfo.bankName)
+        } else if (name === 'bankName' && value && storeInfo.accountNumber.length === 10) {
+            handleBankVerification(storeInfo.accountNumber, value)
+        }
+    }
+
+    const handleBankVerification = async (accountNumber, bankName) => {
+        try {
+            // Use banks from state
+            const bankCode = banks[bankName]
+
+            if (!bankCode) return
+
+            toast.loading("Verifying account...", { id: 'bank-verify' })
+            const res = await fetch('/api/verify-bank', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accountNumber, bankCode })
+            })
+
+            const data = await res.json()
+            if (data.success) {
+                setStoreInfo(prev => ({ ...prev, accountName: data.accountName }))
+                toast.success("Account verified: " + data.accountName, { id: 'bank-verify' })
+            } else {
+                toast.error(data.message || "Could not verify account", { id: 'bank-verify' })
+            }
+        } catch (error) {
+            console.error("Bank verification error:", error)
+            toast.error("Bank verification failed", { id: 'bank-verify' })
+        }
     }
 
     const fetchSellerStatus = async () => {
@@ -201,13 +246,9 @@ export default function CreateStore() {
                                     <label className="text-sm font-medium text-slate-700">Bank Name</label>
                                     <select required name="bankName" onChange={onChangeHandler} value={storeInfo.bankName} className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all">
                                         <option value="">Select Bank</option>
-                                        <option value="Access Bank">Access Bank</option>
-                                        <option value="GTBank">GTBank</option>
-                                        <option value="First Bank">First Bank</option>
-                                        <option value="UBA">UBA</option>
-                                        <option value="Zenith Bank">Zenith Bank</option>
-                                        <option value="Wema Bank">Wema Bank</option>
-                                        <option value="Ecobank">Ecobank</option>
+                                        {Object.keys(banks).map(bankName => (
+                                            <option key={bankName} value={bankName}>{bankName}</option>
+                                        ))}
                                     </select>
                                 </div>
 

@@ -29,6 +29,7 @@ const BATTERY_PRICES = {
 const NIGERIAN_BANKS = {
     "Access Bank": "044",
     "Citibank": "023",
+    "Diamond Bank": "063",
     "Ecobank": "050",
     "Fidelity Bank": "070",
     "First Bank": "011",
@@ -37,10 +38,10 @@ const NIGERIAN_BANKS = {
     "Heritage Bank": "030",
     "Jaiz Bank": "301",
     "Keystone Bank": "082",
-    "Kuda Bank": "50211",
-    "Moniepoint": "50515",
-    "Opay": "999992",
-    "Palmpay": "999991",
+    "Kuda Bank": "090267",
+    "Moniepoint MFB": "50515",
+    "OPay Digital Bank": "100004",
+    "Palmpay": "100033",
     "Polaris Bank": "076",
     "Providus Bank": "101",
     "Stanbic IBTC Bank": "221",
@@ -50,8 +51,9 @@ const NIGERIAN_BANKS = {
     "Union Bank": "032",
     "United Bank for Africa (UBA)": "033",
     "Unity Bank": "215",
+    "VFD Microfinance Bank": "566",
     "Wema Bank": "035",
-    "Zenith Bank": "057",
+    "Zenith Bank": "057"
 }
 
 export default function SellerProducts() {
@@ -76,6 +78,14 @@ export default function SellerProducts() {
 
     const lookupAccountName = async (accNum, bankCode) => {
         if (accNum.length !== 10 || !bankCode) return
+
+        // Test Mode Bypass
+        if (accNum === "0000000000") {
+            setBankDetails(prev => ({ ...prev, accountName: "TEST ACCOUNT (GoCycle)" }))
+            toast.success("Test account verified successfully")
+            return
+        }
+
         setBankLookupLoading(true)
         try {
             const res = await fetch('/api/verify-bank', {
@@ -84,8 +94,8 @@ export default function SellerProducts() {
                 body: JSON.stringify({
                     accountNumber: accNum,
                     bankCode: bankCode,
-                    firstname: user?.name?.split(' ')[0] || 'N/A',
-                    lastname: user?.name?.split(' ').slice(1).join(' ') || 'N/A'
+                    firstname: user?.firstName || user?.name?.split(' ')[0] || 'N/A',
+                    lastname: user?.lastName || user?.name?.split(' ').slice(1).join(' ') || 'N/A'
                 })
             })
             const data = await res.json()
@@ -99,6 +109,19 @@ export default function SellerProducts() {
             toast.error('Failed to verify account')
         } finally {
             setBankLookupLoading(false)
+        }
+    }
+
+    const useRegisteredAddress = () => {
+        if (storeInfo.lga && storeInfo.address) {
+            setFormData(prev => ({
+                ...prev,
+                lga: storeInfo.lga,
+                address: storeInfo.address
+            }))
+            toast.success("Shop address applied")
+        } else {
+            toast.error("No registered shop address found in your profile")
         }
     }
 
@@ -326,11 +349,11 @@ export default function SellerProducts() {
         }
 
         setIsLoading(true)
-        dispatch(showLoader("Publishing listing..."))
+        dispatch(showLoader("Submitting listing..."))
 
         // Add a timeout warning after 10 seconds
         const timeoutId = setTimeout(() => {
-            toast("Still publishing... hang tight! Large images might take a moment.", {
+            toast("Still submitting... hang tight! Large images might take a moment.", {
                 icon: '⏳',
                 duration: 5000
             })
@@ -359,7 +382,7 @@ export default function SellerProducts() {
 
             if (result.success) {
                 toast.success(
-                    "Listing published successfully! The product is pending approval from the admin before it can be listed.",
+                    "Listing submitted successfully! The product is pending approval from the admin before it can be listed.",
                     { duration: 10000 }
                 )
                 setIsUploadModalOpen(false)
@@ -389,7 +412,7 @@ export default function SellerProducts() {
             dispatch(hideLoader())
             setIsLoading(false)
             console.error("CLIENT: Publication Exception:", error)
-            toast.error("Failed to publish listing: Network or Server Error")
+            toast.error("Failed to submit listing: Network or Server Error")
         }
     }
 
@@ -717,11 +740,7 @@ export default function SellerProducts() {
                                 </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2 text-center md:text-left">
-                                        <p className="text-[10px] text-slate-400 font-medium">Using your registered shop location in Lagos.</p>
-                                    </div>
-
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 flex flex-col items-start gap-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Local Government Area *</label>
                                         <select
                                             value={formData.lga}
@@ -734,6 +753,17 @@ export default function SellerProducts() {
                                                 <option key={lga} value={lga}>{lga}</option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    <div className="space-y-2 flex flex-col justify-end pb-1">
+                                        <button
+                                            type="button"
+                                            onClick={useRegisteredAddress}
+                                            className="w-full py-4 px-6 bg-[#05DF72]/10 border border-[#05DF72]/20 text-[#05DF72] rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-[#05DF72]/20 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <MapPinIcon size={16} />
+                                            Use Shop Address
+                                        </button>
                                     </div>
 
                                     <div className="space-y-2 md:col-span-2">
@@ -847,11 +877,11 @@ export default function SellerProducts() {
                                 <Button
                                     type="submit"
                                     loading={isLoading}
-                                    loadingText="Publishing..."
+                                    loadingText="Submitting..."
                                     className="flex-1"
                                     disabled={!acceptedTerms}
                                 >
-                                    Publish Listing
+                                    Submit Listing
                                 </Button>
                             </div>
                         </form>
@@ -957,7 +987,7 @@ export default function SellerProducts() {
                                 className="flex-1"
                                 disabled={!bankDetails.accountName || bankLookupLoading}
                             >
-                                Proceed to Publish
+                                Proceed to Submit
                             </Button>
                         </div>
                     </div>

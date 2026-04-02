@@ -22,23 +22,10 @@ export async function POST(request) {
                 bankName,
                 accountNumber,
                 accountName,
-                accountStatus: body.accountStatus || 'pending'
+                accountStatus: 'approved',
+                verifiedAt: new Date()
             }
         })
-
-        // Notify admin about new verification
-        const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
-        const { createNotification } = await import('@/backend/actions/notification')
-
-        // Send notifications in parallel to speed up response
-        await Promise.all(admins.map(admin =>
-            createNotification(
-                admin.id,
-                "New Buyer Verification Documents",
-                `A buyer has submitted their verification documents and is awaiting your review.`,
-                "SYSTEM"
-            )
-        ))
 
         return NextResponse.json({ success: true })
     } catch (error) {

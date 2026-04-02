@@ -19,6 +19,11 @@ export default function DocumentVerificationModal({ user, onComplete }) {
     const [verifyingCAC, setVerifyingCAC] = useState(false)
     const [ninVerified, setNinVerified] = useState(!!user?.ninDocument)
     const [cacVerified, setCacVerified] = useState(!!user?.cacDocument)
+    const [isDirectorVerified, setIsDirectorVerified] = useState(!!user?.isDirectorVerified)
+    const [businessInfo, setBusinessInfo] = useState({
+        name: user?.businessName || '',
+        type: user?.businessType || ''
+    })
     const [loading, setLoading] = useState(false)
 
     const handleVerifyNIN = async () => {
@@ -73,11 +78,20 @@ export default function DocumentVerificationModal({ user, onComplete }) {
 
         setVerifyingCAC(true)
         try {
-            const result = await performCACVerification(user.id, formData.cacDocument, user.name)
+            const result = await performCACVerification(user.id, formData.cacDocument)
 
             if (result.success) {
                 toast.success('CAC Verified Successfully!')
                 setCacVerified(true)
+                setIsDirectorVerified(result.data?.isDirectorVerified || false)
+                setBusinessInfo({
+                    name: result.data?.businessName || '',
+                    type: result.data?.businessType || ''
+                })
+                
+                if (result.data?.isDirectorVerified) {
+                    toast.success('Identity Match: You are confirmed as a Director!', { icon: '🤝', duration: 4000 })
+                }
             } else {
                 toast.error(result.error || 'CAC Verification Failed')
             }
@@ -267,12 +281,50 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                                     type="button"
                                     onClick={handleVerifyCAC}
                                     disabled={verifyingCAC}
-                                    className="relative sm:absolute mt-4 sm:mt-0 sm:right-3 sm:top-1/2 sm:-translate-y-1/2 w-full sm:w-auto px-6 py-4 sm:py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50 shadow-sm"
+                                    className="relative sm:absolute mt-4 sm:mt-0 sm:right-3 sm:top-1/2 sm:-translate-y-1/2 w-full sm:w-auto px-6 py-4 sm:py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-50 shadow-xl shadow-slate-900/10"
                                 >
-                                    {verifyingCAC ? <LoaderIcon className="animate-spin" size={14} /> : 'Verify'}
+                                    {verifyingCAC ? <LoaderIcon className="animate-spin" size={14} /> : 'Verify Business'}
                                 </button>
                             )}
+                            {!cacVerified && (
+                                <div className="mt-3 px-2 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-500">
+                                    <ZapIcon size={10} className="text-amber-500" />
+                                    <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">
+                                        Test RC: RC0000000
+                                    </p>
+                                </div>
+                            )}
                         </div>
+
+                        {cacVerified && (
+                            <div className="p-5 bg-emerald-50/50 border border-emerald-100 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top-2 duration-500">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Registered Entity</p>
+                                        <h4 className="text-sm font-black text-slate-900 uppercase">{businessInfo.name}</h4>
+                                        <p className="text-[11px] text-slate-500 font-bold mt-0.5">{businessInfo.type}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white rounded-full shadow-sm border border-emerald-100">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Active Status</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {isDirectorVerified ? (
+                                    <div className="flex items-center gap-2 py-2 px-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/10">
+                                        <ShieldCheckIcon size={14} />
+                                        Director Identity Confirmed (NIN Match)
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 py-2 px-3 bg-amber-50 text-amber-600 border border-amber-100 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                        <ZapIcon size={14} />
+                                        Manual Director Review Required
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Bank Details */}

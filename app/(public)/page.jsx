@@ -6,11 +6,13 @@ import LatestProducts from "@/components/LatestProducts";
 
 import MarketplaceOverview from "@/components/MarketplaceOverview";
 import ProcessWorkflow from "@/components/ProcessWorkflow";
+import BankVerificationDemo from "@/components/BankVerificationDemo";
 
 export default function Home() {
     return (
         <div>
             <Hero />
+            <BankVerificationDemo />
             <MarketplaceOverview />
             <LatestProducts />
             <ProcessWorkflow />

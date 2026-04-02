@@ -1,7 +1,7 @@
 'use server'
 
 import { ApiResponse } from "@/backend/lib/api-response"
-import { logger } from "@/backend/lib/api-utils"
+import { logger, generateTransactionId } from "@/backend/lib/api-utils"
 import { sendEmail, orderConfirmationEmail, buyerReceiptEmail, sellerNewOrderEmail } from "@/backend/lib/email"
 import { createNotification } from "./notification"
 import { revalidatePath } from "next/cache"
@@ -41,8 +41,10 @@ export async function createOrder(orderData) {
         const sellerFee = Math.round(subtotal * 0.05)
         const payoutAmount = subtotal - sellerFee
 
+        const transactionId = generateTransactionId()
         const order = await prisma.order.create({
             data: {
+                transactionId,
                 total: totalAmount,
                 subtotal,
                 buyerFee,
@@ -80,7 +82,7 @@ export async function createOrder(orderData) {
             await createNotification(
                 admin.id,
                 "New Platform Sale",
-                `Order #${order.id.slice(-6)} placed. Total: ₦${totalAmount.toLocaleString()}`,
+                `Order #${transactionId} placed. Total: ₦${totalAmount.toLocaleString()}`,
                 "ORDER"
             )
         }
@@ -94,7 +96,7 @@ export async function createOrder(orderData) {
             const product = await prisma.product.findUnique({ where: { id: productId }, select: { name: true } })
             const emailTemplate = orderConfirmationEmail({
                 buyerName: buyer.name,
-                orderId: order.id,
+                orderId: transactionId,
                 productName: product?.name || 'Battery',
                 amount: totalAmount,
                 collectionDate: collectionDate ? new Date(collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
@@ -109,7 +111,7 @@ export async function createOrder(orderData) {
             if (seller?.email) {
                 const sellerEmailTemplate = sellerNewOrderEmail({
                     sellerName: seller.name,
-                    orderId: order.id,
+                    orderId: transactionId,
                     productName: product?.name || 'Battery',
                     amount: totalAmount,
                     quantity: quantity,
@@ -263,7 +265,7 @@ export async function verifyOrderCollection(orderId, token) {
             await createNotification(
                 admin.id,
                 "Order Collected - Platform Fee Earned",
-                `Order ${orderId.slice(-6)} collected. Platform earned ₦${totalFee.toLocaleString()} (Buyer: ₦${order.buyerFee.toLocaleString()}, Seller: ₦${order.sellerFee.toLocaleString()}).`,
+                `Order #${order.transactionId || order.id} collected. Platform earned ₦${totalFee.toLocaleString()} (Buyer: ₦${order.buyerFee.toLocaleString()}, Seller: ₦${order.sellerFee.toLocaleString()}).`,
                 "PAYMENT"
             )
         }
@@ -285,7 +287,7 @@ export async function verifyOrderCollection(orderId, token) {
             const firstItem = order.orderItems?.[0]
             const emailTemplate = buyerReceiptEmail({
                 buyerName: order.user.name,
-                orderId: order.id,
+                orderId: order.transactionId || order.id,
                 productName: firstItem?.product?.name || 'Battery',
                 quantity: firstItem?.quantity || 1,
                 unitPrice: firstItem?.price || order.total,
@@ -367,7 +369,7 @@ export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER'
                         recipientName: order.user.name,
                         proposedDate: newDate,
                         proposedBy: order.store.name,
-                        orderId: order.id
+                        orderId: order.transactionId || order.id
                     })
                 }).catch(err => logger.warn('Reschedule email failed', err))
             }
@@ -387,7 +389,7 @@ export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER'
                         recipientName: order.store.name,
                         proposedDate: newDate,
                         proposedBy: order.user.name,
-                        orderId: order.id
+                        orderId: order.transactionId || order.id
                     })
                 }).catch(err => logger.warn('Reschedule email failed', err))
             }
@@ -479,7 +481,7 @@ export async function respondToReschedule(orderId, action, alternateDate = null,
                     to: emailTo, ...rescheduleAcceptedEmail({
                         recipientName: emailName,
                         confirmedDate: order.proposedDate,
-                        orderId: order.id
+                        orderId: order.transactionId || order.id
                     })
                 }).catch(err => logger.warn('Reschedule accepted email failed', err))
             } else {
@@ -489,7 +491,7 @@ export async function respondToReschedule(orderId, action, alternateDate = null,
                         recipientName: emailName,
                         proposedDate: alternateDate,
                         proposedBy: respondedBy === 'BUYER' ? order.user.name : order.store.name,
-                        orderId: order.id
+                        orderId: order.transactionId || order.id
                     })
                 }).catch(err => logger.warn('Reschedule counter email failed', err))
             }

@@ -43,16 +43,16 @@ const Hero = () => {
 
                             <div className="flex flex-wrap gap-5 pt-4">
                                 <button
-                                    onClick={() => router.push('/signup')}
+                                    onClick={() => router.push('/signup?role=BUYER')}
                                     className='px-10 py-4 bg-emerald-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-400 hover:-translate-y-1 transition-all duration-300 shadow-xl shadow-emerald-500/20 active:scale-95'
                                 >
-                                    Sign up, Now
+                                    Join as Buyer
                                 </button>
                                 <button
                                     onClick={() => router.push('/signup?role=SELLER')}
                                     className='px-10 py-4 bg-white/[0.05] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/[0.1] border border-white/[0.1] transition-all duration-300 active:scale-95'
                                 >
-                                    Sell
+                                    Join as Seller
                                 </button>
                             </div>
                         </div>

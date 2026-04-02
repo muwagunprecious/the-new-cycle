@@ -19,7 +19,7 @@ function SignupContent() {
     const roleParam = searchParams.get('role') || 'BUYER'
 
     const [isLoading, setIsLoading] = useState(false)
-    const [step, setStep] = useState(roleParam === 'SELLER' ? 'REGISTER' : 'IDENTITY_VERIFY') // IDENTITY_VERIFY | REGISTER | VERIFY_EMAIL | VERIFY_PHONE | COMPLETE
+    const [step, setStep] = useState('IDENTITY_VERIFY') // IDENTITY_VERIFY | REGISTER | VERIFY_EMAIL | VERIFY_PHONE | COMPLETE
     const [isPhoneVerified, setIsPhoneVerified] = useState(false)
     const [isOtpModalOpen, setIsOtpModalOpen] = useState(false)
     const [tempOtp, setTempOtp] = useState('')
@@ -53,12 +53,8 @@ function SignupContent() {
     useEffect(() => {
         if (roleParam) {
             setFormData(prev => ({ ...prev, role: roleParam }))
-            // If seller, start at registration. If buyer, start at identity verification.
-            if (roleParam === 'SELLER') {
-                setStep('REGISTER')
-            } else {
-                setStep('IDENTITY_VERIFY')
-            }
+            // Both roles start with identity verification for security
+            setStep('IDENTITY_VERIFY')
         }
     }, [roleParam])
 
@@ -163,9 +159,6 @@ function SignupContent() {
         if (formData.nin.length !== 11) {
             return toast.error("Please enter an 11-digit NIN")
         }
-        if (!formData.firstName.trim() || !formData.lastName.trim()) {
-            return toast.error("Please enter your First and Last name exactly as they appear on your NIN slip")
-        }
 
         setIsLoading(true)
         dispatch(showLoader("Verifying identity with NIMC..."))
@@ -184,12 +177,24 @@ function SignupContent() {
             const data = await response.json()
 
             if (data.success) {
+                const fetchedFirst = data.firstname || formData.firstName;
+                const fetchedLast = data.lastname || formData.lastName;
+                
                 setFormData(prev => ({
                     ...prev,
-                    name: `${data.firstname} ${data.lastname}`.trim()
+                    firstName: fetchedFirst,
+                    lastName: fetchedLast,
+                    name: `${fetchedFirst} ${fetchedLast}`.trim()
                 }))
+                
+                // If it was a lookup (no names provided initially), just fill them and don't advance step yet
+                if (data.lookupMode) {
+                    toast.success(`Identity found: ${fetchedFirst} ${fetchedLast}`)
+                    return;
+                }
+
                 setStep('REGISTER')
-                toast.success(`Identity Verified: Welcome ${data.firstname}!`)
+                toast.success(`Identity Verified: Welcome ${fetchedFirst}!`)
             } else {
                 toast.error(data.message || "Identity verification failed.")
             }
@@ -258,7 +263,8 @@ function SignupContent() {
             const result = await registerUser({
                 ...formData,
                 isPhoneVerified, // Pass pre-verified status
-                ninDocument: formData.role === 'SELLER' ? 'NOT_REQUIRED' : (verifyType === 'NIN' ? formData.nin : `CAC:${formData.cacNumber}`)
+                ninDocument: formData.nin || null,
+                cacDocument: formData.cacNumber || null
             })
 
             if (!result.success) {
@@ -354,10 +360,14 @@ function SignupContent() {
                             <ZapIcon className="text-emerald-500" size={40} />
                         </div>
                         <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mb-2 tracking-tight">
-                            {step === 'IDENTITY_VERIFY' ? 'Verify Identity' : step === 'REGISTER' ? 'Join the Future' : 'Secure Verification'}
+                            {step === 'IDENTITY_VERIFY' ? (formData.role === 'SELLER' ? 'Join as Seller' : 'Join as Buyer') : 
+                             step === 'REGISTER' ? (formData.role === 'SELLER' ? 'Join as Seller' : 'Join as Buyer') : 
+                             'Secure Verification'}
                         </h1>
                         <p className="text-slate-500 font-medium">
-                            {step === 'IDENTITY_VERIFY' ? 'Verify your identity using NIN or CAC registration' : step === 'REGISTER' ? 'Complete your registration details' : `Enter the code sent to ${formData.whatsapp}`}
+                            {step === 'IDENTITY_VERIFY' ? 'Verify your identity to begin your journey' : 
+                             step === 'REGISTER' ? 'Complete your registration details' : 
+                             `Enter the code sent to ${formData.whatsapp}`}
                         </p>
                     </div>
 
@@ -380,7 +390,7 @@ function SignupContent() {
                                 </div>
                             </div>
 
-                            {/* Name Fields (shared for both NIN and CAC) */}
+                             {/* Name Fields (shared for both NIN and CAC) */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">First Name</label>
@@ -428,7 +438,10 @@ function SignupContent() {
                                             onChange={(e) => setFormData({ ...formData, nin: e.target.value.replace(/\D/g, '') })}
                                         />
                                     </div>
-                                    <p className="text-[10px] text-slate-400 ml-2 font-medium">Verify your identity instantly via NIMC secure portal.</p>
+                                    <p className="text-[10px] text-slate-400 ml-2 font-medium">
+                                        Verify your identity instantly via NIMC. 
+                                        <span className="text-emerald-500 ml-1">Test NIN: 70123456789</span>
+                                    </p>
                                 </div>
                             )}
 
@@ -447,17 +460,19 @@ function SignupContent() {
                                             onChange={(e) => setFormData({ ...formData, cacNumber: e.target.value })}
                                         />
                                     </div>
-                                    <p className="text-[10px] text-slate-400 ml-2 font-medium">Verify your business registration via CAC.</p>
+                                    <p className="text-[10px] text-slate-400 ml-2 font-medium">
+                                        Verify your business registration via CAC. 
+                                        <span className="text-emerald-500 ml-1">Test RC: RC0000000</span>
+                                    </p>
                                 </div>
                             )}
-
                             <Button
                                 type="submit"
                                 loading={isLoading}
-                                loadingText={verifyType === 'NIN' ? "VERIFYING WITH NIMC..." : "VERIFYING WITH CAC..."}
+                                loadingText="VERIFYING..."
                                 className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm font-black uppercase tracking-widest"
                             >
-                                CONTINUE TO SIGNUP
+                                Verify Information
                             </Button>
 
                             <div className="pt-8 border-t border-black/[0.04]">
@@ -478,9 +493,9 @@ function SignupContent() {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center ml-2">
                                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Full Name</label>
-                                        {formData.role === 'BUYER' && (
+                                        {(formData.nin || formData.cacNumber) && (
                                             <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                                                <ShieldCheckIcon size={10} /> NIN Verified
+                                                <ShieldCheckIcon size={10} /> {formData.nin ? 'NIN' : 'CAC'} Verified
                                             </span>
                                         )}
                                     </div>
@@ -662,7 +677,7 @@ function SignupContent() {
                                 loadingText="INITIALIZING SECURITY..."
                                 className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm"
                             >
-                                {formData.role === 'SELLER' ? 'CREATE SELLER PORTAL' : 'CREATE ACCOUNT'}
+                                {formData.role === 'SELLER' ? 'JOIN AS SELLER' : 'JOIN AS BUYER'}
                             </Button>
 
                             <div className="pt-8 border-t border-black/[0.04]">
@@ -677,7 +692,7 @@ function SignupContent() {
                                             href="/signup?role=SELLER&redirect=/create-store"
                                             className="relative z-10 bg-white text-slate-950 px-8 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all shadow-sm border border-black/[0.04]"
                                         >
-                                            BECOME A SELLER
+                                            JOIN AS SELLER
                                         </Link>
                                     </div>
                                 ) : (
@@ -752,7 +767,7 @@ function SignupContent() {
                             </div>
                         </form>
                     )}
-                </div>
+                    </div>
 
                 <p className="text-center mt-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
                     <ShieldCheckIcon size={14} className="text-emerald-500/50" /> End-to-End Encryption Enabled

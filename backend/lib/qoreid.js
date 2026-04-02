@@ -136,23 +136,41 @@ async function qoreidRequest(endpoint, method = 'POST', body = null) {
 export async function verifyNIN(nin, userData = {}) {
     const endpoint = `/v1/ng/identities/nin/${nin}`;
     const body = {
-        firstname: userData.firstname,
-        lastname: userData.lastname
+        firstname: userData.firstname || "FETCH",
+        lastname: userData.lastname || "FETCH"
     };
 
-    return await qoreidRequest(endpoint, 'POST', body);
+    const data = await qoreidRequest(endpoint, 'POST', body);
+    
+    // Process and return consolidated bio data
+    const bioRoot = data.nin || data.applicant || data.summary?.nin_check?.applicant || data;
+    const getVal = (obj, keys) => {
+        if (!obj) return null;
+        for (const k of keys) {
+            const v = obj[k];
+            if (v && typeof v === 'string' && v.length > 0 && v.toUpperCase() !== 'FETCH') {
+                return v;
+            }
+        }
+        return null;
+    };
+
+    return {
+        ...data,
+        extractedFirstName: getVal(bioRoot, ['firstname', 'first_name', 'firstName']),
+        extractedLastName: getVal(bioRoot, ['lastname', 'last_name', 'lastName']),
+        bioRoot // For debugging
+    };
 }
 
 /**
- * Verify CAC
- * @param {string} rcNumber - RC Number
- * @param {string} companyName - Company Name
+ * Verify CAC (Premium)
+ * @param {string} rcNumber - RC Number (RC/BN/IT)
  */
-export async function verifyCAC(rcNumber, companyName) {
-    const endpoint = '/v2/ng/identities/cac-basic';
+export async function verifyCAC(rcNumber) {
+    const endpoint = '/v1/ng/identities/cac-premium';
     const body = {
-        registrationNumber: rcNumber,
-        companyName: companyName
+        regNumber: rcNumber.trim()
     };
 
     return await qoreidRequest(endpoint, 'POST', body);

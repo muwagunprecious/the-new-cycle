@@ -64,7 +64,7 @@ const Navbar = () => {
                         <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
                     </button>
                     <button onClick={() => handleNavigation('/signup?role=SELLER', 'Loading seller signup...')} className="text-[13px] font-bold text-emerald-600 hover:text-emerald-500 transition-all uppercase tracking-tight">
-                        Sell Battery
+                        Join as Seller
                     </button>
                 </div>
 
@@ -109,8 +109,8 @@ const Navbar = () => {
                             <button onClick={() => handleNavigation('/login', 'Redirecting to login...')} className="px-4 py-2 text-[12px] font-bold text-slate-600 hover:text-slate-950 transition-colors uppercase tracking-widest">
                                 Login
                             </button>
-                            <button onClick={() => handleNavigation('/signup', 'Redirecting to join...')} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95 transition-all shadow-lg shadow-slate-900/10">
-                                Join
+                            <button onClick={() => handleNavigation('/signup?role=BUYER', 'Redirecting to join...')} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95 transition-all shadow-lg shadow-slate-900/10 whitespace-nowrap">
+                                Join as Buyer
                             </button>
                         </div>
                     ) : (

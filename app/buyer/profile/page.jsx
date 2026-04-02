@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { getUserProfile, changePassword } from "@/backend/actions/auth"
+import { getUserProfile, changePassword, updateUserProfile } from "@/backend/actions/auth"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import toast from "react-hot-toast"
 import { User as UserIcon, Lock as LockIcon, Save as SaveIcon, Mail as MailIcon, Phone as PhoneIcon } from "lucide-react"
@@ -23,13 +23,38 @@ export default function BuyerProfile() {
         }
     }, [authUser])
 
+    const [editMode, setEditMode] = useState(false)
+    const [editData, setEditData] = useState({
+        firstName: '',
+        lastName: ''
+    })
+
     const fetchProfile = async () => {
         setLoading(true)
         const res = await getUserProfile(authUser.id)
         if (res.success) {
             setProfile(res.data)
+            setEditData({
+                firstName: res.data.firstName || res.data.name?.split(' ')[0] || '',
+                lastName: res.data.lastName || res.data.name?.split(' ').slice(1).join(' ') || ''
+            })
         }
         setLoading(false)
+    }
+
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault()
+        dispatch(showLoader("Updating Profile..."))
+        const res = await updateUserProfile(authUser.id, editData)
+        dispatch(hideLoader())
+
+        if (res.success) {
+            toast.success("Profile updated successfully!")
+            setProfile(res.data)
+            setEditMode(false)
+        } else {
+            toast.error(res.error || "Failed to update profile")
+        }
     }
 
     const handlePasswordChange = async (e) => {
@@ -86,28 +111,82 @@ export default function BuyerProfile() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                            <UserIcon size={12} /> Full Name
-                        </label>
-                        <p className="text-slate-700 font-semibold">{profile?.fullName || profile?.name || 'N/A'}</p>
-                    </div>
+                {!editMode ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                <UserIcon size={12} /> First Name
+                            </label>
+                            <p className="text-slate-700 font-semibold">{profile?.firstName || profile?.name?.split(' ')[0] || 'N/A'}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                <UserIcon size={12} /> Last Name
+                            </label>
+                            <p className="text-slate-700 font-semibold">{profile?.lastName || profile?.name?.split(' ').slice(1).join(' ') || 'N/A'}</p>
+                        </div>
 
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                            <MailIcon size={12} /> Email Address
-                        </label>
-                        <p className="text-slate-700 font-semibold">{profile?.email || 'N/A'}</p>
-                    </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                <MailIcon size={12} /> Email Address
+                            </label>
+                            <p className="text-slate-700 font-semibold">{profile?.email || 'N/A'}</p>
+                        </div>
 
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                            <PhoneIcon size={12} /> Phone Number
-                        </label>
-                        <p className="text-slate-700 font-semibold">{profile?.phone || 'N/A'}</p>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                <PhoneIcon size={12} /> Phone Number
+                            </label>
+                            <p className="text-slate-700 font-semibold">{profile?.phone || 'N/A'}</p>
+                        </div>
+
+                        <div className="pt-4 md:col-span-2">
+                            <button 
+                                onClick={() => setEditMode(true)}
+                                className="px-6 py-2 border-2 border-slate-900 text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all"
+                            >
+                                Edit Profile Name
+                            </button>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <form onSubmit={handleUpdateProfile} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name *</label>
+                                <input
+                                    type="text"
+                                    value={editData.firstName}
+                                    onChange={e => setEditData({ ...editData, firstName: e.target.value })}
+                                    required
+                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Last Name *</label>
+                                <input
+                                    type="text"
+                                    value={editData.lastName}
+                                    onChange={e => setEditData({ ...editData, lastName: e.target.value })}
+                                    required
+                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button type="submit" className="px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#05DF72] transition-all shadow-xl shadow-slate-900/10">
+                                Save Profile
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => setEditMode(false)}
+                                className="px-8 py-3.5 bg-slate-100 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                )}
             </div>
 
             {/* Change Password Card */}

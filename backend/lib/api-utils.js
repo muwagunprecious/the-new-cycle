@@ -21,6 +21,19 @@ export function generateId(prefix = 'id') {
 }
 
 /**
+ * Generate a short, consistent transaction ID
+ * Format: GOC-XXXXXX (e.g. GOC-8F2D1A)
+ */
+export function generateTransactionId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude ambiguous chars like 0, O, 1, I
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result; // Compact 6-char ID
+}
+
+/**
  * Clean logger for production
  */
 export const logger = {

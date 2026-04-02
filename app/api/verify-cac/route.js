@@ -11,6 +11,18 @@ export async function POST(req) {
             );
         }
 
+        // Test Mode Bypass
+        if (regNumber.trim() === "RC0000000") {
+            return NextResponse.json({
+                success: true,
+                companyName: "TEST BUSINESS (GoCycle)",
+                rcNumber: "RC0000000",
+                companyType: "Private Limited Company",
+                status: "ACTIVE",
+                branchAddress: "123 Test Street, Lagos",
+            });
+        }
+
         const BASE_URL = "https://api.qoreid.com";
 
         // Get QoreID token
