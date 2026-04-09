@@ -16,6 +16,7 @@ const prismaClientSingleton = () => {
 
     const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
     
+    // Create client with explicit connection parameters
     return new PrismaClient({
         datasources: {
             db: {
@@ -28,7 +29,8 @@ const prismaClientSingleton = () => {
 
 const globalForPrisma = globalThis
 
-const prisma = prismaClientSingleton() // Force fresh connection to pick up Port 5432
+// Force a fresh client with the new connection parameters
+const prisma = prismaClientSingleton() 
 
 export default prisma
 
