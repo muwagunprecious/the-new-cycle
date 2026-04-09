@@ -14,14 +14,21 @@ const prismaClientSingleton = () => {
         return new Proxy({}, proxyHandler);
     }
 
+    const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+    
     return new PrismaClient({
+        datasources: {
+            db: {
+                url: dbUrl
+            }
+        },
         log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     })
 }
 
 const globalForPrisma = globalThis
 
-const prisma = globalForPrisma.prismaGlobal ?? prismaClientSingleton()
+const prisma = prismaClientSingleton() // Force fresh connection to pick up Port 5432
 
 export default prisma
 

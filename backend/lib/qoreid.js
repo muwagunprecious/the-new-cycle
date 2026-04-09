@@ -5,12 +5,39 @@
  * Handles authentication and communication with QoreID API
  */
 
-const CLIENT_ID = process.env.QOREID_CLIENT_ID;
-const SECRET_KEY = process.env.QOREID_SECRET_KEY;
-const BASE_URL = process.env.QOREID_BASE_URL || 'https://api.qoreid.com';
+import prisma from "@/backend/lib/prisma";
+
+const DEFAULT_CLIENT_ID = process.env.QOREID_CLIENT_ID;
+const DEFAULT_SECRET_KEY = process.env.QOREID_SECRET_KEY;
+const DEFAULT_BASE_URL = process.env.QOREID_BASE_URL || 'https://api.qoreid.com';
 
 let cachedToken = null;
 let tokenExpiry = 0;
+
+/**
+ * Helper to get QoreID config from DB with .env fallback
+ */
+export async function getQoreIDConfig() {
+    try {
+        const settings = await prisma.setting.findMany({
+            where: { group: 'qoreid' }
+        });
+
+        const config = {
+            clientId: settings.find(s => s.key === 'clientId')?.value || process.env.QOREID_CLIENT_ID || "BG2C18455E6X93WKFVX3",
+            secretKey: settings.find(s => s.key === 'secretKey')?.value || process.env.QOREID_SECRET_KEY || "ee0362354ac0456aa83a36ced6dbbe21",
+            baseUrl: settings.find(s => s.key === 'baseUrl' || s.key === 'qoreid_baseUrl')?.value || process.env.QOREID_BASE_URL || "https://api.qoreid.com"
+        };
+        return config;
+    } catch (error) {
+        console.error("Error fetching QoreID config from DB, using hardcoded fallbacks:", error.message);
+        return {
+            clientId: process.env.QOREID_CLIENT_ID || "BG2C18455E6X93WKFVX3",
+            secretKey: process.env.QOREID_SECRET_KEY || "ee0362354ac0456aa83a36ced6dbbe21",
+            baseUrl: process.env.QOREID_BASE_URL || "https://api.qoreid.com"
+        };
+    }
+}
 
 /**
  * Get access token from QoreID
@@ -21,24 +48,26 @@ async function getAccessToken() {
         return cachedToken;
     }
 
-    if (!CLIENT_ID || !SECRET_KEY) {
-        const errorMsg = "QoreID Credentials Missing: Please check QOREID_CLIENT_ID and QOREID_SECRET_KEY in your .env file.";
+    const { clientId, secretKey, baseUrl } = await getQoreIDConfig();
+
+    if (!clientId || !secretKey) {
+        const errorMsg = "QoreID Credentials Missing: Please check QoreID Settings in Admin panel or .env file.";
         console.error(errorMsg);
         throw new Error(errorMsg);
     }
 
     try {
-        console.log('Requesting QoreID Token from:', `${BASE_URL}/token`);
+        console.log('Requesting QoreID Token from:', `${baseUrl}/token`);
 
-        const response = await fetch(`${BASE_URL}/token`, {
+        const response = await fetch(`${baseUrl}/token`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                clientId: CLIENT_ID,
-                secret: SECRET_KEY
+                clientId: clientId,
+                secret: secretKey
             })
         });
 
@@ -79,13 +108,14 @@ async function getAccessToken() {
  */
 async function qoreidRequest(endpoint, method = 'POST', body = null) {
     try {
+        const { clientId, baseUrl } = await getQoreIDConfig();
         const token = await getAccessToken();
 
-        const response = await fetch(`${BASE_URL}${endpoint}`, {
+        const response = await fetch(`${baseUrl}${endpoint}`, {
             method,
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'x-api-key': CLIENT_ID,
+                'x-api-key': clientId,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
