@@ -13,7 +13,13 @@ import { getStoreDetails, updateStoreBankDetails, getSellerDashboardSummary } fr
 export default function SellerOverview() {
     const { user } = useSelector(state => state.auth)
     const [loading, setLoading] = useState(true)
-    const [data, setData] = useState({ totalProducts: 0 })
+    const [data, setData] = useState({ 
+        totalProducts: 0,
+        totalEarnings: 0,
+        pendingPickups: 0,
+        completedOrdersCount: 0,
+        pendingPayouts: 0
+    })
     const [orders, setOrders] = useState([])
     const [store, setStore] = useState(null)
     const [showVerificationModal, setShowVerificationModal] = useState(false)

@@ -1,0 +1,11 @@
+﻿[{"id":"seller_demo","name":"Adebayo Ecovolt","email":"adebayo@ecovolt.com","phone":"08000000002","isPhoneVerified":false,"isEmailVerified":true,"role":"SELLER"}, 
+ {"id":"user_epmqan8mf","name":"Ademuwagun","email":"ademuwagunremi60@gmail.com","phone":"+234 814-4065-785","isPhoneVerified":true,"isEmailVerified":true,"role":"SELLER"}, 
+ {"id":"buyer_demo","name":"Demo Buyer","email":"buyer@gocycle.com","phone":"08000000003","isPhoneVerified":true,"isEmailVerified":true,"role":"USER"}, 
+ {"id":"user_kawcno1p6","name":"Ademuwagun Precious","email":"professorprecious03@gmail.com","phone":"+234 814-4065-787","isPhoneVerified":true,"isEmailVerified":true,"role":"USER"}, 
+ {"id":"user_c5afy7l0u","name":"Emmanuel Okoegwale","email":"emmanuelok2007@gmail.com","phone":"+234 803-0818-868","isPhoneVerified":true,"isEmailVerified":true,"role":"USER"}, 
+ {"id":"admin_demo","name":"Demo Admin","email":"admin@gocycle.com","phone":"08000000001","isPhoneVerified":false,"isEmailVerified":true,"role":"ADMIN"}, 
+ {"id":"user_9jcjetzoo","name":"Ademuwagun Precious","email":"00ufuturetech@gmail.com","phone":"+234 902-3323-386","isPhoneVerified":true,"isEmailVerified":true,"role":"SELLER"}, 
+ {"id":"user_7houecx1w","name":"John doe","email":"","phone":"+234 818-3994-985","isPhoneVerified":true,"isEmailVerified":false,"role":"SELLER"}, 
+ {"id":"user_nc3h045aj","name":"Prospective User","email":null,"phone":"+234 902-3323-399","isPhoneVerified":false,"isEmailVerified":false,"role":"USER"}, 
+ {"id":"user_xu67yikim","name":"Ade ","email":"ooufuturetech@gmail.com","phone":"+234 764-8895-428","isPhoneVerified":true,"isEmailVerified":true,"role":"USER"}, 
+ {"id":"user_kdcxpubts","name":"Emmanuel  Okoegwale ","email":"emmanuel@campteller.com","phone":"+234 704-7283-000","isPhoneVerified":true,"isEmailVerified":false,"role":"SELLER"}]

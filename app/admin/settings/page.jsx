@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { ShieldCheck as ShieldCheckIcon, Globe as GlobeIcon, Key as KeyIcon, Send as SendIcon, Save as SaveIcon, RefreshCw as RefreshCwIcon, CheckCircle2 as CheckCircle2Icon, AlertCircle as AlertCircleIcon } from "lucide-react"
 import toast from "react-hot-toast"
-import { getSettingsByGroup, updateSettings, fetchTermiiSenderIds, getTermiiFullStatus } from "@/backend/actions/settings"
+import { getSettingsByGroup, updateSettings, fetchTermiiSenderIds, getTermiiFullStatus, testQoreIDConnection } from "@/backend/actions/settings"
 import Button from "@/components/Button"
 import Loading from "@/components/Loading"
 
@@ -12,11 +12,18 @@ export default function SettingsPage() {
     const [saving, setSaving] = useState(false)
     const [fetchingSenders, setFetchingSenders] = useState(false)
     const [refreshingStatus, setRefreshingStatus] = useState(false)
+    const [testingQoreID, setTestingQoreID] = useState(false)
     
     const [config, setConfig] = useState({
         apiKey: '',
         baseUrl: 'https://api.ng.termii.com',
         senderId: 'N-Alert'
+    })
+
+    const [qoreidConfig, setQoreidConfig] = useState({
+        clientId: '',
+        secretKey: '',
+        baseUrl: 'https://api.qoreid.com'
     })
     
     const [status, setStatus] = useState({
@@ -26,26 +33,35 @@ export default function SettingsPage() {
         lastChecked: null
     })
 
+    const [activeTab, setActiveTab] = useState('termii')
+
     const loadData = async () => {
-        const settingsRes = await getSettingsByGroup('termii')
-        let currentConfig = config
+        const [termiiRes, qoreidRes] = await Promise.all([
+            getSettingsByGroup('termii'),
+            getSettingsByGroup('qoreid')
+        ])
         
-        if (settingsRes.success && Object.keys(settingsRes.data).length > 0) {
-            currentConfig = { ...config, ...settingsRes.data }
-            setConfig(currentConfig)
-        }
-        
-        if (currentConfig.apiKey) {
-            const statusRes = await getTermiiFullStatus(currentConfig.apiKey, currentConfig.baseUrl)
-            if (statusRes.success) {
-                setStatus({
-                    balance: statusRes.balance,
-                    currency: statusRes.currency,
-                    senders: statusRes.senders,
-                    lastChecked: new Date().toLocaleTimeString()
-                })
+        if (termiiRes.success && Object.keys(termiiRes.data).length > 0) {
+            setConfig(prev => ({ ...prev, ...termiiRes.data }))
+            
+            // Auto refresh termii status if apiKey exists
+            if (termiiRes.data.apiKey) {
+                const statusRes = await getTermiiFullStatus(termiiRes.data.apiKey, termiiRes.data.baseUrl || 'https://api.ng.termii.com')
+                if (statusRes.success) {
+                    setStatus({
+                        balance: statusRes.balance,
+                        currency: statusRes.currency,
+                        senders: statusRes.senders,
+                        lastChecked: new Date().toLocaleTimeString()
+                    })
+                }
             }
         }
+
+        if (qoreidRes.success && Object.keys(qoreidRes.data).length > 0) {
+            setQoreidConfig(prev => ({ ...prev, ...qoreidRes.data }))
+        }
+
         setLoading(false)
     }
 
@@ -73,19 +89,41 @@ export default function SettingsPage() {
     const handleSave = async (e) => {
         e.preventDefault()
         setSaving(true)
-        const settingsList = [
-            { key: 'apiKey', value: config.apiKey },
-            { key: 'baseUrl', value: config.baseUrl },
-            { key: 'senderId', value: config.senderId }
-        ]
         
-        const res = await updateSettings(settingsList, 'termii')
+        let res;
+        if (activeTab === 'termii') {
+            const settingsList = [
+                { key: 'apiKey', value: config.apiKey },
+                { key: 'baseUrl', value: config.baseUrl },
+                { key: 'senderId', value: config.senderId }
+            ]
+            res = await updateSettings(settingsList, 'termii')
+        } else {
+            const settingsList = [
+                { key: 'clientId', value: qoreidConfig.clientId },
+                { key: 'secretKey', value: qoreidConfig.secretKey },
+                { key: 'baseUrl', value: qoreidConfig.baseUrl }
+            ]
+            res = await updateSettings(settingsList, 'qoreid')
+        }
+
         if (res.success) {
-            toast.success("Termii configuration saved!")
+            toast.success(`${activeTab === 'termii' ? 'Termii' : 'QoreID'} configuration saved!`)
         } else {
             toast.error(res.error || "Failed to save settings")
         }
         setSaving(false)
+    }
+
+    const handleTestQoreID = async () => {
+        setTestingQoreID(true)
+        const res = await testQoreIDConnection(qoreidConfig.clientId, qoreidConfig.secretKey, qoreidConfig.baseUrl)
+        if (res.success) {
+            toast.success(res.message)
+        } else {
+            toast.error(res.error)
+        }
+        setTestingQoreID(false)
     }
 
     const handleFetchSenders = async () => {
@@ -118,7 +156,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">System <span className="text-[#05DF72]">Settings</span></h1>
-                    <p className="text-slate-500 mt-1">Manage global platform configurations and SMS gateway.</p>
+                    <p className="text-slate-500 mt-1">Manage global platform configurations and API gateways.</p>
                 </div>
                 {status.lastChecked && (
                     <div className="text-right hidden md:block">
@@ -128,104 +166,209 @@ export default function SettingsPage() {
                 )}
             </div>
 
+            {/* Tab Switcher */}
+            <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
+                <button 
+                    onClick={() => setActiveTab('termii')}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'termii' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                    Termii SMS
+                </button>
+                <button 
+                    onClick={() => setActiveTab('qoreid')}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'qoreid' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                    QoreID (Live)
+                </button>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Termii SMS Config Card */}
+                {/* Config Card */}
                 <div className="lg:col-span-2 space-y-8">
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
-                        <div className="bg-slate-900 p-8 text-white">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-[#05DF72]/20 rounded-2xl flex items-center justify-center border border-[#05DF72]/30">
-                                    <SendIcon className="text-[#05DF72]" size={24} />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold tracking-tight">Termii SMS Configuration</h2>
-                                    <p className="text-slate-400 text-sm">Update your API credentials and sender preferences</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <form onSubmit={handleSave} className="p-8 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* API Key */}
-                                <div className="space-y-2 col-span-full">
-                                    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                        <KeyIcon size={12} /> Termii API Key (Live)
-                                    </label>
-                                    <input
-                                        type="password"
-                                        placeholder="Enter your TLE... key"
-                                        value={config.apiKey}
-                                        onChange={e => setConfig({ ...config, apiKey: e.target.value })}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 font-mono text-sm outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] transition-all"
-                                        required
-                                    />
-                                </div>
-
-                                {/* Base URL */}
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                        <GlobeIcon size={12} /> Regional Base URL
-                                    </label>
-                                    <select
-                                        value={config.baseUrl}
-                                        onChange={e => setConfig({ ...config, baseUrl: e.target.value })}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] appearance-none"
-                                    >
-                                        <option value="https://api.ng.termii.com">api.ng.termii.com (Nigeria)</option>
-                                        <option value="https://v3.api.termii.com">v3.api.termii.com (Global v3)</option>
-                                    </select>
-                                </div>
-
-                                {/* Sender ID */}
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                        <RefreshCwIcon size={12} /> Sender ID
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <div className="flex-1">
-                                            {activeSenders.length > 0 ? (
-                                                <select
-                                                    value={config.senderId}
-                                                    onChange={e => setConfig({ ...config, senderId: e.target.value })}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-black text-[#05DF72] outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] appearance-none"
-                                                >
-                                                    {activeSenders.map(id => (
-                                                        <option key={id} value={id}>{id}</option>
-                                                    ))}
-                                                </select>
-                                            ) : (
-                                                <input
-                                                    type="text"
-                                                    placeholder="e.g. N-Alert"
-                                                    value={config.senderId}
-                                                    onChange={e => setConfig({ ...config, senderId: e.target.value })}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72]"
-                                                />
-                                            )}
+                        {activeTab === 'termii' ? (
+                            <>
+                                <div className="bg-slate-900 p-8 text-white">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-[#05DF72]/20 rounded-2xl flex items-center justify-center border border-[#05DF72]/30">
+                                            <SendIcon className="text-[#05DF72]" size={24} />
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={handleFetchSenders}
-                                            disabled={fetchingSenders}
-                                            className="px-4 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-colors text-slate-600 disabled:opacity-50"
-                                            title="Sync Sender IDs"
-                                        >
-                                            <RefreshCwIcon className={fetchingSenders ? "animate-spin" : ""} size={18} />
-                                        </button>
+                                        <div>
+                                            <h2 className="text-xl font-bold tracking-tight">Termii SMS Configuration</h2>
+                                            <p className="text-slate-400 text-sm">Update your API credentials and sender preferences</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <Button
-                                type="submit"
-                                loading={saving}
-                                loadingText="Saving..."
-                                icon={SaveIcon}
-                                className="w-full shadow-lg shadow-[#05DF72]/20 py-4 text-lg"
-                            >
-                                Save Configuration
-                            </Button>
-                        </form>
+                                <form onSubmit={handleSave} className="p-8 space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* API Key */}
+                                        <div className="space-y-2 col-span-full">
+                                            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                <KeyIcon size={12} /> Termii API Key (Live)
+                                            </label>
+                                            <input
+                                                type="password"
+                                                placeholder="Enter your TLE... key"
+                                                value={config.apiKey}
+                                                onChange={e => setConfig({ ...config, apiKey: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 font-mono text-sm outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] transition-all"
+                                                required
+                                            />
+                                        </div>
+
+                                        {/* Base URL */}
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                <GlobeIcon size={12} /> Regional Base URL
+                                            </label>
+                                            <select
+                                                value={config.baseUrl}
+                                                onChange={e => setConfig({ ...config, baseUrl: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] appearance-none"
+                                            >
+                                                <option value="https://api.ng.termii.com">api.ng.termii.com (Nigeria)</option>
+                                                <option value="https://v3.api.termii.com">v3.api.termii.com (Global v3)</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Sender ID */}
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                <RefreshCwIcon size={12} /> Sender ID
+                                            </label>
+                                            <div className="flex gap-2">
+                                                <div className="flex-1">
+                                                    {activeSenders.length > 0 ? (
+                                                        <select
+                                                            value={config.senderId}
+                                                            onChange={e => setConfig({ ...config, senderId: e.target.value })}
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-black text-[#05DF72] outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] appearance-none"
+                                                        >
+                                                            {activeSenders.map(id => (
+                                                                <option key={id} value={id}>{id}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        <input
+                                                            type="text"
+                                                            placeholder="e.g. N-Alert"
+                                                            value={config.senderId}
+                                                            onChange={e => setConfig({ ...config, senderId: e.target.value })}
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72]"
+                                                        />
+                                                    )}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleFetchSenders}
+                                                    disabled={fetchingSenders}
+                                                    className="px-4 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-colors text-slate-600 disabled:opacity-50"
+                                                    title="Sync Sender IDs"
+                                                >
+                                                    <RefreshCwIcon className={fetchingSenders ? "animate-spin" : ""} size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <Button
+                                        type="submit"
+                                        loading={saving}
+                                        loadingText="Saving..."
+                                        icon={SaveIcon}
+                                        className="w-full shadow-lg shadow-[#05DF72]/20 py-4 text-lg"
+                                    >
+                                        Save Configuration
+                                    </Button>
+                                </form>
+                            </>
+                        ) : (
+                            <>
+                                <div className="bg-[#000000] p-8 text-white">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center border border-blue-500/30">
+                                            <ShieldCheckIcon className="text-blue-500" size={24} />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold tracking-tight">QoreID Identity Configuration</h2>
+                                            <p className="text-slate-400 text-sm">Manage your NIN/CAC verification credentials</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form onSubmit={handleSave} className="p-8 space-y-6">
+                                    <div className="grid grid-cols-1 gap-6">
+                                        {/* Client ID */}
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                <KeyIcon size={12} /> QoreID Client ID
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Enter your Client ID"
+                                                value={qoreidConfig.clientId}
+                                                onChange={e => setQoreidConfig({ ...qoreidConfig, clientId: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 font-mono text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                                required
+                                            />
+                                        </div>
+
+                                        {/* Secret Key */}
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                <KeyIcon size={12} /> QoreID Secret Key
+                                            </label>
+                                            <input
+                                                type="password"
+                                                placeholder="Enter your Secret Key"
+                                                value={qoreidConfig.secretKey}
+                                                onChange={e => setQoreidConfig({ ...qoreidConfig, secretKey: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 font-mono text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                                required
+                                            />
+                                        </div>
+
+                                        {/* Base URL */}
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                <GlobeIcon size={12} /> API Environment (Base URL)
+                                            </label>
+                                            <select
+                                                value={qoreidConfig.baseUrl}
+                                                onChange={e => setQoreidConfig({ ...qoreidConfig, baseUrl: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none"
+                                            >
+                                                <option value="https://api.qoreid.com">api.qoreid.com (Live)</option>
+                                                <option value="https://sandbox.qoreid.com">sandbox.qoreid.com (Sandbox)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4">
+                                        <Button
+                                            type="button"
+                                            onClick={handleTestQoreID}
+                                            loading={testingQoreID}
+                                            loadingText="Testing..."
+                                            variant="secondary"
+                                            className="flex-1 py-4"
+                                        >
+                                            Test Connection
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            loading={saving}
+                                            loadingText="Saving..."
+                                            icon={SaveIcon}
+                                            className="flex-[2] shadow-lg shadow-blue-500/20 py-4"
+                                        >
+                                            Save QoreID Settings
+                                        </Button>
+                                    </div>
+                                </form>
+                            </>
+                        )}
                     </div>
 
                     {/* Proactive Help */}

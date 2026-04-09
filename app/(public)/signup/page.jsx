@@ -119,15 +119,23 @@ function SignupContent() {
 
         try {
             const check = await checkPhoneAvailability(formData.whatsapp)
+            
+            if (!check) {
+                return toast.error("Server connection lost. Please check your internet.")
+            }
+
             if (!check.success) {
-                return toast.error(check.message)
+                const errorMessage = check.error || check.message || "The database is currently unreachable. Please try again later."
+                return toast.error(errorMessage)
             }
 
             // In a real app, this is where SMS would be sent
             setIsOtpModalOpen(true)
             toast.success("Verification code sent!")
         } catch (error) {
-            toast.error("Process failed. Please try again.")
+            console.error("Verification Client Error:", error)
+            const errorText = error?.message || "Verification failed due to a network error."
+            toast.error(errorText)
         } finally {
             setIsLoading(false)
             dispatch(hideLoader())
@@ -145,7 +153,7 @@ function SignupContent() {
                 setIsOtpModalOpen(false)
                 toast.success("Phone number verified!")
             } else {
-                toast.error(res.message)
+                toast.error(res.error || res.message || "Invalid OTP")
             }
         } catch (error) {
             toast.error("Verification failed")

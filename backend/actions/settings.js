@@ -105,3 +105,43 @@ export async function getTermiiFullStatus(apiKey, baseUrl) {
         return { success: false, error: "Failed to communicate with Termii" }
     }
 }
+
+/**
+ * Test QoreID connection by attempting to get a token
+ */
+export async function testQoreIDConnection(clientId, secretKey, baseUrl) {
+    if (!clientId || !secretKey || !baseUrl) return { success: false, error: "All credentials are required" }
+
+    try {
+        const url = `${baseUrl}/token`
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                clientId: clientId,
+                secret: secretKey
+            })
+        })
+
+        const data = await response.json()
+        
+        if (response.ok && data.accessToken) {
+            return { 
+                success: true, 
+                message: "Connection successful!",
+                expiresIn: data.expiresIn 
+            }
+        } else {
+            return { 
+                success: false, 
+                error: data.message || data.error || "Authentication failed" 
+            }
+        }
+    } catch (error) {
+        console.error("QoreID Test Error:", error)
+        return { success: false, error: "Connection to QoreID failed" }
+    }
+}

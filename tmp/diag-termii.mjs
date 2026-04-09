@@ -1,4 +1,4 @@
-const API_KEY = "TLEQQDpBwpVunXVBzTfmYCMuOqCdfguLgNsVWZzxIAGyptZGZnVxTOTdzwaXys";
+const API_KEY = "TLdMBwHsEWxlbAzZPtDWdOVFMODSEtPmSPNZMzOrxhJrudeOJQmPwxOJUkeNsi";
 const BASE_URLS = ["https://api.ng.termii.com", "https://v3.api.termii.com"];
 
 async function runDiagnostic() {

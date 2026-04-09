@@ -132,3 +132,25 @@ export async function getSellerDashboardSummary(userId) {
         return ApiResponse.error("Failed to fetch dashboard summary")
     }
 }
+
+/**
+ * Update store address permanently
+ */
+export async function updateStoreAddress(userId, address) {
+    try {
+        if (!userId) return ApiResponse.unauthorized()
+
+        const store = await prisma.store.findUnique({ where: { userId } })
+        if (!store) return ApiResponse.error("Store not found", 404)
+
+        await prisma.store.update({
+            where: { id: store.id },
+            data: { address }
+        })
+
+        return ApiResponse.success(null, "Address saved permanently")
+    } catch (error) {
+        logger.error("Update Store Address Error", error)
+        return ApiResponse.error("Failed to save address")
+    }
+}

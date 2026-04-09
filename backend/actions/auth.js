@@ -1,7 +1,7 @@
 'use server'
 
 import { ApiResponse } from "@/backend/lib/api-response"
-import { generateId, logger } from "@/backend/lib/api-utils"
+import { generateId, logger, normalizePhone } from "@/backend/lib/api-utils"
 import { sendEmail, welcomeEmail } from "@/backend/lib/email"
 import prisma from "@/backend/lib/prisma"
 import bcrypt from "bcryptjs"
@@ -14,57 +14,61 @@ export async function registerUser(userData) {
         // Map BUYER to USER for Prisma schema compatibility
         if (role === 'BUYER') role = 'USER'
 
-        // Check for existing user
-        const existingUser = await prisma.user.findFirst({
-            where: {
-                OR: [{ email }, { phone: whatsapp }]
-            }
-        })
+        // 1. Check for Phone Number Conflicts
+        const phoneConditions = []
+        const normalizedWhatsapp = normalizePhone(whatsapp)
+        if (normalizedWhatsapp) phoneConditions.push({ phone: normalizedWhatsapp })
+        if (whatsapp && whatsapp !== normalizedWhatsapp) phoneConditions.push({ phone: whatsapp })
 
-        if (existingUser) {
-            // If already verified, they should login
-            if (existingUser.isPhoneVerified || existingUser.isEmailVerified) {
+        const existingUserByPhone = phoneConditions.length > 0 
+            ? await prisma.user.findFirst({ where: { OR: phoneConditions } })
+            : null
+
+        if (existingUserByPhone) {
+            logger.info("Phone registration conflict detected", { 
+                matchedUserId: existingUserByPhone.id,
+                matchedName: existingUserByPhone.name,
+                matchedPhone: existingUserByPhone.phone,
+                isPhoneVerified: existingUserByPhone.isPhoneVerified
+            })
+
+            // Only block registration if this is a REAL, fully-registered user
+            const isRealVerifiedUser = existingUserByPhone.isPhoneVerified && 
+                                        existingUserByPhone.name !== "Prospective User" &&
+                                        existingUserByPhone.password && existingUserByPhone.password.length > 10
+
+            if (isRealVerifiedUser) {
                 return ApiResponse.error("A user with this phone number already exists. Please log in instead.", 400)
             }
 
-            const hashedPassword = await bcrypt.hash(password, 10)
-            const otp = Math.floor(100000 + Math.random() * 900000).toString()
-            await prisma.user.update({
-                where: { id: existingUser.id },
-                data: { password: hashedPassword, verificationCode: otp }
-            })
-
-            // Send SMS via Termii
-            const smsResult = await sendOTP(whatsapp, otp);
-            if (smsResult.success) {
-                logger.info(`Verification code sent to existing unverified user ${whatsapp}: ${otp}`)
-            } else {
-                logger.error(`Failed to send SMS to existing unverified user ${whatsapp}: ${smsResult.error || 'Unknown error'}`)
-            }
-
-            // Send email again if they provided one
-            if (email || existingUser.email) {
-                const targetEmail = email || existingUser.email;
-                const name = userData.name || existingUser.name;
-
-                const { verificationCodeEmail } = await import("@/backend/lib/email")
-                const verificationTemplate = verificationCodeEmail({ name, code: otp })
-
-                // Fire and forget email sending with logging
-                import("@/backend/lib/email").then(m => {
-                    m.sendEmail({ to: targetEmail, ...verificationTemplate }).catch(err =>
-                        logger.warn("Verification email retry failed", err)
-                    )
-                })
-            }
-
-            return ApiResponse.success({ user: existingUser, requiresVerification: true }, "Account already exists but is unverified. Please verify your phone number.")
+            // Otherwise, delete the old record (placeholder, ghost, unverified, etc.)
+            logger.info("Removing old unverified/placeholder record to allow registration", { userId: existingUserByPhone.id })
+            await prisma.user.delete({ where: { id: existingUserByPhone.id } })
         }
 
-        // Check for unique email
-        if (email) {
-            const emailExists = await prisma.user.findUnique({ where: { email } })
-            if (emailExists) return ApiResponse.error("A user with this email already exists", 400)
+        // 2. Check for Email Conflicts
+        if (email && email.trim() !== "") {
+            const existingUserByEmail = await prisma.user.findFirst({ where: { email } })
+            
+            if (existingUserByEmail) {
+                logger.info("Email registration conflict detected", { 
+                    matchedUserId: existingUserByEmail.id,
+                    matchedEmail: existingUserByEmail.email,
+                    isEmailVerified: existingUserByEmail.isEmailVerified
+                })
+                
+                const isRealVerifiedUser = existingUserByEmail.isEmailVerified && 
+                                        existingUserByEmail.name !== "Prospective User" &&
+                                        existingUserByEmail.password && existingUserByEmail.password.length > 10
+
+                if (isRealVerifiedUser) {
+                    return ApiResponse.error("A user with this email already exists", 400)
+                }
+
+                // Delete partial/ghost email record as well
+                logger.info("Removing old unverified/placeholder email record", { userId: existingUserByEmail.id })
+                await prisma.user.delete({ where: { id: existingUserByEmail.id } })
+            }
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
@@ -91,7 +95,7 @@ export async function registerUser(userData) {
                     password: hashedPassword,
                     image: "",
                     role: role || 'USER',
-                    phone: whatsapp,
+                    phone: normalizedWhatsapp || whatsapp,
                     isEmailVerified: false,
                     isPhoneVerified: userData.isPhoneVerified || false,
                     cart: "{}",
@@ -166,8 +170,14 @@ export async function registerUser(userData) {
 
 export async function checkPhoneAvailability(phone) {
     try {
-        const existingUser = await prisma.user.findUnique({
-            where: { phone }
+        const normalizedPhone = normalizePhone(phone)
+        const existingUser = await prisma.user.findFirst({
+            where: { 
+                OR: [
+                    { phone: normalizedPhone },
+                    { phone: phone } // fallback to literal match for old records
+                ]
+            }
         })
 
         if (existingUser && existingUser.isPhoneVerified) {
@@ -187,12 +197,16 @@ export async function checkPhoneAvailability(phone) {
             await prisma.user.create({
                 data: {
                     id: generateId("user"),
-                    phone,
+                    phone: normalizedPhone || phone,
                     verificationCode: otp,
-                    name: "Prospective User", // Placeholder
+                    name: "Prospective User",
+                    fullName: "Prospective User",
+                    email: `temp_${Date.now()}@placeholder.com`,
                     image: "",
                     role: "USER",
-                    isPhoneVerified: false
+                    isPhoneVerified: false,
+                    accountStatus: "pending",
+                    status: "active",
                 }
             })
         }
@@ -210,14 +224,24 @@ export async function checkPhoneAvailability(phone) {
         return ApiResponse.success({ available: true }, "Verification code sent to your phone.")
     } catch (error) {
         logger.error("Check Phone Error", error)
-        return ApiResponse.error("Failed to process phone verification.")
+        let message = error.message || "Database connection failure."
+        if (message.includes("firstName")) {
+            message = "Database Error: The 'firstName' column is missing. Please run the Remote Repair Tool."
+        }
+        return ApiResponse.error("Phone verification failed: " + message)
     }
 }
 
 export async function verifyPhoneStandalone(phone, code) {
     try {
-        const user = await prisma.user.findUnique({
-            where: { phone }
+        const normalizedPhone = normalizePhone(phone)
+        const user = await prisma.user.findFirst({
+            where: { 
+                OR: [
+                    { phone: normalizedPhone },
+                    { phone: phone }
+                ]
+            }
         })
 
         if (!user) return ApiResponse.error("Verification session not found.", 404)
@@ -236,9 +260,14 @@ export async function verifyPhoneStandalone(phone, code) {
 
 export async function loginUser(identifier, password) {
     try {
+        const normalizedIdentifier = identifier.includes('@') ? identifier : normalizePhone(identifier)
         const user = await prisma.user.findFirst({
             where: {
-                OR: [{ email: identifier }, { phone: identifier }]
+                OR: [
+                    { email: identifier }, 
+                    { phone: normalizedIdentifier },
+                    { phone: identifier } // fallback
+                ]
             }
         })
 
@@ -265,9 +294,14 @@ export async function loginUser(identifier, password) {
 
 export async function verifyOTP(identifier, code, type = 'PHONE') {
     try {
+        const normalizedIdentifier = identifier.includes('@') ? identifier : normalizePhone(identifier)
         const user = await prisma.user.findFirst({
             where: {
-                OR: [{ email: identifier }, { phone: identifier }]
+                OR: [
+                    { email: identifier }, 
+                    { phone: normalizedIdentifier },
+                    { phone: identifier }
+                ]
             }
         })
 

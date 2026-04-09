@@ -1,0 +1,96 @@
+﻿Starting Termii Diagnostic...
+
+--- Testing Base URL: https://api.ng.termii.com ---
+Fetching Sender IDs from: https://api.ng.termii.com/api/sender-id?api_key=TLdMBwHsEWxlbAzZPtDWdOVFMODSEtPmSPNZMzOrxhJrudeOJQmPwxOJUkeNsi
+Response [200]: {
+  "content": [
+    {
+      "country": "Nigeria",
+      "status": "active",
+      "createdAt": "2024-12-11 18:23:11",
+      "sender_id": "Campteller"
+    }
+  ],
+  "pageable": {
+    "sort": {
+      "empty": false,
+      "sorted": true,
+      "unsorted": false
+    },
+    "offset": 0,
+    "pageNumber": 0,
+    "pageSize": 15,
+    "paged": true,
+    "unpaged": false
+  },
+  "totalElements": 1,
+  "totalPages": 1,
+  "last": true,
+  "sort": {
+    "empty": false,
+    "sorted": true,
+    "unsorted": false
+  },
+  "size": 15,
+  "number": 0,
+  "first": true,
+  "numberOfElements": 1,
+  "empty": false
+}
+
+Checking Balance from: https://api.ng.termii.com/api/get-balance?api_key=TLdMBwHsEWxlbAzZPtDWdOVFMODSEtPmSPNZMzOrxhJrudeOJQmPwxOJUkeNsi
+Response [200]: {
+  "application": "Campteller Ltd",
+  "balance": 2800.7,
+  "currency": "NGN",
+  "user": "Campteller Ltd"
+}
+
+
+--- Testing Base URL: https://v3.api.termii.com ---
+Fetching Sender IDs from: https://v3.api.termii.com/api/sender-id?api_key=TLdMBwHsEWxlbAzZPtDWdOVFMODSEtPmSPNZMzOrxhJrudeOJQmPwxOJUkeNsi
+Response [200]: {
+  "content": [
+    {
+      "country": "Nigeria",
+      "status": "active",
+      "createdAt": "2024-12-11 18:23:11",
+      "sender_id": "Campteller"
+    }
+  ],
+  "pageable": {
+    "sort": {
+      "empty": false,
+      "sorted": true,
+      "unsorted": false
+    },
+    "offset": 0,
+    "pageNumber": 0,
+    "pageSize": 15,
+    "paged": true,
+    "unpaged": false
+  },
+  "totalElements": 1,
+  "totalPages": 1,
+  "last": true,
+  "sort": {
+    "empty": false,
+    "sorted": true,
+    "unsorted": false
+  },
+  "size": 15,
+  "number": 0,
+  "first": true,
+  "numberOfElements": 1,
+  "empty": false
+}
+
+Checking Balance from: https://v3.api.termii.com/api/get-balance?api_key=TLdMBwHsEWxlbAzZPtDWdOVFMODSEtPmSPNZMzOrxhJrudeOJQmPwxOJUkeNsi
+Response [200]: {
+  "application": "Campteller Ltd",
+  "balance": 2800.7,
+  "currency": "NGN",
+  "user": "Campteller Ltd"
+}
+
+
