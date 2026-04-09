@@ -68,7 +68,8 @@ async function getAccessToken() {
             body: JSON.stringify({
                 clientId: clientId,
                 secret: secretKey
-            })
+            }),
+            signal: AbortSignal.timeout(30000)
         });
 
         if (!response.ok) {
