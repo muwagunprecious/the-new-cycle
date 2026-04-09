@@ -34,6 +34,22 @@ export function generateTransactionId() {
 }
 
 /**
+ * Normalize phone number to international format (234XXXXXXXXXX)
+ */
+export const normalizePhone = (phone) => {
+    if (!phone) return "";
+    let formatted = phone.replace(/\D/g, '');
+    if (formatted.startsWith('0') && formatted.length === 11) {
+        formatted = '234' + formatted.substring(1);
+    } else if (formatted.startsWith('234')) {
+        // already has prefix
+    } else if (formatted.length === 10) {
+        formatted = '234' + formatted;
+    }
+    return formatted;
+};
+
+/**
  * Clean logger for production
  */
 export const logger = {

@@ -11,7 +11,7 @@
  */
 
 import prisma from "@/backend/lib/prisma";
-import { normalizePhone } from "./api-utils";
+import { normalizePhone } from "@/backend/lib/api-utils";
 
 const API_KEY = process.env.TERMII_API_KEY;
 const BASE_URL = process.env.TERMII_BASE_URL || "https://v3.api.termii.com";
