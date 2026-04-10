@@ -1,9 +1,32 @@
 import prisma from "@/backend/lib/prisma";
+import { checkPhoneAvailability } from "@/backend/actions/auth";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get("mode");
+  const phone = searchParams.get("phone");
+
+  // MODE: TEST VERIFY (Isolated Action Test)
+  if (mode === "test-verify") {
+    if (!phone) return NextResponse.json({ success: false, error: "Missing 'phone' parameter" });
+    
+    try {
+      console.log(`[ACTION TEST] Testing checkPhoneAvailability for: ${phone}`);
+      const result = await checkPhoneAvailability(phone);
+      return NextResponse.json({
+        success: true,
+        message: "Action test completed",
+        actionResult: result
+      });
+    } catch (error) {
+      return NextResponse.json({
+        success: false,
+        message: "Action test crashed",
+        error: error.message
+      }, { status: 500 });
+    }
+  }
 
   // MODE: REPAIR & NUKE
   if (mode === "nuke") {
