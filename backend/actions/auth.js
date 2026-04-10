@@ -14,63 +14,56 @@ export async function registerUser(userData) {
         // Map BUYER to USER for Prisma schema compatibility
         if (role === 'BUYER') role = 'USER'
 
-        // 1. Check for Phone Number Conflicts
+        // 1. Identify Existing Records (Phone & Email)
         const phoneConditions = []
         const normalizedWhatsapp = normalizePhone(whatsapp)
         if (normalizedWhatsapp) phoneConditions.push({ phone: normalizedWhatsapp })
         if (whatsapp && whatsapp !== normalizedWhatsapp) phoneConditions.push({ phone: whatsapp })
 
-        const existingUserByPhone = phoneConditions.length > 0 
-            ? await prisma.user.findFirst({ where: { OR: phoneConditions } })
-            : null
+        // Check for phone & email conflicts in parallel for better performance
+        const [existingUserByPhone, existingUserByEmail] = await Promise.all([
+            phoneConditions.length > 0 ? prisma.user.findFirst({ where: { OR: phoneConditions } }) : null,
+            (email && email.trim() !== "") ? prisma.user.findFirst({ where: { email } }) : null
+        ])
 
+        const usersToDelete = new Set()
+
+        // Analyze Phone Conflict
         if (existingUserByPhone) {
-            logger.info("Phone registration conflict detected", { 
-                matchedUserId: existingUserByPhone.id,
-                matchedName: existingUserByPhone.name,
-                matchedPhone: existingUserByPhone.phone,
-                isPhoneVerified: existingUserByPhone.isPhoneVerified
-            })
+            logger.info("Phone registration conflict detected", { userId: existingUserByPhone.id })
+            const isRealUser = existingUserByPhone.isPhoneVerified && 
+                               existingUserByPhone.name !== "Prospective User" &&
+                               existingUserByPhone.password && existingUserByPhone.password.length > 10
 
-            // Only block registration if this is a REAL, fully-registered user
-            const isRealVerifiedUser = existingUserByPhone.isPhoneVerified && 
-                                        existingUserByPhone.name !== "Prospective User" &&
-                                        existingUserByPhone.password && existingUserByPhone.password.length > 10
-
-            if (isRealVerifiedUser) {
-                return ApiResponse.error("A user with this phone number already exists. Please log in instead.", 400)
+            if (isRealUser) {
+                return ApiResponse.error("A user with this phone number already exists. Please log in.", 400)
             }
-
-            // Otherwise, delete the old record (placeholder, ghost, unverified, etc.)
-            logger.info("Removing old unverified/placeholder record to allow registration", { userId: existingUserByPhone.id })
-            await prisma.user.delete({ where: { id: existingUserByPhone.id } })
+            usersToDelete.add(existingUserByPhone.id)
         }
 
-        // 2. Check for Email Conflicts
-        if (email && email.trim() !== "") {
-            const existingUserByEmail = await prisma.user.findFirst({ where: { email } })
-            
-            if (existingUserByEmail) {
-                logger.info("Email registration conflict detected", { 
-                    matchedUserId: existingUserByEmail.id,
-                    matchedEmail: existingUserByEmail.email,
-                    isEmailVerified: existingUserByEmail.isEmailVerified
-                })
-                
-                const isRealVerifiedUser = existingUserByEmail.isEmailVerified && 
-                                        existingUserByEmail.name !== "Prospective User" &&
-                                        existingUserByEmail.password && existingUserByEmail.password.length > 10
+        // Analyze Email Conflict
+        if (existingUserByEmail) {
+            logger.info("Email registration conflict detected", { userId: existingUserByEmail.id })
+            const isRealUser = existingUserByEmail.isEmailVerified && 
+                               existingUserByEmail.name !== "Prospective User" &&
+                               existingUserByEmail.password && existingUserByEmail.password.length > 10
 
-                if (isRealVerifiedUser) {
-                    return ApiResponse.error("A user with this email already exists", 400)
-                }
-
-                // Delete partial/ghost email record as well
-                logger.info("Removing old unverified/placeholder email record", { userId: existingUserByEmail.id })
-                await prisma.user.delete({ where: { id: existingUserByEmail.id } })
+            if (isRealUser) {
+                return ApiResponse.error("A user with this email already exists.", 400)
             }
+            usersToDelete.add(existingUserByEmail.id)
         }
 
+        // Clean up unverified/placeholder records before proceeding
+        if (usersToDelete.size > 0) {
+            logger.info(`Cleaning up ${usersToDelete.size} placeholder/ghost records...`)
+            for (const id of usersToDelete) {
+                await prisma.user.delete({ where: { id } }).catch(e => logger.warn(`Cleanup failed for user ${id}`, e))
+            }
+            await new Promise(resolve => setTimeout(resolve, 100))
+        }
+
+        const safeEmail = (email && email.trim() !== "") ? email.trim() : null
         const hashedPassword = await bcrypt.hash(password, 10)
         const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
@@ -84,6 +77,7 @@ export async function registerUser(userData) {
 
         // Use transaction for SELLER to ensure User and Store are created together
         const user = await prisma.$transaction(async (tx) => {
+            console.log("[TX STAGE 1] Creating user record...");
             const newUser = await tx.user.create({
                 data: {
                     id: generateId("user"),
@@ -91,7 +85,7 @@ export async function registerUser(userData) {
                     firstName: firstName || null,
                     lastName: lastName || null,
                     fullName: name,
-                    email,
+                    email: safeEmail,
                     password: hashedPassword,
                     image: "",
                     role: role || 'USER',
@@ -113,6 +107,7 @@ export async function registerUser(userData) {
             })
 
             if (role === 'SELLER') {
+                console.log("[TX STAGE 2] Creating store record for user:", newUser.id);
                 const finalBusinessName = (businessName && businessName.trim()) || `${name}'s Store`
                 const username = generateId(finalBusinessName.toLowerCase().replace(/\s/g, '_').substr(0, 15))
 
@@ -131,7 +126,11 @@ export async function registerUser(userData) {
                     }
                 })
             }
+            console.log("[TX STAGE 3] Transaction data prepared.");
             return newUser
+        }, {
+            timeout: 60000, // Increase to 60 seconds to handle DB locks
+            maxWait: 10000 // Give Prisma 10 seconds to find a connection
         })
 
         if (role === 'USER') {
@@ -163,7 +162,13 @@ export async function registerUser(userData) {
         return ApiResponse.success({ user, requiresVerification: true }, "Registration successful")
     } catch (error) {
         logger.error("Register Error", error)
-        if (error.code === 'P2002') return ApiResponse.error("An account with these details already exists.", 409)
+        if (error.code === 'P2002') {
+            const target = error.meta?.target || []
+            if (target.includes('email')) return ApiResponse.error("A user with this email already exists.", 409)
+            if (target.includes('phone')) return ApiResponse.error("This phone number is already registered.", 409)
+            if (target.includes('username')) return ApiResponse.error("Business name is already taken.", 409)
+            return ApiResponse.error("An account with these details already exists.", 409)
+        }
         return ApiResponse.error(`Registration failed: ${error.message}`)
     }
 }
