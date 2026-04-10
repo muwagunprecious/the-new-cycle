@@ -25,14 +25,21 @@ export async function getTermiiConfig() {
             where: { group: 'termii' }
         });
 
-        const config = {
-            apiKey: settings.find(s => s.key === 'apiKey')?.value || process.env.TERMII_API_KEY || "TLkGPTUpDYXYHSCCsfjVVehHNqOhINliOASfUaCuLiPRRiTthREYIYvVKDFfRT",
-            baseUrl: settings.find(s => s.key === 'baseUrl')?.value || process.env.TERMII_BASE_URL || "https://api.ng.termii.com",
-            senderId: settings.find(s => s.key === 'senderId')?.value || process.env.TERMII_SENDER_ID || "N-Alert"
+        // PRIORITY: 1. DB Settings, 2. Process Env, 3. Hardcoded Fallback
+        const apiKey = settings.find(s => s.key === 'apiKey')?.value || process.env.TERMII_API_KEY;
+        const baseUrl = settings.find(s => s.key === 'baseUrl')?.value || process.env.TERMII_BASE_URL || "https://api.ng.termii.com";
+        const senderId = settings.find(s => s.key === 'senderId')?.value || process.env.TERMII_SENDER_ID || "N-Alert";
+
+        console.log(`[SMS CONFIG] Source: ${settings.length > 0 ? "Database" : "Environment"}`);
+        console.log(`[SMS CONFIG] Using Sender ID: ${senderId}`);
+        
+        return { 
+            apiKey: apiKey || "TLkGPTUpDYXYHSCCsfjVVehHNqOhINliOASfUaCuLiPRRiTthREYIYvVKDFfRT",
+            baseUrl, 
+            senderId 
         };
-        return config;
     } catch (error) {
-        console.error("Error fetching Termii config from DB, using hardcoded fallbacks:", error.message);
+        console.error("[SMS CONFIG ERROR] Falling back to Env/Default:", error.message);
         return {
             apiKey: process.env.TERMII_API_KEY || "TLkGPTUpDYXYHSCCsfjVVehHNqOhINliOASfUaCuLiPRRiTthREYIYvVKDFfRT",
             baseUrl: process.env.TERMII_BASE_URL || "https://api.ng.termii.com",
@@ -55,9 +62,11 @@ export async function sendOTP(to, messageOrCode = null) {
     const { apiKey, baseUrl, senderId } = await getTermiiConfig();
 
     if (!apiKey) {
-        console.error("Termii API key missing");
+        console.error("[TERMII ERROR] API Key is missing in Environment and Database");
         return { success: false, error: "SMS service not configured" };
     }
+    
+    console.log(`[TERMII ACTION] Initiating OTP send to ${to} via ${baseUrl}`);
 
     const formattedTo = normalizePhone(to);
     const finalSenderId = "N-Alert"; // Explicitly match Termii's approved sender

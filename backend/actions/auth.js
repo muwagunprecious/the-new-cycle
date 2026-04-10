@@ -169,16 +169,20 @@ export async function registerUser(userData) {
 }
 
 export async function checkPhoneAvailability(phone) {
+    console.log(`[STAGE 1] Checking phone availability for: ${phone}`);
     try {
         const normalizedPhone = normalizePhone(phone)
+        console.log(`[STAGE 2] Normalized phone: ${normalizedPhone}`);
+
         const existingUser = await prisma.user.findFirst({
             where: { 
                 OR: [
                     { phone: normalizedPhone },
-                    { phone: phone } // fallback to literal match for old records
+                    { phone: phone }
                 ]
             }
         })
+        console.log(`[STAGE 3] DB Lookup complete. Found user: ${existingUser ? existingUser.id : 'NO'}`);
 
         if (existingUser && existingUser.isPhoneVerified) {
             return ApiResponse.error("This phone number is already registered and verified.", 400)
@@ -187,13 +191,13 @@ export async function checkPhoneAvailability(phone) {
         const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
         if (existingUser) {
-            // Update existing unverified user with new OTP
+            console.log(`[STAGE 4] Updating existing user ${existingUser.id} with OTP`);
             await prisma.user.update({
                 where: { id: existingUser.id },
                 data: { verificationCode: otp }
             })
         } else {
-            // Create a temporary partial user to hold the OTP
+            console.log(`[STAGE 4] Creating temporary record for new user`);
             await prisma.user.create({
                 data: {
                     id: generateId("user"),
@@ -210,17 +214,17 @@ export async function checkPhoneAvailability(phone) {
                 }
             })
         }
+        console.log(`[STAGE 5] DB operation successful. Preparing to call Termii...`);
 
         // Send real SMS via Termii
         const smsResult = await sendOTP(phone, otp);
+        console.log(`[STAGE 6] Termii result: ${smsResult.success ? 'SUCCESS' : 'FAILURE'}`);
 
         if (!smsResult.success) {
-            logger.error("Termii SMS Send Failed", smsResult.error);
-            // Fallback for demo/testing if SMS fails but we want to allow 123456
-            // But for real production, we might want to return error
+            console.error(`[TERMII ERROR LOG] ${smsResult.error}`);
+            return ApiResponse.error(`SMS Send Failed: ${smsResult.error || 'Provider rejected request'}`);
         }
 
-        logger.info(`Standalone verification code sent to ${phone}: ${otp}`)
         return ApiResponse.success({ available: true }, "Verification code sent to your phone.")
     } catch (error) {
         logger.error("Check Phone Error", error)
