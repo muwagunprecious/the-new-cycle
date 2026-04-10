@@ -3,6 +3,7 @@ import { useState, Suspense, useEffect } from "react"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/lib/features/auth/authSlice"
 import { registerUser, loginUser, verifyOTP, checkPhoneAvailability, verifyPhoneStandalone } from "@/backend/actions/auth"
+import { testServerConnection } from "@/backend/actions/test"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShieldCheck as ShieldCheckIcon, User as UserIcon, Mail as MailIcon, Lock as LockIcon, Phone as PhoneIcon, CheckCircle as CheckCircleIcon, Loader as LoaderIcon, Building as BuildingIcon, Zap as ZapIcon, Eye as EyeIcon, EyeOff as EyeOffIcon, Search as SearchIcon, ChevronDown as ChevronDownIcon } from "lucide-react"
 import Link from "next/link"
@@ -109,14 +110,16 @@ function SignupContent() {
     }
 
     const handleInitiatePhoneVerify = async () => {
+        console.log("CLIENT: Initiate Phone Verify Clicked");
         const digits = formData.whatsapp.replace(/\D/g, '')
         if (digits.length !== 13) {
+            console.warn("CLIENT: Incomplete number", digits.length);
             return toast.error("Please enter a valid 10-digit number")
         }
 
         setIsLoading(true)
-        dispatch(showLoader("Checking phone status..."))
-
+        dispatch(showLoader("Connecting to Secure Server..."))
+        console.log("CLIENT: Calling server action 'checkPhoneAvailability'...");
         try {
             const check = await checkPhoneAvailability(formData.whatsapp)
             
@@ -775,6 +778,32 @@ function SignupContent() {
                             </div>
                         </form>
                     )}
+                    </div>
+                    
+                    <div className="mt-8 pt-6 border-t border-black/[0.04] text-center">
+                        <button 
+                            type="button"
+                            onClick={async () => {
+                                toast.loading("Checking server heartbeat...");
+                                try {
+                                    const res = await testServerConnection();
+                                    toast.dismiss();
+                                    if (res.success) {
+                                        toast.success("Connection Healthy! Server is reaching DB.");
+                                        console.log("Server Stats:", res.data);
+                                    } else {
+                                        toast.error("Server reached, but DB is down: " + res.error);
+                                    }
+                                } catch (e) {
+                                    toast.dismiss();
+                                    toast.error("Fatal Connection Error. See Browser Console.");
+                                    console.error("Heartbeat Error:", e);
+                                }
+                            }}
+                            className="text-[9px] font-bold text-slate-300 hover:text-emerald-500 uppercase tracking-widest transition-all"
+                        >
+                            Diagnostic: Test Server Connection
+                        </button>
                     </div>
 
                 <p className="text-center mt-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
