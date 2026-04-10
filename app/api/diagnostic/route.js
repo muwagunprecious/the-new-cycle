@@ -31,34 +31,48 @@ export async function GET(request) {
   // MODE: REPAIR & NUKE
   if (mode === "nuke") {
     try {
-      console.log("!!! INITIATING REMOTE SCHEMA REPAIR & NUKE !!!");
+      console.log("!!! INITIATING FULL REMOTE SCHEMA RECONSTRUCTION & NUKE !!!");
       
       const repairs = [];
       const deletions = {};
 
-      // 1. REPAIR MISSING COLUMNS
-      try {
-        console.log("Repairing Users table schema...");
-        await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "firstName" TEXT;`);
-        await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "lastName" TEXT;`);
-        await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "fullName" TEXT;`);
-        repairs.push("Successfully added missing firstName, lastName, and fullName columns.");
-      } catch (err) {
-        repairs.push(`Schema Repair Skip/Error: ${err.message}`);
+      // 1. COMPREHENSIVE USER TABLE REPAIR
+      const columnsToAdd = [
+        ["firstName", "TEXT"],
+        ["lastName", "TEXT"],
+        ["fullName", "TEXT"],
+        ["businessName", "TEXT"],
+        ["businessType", "TEXT"],
+        ["ninDocument", "TEXT"],
+        ["cacDocument", "TEXT"],
+        ["bankName", "TEXT"],
+        ["accountNumber", "TEXT"],
+        ["accountName", "TEXT"],
+        ["accountStatus", "TEXT DEFAULT 'pending'"],
+        ["gender", "TEXT"],
+        ["state", "TEXT DEFAULT 'Lagos'"],
+        ["lga", "TEXT"],
+        ["identityToken", "TEXT"],
+        ["businessToken", "TEXT"],
+        ["verificationNotes", "TEXT"],
+        ["isDirectorVerified", "BOOLEAN DEFAULT false"],
+        ["isPhoneVerified", "BOOLEAN DEFAULT false"],
+        ["isEmailVerified", "BOOLEAN DEFAULT false"]
+      ];
+
+      for (const [col, type] of columnsToAdd) {
+        try {
+          await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "${col}" ${type};`);
+          repairs.push(`Verified/Added: ${col}`);
+        } catch (err) {
+          repairs.push(`Failed/Skipped ${col}: ${err.message}`);
+        }
       }
 
       // 2. NUKE DATA
       const models = [
-        "orderItem",
-        "rating",
-        "notification",
-        "address",
-        "order",
-        "product",
-        "store",
-        "user",
-        "setting",
-        "coupon"
+        "orderItem", "rating", "notification", "address", "order", 
+        "product", "store", "user", "setting", "coupon"
       ];
 
       for (const model of models) {
@@ -72,7 +86,7 @@ export async function GET(request) {
 
       return NextResponse.json({
         success: true,
-        message: "Database schema repaired and data cleared from the cloud.",
+        message: "Full Schema Reconstruction complete. Data cleared.",
         repairs,
         deletions
       });
@@ -80,28 +94,20 @@ export async function GET(request) {
     } catch (error) {
       return NextResponse.json({
         success: false,
-        error: `Cloud Reset Failed: ${error.message}`
+        error: `Cloud Reconstruction Failed: ${error.message}`
       }, { status: 500 });
     }
   }
 
   // STANDARD DIAGNOSTIC MODE
   try {
-    const settings = await prisma.setting.findMany({ 
-      select: { key: true, group: true } 
-    });
-
+    const settings = await prisma.setting.findMany({ select: { key: true, group: true } });
     return NextResponse.json({
       success: true,
       settingsCount: settings.length,
-      settingsSummary: settings.map(s => `${s.group}:${s.key}`),
-      databaseUrlStatus: "Healthy (Direct Connection 5432)"
+      databaseUrlStatus: "Healthy"
     });
-
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: `Diagnostic Failed: ${error.message}`
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
