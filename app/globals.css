@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -68,6 +69,7 @@
 
     body {
         @apply text-slate-800 bg-white antialiased selection:bg-emerald-100 selection:text-emerald-900;
+        font-family: 'Outfit', sans-serif;
     }
 
     h1 {

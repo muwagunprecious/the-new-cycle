@@ -36,10 +36,10 @@ const LatestProducts = () => {
     const displayQuantity = 8
 
     if (loading) return <div className="py-20"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#05DF72] mx-auto"></div></div>
-
+    
     return (
-        <div className='px-6 my-40 max-w-7xl mx-auto'>
-            <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-12 mb-20">
+        <div className='px-6 py-10 max-w-7xl mx-auto'>
+            <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-12 mb-12">
                 <div className="flex-1">
                     <Title title='Marketplace <span className="text-emerald-500">Arrivals</span>' description="Browse our newest verified listings from trusted eco-vendors across Lagos." href='/shop' />
                 </div>

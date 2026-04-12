@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go-Cycle | Revolutionizing Battery Recycling</title>
+    <meta name="description" content="Join the Go-Cycle waitlist to get early access to Nigeria's premier battery recycling platform.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+:root {
+    --primary-color: #ffffff; /* White background preference */
+    --secondary-color: #05DF72; /* Green brand color */
+    --secondary-dark: #04b35b;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --bg-light: #f8fafc;
+    --bg-white: #ffffff;
+    --border-color: #e2e8f0;
+    --error: #ef4444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--primary-color);
+    color: var(--text-dark);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Typography highlights */
+h1, h2, h3 { color: var(--text-dark); font-weight: 800; }
+span { color: var(--secondary-color); }
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.primary-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    box-shadow: 0 4px 15px rgba(5, 223, 114, 0.3);
+}
+
+.primary-btn:hover {
+    background-color: var(--secondary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5, 223, 114, 0.4);
+}
+
+/* Navbar */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 15px 0;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--text-dark);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 15px;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--secondary-color);
+}
+
+.nav-btn {
+    background-color: var(--secondary-color);
+    color: white !important;
+    padding: 10px 24px;
+    border-radius: 50px;
+}
+
+.nav-btn:hover {
+    background-color: var(--secondary-dark);
+}
+
+/* Hero Section */
+.hero {
+    padding: 150px 0 80px;
+    background: radial-gradient(circle at top right, rgba(5,223,114,0.1) 0%, rgba(255,255,255,0) 50%);
+}
+
+.hero-split {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+}
+
+.hero-content {
+    flex: 1;
+}
+
+.hero-content h1 {
+    font-size: 54px;
+    line-height: 1.1;
+    margin-bottom: 20px;
+}
+
+.hero-content p {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 30px;
+    max-width: 500px;
+}
+
+.hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.hero-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0); }
+}
+
+/* About Section */
+.about {
+    padding: 80px 0;
+    background-color: var(--bg-light);
+}
+
+.about-split {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    flex-direction: row-reverse; /* image on left, text on right */
+}
+
+.about-image {
+    flex: 1;
+}
+
+.about-image img {
+    max-width: 100%;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+.about-content {
+    flex: 1;
+}
+
+.about-content h2 {
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+
+.about-content p {
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+/* Services */
+.services {
+    padding: 100px 0;
+    text-align: center;
+}
+
+.section-title {
+    margin-bottom: 60px;
+}
+
+.section-title h2 {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.section-title p {
+    color: var(--text-muted);
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.service-card {
+    background: var(--bg-white);
+    padding: 40px 30px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(5,223,114,0.1);
+    border-color: rgba(5,223,114,0.3);
+}
+
+.service-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.service-card h3 {
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+.service-card p {
+    color: var(--text-muted);
+}
+
+/* Waitlist Form Section */
+.waitlist {
+    padding: 80px 0 120px;
+    background-color: var(--bg-light);
+    position: relative;
+}
+
+.waitlist-card {
+    background: var(--bg-white);
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 50px;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color);
+}
+
+.waitlist-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.waitlist-header h2 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.waitlist-header p {
+    color: var(--text-muted);
+}
+
+.waitlist-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+input, select {
+    width: 100%;
+    padding: 16px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-dark);
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+    border-color: var(--secondary-color);
+    background: var(--bg-white);
+    box-shadow: 0 0 0 3px rgba(5, 223, 114, 0.1);
+}
+
+/* Submit Button Override for this form */
+.submit-btn {
+    margin-top: 10px;
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.submit-btn:hover {
+    background: var(--secondary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(5, 223, 114, 0.3);
+}
+
+/* Footer */
+footer {
+    background-color: var(--text-dark);
+    color: white;
+    padding: 80px 0 20px;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.footer-brand .logo {
+    color: white;
+    margin-bottom: 15px;
+}
+
+.footer-brand p {
+    color: #94a3b8;
+    max-width: 300px;
+}
+
+.footer-links h4, .footer-contact h4 {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.footer-links a {
+    display: block;
+    color: #94a3b8;
+    text-decoration: none;
+    margin-bottom: 10px;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: var(--secondary-color);
+}
+
+.footer-contact p {
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    color: #64748b;
+    font-size: 14px;
+}
+
+/* Utils */
+.hidden { display: none !important; }
+
+/* Loader */
+.loader {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    position: absolute;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Alerts */
+.message {
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+}
+.message.success {
+    background: rgba(5, 223, 114, 0.1);
+    color: var(--secondary-dark);
+}
+.message.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+/* Modal Popup */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+.modal-content h3 {
+    font-size: 26px;
+    margin-bottom: 10px;
+}
+
+.modal-content p {
+    color: var(--text-muted);
+    margin-bottom: 30px;
+}
+
+.modal-content .primary-btn {
+    width: 100%;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero-split, .about-split { flex-direction: column; text-align: center; }
+    .hero-content h1 { font-size: 40px; }
+    .about-split { flex-direction: column; }
+    .footer-content { grid-template-columns: 1fr; text-align: center; }
+    .footer-brand p { margin: 0 auto; }
+}
+@media (max-width: 480px) {
+    .form-row { grid-template-columns: 1fr; }
+    .waitlist-card { padding: 30px 20px; }
+}
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">Go-<span>Cycle</span></div>
+            <nav class="nav-links">
+                <a href="#about">About Us</a>
+                <a href="#services">What We Do</a>
+                <a href="#waitlist" class="nav-btn">Join Waitlist</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-split">
+            <div class="hero-content">
+                <h1>Powering the Future of <br><span>Recycling</span></h1>
+                <p>Join Nigeria's premier dry cell and inverter battery recycling network. Turn your scrap into value while protecting our environment for a cleaner, greener tomorrow.</p>
+                <a href="#waitlist" class="btn primary-btn">Secure Your Spot</a>
+            </div>
+            <div class="hero-image">
+                <img src="https://mercurydirect.com.ng/wp-content/uploads/2023/03/Mercury-200Ah-Battery-GEL.webp" alt="Battery Collection">
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container about-split">
+            <div class="about-image">
+                <img src="https://solance.in/wp-content/uploads/2024/08/SXP1500.png" alt="Battery Recycling Process">
+            </div>
+            <div class="about-content">
+                <h2>About <span>Go-Cycle</span></h2>
+                <p>Go-Cycle is a pioneering green tech platform dedicated solely to the safe collection, management, and recycling of batteries across Nigeria. We believe that sustainable energy starts with responsible disposal.</p>
+                <p>Our mission is to bridge the gap between conscientious sellers and certified recycling facilities, ensuring zero toxic waste ends up in our landfills.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- What We Do Section -->
+    <section id="services" class="services">
+        <div class="container">
+            <div class="section-title">
+                <h2>What We <span>Do</span></h2>
+                <p>A seamless ecosystem for sustainable battery management.</p>
+            </div>
+            
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">🔋</div>
+                    <h3>Safe Collection</h3>
+                    <p>We provide a reliable platform to list and sell your used inverter and dry cell scrap batteries easily.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">♻️</div>
+                    <h3>Eco Recycling</h3>
+                    <p>Batteries are passed on to verified recycling agents who extract valuable materials safely, leaving zero carbon footprint.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">💰</div>
+                    <h3>Immediate Value</h3>
+                    <p>Get rewarded directly! Sellers receive competitive market prices for their scrap batteries, processed instantly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Waitlist Section -->
+    <section id="waitlist" class="waitlist">
+        <div class="container">
+            <div class="waitlist-card">
+                <div class="waitlist-header">
+                    <h2>Join the <span>Waitlist</span></h2>
+                    <p>Be the first to access the platform. Spaces are limited for our beta launch.</p>
+                </div>
+                
+                <form id="waitlistForm" class="waitlist-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fullName">Full Name</label>
+                            <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <select id="state" name="state" required>
+                                <option value="" disabled selected>Select your state</option>
+                                <option value="Abia">Abia</option>
+                                <option value="Abuja">Abuja (FCT)</option>
+                                <option value="Lagos">Lagos</option>
+                                <option value="Kano">Kano</option>
+                                <option value="Ogun">Ogun</option>
+                                <option value="Oyo">Oyo</option>
+                                <option value="Rivers">Rivers</option>
+                                <option value="Other">Other...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="lga">Local Government</label>
+                            <input type="text" id="lga" name="lga" placeholder="Enter your LGA" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <span class="btn-text">Join Waitlist</span>
+                        <span class="loader hidden"></span>
+                    </button>
+                    
+                    <div id="errorMessage" class="message error hidden">
+                        Oops! Something went wrong. Please try again.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Success Modal Popup -->
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">🎉</div>
+            <h3>You're on the list!</h3>
+            <p>We've saved your spot. We'll notify you as soon as we launch.</p>
+            <button id="closeModalBtn" class="btn primary-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <div class="logo">Go-<span>Cycle</span></div>
+                <p>Nigeria's premier eco-friendly battery recycling platform. Protecting the environment, one battery at a time.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <a href="#hero">Home</a>
+                <a href="#about">About Us</a>
+                <a href="#services">Services</a>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact Us</h4>
+                <p>Email: hello@go-cycle.ng</p>
+                <p>Location: Lagos, Nigeria</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Go-Cycle Technologies. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('waitlistForm');
+    const submitBtn = document.querySelector('.submit-btn');
+    const btnText = document.querySelector('.btn-text');
+    const loader = document.querySelector('.loader');
+    const successModal = document.getElementById('successModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const errorMessage = document.getElementById('errorMessage');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Hide previous errors
+        errorMessage.classList.add('hidden');
+        
+        // UI Loading State
+        btnText.classList.add('hidden');
+        loader.classList.remove('hidden');
+        submitBtn.disabled = true;
+
+        // Gather data
+        const formData = {
+            fullName: document.getElementById('fullName').value,
+            email: document.getElementById('email').value,
+            state: document.getElementById('state').value,
+            lga: document.getElementById('lga').value,
+            timestamp: new Date().toISOString()
+        };
+
+        try {
+            // Simulate an API call / submission delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Log submission in console (this is where you'd connect to a backend like Supabase/Firebase)
+            console.log('Successfully captured Waitlist Submission:', formData);
+            
+            // Show Success Modal
+            successModal.classList.add('active');
+            form.reset();
+        } catch (error) {
+            console.error('Submission failed:', error);
+            errorMessage.classList.remove('hidden');
+        } finally {
+            // Revert UI Loading State
+            btnText.classList.remove('hidden');
+            loader.classList.add('hidden');
+            submitBtn.disabled = false;
+        }
+    });
+
+    // Add subtle interactive micro-animations to inputs
+    const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+            input.parentElement.style.transform = 'translateY(-2px)';
+            input.parentElement.style.transition = 'transform 0.3s ease';
+        });
+        input.addEventListener('blur', () => {
+            input.parentElement.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Close modal event listener
+    closeModalBtn.addEventListener('click', () => {
+        successModal.classList.remove('active');
+    });
+
+    // Close modal when clicking outside of it
+    successModal.addEventListener('click', (e) => {
+        if (e.target === successModal) {
+            successModal.classList.remove('active');
+        }
+    });
+});
+    </script>
+</body>
+</html>
