@@ -50,10 +50,7 @@ const Footer = () => {
                         </p>
                         <div className="space-y-3">
                             <div className="text-[10px] font-bold uppercase tracking-[0.3em] flex items-center gap-3 text-slate-500">
-                                <span className="text-emerald-500 opacity-80">🌍</span> Lagos, Nigeria
-                            </div>
-                            <div className="text-[10px] font-bold uppercase tracking-[0.3em] flex items-center gap-3 text-slate-500">
-                                <span className="text-emerald-500 opacity-80">♻️</span> Battery Ecosystem
+                                <span className="text-emerald-500 opacity-80">🌍</span> Dayspring esatate, surulere Nigeria
                             </div>
                         </div>
                     </div>

@@ -19,9 +19,7 @@ const Navbar = () => {
 
     const handleNavigation = (href, message = "Loading...") => {
         dispatch(showLoader(message))
-        setTimeout(() => {
-            router.push(href)
-        }, 500)
+        router.push(href)
     }
 
     const handleSearch = (e) => {
@@ -31,10 +29,8 @@ const Navbar = () => {
 
     const handleLogout = () => {
         dispatch(showLoader("Signing you out..."))
-        setTimeout(() => {
-            dispatch(logout())
-            router.push('/')
-        }, 800)
+        dispatch(logout())
+        router.push('/')
     }
 
     const getDashboardLink = () => {
@@ -54,7 +50,10 @@ const Navbar = () => {
                     <div className="bg-emerald-500 p-2 rounded-xl shadow-sm transition-transform group-hover:scale-105">
                         <RecycleIcon className="text-white" size={20} />
                     </div>
-                    <span className="text-2xl font-bold tracking-tighter text-slate-950">Go<span className="text-emerald-500">Cycle</span></span>
+                    <div className="flex flex-col leading-none">
+                        <span className="text-2xl font-bold tracking-tighter text-slate-950">Go<span className="text-emerald-500">Cycle</span></span>
+                        <span className="text-[8px] font-black uppercase tracking-[0.3em] text-emerald-600 mt-0.5 ml-0.5">The New Cycle</span>
+                    </div>
                 </Link>
 
                 {/* Desktop Menu */}
@@ -62,9 +61,6 @@ const Navbar = () => {
                     <button onClick={() => handleNavigation('/shop', 'Entering Marketplace...')} className="text-[13px] font-medium text-slate-600 hover:text-emerald-600 transition-colors relative group py-2">
                         Marketplace
                         <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
-                    </button>
-                    <button onClick={() => handleNavigation('/signup?role=SELLER', 'Loading seller signup...')} className="text-[13px] font-bold text-emerald-600 hover:text-emerald-500 transition-all uppercase tracking-tight">
-                        Join as Seller
                     </button>
                 </div>
 
@@ -107,10 +103,10 @@ const Navbar = () => {
                     {!isLoggedIn ? (
                         <div className="flex items-center gap-2">
                             <button onClick={() => handleNavigation('/login', 'Redirecting to login...')} className="px-4 py-2 text-[12px] font-bold text-slate-600 hover:text-slate-950 transition-colors uppercase tracking-widest">
-                                Login
+                                Sign In
                             </button>
-                            <button onClick={() => handleNavigation('/signup?role=BUYER', 'Redirecting to join...')} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95 transition-all shadow-lg shadow-slate-900/10 whitespace-nowrap">
-                                Join as Buyer
+                            <button onClick={() => handleNavigation('/signup', 'Redirecting to join...')} className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95 transition-all shadow-lg shadow-slate-900/10 whitespace-nowrap">
+                                Sign Up
                             </button>
                         </div>
                     ) : (

@@ -54,6 +54,6 @@ export const normalizePhone = (phone) => {
  */
 export const logger = {
     info: (msg, data = {}) => console.log(`[INFO] ${msg}`, JSON.stringify(data)),
-    error: (msg, err) => console.error(`[ERROR] ${msg}`, err),
+    error: (msg, err) => console.error(`[ERROR] ${msg}`, err?.message || err || ""),
     warn: (msg, data = {}) => console.warn(`[WARN] ${msg}`, data),
 };

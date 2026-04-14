@@ -120,10 +120,9 @@ export default function SellerProducts() {
                 lga: storeInfo.lga,
                 address: storeInfo.address
             }))
-            toast.success("Shop address applied")
+            toast.success("Profile address applied")
         } else {
-            toast.error("No registered shop address found. Please enter it.")
-            setShowAddressModal(true)
+            toast.error("No address found in your profile. Please enter one below.")
         }
     }
 
@@ -1036,68 +1035,6 @@ export default function SellerProducts() {
                 </div>
             )}
 
-            {/* Missing Address Modal */}
-            {showAddressModal && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full animate-in zoom-in duration-300 overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-slate-900">Your Shop <span className="text-[#05DF72]">Address</span></h2>
-                            <button type="button" onClick={() => setShowAddressModal(false)} className="p-2 hover:bg-slate-50 rounded-full text-slate-400">
-                                <XIcon size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleSaveAddressModal} className="p-6 space-y-6">
-                            <div className="bg-amber-50 rounded-2xl p-4 text-xs text-amber-700 flex items-start gap-3">
-                                <AlertCircleIcon size={16} className="shrink-0 mt-0.5" />
-                                <p>We don't have a shop address saved for you yet. Please enter it below.</p>
-                            </div>
-                            
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Local Government Area *</label>
-                                <select
-                                    value={tempAddressData.lga}
-                                    onChange={e => setTempAddressData({ ...tempAddressData, lga: e.target.value })}
-                                    className="w-full p-4 bg-slate-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                    required
-                                >
-                                    <option value="">Select LGA</option>
-                                    {lagosLGAs.map(lga => (
-                                        <option key={lga} value={lga}>{lga}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Full Address *</label>
-                                <input
-                                    value={tempAddressData.address}
-                                    onChange={e => setTempAddressData({ ...tempAddressData, address: e.target.value })}
-                                    className="w-full p-4 bg-slate-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                    placeholder="e.g. 12 Market Street"
-                                    required
-                                />
-                            </div>
-
-                            <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl">
-                                <input
-                                    type="checkbox"
-                                    id="saveAddr"
-                                    checked={saveAddressPermanently}
-                                    onChange={e => setSaveAddressPermanently(e.target.checked)}
-                                    className="w-5 h-5 accent-[#05DF72] rounded cursor-pointer"
-                                />
-                                <label htmlFor="saveAddr" className="text-sm font-bold text-slate-700 cursor-pointer">
-                                    Save this address permanently to my profile
-                                </label>
-                            </div>
-
-                            <button type="submit" className="w-full btn-primary bg-[#05DF72] hover:bg-[#04bd60] text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-colors">
-                                Apply & Continue
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }

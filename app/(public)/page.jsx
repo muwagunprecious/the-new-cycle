@@ -1,12 +1,10 @@
 'use client'
-import BestSelling from "@/components/BestSelling";
 import HeroSlider from "@/components/HeroSlider";
 import OurSpecs from "@/components/OurSpec";
 import LatestProducts from "@/components/LatestProducts";
 
 import MarketplaceOverview from "@/components/MarketplaceOverview";
 import ProcessWorkflow from "@/components/ProcessWorkflow";
-import BankVerificationDemo from "@/components/BankVerificationDemo";
 import CategoriesMarquee from "@/components/CategoriesMarquee";
 
 export default function Home() {
@@ -28,8 +26,6 @@ export default function Home() {
                 <MarketplaceOverview />
                 <ProcessWorkflow />
                 <OurSpecs />
-                <BestSelling />
-                <BankVerificationDemo />
             </div>
         </div>
     );

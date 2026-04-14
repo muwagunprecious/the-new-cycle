@@ -10,6 +10,7 @@ import Link from "next/link"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "@/components/Button"
+import LocationSelector from "@/components/LocationSelector"
 
 function SignupContent() {
     const dispatch = useDispatch()
@@ -17,10 +18,9 @@ function SignupContent() {
     const searchParams = useSearchParams()
 
     const redirect = searchParams.get('redirect')
-    const roleParam = searchParams.get('role') || 'BUYER'
-
+    const roleParam = searchParams.get('role')
     const [isLoading, setIsLoading] = useState(false)
-    const [step, setStep] = useState('IDENTITY_VERIFY') // IDENTITY_VERIFY | REGISTER | VERIFY_EMAIL | VERIFY_PHONE | COMPLETE
+    const [step, setStep] = useState(roleParam ? (roleParam === 'SELLER' ? 'REGISTER' : 'IDENTITY_VERIFY') : 'CHOOSE_ROLE')
     const [isPhoneVerified, setIsPhoneVerified] = useState(false)
     const [isOtpModalOpen, setIsOtpModalOpen] = useState(false)
     const [tempOtp, setTempOtp] = useState('')
@@ -43,19 +43,19 @@ function SignupContent() {
         address: ''
     })
 
-    const LAGOS_LGAS = [
-        "Agege", "Ajeromi-Ifelodun", "Alimosho", "Amuwo-Odofin", "Apapa",
-        "Badagry", "Epe", "Eti-Osa", "Ibeju-Lekki", "Ifako-Ijaiye",
-        "Ikeja", "Ikorodu", "Kosofe", "Lagos Island", "Lagos Mainland",
-        "Mushin", "Ojo", "Oshodi-Isolo", "Somolu", "Surulere"
-    ]
 
     // Sync role with URL parameters
     useEffect(() => {
         if (roleParam) {
             setFormData(prev => ({ ...prev, role: roleParam }))
-            // Both roles start with identity verification for security
-            setStep('IDENTITY_VERIFY')
+            // Sellers skip identity verification as per request
+            if (roleParam === 'SELLER') {
+                setStep('REGISTER')
+            } else {
+                setStep('IDENTITY_VERIFY')
+            }
+        } else {
+            setStep('CHOOSE_ROLE')
         }
     }, [roleParam])
 
@@ -376,11 +376,62 @@ function SignupContent() {
                              'Secure Verification'}
                         </h1>
                         <p className="text-slate-500 font-medium">
-                            {step === 'IDENTITY_VERIFY' ? 'Verify your identity to begin your journey' : 
+                            {step === 'CHOOSE_ROLE' ? 'Please select your role to continue' :
+                             step === 'IDENTITY_VERIFY' ? 'Verify your identity to begin your journey' : 
                              step === 'REGISTER' ? 'Complete your registration details' : 
                              `Enter the code sent to ${formData.whatsapp}`}
                         </p>
                     </div>
+
+                    {step === 'CHOOSE_ROLE' && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
+                            <div className="bg-emerald-50/50 border border-emerald-500/10 p-8 rounded-[32px] text-center">
+                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 block mb-6">Choose Your Path</label>
+                                
+                                <div className="relative max-w-sm mx-auto group">
+                                    <div className="absolute inset-x-0 -top-px -bottom-px bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <div className="relative">
+                                        <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-500" size={20} />
+                                        <select
+                                            className="w-full bg-white border-2 border-emerald-500/20 rounded-2xl py-5 pl-14 pr-12 outline-none transition-all focus:border-emerald-500 focus:shadow-xl focus:shadow-emerald-500/10 font-bold text-slate-900 text-lg appearance-none cursor-pointer"
+                                            value={formData.role}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                                        >
+                                            <option value="" disabled>-- Select Role --</option>
+                                            <option value="BUYER">Joining as Buyer (Individual)</option>
+                                            <option value="SELLER">Joining as Seller (Business)</option>
+                                        </select>
+                                        <ChevronDownIcon className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none" size={20} />
+                                    </div>
+                                </div>
+
+                                <p className="mt-6 text-sm text-slate-500 font-medium px-4">
+                                    {formData.role === 'BUYER' ? 'Start buying verified batteries and contribute to the circular economy.' : 
+                                     formData.role === 'SELLER' ? 'List your inventory, manage sales, and grow your battery business.' : 
+                                     'Select whether you want to buy or sell batteries on Nigeria\'s largest network.'}
+                                </p>
+                            </div>
+
+                            <Button
+                                onClick={() => {
+                                    if (!formData.role) return toast.error("Please select a role first")
+                                    if (formData.role === 'SELLER') setStep('REGISTER')
+                                    else setStep('IDENTITY_VERIFY')
+                                }}
+                                className="w-full !py-6 !rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-md font-black uppercase tracking-widest"
+                                disabled={!formData.role}
+                            >
+                                Continue Registration
+                            </Button>
+
+                            <div className="pt-8 border-t border-black/[0.04] text-center font-medium text-slate-500 text-sm">
+                                Already have an account? {' '}
+                                <Link href="/login" className="text-emerald-600 font-bold hover:underline underline-offset-4 decoration-emerald-500/30">
+                                    Log In
+                                </Link>
+                            </div>
+                        </div>
+                    )}
 
                     {step === 'IDENTITY_VERIFY' && (
                         <form className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500" onSubmit={verifyType === 'NIN' ? handleNINVerify : handleCACVerify}>
@@ -558,8 +609,6 @@ function SignupContent() {
                                     </div>
                                 </div>
 
-                                {formData.role === 'SELLER' && (
-                                    <>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Gender</label>
                                             <div className="flex gap-4">
@@ -583,33 +632,12 @@ function SignupContent() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">State</label>
-                                                <input
-                                                    disabled
-                                                    value="Lagos"
-                                                    className="w-full bg-slate-50 border border-black/[0.04] rounded-2xl py-4 px-6 font-bold text-slate-400 tracking-widest cursor-not-allowed"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">LGA</label>
-                                                <div className="relative group">
-                                                    <select
-                                                        required
-                                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 px-6 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 appearance-none cursor-pointer"
-                                                        value={formData.lga}
-                                                        onChange={(e) => setFormData({ ...formData, lga: e.target.value })}
-                                                    >
-                                                        <option value="" disabled>Select LGA</option>
-                                                        {LAGOS_LGAS.map(lga => (
-                                                            <option key={lga} value={lga}>{lga}</option>
-                                                        ))}
-                                                    </select>
-                                                    <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <LocationSelector 
+                                            selectedState={formData.state}
+                                            selectedLga={formData.lga}
+                                            onStateChange={(state) => setFormData({ ...formData, state })}
+                                            onLgaChange={(lga) => setFormData({ ...formData, lga })}
+                                        />
 
                                         <div className="space-y-2 col-span-full">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Full Address</label>
@@ -622,8 +650,6 @@ function SignupContent() {
                                                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                             />
                                         </div>
-                                    </>
-                                )}
 
                             </div>
 
