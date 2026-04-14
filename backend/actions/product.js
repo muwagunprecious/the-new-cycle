@@ -152,83 +152,81 @@ export async function getAllProducts() {
     try {
         // PERMANENT FIX: Use Supabase Client (HTTP/443) for Marketplace loading.
         // This bypasses local PostgreSQL port blocks (5432/6543) and is significantly faster.
-        const { data: products, error: supabaseError } = await supabase
-            .from('Product')
-            .select(`
-                id, name, price, mrp, images, category, type, brand, amps, condition, 
-                storeId,
-                store:Store!inner (
-                    name, address, isVerified, status, isActive
-                )
-            `)
-            .eq('status', 'approved')
-            .eq('inStock', true)
-            .eq('Store.status', 'approved')
-            .eq('Store.isActive', true)
-            .order('createdAt', { ascending: false })
-            .limit(100)
+        if (supabase) {
+            const { data: products, error: supabaseError } = await supabase
+                .from('Product')
+                .select(`
+                    id, name, price, mrp, images, category, type, brand, amps, condition, 
+                    storeId,
+                    store:Store!inner (
+                        name, address, isVerified, status, isActive
+                    )
+                `)
+                .eq('status', 'approved')
+                .eq('inStock', true)
+                .eq('store.status', 'approved')
+                .eq('store.isActive', true)
+                .order('createdAt', { ascending: false })
+                .limit(100)
 
-        if (supabaseError) {
-            console.warn("[SUPABASE] HTTP Client Error, falling back to Prisma:", supabaseError.message)
-            throw new Error("Supabase Client failed") 
+            if (!supabaseError && products && products.length > 0) {
+                console.log(`[SUPABASE] Successfully fetched ${products.length} products via HTTP/443`);
+                
+                // Standardize the shape to match what the frontend expects (Prisma format)
+                const standardizedProducts = products.map(p => ({
+                    ...p,
+                    store: Array.isArray(p.store) ? p.store[0] : p.store
+                }))
+
+                const formatted = standardizedProducts.map(mapProductToFrontend)
+                return ApiResponse.success({ products: formatted, data: formatted })
+            }
+
+            if (supabaseError) {
+                console.warn("[SUPABASE] HTTP Client Error, falling back to Prisma:", supabaseError.message)
+            }
         }
 
-        if (!products || products.length === 0) {
-            return ApiResponse.success({ products: [], data: [] })
-        }
+        // Fallback or No Supabase Key
+        console.log("[RESTORE] Using Prisma for getAllProducts...")
+        const prismaProducts = await prisma.product.findMany({
+            where: {
+                status: 'approved',
+                inStock: true,
+                store: {
+                    status: 'approved',
+                    isActive: true
+                }
+            },
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                mrp: true,
+                images: true,
+                category: true,
+                type: true,
+                brand: true,
+                amps: true,
+                condition: true,
+                store: {
+                    select: {
+                        name: true,
+                        address: true,
+                        isVerified: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 100
+        })
 
-        // Standardize the shape to match what the frontend expects (Prisma format)
-        const standardizedProducts = products.map(p => ({
-            ...p,
-            store: Array.isArray(p.store) ? p.store[0] : p.store
-        }))
-
-        const formatted = standardizedProducts.map(mapProductToFrontend)
+        const formatted = prismaProducts.map(mapProductToFrontend)
         return ApiResponse.success({ products: formatted, data: formatted })
 
     } catch (error) {
-        console.log("[RESTORE] Falling back to Prisma for getAllProducts...")
-        
-        try {
-            // Optimized Prisma fallback
-            const prismaProducts = await prisma.product.findMany({
-                where: {
-                    status: 'approved',
-                    inStock: true,
-                    store: {
-                        status: 'approved',
-                        isActive: true
-                    }
-                },
-                select: {
-                    id: true,
-                    name: true,
-                    price: true,
-                    mrp: true,
-                    images: true,
-                    category: true,
-                    type: true,
-                    brand: true,
-                    amps: true,
-                    condition: true,
-                    store: {
-                        select: {
-                            name: true,
-                            address: true,
-                            isVerified: true
-                        }
-                    }
-                },
-                orderBy: { createdAt: 'desc' },
-                take: 100
-            })
-
-            const formatted = prismaProducts.map(mapProductToFrontend)
-            return ApiResponse.success({ products: formatted, data: formatted })
-        } catch (prismaError) {
-            console.error("[CRITICAL] Both Supabase Client and Prisma failed:", prismaError.message)
-            return ApiResponse.error("Unable to load products. Service temporarily unavailable.", 503)
-        }
+        console.error("[CRITICAL] getAllProducts failed:", error.message)
+        return ApiResponse.error("Unable to load products. Service temporarily unavailable.", 503)
     }
 }
 

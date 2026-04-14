@@ -7,14 +7,13 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
   console.warn('[SUPABASE] Missing environment variables for secondary client.')
 }
 
-/**
- * PRODUCTION-GRADE SUPABASE CLIENT
- * This client uses standard HTTPS (Port 443) and is used as a highly reliable
- * alternative to Prisma for high-traffic read operations or when SQL ports are blocked.
- */
-export const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-  }
-})
+// Safe initialization: Only create the client if keys are present.
+// This prevents build-time crashes on Vercel when keys aren't yet configured.
+export const supabase = (supabaseUrl && supabaseServiceRoleKey) 
+  ? createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    })
+  : null;
