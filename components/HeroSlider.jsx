@@ -12,7 +12,7 @@ const slides = [
         description: 'One Battery at a time!',
         primaryButton: 'Sell Battery',
         primaryLink: '/signup?role=SELLER',
-        image: '/slider/hero-premium.png',
+        image: '/slider/powerline-battery.png',
         darkBg: 'bg-slate-950',
         lightBg: 'bg-[#f8f9fa]'
     },
@@ -23,7 +23,7 @@ const slides = [
         description: 'Turning Old Batteries into New Opportunities',
         primaryButton: 'Sell Battery',
         primaryLink: '/signup?role=SELLER',
-        image: '/slider/battery2.png',
+        image: '/slider/dyvinity-battery.png',
         darkBg: 'bg-black',
         lightBg: 'bg-[#f4f6f8]'
     }
