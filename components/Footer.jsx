@@ -42,7 +42,7 @@ const Footer = () => {
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-xl font-bold text-white tracking-tighter leading-none">Go<span className="text-emerald-500">Cycle</span></span>
-                                <span className="text-[8px] font-semibold uppercase tracking-[0.3em] text-slate-500 mt-1 leading-none">Circular Economy</span>
+                                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-slate-500 mt-1 leading-none">Africa’s e-waste market place</span>
                             </div>
                         </div>
                         <p className="text-[13px] font-normal leading-relaxed opacity-80">

@@ -143,7 +143,7 @@ export default function SellerProducts() {
             address: tempAddressData.address
         }))
 
-        // Keep it in storeInfo temporarily so they can click "Use Shop Address" again without popup
+        // Keep it in storeInfo temporarily so they can click "Use Registered Address" again without popup
         setStoreInfo(prev => ({
             ...prev,
             lga: tempAddressData.lga,
@@ -157,12 +157,12 @@ export default function SellerProducts() {
             const res = await updateStoreAddress(user.id, `${tempAddressData.address}, ${tempAddressData.lga}`)
             dispatch(hideLoader())
             if (res.success) {
-                toast.success("Shop address saved permanently!")
+                toast.success("Address saved to profile!")
             } else {
                 toast.error("Failed to save address permanently, but it was applied to the form")
             }
         } else {
-            toast.success("Shop address applied to form!")
+            toast.success("Address applied to form!")
         }
     }
 
@@ -803,7 +803,7 @@ export default function SellerProducts() {
                                             className="w-full py-4 px-6 bg-[#05DF72]/10 border border-[#05DF72]/20 text-[#05DF72] rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-[#05DF72]/20 transition-all flex items-center justify-center gap-2"
                                         >
                                             <MapPinIcon size={16} />
-                                            Use Shop Address
+                                            Use Registered Address
                                         </button>
                                     </div>
 

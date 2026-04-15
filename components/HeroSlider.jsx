@@ -7,26 +7,22 @@ import { ArrowRight, Moon, Sun } from 'lucide-react'
 const slides = [
     {
         id: 1,
-        badge: 'Exclusive Deal 40% Off',
-        title: 'Power Meets Efficiency - Premium Inverter Batteries',
-        description: 'Upgrade your power stack with our top-rated industrial inverter batteries. Designed for maximum longevity and reliability.',
-        primaryButton: 'Order Now',
-        secondaryButton: 'Learn More',
-        primaryLink: '/shop',
-        secondaryLink: '/about',
-        image: '/slider/battery1.png',
+        badge: 'Explore the marketplace',
+        title: 'AI powered e-waste market place',
+        description: 'One Battery at a time!',
+        primaryButton: 'Sell Battery',
+        primaryLink: '/signup?role=SELLER',
+        image: '/slider/hero-premium.png',
         darkBg: 'bg-slate-950',
         lightBg: 'bg-[#f8f9fa]'
     },
     {
         id: 2,
-        badge: 'Verified Marketplace',
-        title: 'Sustainable EV Battery Recovery Solutions',
-        description: 'Join thousands of verified recyclers and buyers trading end-of-life electric vehicle batteries securely and seamlessly.',
-        primaryButton: 'Join as Seller',
-        secondaryButton: 'Explore Market',
+        badge: 'Explore the marketplace',
+        title: 'E-Waste is Not Waste, It’s Value!',
+        description: 'Turning Old Batteries into New Opportunities',
+        primaryButton: 'Sell Battery',
         primaryLink: '/signup?role=SELLER',
-        secondaryLink: '/marketplace',
         image: '/slider/battery2.png',
         darkBg: 'bg-black',
         lightBg: 'bg-[#f4f6f8]'
@@ -94,12 +90,14 @@ const HeroSlider = () => {
                                 >
                                     {slide.primaryButton}
                                 </button>
-                                <button
-                                    onClick={() => router.push(slide.secondaryLink)}
-                                    className={`flex items-center gap-2 px-4 py-3 font-bold transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'}`}
-                                >
-                                    {slide.secondaryButton} <ArrowRight size={16} />
-                                </button>
+                                {slide.secondaryButton && (
+                                    <button
+                                        onClick={() => router.push(slide.secondaryLink)}
+                                        className={`flex items-center gap-2 px-4 py-3 font-bold transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'}`}
+                                    >
+                                        {slide.secondaryButton} <ArrowRight size={16} />
+                                    </button>
+                                )}
                             </div>
                         </div>
 

@@ -145,8 +145,8 @@ export default function SellerSettings() {
     return (
         <div className="max-w-3xl space-y-8">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900">Store <span className="text-[#05DF72]">Settings</span></h1>
-                <p className="text-slate-500 mt-1">Manage your store's payout information and preferences.</p>
+                <h1 className="text-2xl font-bold text-slate-900">Account <span className="text-[#05DF72]">Settings</span></h1>
+                <p className="text-slate-500 mt-1">Manage your payout information and preferences.</p>
             </div>
 
             <div className="card bg-white p-8">

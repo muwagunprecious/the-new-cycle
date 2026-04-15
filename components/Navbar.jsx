@@ -46,14 +46,14 @@ const Navbar = () => {
             <div className={`max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between`}>
 
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2.5 group">
-                    <div className="bg-emerald-500 p-2 rounded-xl shadow-sm transition-transform group-hover:scale-105">
-                        <RecycleIcon className="text-white" size={20} />
-                    </div>
-                    <div className="flex flex-col leading-none">
+                <Link href="/" className="flex flex-col items-start gap-1 group">
+                    <div className="flex items-center gap-2.5">
+                        <div className="bg-emerald-500 p-2 rounded-xl shadow-sm transition-transform group-hover:scale-105">
+                            <RecycleIcon className="text-white" size={20} />
+                        </div>
                         <span className="text-2xl font-bold tracking-tighter text-slate-950">Go<span className="text-emerald-500">Cycle</span></span>
-                        <span className="text-[8px] font-black uppercase tracking-[0.3em] text-emerald-600 mt-0.5 ml-0.5">The New Cycle</span>
                     </div>
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-emerald-600 ml-0.5">Africa’s e-waste market place</span>
                 </Link>
 
                 {/* Desktop Menu */}

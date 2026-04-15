@@ -398,8 +398,8 @@ function SignupContent() {
                                             onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
                                         >
                                             <option value="" disabled>-- Select Role --</option>
-                                            <option value="BUYER">Joining as Buyer (Individual)</option>
-                                            <option value="SELLER">Joining as Seller (Business)</option>
+                                            <option value="BUYER">Joining as Buyer</option>
+                                            <option value="SELLER">Joining as Seller</option>
                                         </select>
                                         <ChevronDownIcon className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none" size={20} />
                                     </div>
@@ -435,24 +435,7 @@ function SignupContent() {
 
                     {step === 'IDENTITY_VERIFY' && (
                         <form className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500" onSubmit={verifyType === 'NIN' ? handleNINVerify : handleCACVerify}>
-                            {/* Verification Type Dropdown */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Verification Method</label>
-                                <div className="relative group">
-                                    <ShieldCheckIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                    <select
-                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-lg appearance-none cursor-pointer"
-                                        value={verifyType}
-                                        onChange={(e) => setVerifyType(e.target.value)}
-                                    >
-                                        <option value="NIN">NIN — National Identity Number</option>
-                                        <option value="CAC">CAC — Business Registration</option>
-                                    </select>
-                                    <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-                                </div>
-                            </div>
-
-                             {/* Name Fields (shared for both NIN and CAC) */}
+                             {/* Name Fields (moved to top as per request) */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">First Name</label>
@@ -481,6 +464,23 @@ function SignupContent() {
                                             onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                         />
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Verification Type Dropdown (moved below names) */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Verification Method</label>
+                                <div className="relative group">
+                                    <ShieldCheckIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                    <select
+                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-lg appearance-none cursor-pointer"
+                                        value={verifyType}
+                                        onChange={(e) => setVerifyType(e.target.value)}
+                                    >
+                                        <option value="NIN">NIN — National Identity Number</option>
+                                        <option value="CAC">CAC — Business Registration</option>
+                                    </select>
+                                    <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
                                 </div>
                             </div>
 

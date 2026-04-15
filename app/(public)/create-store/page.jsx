@@ -135,8 +135,8 @@ export default function CreateStore() {
 
             setAlreadySubmitted(true)
             setStatus('approved')
-            setMessage("Store created successfully! Redirecting to your dashboard...")
-            toast.success("Store created!")
+            setMessage("Account created successfully! Redirecting to your dashboard...")
+            toast.success("Account created!")
 
             setTimeout(() => {
                 router.push('/seller')
@@ -169,7 +169,7 @@ export default function CreateStore() {
                         {/* Title */}
                         <div className="mb-6">
                             <h1 className="text-3xl text-slate-900 font-bold mb-2">Become a Seller on <span className="text-[#05DF72]">GoCycle</span></h1>
-                            <p className="text-slate-500">Provide your business details below to start selling.</p>
+                            <p className="text-slate-500">Provide your details below to start selling.</p>
                         </div>
 
                         {isSessionInvalid && (
@@ -217,8 +217,8 @@ export default function CreateStore() {
                         </div>
 
                         <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-slate-700">Business Address</label>
-                            <textarea required name="address" onChange={onChangeHandler} value={storeInfo.address} rows={3} placeholder="Full business address" className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all resize-none" />
+                            <label className="text-sm font-medium text-slate-700">Street Address</label>
+                            <textarea required name="address" onChange={onChangeHandler} value={storeInfo.address} rows={3} placeholder="Full street address" className="border border-slate-200 outline-none focus:border-[#05DF72] w-full p-3 rounded-xl transition-all resize-none" />
                         </div>
 
                         <div className="flex flex-col gap-2">
@@ -291,14 +291,14 @@ export default function CreateStore() {
                             </span>
                             <h2 className="text-4xl font-black text-slate-900 mt-6 tracking-tight">
                                 {status === 'pending' ? (
-                                    <>Store Application <span className="text-[#05DF72]">Pending</span></>
+                                    <>Account Application <span className="text-[#05DF72]">Pending</span></>
                                 ) : (
                                     <>Welcome to <span className="text-[#05DF72]">GoCycle!</span></>
                                 )}
                             </h2>
                             <p className="text-slate-500 mt-6 leading-relaxed text-lg font-medium mx-auto max-w-md">
                                 {status === 'pending'
-                                    ? "Setting up your store profile..."
+                                    ? "Setting up your seller profile..."
                                     : "Successfully registered! Redirecting you to your seller dashboard where you can start listing your products."}
                             </p>
                         </div>

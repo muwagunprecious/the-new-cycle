@@ -4,7 +4,6 @@ import OurSpecs from "@/components/OurSpec";
 import LatestProducts from "@/components/LatestProducts";
 
 import MarketplaceOverview from "@/components/MarketplaceOverview";
-import ProcessWorkflow from "@/components/ProcessWorkflow";
 import CategoriesMarquee from "@/components/CategoriesMarquee";
 
 export default function Home() {
@@ -24,7 +23,6 @@ export default function Home() {
             
             <div className="space-y-24 py-16">
                 <MarketplaceOverview />
-                <ProcessWorkflow />
                 <OurSpecs />
             </div>
         </div>
