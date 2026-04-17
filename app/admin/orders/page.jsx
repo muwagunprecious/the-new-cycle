@@ -173,6 +173,62 @@ export default function OrderManagement() {
                                 </div>
                             </div>
 
+                            {/* Buyer Payment Verification Section */}
+                            <div className="bg-white border border-slate-100 rounded-3xl p-8 shadow-xl relative overflow-hidden">
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                        Incoming Buyer Payment
+                                    </div>
+                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black ${selectedOrder.paymentStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        {selectedOrder.paymentStatus?.toUpperCase() || 'PENDING'}
+                                    </span>
+                                </h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Expected Amount</p>
+                                        <p className="font-bold text-lg text-slate-900">₦{(selectedOrder.total || 0).toLocaleString()}</p>
+                                    </div>
+                                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Payment Method</p>
+                                        <p className="font-bold text-lg text-slate-900 uppercase">{selectedOrder.paymentMethod || 'MANUAL_TRANSFER'}</p>
+                                    </div>
+                                    <div className="md:col-span-2 bg-amber-50 p-4 rounded-2xl border border-amber-100">
+                                        <p className="text-[10px] text-amber-600 uppercase font-black mb-1">Stated Sender Account Name</p>
+                                        <p className="font-bold text-lg text-amber-900 uppercase tracking-wider">{selectedOrder.paymentSenderName || 'NOT PROVIDED'}</p>
+                                        <p className="text-[10px] mt-1 text-amber-700 font-medium tracking-wide">Please check your bank app to confirm you received ₦{(selectedOrder.total || 0).toLocaleString()} from this name.</p>
+                                    </div>
+                                </div>
+                                
+                                {selectedOrder.paymentStatus !== 'verified' && (
+                                    <div className="pt-6 border-t border-slate-100">
+                                        <button
+                                            onClick={async () => {
+                                                import('react-hot-toast').then(({ default: toast }) => {
+                                                   if (!confirm("Are you sure you have received the exact funds from this buyer?")) return;
+                                                   import('@/backend/actions/admin').then(async ({ verifyOrderPayment }) => {
+                                                       const res = await verifyOrderPayment(selectedOrder.id)
+                                                       if (res.success) {
+                                                           toast.success('Payment verified! Buyer and Vendor have been notified.')
+                                                           setSelectedOrder(null)
+                                                           const ordersRes = await getAllOrders()
+                                                           if (ordersRes.success) setOrders(ordersRes.data)
+                                                       } else {
+                                                           toast.error('Failed to verify payment: ' + res.error)
+                                                       }
+                                                   })
+                                                })
+                                            }}
+                                            className="w-full px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl transition-all shadow-xl shadow-slate-900/20 flex items-center justify-center gap-2 group"
+                                        >
+                                            <CheckCircleIcon size={20} className="group-hover:scale-110 transition-transform" />
+                                            FUNDS RECEIVED - VERIFY PAYMENT
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Vendor Bank Details & Payout Section */}
                             {/* Vendor Bank Details & Payout Section */}
                             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">

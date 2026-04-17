@@ -24,9 +24,10 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     const dispatch = useDispatch()
     const { user } = useSelector(state => state.auth)
 
-    const [step, setStep] = useState('SUMMARY') // SUMMARY | PROCESSING | SUCCESS | FAILED
+    const [step, setStep] = useState('SUMMARY') // SUMMARY | PAYMENT_DETAILS | PROCESSING | SUCCESS | FAILED
     const [isLoading, setIsLoading] = useState(false)
     const [orderResult, setOrderResult] = useState(null)
+    const [senderName, setSenderName] = useState('')
 
     if (!isOpen) return null
 
@@ -35,26 +36,21 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     const platformFee = subtotal * 0.05
     const totalAmount = subtotal + platformFee
 
-    const handlePayNow = async () => {
+    const handlePayNow = () => {
+        setStep('PAYMENT_DETAILS')
+    }
+
+    const handleSubmitPayment = async () => {
+        if (!senderName.trim()) {
+            toast.error("Please enter the sender's account name")
+            return
+        }
+
         setIsLoading(true)
         setStep('PROCESSING')
 
         try {
-            // Step 1: Simulate payment
-            const paymentResult = await mockPaymentService.initiatePayment({
-                amount: totalAmount,
-                productId: product.id,
-                buyerId: user?.id
-            })
-
-            if (!paymentResult.success) {
-                setStep('FAILED')
-                setIsLoading(false)
-                return
-            }
-
-
-            // Step 2: Create order with collection token (REAL ACTION)
+            // Create order with manual transfer details
             const result = await createOrder({
                 buyerId: user?.id,
                 sellerId: product.sellerId || product.userId || product.store?.userId,
@@ -64,7 +60,8 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                 buyerFee: platformFee,
                 totalAmount,
                 collectionDate: selectedDate,
-                paymentReference: paymentResult.reference
+                paymentSenderName: senderName,
+                paymentMethod: 'MANUAL_TRANSFER'
             })
 
             if (result.success) {
@@ -119,14 +116,16 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                     <div className="flex items-center gap-2 text-emerald-400 mb-3 font-black uppercase tracking-[0.2em] text-[10px]">
                         <WalletIcon size={14} />
                         {step === 'SUMMARY' && 'Secure Checkout'}
+                        {step === 'PAYMENT_DETAILS' && 'Make Payment'}
                         {step === 'PROCESSING' && 'Authenticating Transaction'}
-                        {step === 'SUCCESS' && 'Verified Payment'}
+                        {step === 'SUCCESS' && 'Order Received'}
                         {step === 'FAILED' && 'Transaction Error'}
                     </div>
                     <h2 className="text-xl sm:text-3xl font-black tracking-tight">
                         {step === 'SUMMARY' && 'Confirm Order'}
+                        {step === 'PAYMENT_DETAILS' && 'Bank Transfer'}
                         {step === 'PROCESSING' && 'Processing...'}
-                        {step === 'SUCCESS' && 'Order Secured!'}
+                        {step === 'SUCCESS' && 'Pending Verification'}
                         {step === 'FAILED' && 'Payment Failed'}
                     </h2>
                 </div>
@@ -192,17 +191,66 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             {/* Pay Button */}
                             <Button
                                 onClick={handlePayNow}
-                                loading={isLoading}
-                                loadingText="ENCRYPTING..."
                                 className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
                             >
                                 <ShieldCheckIcon size={18} className="mr-2" />
-                                Pay {currency}{totalAmount.toLocaleString()} Securely
+                                Proceed to Payment ({currency}{totalAmount.toLocaleString()})
                             </Button>
 
                             <p className="text-[9px] text-slate-400 text-center font-bold uppercase tracking-[0.1em] opacity-60">
-                                Encrypted by GoCycle Pay • ESCROW PROTECTION ENABLED
+                                ESCROW PROTECTION ENABLED
                             </p>
+                        </div>
+                    )}
+
+                    {/* STEP 1.5: Payment Details */}
+                    {step === 'PAYMENT_DETAILS' && (
+                        <div className="space-y-6">
+                            <div className="p-5 sm:p-8 bg-slate-900 rounded-3xl border border-slate-800 space-y-6 relative overflow-hidden text-white shadow-xl shadow-slate-900/20">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 blur-3xl rounded-full"></div>
+                                <h3 className="text-sm font-black text-emerald-400 uppercase tracking-widest relative z-10 text-center">Transfer Details</h3>
+                                <p className="text-xs text-slate-400 text-center relative z-10 leading-relaxed">
+                                    Please transfer exactly <span className="font-black text-white text-base">{currency}{totalAmount.toLocaleString()}</span> to the account below to secure this order.
+                                </p>
+                                
+                                <div className="bg-white/10 p-5 rounded-2xl border border-white/10 relative z-10 backdrop-blur-md">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Bank Name</span>
+                                        <span className="text-sm font-black">Access Bank</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Account Number</span>
+                                        <span className="text-lg font-mono font-black text-white tracking-widest flex items-center gap-2">
+                                            0123456789
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Account Name</span>
+                                        <span className="text-sm font-black text-emerald-400">GoCycle Escrow Limited</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3 p-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sender Account Name</label>
+                                <input
+                                    type="text"
+                                    value={senderName}
+                                    onChange={(e) => setSenderName(e.target.value)}
+                                    placeholder="E.g. John Doe"
+                                    className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 focus:bg-white transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                                    disabled={isLoading}
+                                />
+                                <p className="text-[10px] text-slate-400 font-medium leading-relaxed">Ensure this name matches the account you transfer from. Our admins will verify this payment manually.</p>
+                            </div>
+
+                            <Button
+                                onClick={handleSubmitPayment}
+                                loading={isLoading}
+                                className="w-full !py-4 sm:!py-5 !rounded-2xl shadow-2xl shadow-emerald-500/20 text-sm font-black tracking-widest uppercase mt-4"
+                            >
+                                I Have Transferred The Funds
+                            </Button>
                         </div>
                     )}
 
@@ -230,24 +278,24 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                     {/* STEP 3: Success */}
                     {step === 'SUCCESS' && orderResult && (
                         <div className="py-10 text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
-                            <div className="w-24 h-24 bg-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20 rotate-6">
-                                <CheckCircleIcon className="text-white" size={48} />
+                            <div className="w-24 h-24 bg-amber-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/20 rotate-6">
+                                <WalletIcon className="text-white" size={48} />
                             </div>
 
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Order Confirmed!</h3>
-                                <p className="text-sm text-slate-400 font-medium">Funds are held securely in escrow.</p>
+                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Verification Pending</h3>
+                                <p className="text-sm text-slate-400 font-medium">We have received your order details.</p>
                             </div>
 
                             {/* Info banner */}
-                            <div className="bg-emerald-50 border border-emerald-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
-                                <div className="p-2.5 bg-emerald-500 rounded-xl shrink-0">
-                                    <ShieldCheckIcon size={16} className="text-white" />
+                            <div className="bg-amber-50 border border-amber-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
+                                <div className="p-2.5 bg-amber-500 rounded-xl shrink-0">
+                                    <AlertCircleIcon size={16} className="text-white" />
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-xs font-black text-slate-900 uppercase tracking-widest">What happens next?</p>
+                                    <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Admin Verification Required</p>
                                     <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                        Your order has been recorded. You can track your purchase and access the <span className="font-black text-emerald-600">Verification Steps</span> directly from your buyer dashboard.
+                                        Your payment from <span className="font-bold text-amber-600">{orderResult.paymentSenderName || senderName}</span> is currently being verified by our finance team. You will be notified by email once approved, and your order will proceed.
                                     </p>
                                 </div>
                             </div>

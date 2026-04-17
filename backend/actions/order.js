@@ -9,7 +9,7 @@ import prisma from "@/backend/lib/prisma"
 
 export async function createOrder(orderData) {
     try {
-        const { buyerId, sellerId, productId, quantity, totalAmount, collectionDate, subtotal, buyerFee } = orderData
+        const { buyerId, sellerId, productId, quantity, totalAmount, collectionDate, subtotal, buyerFee, paymentSenderName, paymentMethod = 'MANUAL_TRANSFER' } = orderData
 
         if (!buyerId || !productId || quantity <= 0) {
             return ApiResponse.error("Invalid order data", 400)
@@ -58,8 +58,10 @@ export async function createOrder(orderData) {
                 collectionDate: collectionDate,
                 userId: buyerId,
                 storeId: store.id,
-                isPaid: true,
-                paymentMethod: 'STRIPE',
+                isPaid: paymentMethod === 'STRIPE',
+                paymentMethod: paymentMethod,
+                paymentSenderName: paymentSenderName || null,
+                paymentStatus: paymentMethod === 'STRIPE' ? 'verified' : 'pending',
                 orderItems: {
                     create: [{
                         productId: productId,
@@ -69,6 +71,12 @@ export async function createOrder(orderData) {
                 }
             },
             include: { user: true, store: true }
+        })
+
+        // Reserve the product (take off marketplace)
+        await prisma.product.update({
+            where: { id: productId },
+            data: { inStock: false, status: 'sold' }
         })
 
         // Notify Stakeholders
@@ -96,34 +104,52 @@ export async function createOrder(orderData) {
         // Send confirmation email to buyer
         if (buyer.email) {
             const product = await prisma.product.findUnique({ where: { id: productId }, select: { name: true } })
-            const emailTemplate = orderConfirmationEmail({
-                buyerName: buyer.name,
-                orderId: transactionId,
-                productName: product?.name || 'Battery',
-                amount: totalAmount,
-                collectionDate: collectionDate ? new Date(collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
-                token: collectionToken
-            })
-            sendEmail({ to: buyer.email, ...emailTemplate }).catch(err =>
-                logger.warn("Order confirmation email failed", err)
-            )
-
-            // Send order notification email to seller with collection token
-            const seller = await prisma.user.findUnique({ where: { id: store.userId } })
-            if (seller?.email) {
-                const sellerEmailTemplate = sellerNewOrderEmail({
-                    sellerName: seller.name,
+            if (paymentMethod === 'MANUAL_TRANSFER') {
+                sendEmail({
+                    to: buyer.email,
+                    subject: "[Go-Cycle] Order Received - Payment Verification Pending",
+                    html: `
+                    <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;">
+                        <h1 style="color:#05DF72;font-size:22px;">Order Received</h1>
+                        <p>Hello ${buyer.name},</p>
+                        <p>We have successfully received your order for <b>${product?.name || 'Battery'}</b> (Qty: ${quantity}).</p>
+                        <p>Your bank transfer (Sender Name: <b>${paymentSenderName || 'Not Provided'}</b>) is currently pending admin verification.</p>
+                        <p>Once our finance team confirms receipt of the funds, you will receive an approval email and the vendor will be notified to prepare the product for pickup.</p>
+                        <p>Transaction ID: <b>${transactionId}</b></p>
+                        <br/>
+                        <p>Thank you for using GoCycle!</p>
+                    </div>`
+                }).catch(err => logger.warn("Order pending email failed", err))
+            } else {
+                const emailTemplate = orderConfirmationEmail({
+                    buyerName: buyer.name,
                     orderId: transactionId,
                     productName: product?.name || 'Battery',
                     amount: totalAmount,
-                    quantity: quantity,
                     collectionDate: collectionDate ? new Date(collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
-                    token: collectionToken,
-                    buyerName: buyer.name
+                    token: collectionToken
                 })
-                sendEmail({ to: seller.email, ...sellerEmailTemplate }).catch(err =>
-                    logger.warn("Seller order notification email failed", err)
+                sendEmail({ to: buyer.email, ...emailTemplate }).catch(err =>
+                    logger.warn("Order confirmation email failed", err)
                 )
+
+                // Send order notification email to seller ONLY IF already paid (Stripe)
+                const seller = await prisma.user.findUnique({ where: { id: store.userId } })
+                if (seller?.email) {
+                    const sellerEmailTemplate = sellerNewOrderEmail({
+                        sellerName: seller.name,
+                        orderId: transactionId,
+                        productName: product?.name || 'Battery',
+                        amount: totalAmount,
+                        quantity: quantity,
+                        collectionDate: collectionDate ? new Date(collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
+                        token: collectionToken,
+                        buyerName: buyer.name
+                    })
+                    sendEmail({ to: seller.email, ...sellerEmailTemplate }).catch(err =>
+                        logger.warn("Seller order notification email failed", err)
+                    )
+                }
             }
         }
 

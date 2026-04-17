@@ -93,8 +93,11 @@ export default function BuyerDashboard() {
         { label: 'Total Spent', value: '₦' + orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0).toLocaleString(), icon: CreditCardIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
     ]
 
-    const getStatusBadge = (status) => {
-        switch (status) {
+    const getStatusBadge = (order) => {
+        if (!order.isPaid) {
+            return { bg: 'bg-orange-100 text-orange-700 font-black', label: 'Payment Pending' }
+        }
+        switch (order.status) {
             case 'AWAITING_PICKUP':
             case 'PAID':
             case 'ORDER_PLACED':
@@ -105,7 +108,7 @@ export default function BuyerDashboard() {
             case 'COMPLETED':
                 return { bg: 'bg-[#05DF72]/10 text-[#05DF72]', label: 'Completed' }
             default:
-                return { bg: 'bg-slate-100 text-slate-500', label: status }
+                return { bg: 'bg-slate-100 text-slate-500', label: order.status }
         }
     }
 
@@ -193,7 +196,7 @@ export default function BuyerDashboard() {
                 </div>
 
                 {/* Action Required Section */}
-                {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status)) && (
+                {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid) && (
                     <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
                         <div className="relative z-10">
                             <div className="flex items-center gap-2 mb-6">
@@ -201,7 +204,7 @@ export default function BuyerDashboard() {
                                 <h2 className="text-2xl font-black text-slate-900">Verify Pickup</h2>
                             </div>
                             <div className="grid gap-4">
-                                {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status)).map(order => (
+                                {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status) && o.isPaid).map(order => (
                                     <div key={order.id} className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-[#05DF72]/10 text-[#05DF72] rounded-xl flex items-center justify-center shrink-0">
@@ -278,7 +281,7 @@ export default function BuyerDashboard() {
                     ) : (
                         <div className="space-y-6">
                             {orders.map((order) => {
-                                const status = getStatusBadge(order.status)
+                                const status = getStatusBadge(order)
                                 return (
                                     <div key={order.id} className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -333,10 +336,10 @@ export default function BuyerDashboard() {
                                         </div>
 
                                         {/* Instructions for pending orders */}
-                                        {(order.status === 'AWAITING_PICKUP' || order.status === 'PAID') && (
-                                            <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
-                                                <p className="text-xs text-amber-700">
-                                                    <strong>📋 Next Step:</strong> Visit the pickup location on your collection date and show your token to the seller.
+                                        {(order.status === 'AWAITING_PICKUP' || order.status === 'PAID' || order.status === 'SOLD' || order.status === 'sold') && (
+                                            <div className={`mt-4 p-4 rounded-xl border ${order.isPaid ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-200'}`}>
+                                                <p className={`text-xs ${order.isPaid ? 'text-amber-700' : 'text-slate-500 font-bold'}`}>
+                                                    <strong>📋 Next Step:</strong> {order.isPaid ? 'Visit the pickup location on your collection date and show your token to the seller.' : 'Your transfer is currently being verified by our admins. You will be notified shortly.'}
                                                 </p>
                                             </div>
                                         )}

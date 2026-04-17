@@ -182,6 +182,8 @@ model Order {
   addressId        String?
   isPaid           Boolean       @default(false)
   paymentMethod    PaymentMethod
+  paymentSenderName String?
+  paymentStatus    String        @default("pending")
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   isCouponUsed     Boolean       @default(false)
@@ -229,6 +231,7 @@ enum OrderStatus {
 
 enum PaymentMethod {
   STRIPE
+  MANUAL_TRANSFER
 }
 
 enum BatteryType {

@@ -239,9 +239,42 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Quick Actions / Recent Orders */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Pending Verifications */}
+                        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100 shadow-sm flex flex-col">
+                            <h3 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2 shrink-0">
+                                <AlertCircleIcon size={18} className="text-amber-500" />
+                                Action Required
+                            </h3>
+                            <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                {(dashboardData.pendingVerifications || []).map(order => (
+                                    <div key={order.id} className="flex flex-col gap-2 p-3 bg-white rounded-xl border border-amber-100">
+                                        <div className="flex justify-between items-center">
+                                            <p className="font-black text-sm text-amber-900">₦{(order.total || 0).toLocaleString()}</p>
+                                            <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">TRANSFER CHECK</span>
+                                        </div>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{order.paymentSenderName || 'No Name Provided'}</p>
+                                        <button 
+                                            onClick={() => {
+                                                window.location.href = '/admin/orders';
+                                            }}
+                                            className="mt-1 w-full py-2 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-colors"
+                                        >
+                                            Verify Transfer
+                                        </button>
+                                    </div>
+                                ))}
+                                {(!dashboardData.pendingVerifications || dashboardData.pendingVerifications.length === 0) && (
+                                    <div className="text-center py-6 h-full flex flex-col items-center justify-center">
+                                        <CheckCircleIcon className="mx-auto text-emerald-400 mb-2 opacity-50" size={32} />
+                                        <p className="text-sm font-bold text-emerald-700 opacity-70">All caught up!</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Recent Orders */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col">
                             <h3 className="text-lg font-bold text-slate-900 mb-4">Recent Orders</h3>
                             <div className="space-y-3">
                                 {(dashboardData.recentOrders || []).map(order => (
@@ -260,8 +293,8 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Send Notification */}
-                        <div className="bg-slate-900 rounded-2xl p-6 text-white">
-                            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
+                        <div className="bg-slate-900 rounded-2xl p-6 text-white flex flex-col">
+                            <h3 className="text-lg font-bold mb-1 flex items-center gap-2 shrink-0">
                                 <SendIcon size={18} className="text-[#05DF72]" />
                                 Quick Notification
                             </h3>

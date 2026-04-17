@@ -130,7 +130,7 @@ export default function BuyerOrders() {
             </div>
 
             {/* Action Required Section */}
-            {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status)) && (
+            {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-6">
@@ -138,7 +138,7 @@ export default function BuyerOrders() {
                             <h2 className="text-2xl font-black text-slate-900">Verify Pickup</h2>
                         </div>
                         <div className="grid gap-4">
-                            {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status)).map(order => (
+                            {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status) && o.isPaid).map(order => (
                                 <div key={order.id} className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 bg-[#05DF72]/10 text-[#05DF72] rounded-xl flex items-center justify-center shrink-0">
@@ -193,11 +193,12 @@ export default function BuyerOrders() {
                                     <PackageIcon size={28} />
                                 </div>
                                 <div className="space-y-1">
-                                    <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${order.status === 'COMPLETED' ? 'text-green-500' :
+                                    <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${!order.isPaid ? 'text-orange-500' : 
+                                        order.status === 'COMPLETED' ? 'text-green-500' :
                                         order.status === 'PICKED_UP' ? 'text-blue-500' :
                                             'text-amber-500'
                                         }`}>
-                                        {order.status?.replace('_', ' ') || 'PENDING'}
+                                        {!order.isPaid ? 'PAYMENT PENDING' : order.status?.replace('_', ' ') || 'PENDING'}
                                     </p>
                                     <h3 className="text-sm font-black text-slate-900">{order.id}</h3>
                                 </div>
@@ -257,7 +258,7 @@ export default function BuyerOrders() {
                                         </p>
                                         <p className="text-[10px] text-slate-400">You proposed: {order.proposedDate}</p>
                                     </div>
-                                ) : ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) ? (
+                                ) : ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid ? (
                                     <form onSubmit={(e) => {
                                         e.preventDefault()
                                         handleVerifyCollection(e, order.id)

@@ -144,7 +144,8 @@ export async function getAdminDashboardSummary() {
             verifiedCount,
             userCount,
             pendingPayoutsData,
-            recentOrders
+            recentOrders,
+            pendingVerifications
         ] = await Promise.all([
             prisma.user.count({ where: { role: 'SELLER' } }),
             prisma.product.count(),
@@ -171,6 +172,14 @@ export async function getAdminDashboardSummary() {
                     user: { select: { name: true } },
                     store: { select: { name: true } }
                 }
+            }),
+            prisma.order.findMany({
+                where: { paymentStatus: 'pending' },
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    user: { select: { name: true } },
+                    store: { select: { name: true } }
+                }
             })
         ])
 
@@ -191,7 +200,8 @@ export async function getAdminDashboardSummary() {
             verifiedUsers: verifiedCount,
             unverifiedUsers: userCount - verifiedCount,
             totalUsers: userCount,
-            recentOrders: recentOrders
+            recentOrders: recentOrders,
+            pendingVerifications: pendingVerifications || []
         })
     } catch (error) {
         logger.error("Get Dashboard Summary Error", error)
@@ -513,5 +523,84 @@ export async function getAdminPayoutHistory(page = 1, limit = 50) {
     } catch (error) {
         logger.error("Get Admin Payout History Error", error)
         return ApiResponse.error("Failed to fetch payout history")
+    }
+}
+
+export async function verifyOrderPayment(orderId) {
+    try {
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: { user: true, store: { include: { user: true } }, orderItems: { include: { product: true } } }
+        })
+
+        if (!order) return ApiResponse.error("Order not found", 404)
+        if (order.isPaid) return ApiResponse.error("Order is already paid and verified", 400)
+
+        // Update order status
+        await prisma.order.update({
+            where: { id: orderId },
+            data: {
+                isPaid: true,
+                paymentStatus: 'verified',
+                status: 'PAID'
+            }
+        })
+
+        const { createNotification } = await import('./notification')
+
+        // Notify Buyer
+        await createNotification(
+            order.user.id,
+            "Payment Verified!",
+            `Your payment for Order #${order.transactionId} has been successfully verified.`,
+            "PAYMENT"
+        )
+
+        // Notify Seller
+        await createNotification(
+            order.store.userId,
+            "New Order Received!",
+            `You have a new paid order! Order #${order.transactionId}.`,
+            "ORDER"
+        )
+        
+        // Emails
+        const { orderConfirmationEmail, sellerNewOrderEmail, sendEmail: mailer } = await import('@/backend/lib/email')
+        const productName = order.orderItems[0]?.product?.name || 'Battery'
+        
+        if (order.user.email) {
+            const buyerTemplate = orderConfirmationEmail({
+                buyerName: order.user.name,
+                orderId: order.transactionId,
+                productName: productName,
+                amount: order.total,
+                collectionDate: order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
+                token: order.collectionToken
+            })
+            mailer({ to: order.user.email, ...buyerTemplate }).catch(err => logger.warn("Approval email failed", err))
+        }
+
+        if (order.store.user.email) {
+            const sellerTemplate = sellerNewOrderEmail({
+                sellerName: order.store.user.name,
+                orderId: order.transactionId,
+                productName: productName,
+                amount: order.total,
+                quantity: order.orderItems[0]?.quantity || 1,
+                collectionDate: order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
+                token: order.collectionToken,
+                buyerName: order.user.name
+            })
+            mailer({ to: order.store.user.email, ...sellerTemplate }).catch(err => logger.warn("Seller notify email failed", err))
+        }
+
+        revalidatePath('/admin/orders')
+        revalidatePath('/buyer/orders')
+        revalidatePath('/seller/orders')
+
+        return ApiResponse.success(null, "Order payment verified successfully")
+    } catch (error) {
+        logger.error("Verify Order Payment Error", error)
+        return ApiResponse.error("Failed to verify order payment")
     }
 }
