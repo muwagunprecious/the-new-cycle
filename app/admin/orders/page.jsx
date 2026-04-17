@@ -14,6 +14,16 @@ export default function OrderManagement() {
             const res = await getAllOrders()
             if (res.success) {
                 setOrders(res.data)
+                
+                // Immediately select order if passed via URL args
+                if (typeof window !== 'undefined') {
+                    const params = new URLSearchParams(window.location.search);
+                    const targetId = params.get('orderId');
+                    if (targetId) {
+                        const targetOrder = res.data.find(o => o.id === targetId);
+                        if (targetOrder) setSelectedOrder(targetOrder);
+                    }
+                }
             }
             setLoading(false)
         }

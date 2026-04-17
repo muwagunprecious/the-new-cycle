@@ -2,12 +2,14 @@
 import Loading from "@/components/Loading"
 import { CircleDollarSign as CircleDollarSignIcon, ShoppingBasket as ShoppingBasketIcon, Store as StoreIcon, Tags as TagsIcon, Users as UsersIcon, PackageCheck as PackageCheckIcon, ShieldCheck as ShieldCheckIcon, ShieldX as ShieldXIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Wallet as WalletIcon, Eye as EyeIcon, Send as SendIcon } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/Button"
 import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory } from "@/backend/actions/admin"
 import { getAllOrders } from "@/backend/actions/order"
 
 export default function AdminDashboard() {
+    const router = useRouter()
     const currency = '₦'
 
     const [loading, setLoading] = useState(true)
@@ -256,7 +258,7 @@ export default function AdminDashboard() {
                                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{order.paymentSenderName || 'No Name Provided'}</p>
                                         <button 
                                             onClick={() => {
-                                                window.location.href = '/admin/orders';
+                                                router.push('/admin/orders?orderId=' + order.id)
                                             }}
                                             className="mt-1 w-full py-2 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-colors"
                                         >
