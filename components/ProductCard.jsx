@@ -30,7 +30,7 @@ const ProductCard = ({ product, onQuickBuy }) => {
 
     return (
         <div
-            onClick={() => { router.push(`/product/${product.id}`); scrollTo(0, 0) }}
+            onClick={() => { router.push(`/product/${product.id}`) }}
             className='premium-card group cursor-pointer'
         >
             <div className='relative h-64 overflow-hidden bg-slate-50 flex items-center justify-center p-8'>
@@ -86,7 +86,6 @@ const ProductCard = ({ product, onQuickBuy }) => {
                                 onQuickBuy();
                             } else {
                                 router.push(`/product/${product.id}`);
-                                scrollTo(0, 0);
                             }
                         }}
                         className="h-10 px-4 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all flex items-center gap-2"

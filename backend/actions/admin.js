@@ -156,7 +156,13 @@ export async function getAdminDashboardSummary() {
             prisma.user.count(),
             prisma.order.aggregate({
                 where: { status: 'COMPLETED', payoutStatus: 'pending' },
-                _sum: { total: true }
+                _sum: { 
+                    total: true,
+                    subtotal: true,
+                    buyerFee: true,
+                    sellerFee: true,
+                    payoutAmount: true
+                }
             }),
             prisma.order.findMany({
                 take: 5,
@@ -173,7 +179,15 @@ export async function getAdminDashboardSummary() {
             revenue: revenueData._sum.total || 0,
             orders: orderCount,
             stores: sellerCount,
-            pendingPayouts: pendingPayoutsData._sum.total || 0,
+            pendingPayouts: pendingPayoutsData._sum.payoutAmount || 0,
+            pendingStats: {
+                subtotal: pendingPayoutsData._sum.subtotal || 0,
+                total: pendingPayoutsData._sum.total || 0,
+                sellerFee: pendingPayoutsData._sum.sellerFee || 0,
+                buyerFee: pendingPayoutsData._sum.buyerFee || 0,
+                payoutAmount: pendingPayoutsData._sum.payoutAmount || 0,
+                platformEarnings: (pendingPayoutsData._sum.buyerFee || 0) + (pendingPayoutsData._sum.sellerFee || 0)
+            },
             verifiedUsers: verifiedCount,
             unverifiedUsers: userCount - verifiedCount,
             totalUsers: userCount,
@@ -472,5 +486,32 @@ export async function sendAdminNotification({ target, userId, title, message, ty
     } catch (error) {
         logger.error("Send Admin Notification Error", error)
         return ApiResponse.error("Failed to send notification")
+    }
+}
+
+export async function getAdminPayoutHistory(page = 1, limit = 50) {
+    try {
+        const skip = (page - 1) * limit
+        const [orders, total] = await Promise.all([
+            prisma.order.findMany({
+                where: { payoutStatus: 'released' },
+                skip,
+                take: limit,
+                orderBy: { updatedAt: 'desc' },
+                include: {
+                    user: { select: { name: true, email: true } },
+                    store: { select: { name: true } }
+                }
+            }),
+            prisma.order.count({ where: { payoutStatus: 'released' } })
+        ])
+        return ApiResponse.success({ 
+            orders, 
+            data: orders, 
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } 
+        })
+    } catch (error) {
+        logger.error("Get Admin Payout History Error", error)
+        return ApiResponse.error("Failed to fetch payout history")
     }
 }

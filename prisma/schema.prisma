@@ -167,7 +167,7 @@ model Product {
 }
 
 model Order {
-  id               String        @id @default(cuid())
+  id               String        @id
   transactionId    String?       @unique
   total            Float
   status           OrderStatus   @default(ORDER_PLACED)

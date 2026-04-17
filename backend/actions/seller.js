@@ -154,3 +154,34 @@ export async function updateStoreAddress(userId, address) {
         return ApiResponse.error("Failed to save address")
     }
 }
+
+export async function getSellerPayoutHistory(userId, page = 1, limit = 50) {
+    try {
+        if (!userId) return ApiResponse.unauthorized()
+        const store = await prisma.store.findUnique({ where: { userId } })
+        if (!store) return ApiResponse.error("Store not found", 404)
+
+        const skip = (page - 1) * limit
+        const [orders, total] = await Promise.all([
+            prisma.order.findMany({
+                where: { storeId: store.id, payoutStatus: 'released' },
+                skip,
+                take: limit,
+                orderBy: { updatedAt: 'desc' },
+                include: {
+                    orderItems: { include: { product: { select: { name: true } } } }
+                }
+            }),
+            prisma.order.count({ where: { storeId: store.id, payoutStatus: 'released' } })
+        ])
+
+        return ApiResponse.success({ 
+            orders, 
+            data: orders, 
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } 
+        })
+    } catch (error) {
+        logger.error("Get Seller Payout History Error", error)
+        return ApiResponse.error("Failed to fetch payout history")
+    }
+}

@@ -1,7 +1,7 @@
 'use server'
 
 import { ApiResponse } from "@/backend/lib/api-response"
-import { logger, generateTransactionId } from "@/backend/lib/api-utils"
+import { logger, generateTransactionId, generateOrderId } from "@/backend/lib/api-utils"
 import { sendEmail, orderConfirmationEmail, buyerReceiptEmail, sellerNewOrderEmail } from "@/backend/lib/email"
 import { createNotification } from "./notification"
 import { revalidatePath } from "next/cache"
@@ -41,9 +41,11 @@ export async function createOrder(orderData) {
         const sellerFee = Math.round(subtotal * 0.05)
         const payoutAmount = subtotal - sellerFee
 
-        const transactionId = generateTransactionId()
+        const orderId = generateOrderId()
+        const transactionId = orderId // Use consistent ID for both fields
         const order = await prisma.order.create({
             data: {
+                id: orderId,
                 transactionId,
                 total: totalAmount,
                 subtotal,

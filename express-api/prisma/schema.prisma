@@ -1,0 +1,255 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                String         @id
+  name              String
+  firstName         String?
+  lastName          String?
+  fullName          String?
+  email             String?        @unique
+  password          String?
+  image             String
+  role              Role           @default(USER)
+  cart              Json           @default("{}")
+  walletBalance     Float          @default(0)
+  phone             String         @unique
+  isEmailVerified   Boolean        @default(false)
+  isPhoneVerified   Boolean        @default(false)
+  bankName          String?
+  accountNumber     String?
+  accountName       String?
+  accountStatus     String         @default("pending")
+  status            String         @default("active")
+  ninDocument       String?
+  cacDocument       String?
+  businessName      String?
+  businessType      String?
+  isDirectorVerified Boolean        @default(false)
+  verificationNotes String?
+  verificationCode  String?
+  verifiedAt        DateTime?
+  identityToken     String?
+  businessToken     String?
+  gender            String?
+  state             String?        @default("Lagos")
+  lga               String?
+  Address           Address[]
+  notifications     Notification[]
+  buyerOrders       Order[]        @relation("BuyerRelation")
+  ratings           Rating[]
+  store             Store?
+
+  @@map("users")
+}
+
+model OrderItem {
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@id([orderId, productId])
+  @@map("OrderItem")
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  rating    Int
+  review    String
+  userId    String
+  productId String
+  orderId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId, orderId])
+  @@map("Rating")
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  email     String
+  street    String
+  city      String
+  state     String
+  zip       String
+  country   String
+  phone     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Order     Order[]
+}
+
+model Coupon {
+  code        String   @id
+  description String
+  discount    Float
+  forNewUser  Boolean
+  forMember   Boolean  @default(false)
+  isPublic    Boolean
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+}
+
+model Store {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  name            String
+  description     String
+  username        String    @unique
+  address         String
+  status          String    @default("pending")
+  isActive        Boolean   @default(false)
+  logo            String
+  email           String
+  contact         String
+  bankName        String?
+  accountNumber   String?
+  accountName     String?
+  isVerified      Boolean   @default(false)
+  isDirectorVerified Boolean   @default(false)
+  nin             String?
+  cac             String?
+  walletBalance   Float     @default(0)
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  Order           Order[]
+  Product         Product[]
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@map("Store")
+}
+
+model Product {
+  id                  String      @id @default(cuid())
+  name                String
+  description         String
+  mrp                 Float
+  price               Float
+  images              String[]
+  category            String
+  type                BatteryType @default(CAR_TRUCK_WET)
+  brand               String?
+  amps                Int         @default(0)
+  condition           String      @default("SCRAP")
+  pickupAddress       String
+  collectionDateStart DateTime
+  collectionDateEnd   DateTime
+  collectionDates     String[]
+  quantity            Int         @default(1)
+  inStock             Boolean     @default(true)
+  status              String      @default("pending")
+  rejectionReason     String?
+  storeId             String
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  orderItems          OrderItem[]
+  store               Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  rating              Rating[]
+
+  @@map("Product")
+}
+
+model Order {
+  id               String        @id @default(cuid())
+  transactionId    String?       @unique
+  total            Float
+  status           OrderStatus   @default(ORDER_PLACED)
+  collectionStatus PickupStatus  @default(PENDING)
+  collectionToken  String?
+  collectionDate   String?
+  proposedDate     String?
+  proposedBy       String?
+  payoutStatus     String        @default("none")
+  userId           String
+  storeId          String
+  addressId        String?
+  isPaid           Boolean       @default(false)
+  paymentMethod    PaymentMethod
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  isCouponUsed     Boolean       @default(false)
+  coupon           Json          @default("{}")
+  buyerFee         Float         @default(0)
+  payoutAmount     Float         @default(0)
+  sellerFee        Float         @default(0)
+  subtotal         Float         @default(0)
+  address          Address?      @relation(fields: [addressId], references: [id])
+  store            Store         @relation(fields: [storeId], references: [id])
+  user             User          @relation("BuyerRelation", fields: [userId], references: [id])
+  orderItems       OrderItem[]
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  status    String   @default("unread")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("Notification")
+}
+
+enum Role {
+  USER
+  ADMIN
+  SELLER
+}
+
+enum OrderStatus {
+  ORDER_PLACED
+  PAID
+  APPROVED
+  PROCESSING
+  SHIPPED
+  PICKED_UP
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  STRIPE
+}
+
+enum BatteryType {
+  CAR_TRUCK_WET
+  INVERTER_DRY
+  INVERTER_WET
+}
+
+enum PickupStatus {
+  PENDING
+  COLLECTED
+  DISPUTED
+  RESCHEDULE_REQUESTED
+  RESCHEDULED
+}
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  group     String?  @default("general")
+  updatedAt DateTime @updatedAt
+
+  @@map("Setting")
+}

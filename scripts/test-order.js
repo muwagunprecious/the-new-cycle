@@ -29,16 +29,20 @@ async function testOrder() {
 
         const totalAmount = product.price;
         const collectionToken = "TEST12";
+        const orderId = "GCY-" + Math.random().toString(36).substr(2, 7).toUpperCase();
+        const transactionId = orderId;
 
         console.log(`Creating order for product: ${product.name}`);
         console.log(`Buyer: ${buyer.name} (${buyer.id})`);
 
         const order = await prisma.order.create({
             data: {
+                id: orderId,
+                transactionId: transactionId,
                 total: totalAmount,
                 status: 'ORDER_PLACED',
-                pickupStatus: 'PENDING',
-                pickupToken: collectionToken,
+                collectionStatus: 'PENDING',
+                collectionToken: collectionToken,
                 userId: buyer.id,
                 storeId: product.storeId,
                 isPaid: true,

@@ -41,7 +41,7 @@ export async function sendEmail({ to, subject, html, text }) {
 
 export function orderConfirmationEmail({ buyerName, orderId, productName, amount, collectionDate, token }) {
     return {
-        subject: `Order Confirmed – #${orderId.slice(-6).toUpperCase()}`,
+        subject: `Order Confirmed – #${orderId}`,
         html: `
         <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
             <div style="background:#0f172a;padding:24px;text-align:center;">
@@ -62,7 +62,7 @@ export function orderConfirmationEmail({ buyerName, orderId, productName, amount
 
                 <div style="background:#f8fafc;border-radius:10px;padding:16px;margin:20px 0;">
                     <p style="margin:0 0 8px;font-size:13px;color:#64748b;">ORDER DETAILS</p>
-                    <p style="margin:4px 0;"><strong>Order ID:</strong> #${orderId.slice(-6).toUpperCase()}</p>
+                    <p style="margin:4px 0;"><strong>Order ID:</strong> #${orderId}</p>
                     <p style="margin:4px 0;"><strong>Product:</strong> ${productName}</p>
                     <p style="margin:4px 0;"><strong>Amount:</strong> ₦${Number(amount).toLocaleString()}</p>
                     <p style="margin:4px 0;"><strong>Collection Date:</strong> ${collectionDate}</p>
@@ -101,7 +101,7 @@ export function verificationCodeEmail({ name, code }) {
 
 export function orderCollectedEmail({ sellerName, orderId, amount }) {
     return {
-        subject: `Order Collected – Payout Pending #${orderId.slice(-6).toUpperCase()}`,
+        subject: `Order Collected – Payout Pending #${orderId}`,
         html: `
         <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
             <div style="background:#0f172a;padding:24px;text-align:center;">
@@ -109,7 +109,7 @@ export function orderCollectedEmail({ sellerName, orderId, amount }) {
             </div>
             <div style="padding:28px;">
                 <h2 style="color:#0f172a;margin-top:0;">Hi ${sellerName},</h2>
-                <p style="color:#475569;">Great news! Order <strong>#${orderId.slice(-6).toUpperCase()}</strong> has been collected successfully.</p>
+                <p style="color:#475569;">Great news! Order <strong>#${orderId}</strong> has been collected successfully.</p>
                 <p style="color:#475569;">Your payout of <strong>₦${Number(amount * 0.95).toLocaleString()}</strong> (after 5% platform fee) is now pending admin approval.</p>
                 <p style="color:#475569;font-size:14px;">You'll receive a payment confirmation email once the payout is released.</p>
             </div>
@@ -130,7 +130,7 @@ export function payoutReleasedEmail({ sellerName, amount, orderId }) {
             </div>
             <div style="padding:28px;">
                 <h2 style="color:#0f172a;margin-top:0;">Hi ${sellerName},</h2>
-                <p style="color:#475569;">💰 Your payout for order <strong>#${orderId.slice(-6).toUpperCase()}</strong> has been released!</p>
+                <p style="color:#475569;">💰 Your payout for order <strong>#${orderId}</strong> has been released!</p>
                 <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;margin:20px 0;text-align:center;">
                     <p style="margin:0;font-size:28px;font-weight:bold;color:#16a34a;">₦${Number(amount).toLocaleString()}</p>
                     <p style="margin:4px 0 0;font-size:13px;color:#64748b;">Credited to your wallet</p>
@@ -175,7 +175,7 @@ export function welcomeEmail({ name }) {
  */
 export function buyerReceiptEmail({ buyerName, orderId, productName, quantity, unitPrice, totalAmount, collectionDate, storeName }) {
     const yr = new Date().getFullYear()
-    const shortId = orderId.slice(-6).toUpperCase()
+    const shortId = orderId
     return {
         subject: `Your Receipt – Go-Cycle Order #${shortId}`,
         html: `
@@ -254,7 +254,7 @@ export function buyerReceiptEmail({ buyerName, orderId, productName, quantity, u
  */
 export function sellerWalletCreditEmail({ sellerName, amount, newBalance, orderId, creditType = 'PAYOUT' }) {
     const yr = new Date().getFullYear()
-    const shortId = orderId ? `#${orderId.slice(-6).toUpperCase()}` : 'N/A'
+    const shortId = orderId ? `#${orderId}` : 'N/A'
     const label = creditType === 'PAYOUT' ? 'Order Payout' : 'Manual Credit'
     return {
         subject: `Wallet Credited – ₦${Number(amount).toLocaleString()} received`,
@@ -490,7 +490,7 @@ export function productRejectedEmail({ sellerName, productName, reason }) {
  */
 export function sellerNewOrderEmail({ sellerName, orderId, productName, amount, quantity, collectionDate, token, buyerName }) {
     const yr = new Date().getFullYear()
-    const shortId = orderId.slice(-6).toUpperCase()
+    const shortId = orderId
     return {
         subject: `New Order Received – #${shortId} 🎉`,
         html: `
@@ -537,7 +537,7 @@ export function sellerNewOrderEmail({ sellerName, orderId, productName, amount, 
  */
 export function rescheduleRequestEmail({ recipientName, proposedDate, proposedBy, orderId }) {
     const yr = new Date().getFullYear()
-    const shortId = orderId.slice(-6).toUpperCase()
+    const shortId = orderId
     return {
         subject: `Pickup Date Change Proposed – Order #${shortId}`,
         html: `
@@ -567,7 +567,7 @@ export function rescheduleRequestEmail({ recipientName, proposedDate, proposedBy
  */
 export function rescheduleAcceptedEmail({ recipientName, confirmedDate, orderId }) {
     const yr = new Date().getFullYear()
-    const shortId = orderId.slice(-6).toUpperCase()
+    const shortId = orderId
     return {
         subject: `Pickup Date Confirmed – Order #${shortId} ✅`,
         html: `

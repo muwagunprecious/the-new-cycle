@@ -39,7 +39,7 @@ const AdminSidebar = () => {
     }
 
     return (
-        <div className="inline-flex h-full flex-col gap-5 border-r border-slate-200 sm:min-w-64 bg-white">
+        <div className="inline-flex h-full flex-col gap-5 border-r border-slate-200 sm:min-w-64 bg-white overflow-y-auto no-scrollbar">
             <div className="flex flex-col gap-3 justify-center items-center pt-10 pb-6 max-sm:hidden">
                 <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center border-2 border-[#05DF72]">
                     <UsersIcon className="text-[#05DF72]" size={30} />

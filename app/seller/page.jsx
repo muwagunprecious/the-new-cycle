@@ -8,7 +8,7 @@ import VerificationModal from "@/components/VerificationModal"
 import Button from "@/components/Button"
 import { getSellerOrders, updateOrderStatus } from "@/backend/actions/order"
 import { getSellerProducts } from "@/backend/actions/product"
-import { getStoreDetails, updateStoreBankDetails, getSellerDashboardSummary } from "@/backend/actions/seller"
+import { getStoreDetails, updateStoreBankDetails, getSellerDashboardSummary, getSellerPayoutHistory } from "@/backend/actions/seller"
 
 export default function SellerOverview() {
     const { user } = useSelector(state => state.auth)
@@ -21,6 +21,7 @@ export default function SellerOverview() {
         pendingPayouts: 0
     })
     const [orders, setOrders] = useState([])
+    const [payoutHistory, setPayoutHistory] = useState([])
     const [store, setStore] = useState(null)
     const [showVerificationModal, setShowVerificationModal] = useState(false)
 
@@ -33,9 +34,10 @@ export default function SellerOverview() {
             setLoading(true)
             try {
                 // Run both calls in parallel instead of sequentially
-                const [storeResult, summaryResult] = await Promise.all([
+                const [storeResult, summaryResult, historyResult] = await Promise.all([
                     getStoreDetails(user.id),
-                    getSellerDashboardSummary(user.id)
+                    getSellerDashboardSummary(user.id),
+                    getSellerPayoutHistory(user.id, 1, 10)
                 ])
 
                 if (storeResult.success) {
@@ -52,6 +54,10 @@ export default function SellerOverview() {
                         pendingPayouts: s.pendingPayouts
                     })
                     setOrders(s.recentOrders)
+                }
+
+                if (historyResult.success) {
+                    setPayoutHistory(historyResult.data)
                 }
             } catch (error) {
                 console.error("Seller Load Error:", error)
@@ -275,6 +281,58 @@ export default function SellerOverview() {
                     <div className="absolute bottom-0 right-0 w-64 h-64 bg-[#05DF72]/10 rounded-full blur-[80px]"></div>
                 </div>
             </div>
+
+            {/* Payout History Table */}
+            {payoutHistory.length > 0 && (
+                <div className="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100 overflow-hidden">
+                    <div className="flex items-center justify-between mb-10">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#05DF72]/10 rounded-2xl flex items-center justify-center text-[#05DF72]">
+                                <WalletIcon size={20} />
+                            </div>
+                            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Payout History</h2>
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#05DF72] px-3 py-1 bg-[#05DF72]/10 rounded-full">
+                            Released
+                        </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="text-left border-b border-slate-50">
+                                    <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Date</th>
+                                    <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Description</th>
+                                    <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Reference</th>
+                                    <th className="pb-6 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Amount Received</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {payoutHistory.map((payout) => (
+                                    <tr key={payout.id} className="group transition-colors hover:bg-slate-50/50">
+                                        <td className="py-6 text-sm font-bold text-slate-900">
+                                            {new Date(payout.updatedAt).toLocaleDateString()}
+                                        </td>
+                                        <td className="py-6">
+                                            <p className="text-sm font-bold text-slate-900">
+                                                {payout.orderItems?.[0]?.product?.name || 'Store Order'}
+                                            </p>
+                                        </td>
+                                        <td className="py-6">
+                                            <span className="font-mono text-[10px] text-slate-400 group-hover:text-slate-900 transition-colors">
+                                                {payout.id}
+                                            </span>
+                                        </td>
+                                        <td className="py-6 text-right font-black text-[#05DF72] text-lg">
+                                            ₦{(payout.payoutAmount || 0).toLocaleString()}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* Verification Modal */}
             <VerificationModal

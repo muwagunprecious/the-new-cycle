@@ -1,12 +1,10 @@
 'use client'
-import { dummyAdminDashboardData, productDummyData, orderDummyData, dummyUsers } from "@/assets/assets"
 import Loading from "@/components/Loading"
 import { CircleDollarSign as CircleDollarSignIcon, ShoppingBasket as ShoppingBasketIcon, Store as StoreIcon, Tags as TagsIcon, Users as UsersIcon, PackageCheck as PackageCheckIcon, ShieldCheck as ShieldCheckIcon, ShieldX as ShieldXIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Wallet as WalletIcon, Eye as EyeIcon, Send as SendIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
-import { mockAdminService, mockNotificationService } from "@/lib/mockService"
 import Button from "@/components/Button"
-import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification } from "@/backend/actions/admin"
+import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory } from "@/backend/actions/admin"
 import { getAllOrders } from "@/backend/actions/order"
 
 export default function AdminDashboard() {
@@ -25,8 +23,17 @@ export default function AdminDashboard() {
         pendingPayouts: 0,
         verifiedUsers: 0,
         unverifiedUsers: 0,
-        totalUsers: 0
+        totalUsers: 0,
+        pendingStats: {
+            subtotal: 0,
+            total: 0,
+            sellerFee: 0,
+            buyerFee: 0,
+            payoutAmount: 0,
+            platformEarnings: 0
+        }
     })
+    const [payoutHistory, setPayoutHistory] = useState([])
     const [sendingNotification, setSendingNotification] = useState(false)
     const [notificationForm, setNotificationForm] = useState({
         target: 'all',      // 'all' | 'buyers' | 'sellers' | 'specific'
@@ -39,7 +46,8 @@ export default function AdminDashboard() {
 
     const [pagination, setPagination] = useState({
         users: { page: 1, totalPages: 1 },
-        orders: { page: 1, totalPages: 1 }
+        orders: { page: 1, totalPages: 1 },
+        payouts: { page: 1, totalPages: 1 }
     })
 
     // Fetch initial dashboard summary
@@ -75,10 +83,25 @@ export default function AdminDashboard() {
                     setOrders(res.data)
                     setPagination(prev => ({ ...prev, orders: res.pagination }))
                 }
+            } else if (activeTab === 'payouts' && payoutHistory.length === 0) {
+                const res = await getAdminPayoutHistory(1, 50)
+                if (res.success) {
+                    setPayoutHistory(res.data)
+                    setPagination(prev => ({ ...prev, payouts: res.pagination }))
+                }
             }
         }
         fetchTabData()
     }, [activeTab])
+
+    const loadMorePayoutHistory = async () => {
+        const nextPage = pagination.payouts.page + 1
+        const res = await getAdminPayoutHistory(nextPage, 50)
+        if (res.success) {
+            setPayoutHistory([...payoutHistory, ...res.data])
+            setPagination(prev => ({ ...prev, payouts: res.pagination }))
+        }
+    }
 
     const loadMoreUsers = async () => {
         const nextPage = pagination.users.page + 1
@@ -215,7 +238,7 @@ export default function AdminDashboard() {
                         ))}
                     </div>
 
-                    {/* Quick Actions */}
+                    {/* Quick Actions / Recent Orders */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Recent Orders */}
                         <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
@@ -416,7 +439,7 @@ export default function AdminDashboard() {
 
             {/* Payouts Tab */}
             {activeTab === 'payouts' && (
-                <div className="space-y-6">
+                <div className="space-y-8">
                     <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
                         <h3 className="text-lg font-bold text-amber-800 flex items-center gap-2">
                             <WalletIcon size={20} /> Pending Payouts
@@ -436,13 +459,16 @@ export default function AdminDashboard() {
                                 <div key={order.id} className="p-6 flex items-center justify-between">
                                     <div>
                                         <p className="font-bold text-slate-900">{order.product?.name || 'Battery Order'}</p>
-                                        <p className="text-sm text-slate-500">Seller: {order.sellerId}</p>
+                                        <p className="text-sm text-slate-500">Seller: {order.store?.name || 'Seller'}</p>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <p className="text-lg font-bold text-slate-900">{currency}{(order.total || 0).toLocaleString()}</p>
+                                        <div className="text-right mr-4">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Net Payout</p>
+                                            <p className="text-lg font-bold text-[#05DF72] leading-none">{currency}{(order.payoutAmount || 0).toLocaleString()}</p>
+                                        </div>
                                         <Button
                                             onClick={() => handleReleasePayout(order.id)}
-                                            className="!py-2 !px-4 !text-sm"
+                                            className="!py-2 !px-4 !text-sm border-none"
                                         >
                                             Release Payout
                                         </Button>
@@ -456,6 +482,57 @@ export default function AdminDashboard() {
                             )}
                         </div>
                     </div>
+
+                    {/* Payout History Section */}
+                    {payoutHistory.length > 0 && (
+                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-slate-900">Payout History</h3>
+                                <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-pulse"></div>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-slate-50 text-[10px] uppercase font-black tracking-widest text-slate-400">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left">Released Date</th>
+                                            <th className="px-6 py-4 text-left">Recipient (Seller)</th>
+                                            <th className="px-6 py-4 text-left">Amount Transferred</th>
+                                            <th className="px-6 py-4 text-left">Admin Fee Earned</th>
+                                            <th className="px-6 py-4 text-right">Reference</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {payoutHistory.map(pay => (
+                                            <tr key={pay.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                                                    {new Date(pay.updatedAt).toLocaleDateString()}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <p className="text-sm font-bold text-slate-900">{pay.store?.name || 'Seller'}</p>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <p className="text-sm font-black text-slate-900">{currency}{pay.payoutAmount.toLocaleString()}</p>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <p className="text-sm font-black text-[#05DF72]">{currency}{(pay.buyerFee + pay.sellerFee).toLocaleString()}</p>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <span className="font-mono text-[10px] text-slate-400">{pay.id}</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {pagination.payouts.page < pagination.payouts.totalPages && (
+                                <div className="p-6 text-center border-t border-slate-100">
+                                    <button onClick={loadMorePayoutHistory} className="text-xs font-black uppercase tracking-widest text-[#05DF72] hover:underline">
+                                        Load Full History
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 

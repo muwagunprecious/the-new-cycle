@@ -88,7 +88,6 @@ export default function Product() {
             loadProduct()
         }
 
-        scrollTo(0, 0)
     }, [productId, products]);
 
     return (

@@ -34,6 +34,19 @@ export function generateTransactionId() {
 }
 
 /**
+ * Generate a custom Order ID
+ * Format: GCY-XXXXXXX (e.g. GCY-8F2D1A9)
+ */
+export function generateOrderId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let result = 'GCY-';
+    for (let i = 0; i < 7; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+/**
  * Normalize phone number to international format (234XXXXXXXXXX)
  */
 export const normalizePhone = (phone) => {

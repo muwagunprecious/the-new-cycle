@@ -125,7 +125,7 @@ async function main() {
     // 3. Create Buyer
     const buyer = await prisma.user.upsert({
         where: { email: 'buyer@gocycle.com' },
-        update: { role: 'USER', isEmailVerified: true },
+        update: { role: 'USER', isEmailVerified: true, accountStatus: 'approved' },
         create: {
             id: 'buyer_demo',
             email: 'buyer@gocycle.com',
@@ -134,6 +134,7 @@ async function main() {
             role: 'USER',
             image: '',
             isEmailVerified: true,
+            accountStatus: 'approved',
             phone: '08000000003'
         }
     });
