@@ -253,3 +253,12 @@ model Setting {
 
   @@map("Setting")
 }
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+
+  @@map("NewsletterSubscriber")
+}

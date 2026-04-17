@@ -1,8 +1,35 @@
+'use client'
+
 import Link from "next/link";
-import { Recycle as RecycleIcon, Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon, MapPin as MapPinIcon, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon, ArrowUpRight as ArrowUpRightIcon } from "lucide-react";
+import { Recycle as RecycleIcon, Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon, MapPin as MapPinIcon, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon, ArrowUpRight as ArrowUpRightIcon, Loader2 as Loader2Icon } from "lucide-react";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { subscribeNewsletter } from "@/backend/actions/newsletter";
 
 const Footer = () => {
 
+    const [email, setEmail] = useState("");
+    const [isSubscribing, setIsSubscribing] = useState(false);
+
+    const handleSubscribe = async (e) => {
+        e.preventDefault();
+        if (!email) return toast.error("Please enter your email address.");
+
+        setIsSubscribing(true);
+        try {
+            const res = await subscribeNewsletter(email);
+            if (res.success) {
+                toast.success(res.message);
+                setEmail(""); // clear input space
+            } else {
+                toast.error(res.message || "Failed to subscribe.");
+            }
+        } catch (error) {
+            toast.error("Something went wrong. Please try again.");
+        } finally {
+            setIsSubscribing(false);
+        }
+    };
     const platformLinks = [
         { text: "Marketplace", path: '/marketplace' },
         { text: "Trade Process", path: '/trade-process' },
@@ -120,12 +147,20 @@ const Footer = () => {
                             <p className="text-[12px] font-medium leading-relaxed opacity-60">
                                 Stay updated on circular economy trends and marketplace insights.
                             </p>
-                            <div className='flex bg-white/[0.03] text-[12px] p-1.5 rounded-xl w-full border border-white/[0.08] focus-within:border-emerald-500/40 transition-all'>
-                                <input className='flex-1 bg-transparent pl-3 outline-none text-white placeholder:text-slate-500 font-medium' type="text" placeholder='Email address' />
-                                <button className='font-bold text-[9px] uppercase tracking-widest bg-emerald-600 text-white px-5 py-3 rounded-lg hover:bg-emerald-500 transition-all'>
-                                    Subscribe
+                            <form onSubmit={handleSubscribe} className='flex bg-white/[0.03] text-[12px] p-1.5 rounded-xl w-full border border-white/[0.08] focus-within:border-emerald-500/40 transition-all'>
+                                <input 
+                                    className='flex-1 bg-transparent pl-3 outline-none text-white placeholder:text-slate-500 font-medium' 
+                                    type="email" 
+                                    placeholder='Email address' 
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    disabled={isSubscribing}
+                                    required
+                                />
+                                <button type="submit" disabled={isSubscribing} className='flex items-center justify-center gap-2 font-bold text-[9px] uppercase tracking-widest bg-emerald-600 text-white px-5 py-3 rounded-lg hover:bg-emerald-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed'>
+                                    {isSubscribing ? <Loader2Icon size={14} className="animate-spin" /> : "Subscribe"}
                                 </button>
-                            </div>
+                            </form>
                         </div>
                     </div>
 
