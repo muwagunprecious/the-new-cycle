@@ -216,17 +216,17 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                 <div className="bg-white/10 p-5 rounded-2xl border border-white/10 relative z-10 backdrop-blur-md">
                                     <div className="flex justify-between items-center mb-3">
                                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Bank Name</span>
-                                        <span className="text-sm font-black">Access Bank</span>
+                                        <span className="text-sm font-black">Sterling Bank</span>
                                     </div>
                                     <div className="flex justify-between items-center mb-3">
                                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Account Number</span>
                                         <span className="text-lg font-mono font-black text-white tracking-widest flex items-center gap-2">
-                                            0123456789
+                                            0143633968
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Account Name</span>
-                                        <span className="text-sm font-black text-emerald-400">GoCycle Escrow Limited</span>
+                                        <span className="text-sm font-black text-emerald-400">Go Cycle Limited</span>
                                     </div>
                                 </div>
                             </div>
