@@ -79,6 +79,7 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
                     status: "approved",
                     inStock: true,
                     type: "CAR_TRUCK_WET",
+                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0], new Date(Date.now() + 172800000).toISOString().split('T')[0]],
                     createdAt: new Date().toISOString()
                 },
                 {
@@ -91,6 +92,7 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
                     status: "pending",
                     inStock: true,
                     type: "INVERTER_DRY",
+                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
                     createdAt: new Date().toISOString()
                 }
             ]
@@ -321,6 +323,7 @@ export async function getAllProducts() {
                     brand: "Isuzu",
                     amps: 100,
                     condition: "SCRAP",
+                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
                     images: ["https://images.unsplash.com/photo-1620939511593-33bc917ad001?auto=format&fit=crop&q=80&w=800"],
                     store: { name: "Adebayo's Eco-Store", address: "Ikeja, Lagos", isVerified: true }
                 },
@@ -335,6 +338,7 @@ export async function getAllProducts() {
                     brand: "Luminous",
                     amps: 200,
                     condition: "SCRAP",
+                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0], new Date(Date.now() + 172800000).toISOString().split('T')[0]],
                     images: ["https://images.unsplash.com/photo-1617469767053-d3b508a0d182?auto=format&fit=crop&q=80&w=800"],
                     store: { name: "Green Energy Hub", address: "Surulere, Lagos", isVerified: true }
                 },
@@ -349,6 +353,7 @@ export async function getAllProducts() {
                     brand: "Tiger",
                     amps: 75,
                     condition: "SCRAP",
+                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
                     images: ["https://images.unsplash.com/photo-1548338065-25660684f69f?auto=format&fit=crop&q=80&w=800"],
                     store: { name: "Ojo Battery Dealers", address: "Ojo, Lagos", isVerified: true }
                 }
@@ -367,6 +372,7 @@ export async function getAllProducts() {
                 name: "Isuzu 12V 100AH Battery (Scrap)",
                 price: 45000,
                 category: "Battery",
+                collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
                 images: ["https://images.unsplash.com/photo-1620939511593-33bc917ad001?auto=format&fit=crop&q=80&w=800"],
                 store: { name: "Adebayo's Eco-Store", address: "Ikeja, Lagos", isVerified: true }
             }
