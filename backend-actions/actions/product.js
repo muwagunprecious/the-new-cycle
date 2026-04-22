@@ -67,6 +67,40 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
+        if (userId === "seller_demo") {
+            const mockProducts = [
+                {
+                    id: "PROD-DEMO-001",
+                    name: "Isuzu 12V 100AH Battery",
+                    description: "High performance car battery",
+                    price: 45000,
+                    mrp: 52000,
+                    quantity: 5,
+                    status: "approved",
+                    inStock: true,
+                    type: "CAR_TRUCK_WET",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: "PROD-DEMO-002",
+                    name: "Luminous 12V 200AH Gel",
+                    description: "Deep cycle solar battery",
+                    price: 185000,
+                    mrp: 210000,
+                    quantity: 2,
+                    status: "pending",
+                    inStock: true,
+                    type: "INVERTER_DRY",
+                    createdAt: new Date().toISOString()
+                }
+            ]
+            return ApiResponse.success({
+                products: mockProducts,
+                data: mockProducts,
+                pagination: { page: 1, limit: 50, totalCount: 2, totalPages: 1 }
+            })
+        }
+
         const store = await prisma.store.findUnique({ where: { userId } })
         if (!store) return ApiResponse.success({ products: [], data: [], pagination: { page, totalPages: 0, totalCount: 0 } }, "No store found")
 

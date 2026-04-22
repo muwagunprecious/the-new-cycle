@@ -164,6 +164,22 @@ export async function getUserOrders(userId) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
+        if (userId === "buyer_demo") {
+            const mockOrders = [
+                {
+                    id: "ORD-B-DEMO-001",
+                    status: "PAID",
+                    isPaid: true,
+                    totalAmount: 45000,
+                    createdAt: new Date().toISOString(),
+                    collectionDate: new Date(Date.now() + 172800000).toISOString(),
+                    productId: "PROD-DEMO-001",
+                    product: { name: "Isuzu 12V 100AH Battery", lga: "Ikeja" }
+                }
+            ]
+            return ApiResponse.success({ orders: mockOrders, data: mockOrders })
+        }
+
         const orders = await prisma.order.findMany({
             where: { userId },
             include: {

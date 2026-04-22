@@ -167,7 +167,7 @@ model Product {
 }
 
 model Order {
-  id               String        @id @default(cuid())
+  id               String        @id
   transactionId    String?       @unique
   total            Float
   status           OrderStatus   @default(ORDER_PLACED)
@@ -182,6 +182,8 @@ model Order {
   addressId        String?
   isPaid           Boolean       @default(false)
   paymentMethod    PaymentMethod
+  paymentSenderName String?
+  paymentStatus    String        @default("pending")
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   isCouponUsed     Boolean       @default(false)
@@ -229,6 +231,7 @@ enum OrderStatus {
 
 enum PaymentMethod {
   STRIPE
+  MANUAL_TRANSFER
 }
 
 enum BatteryType {
@@ -252,4 +255,13 @@ model Setting {
   updatedAt DateTime @updatedAt
 
   @@map("Setting")
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+
+  @@map("NewsletterSubscriber")
 }

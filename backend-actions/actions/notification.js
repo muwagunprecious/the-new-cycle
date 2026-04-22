@@ -18,6 +18,25 @@ export async function createNotification(userId, title, message, type = "SYSTEM"
 
 export async function getNotifications(userId) {
     try {
+        if (userId === "seller_demo") {
+            return ApiResponse.success({
+                notifications: [
+                    { id: "NT-S-001", title: "Welcome back!", message: "Your store dashboard is active.", type: "SYSTEM", createdAt: new Date().toISOString(), status: 'unread' },
+                    { id: "NT-S-002", title: "New Order!", message: "You have a new pickup request.", type: "ORDER", createdAt: new Date().toISOString(), status: 'unread' }
+                ],
+                data: []
+            })
+        }
+        if (userId === "buyer_demo") {
+            return ApiResponse.success({
+                notifications: [
+                    { id: "NT-B-001", title: "Welcome back!", message: "Check out the latest deals in the marketplace.", type: "SYSTEM", createdAt: new Date().toISOString(), status: 'unread' },
+                    { id: "NT-B-002", title: "Payment Verified", message: "Your order #ORD-B-DEMO-001 has been approved.", type: "PAYMENT", createdAt: new Date().toISOString(), status: 'unread' }
+                ],
+                data: []
+            })
+        }
+
         const notifications = await prisma.notification.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' }

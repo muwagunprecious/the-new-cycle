@@ -278,12 +278,30 @@ export async function loginUser(identifier, password) {
         }
         if (safeId === 'adebayo@ecovolt.com' && password === 'seller123') {
             return ApiResponse.success({
-                user: { id: "seller_demo", name: "Adebayo Kola", email: "adebayo@ecovolt.com", role: "SELLER", status: "active" }
+                user: { 
+                    id: "seller_demo", 
+                    name: "Adebayo Kola", 
+                    email: "adebayo@ecovolt.com", 
+                    role: "SELLER", 
+                    status: "active",
+                    isEmailVerified: true,
+                    isPhoneVerified: true,
+                    businessName: "Adebayo Kola's Store"
+                }
             }, "Offline Demo Login successful")
         }
         if (safeId === 'buyer@gocycle.com' && password === 'buyer123') {
             return ApiResponse.success({
-                user: { id: "buyer_demo", name: "Demo Buyer", email: "buyer@gocycle.com", role: "USER", status: "active" }
+                user: { 
+                    id: "buyer_demo", 
+                    name: "Demo Buyer", 
+                    email: "buyer@gocycle.com", 
+                    role: "USER", 
+                    status: "active",
+                    isEmailVerified: true,
+                    isPhoneVerified: true,
+                    accountStatus: "approved"
+                }
             }, "Offline Demo Login successful")
         }
 
@@ -399,6 +417,20 @@ export async function getUserStoreStatus(userId) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
+        // Handle Demo Seller ID specially to bypass DB check
+        if (userId === "seller_demo") {
+            return ApiResponse.success({
+                exists: true,
+                status: 'approved',
+                isActive: true,
+                bankName: "Guaranty Trust Bank",
+                accountNumber: "0123456789",
+                accountName: "Adebayo Kola",
+                lga: "Ikeja",
+                address: "10 Industrial Way, Ikeja, Lagos"
+            })
+        }
+
         const store = await prisma.store.findUnique({ where: { userId } })
         if (!store) return ApiResponse.success({ exists: false })
 
@@ -439,6 +471,33 @@ export async function approveStore(userId) {
 export async function getUserProfile(userId) {
     try {
         if (!userId) return ApiResponse.unauthorized()
+
+        if (userId === "seller_demo") {
+            return ApiResponse.success({
+                id: "seller_demo",
+                name: "Adebayo Kola",
+                email: "adebayo@ecovolt.com",
+                role: "SELLER",
+                status: "active",
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                accountStatus: "approved",
+                phone: "+234 800-000-0001"
+            })
+        }
+        if (userId === "buyer_demo") {
+            return ApiResponse.success({
+                id: "buyer_demo",
+                name: "Demo Buyer",
+                email: "buyer@gocycle.com",
+                role: "USER",
+                status: "active",
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                accountStatus: "approved",
+                phone: "+234 800-000-0002"
+            })
+        }
 
         const user = await prisma.user.findUnique({ where: { id: userId } })
         if (!user) return ApiResponse.error("Profile not found", 404)
