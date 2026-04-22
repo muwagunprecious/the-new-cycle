@@ -13,12 +13,14 @@ const PendingPayoutSidebar = dynamic(() => import("./PendingPayoutSidebar"), { s
 
 const AdminLayout = ({ children }) => {
 
-    const { user, isLoggedIn } = useSelector((state) => state.auth)
+    const { user, isLoggedIn, isHydrated } = useSelector((state) => state.auth)
     const router = useRouter()
     const [isAdmin, setIsAdmin] = useState(false)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        if (!isHydrated) return
+
         if (!isLoggedIn) {
             router.push('/login')
             return
@@ -30,7 +32,7 @@ const AdminLayout = ({ children }) => {
             setIsAdmin(false)
         }
         setLoading(false)
-    }, [user, isLoggedIn, router])
+    }, [user, isLoggedIn, router, isHydrated])
 
     return loading ? (
         <Loading />

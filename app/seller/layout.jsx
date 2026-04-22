@@ -11,13 +11,16 @@ export default function SellerLayout({ children }) {
     const pathname = usePathname()
     const router = useRouter()
     const dispatch = useDispatch()
-    const { user, isLoggedIn } = useSelector((state) => state.auth)
+    const { user, isLoggedIn, isHydrated } = useSelector((state) => state.auth)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [loading, setLoading] = useState(true)
 
     // Auth Protection
     useEffect(() => {
         const checkAuth = async () => {
+            // Wait for Redux state to rehydrate from localStorage
+            if (!isHydrated) return
+
             // Not logged in → redirect to login
             if (!isLoggedIn) {
                 router.push('/login')
@@ -60,7 +63,7 @@ export default function SellerLayout({ children }) {
         }
 
         checkAuth()
-    }, [isLoggedIn, user?.id])
+    }, [isLoggedIn, user?.id, isHydrated])
 
     const sellerLinks = [
         { name: 'Overview', href: '/seller', icon: HomeIcon },
