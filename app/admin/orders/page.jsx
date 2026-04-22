@@ -1,7 +1,7 @@
 'use client'
 import { useState } from "react"
 import { Search as SearchIcon, Filter as FilterIcon, Eye as EyeIcon, Truck as TruckIcon, Calendar as CalendarIcon, MessageSquare as MessageSquareIcon, XCircle as XCircleIcon, CheckCircle as CheckCircleIcon } from "lucide-react"
-import { getAllOrders } from "@/backend/actions/order"
+import { getAllOrders } from "@/backend-actions/actions/order"
 import { useEffect } from "react"
 import Loading from "@/components/Loading"
 
@@ -217,7 +217,7 @@ export default function OrderManagement() {
                                             onClick={async () => {
                                                 import('react-hot-toast').then(({ default: toast }) => {
                                                    if (!confirm("Are you sure you have received the exact funds from this buyer?")) return;
-                                                   import('@/backend/actions/admin').then(async ({ verifyOrderPayment }) => {
+                                                   import('@/backend-actions/actions/admin').then(async ({ verifyOrderPayment }) => {
                                                        const res = await verifyOrderPayment(selectedOrder.id)
                                                        if (res.success) {
                                                            toast.success('Payment verified! Buyer and Vendor have been notified.')
@@ -335,7 +335,7 @@ export default function OrderManagement() {
                                         <button
                                             onClick={async () => {
                                                 if (!confirm("Are you sure you have transferred funds to this vendor's account?")) return;
-                                                const { releasePayout } = await import('@/backend/actions/admin')
+                                                const { releasePayout } = await import('@/backend-actions/actions/admin')
                                                 const res = await releasePayout(selectedOrder.id)
                                                 if (res.success) {
                                                     toast.success('Payout released and vendor notified!')

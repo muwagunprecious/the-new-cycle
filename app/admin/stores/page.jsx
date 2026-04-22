@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, Store as StoreIcon, Search as SearchIcon, Filter as FilterIcon } from "lucide-react"
 import Loading from "@/components/Loading"
 import toast from "react-hot-toast"
-import { getPendingSellers as getPendingStores, approveSeller as approveStore, rejectSeller as rejectStore } from "@/backend/actions/admin"
+import { getPendingSellers as getPendingStores, approveSeller as approveStore, rejectSeller as rejectStore } from "@/backend-actions/actions/admin"
 
 export default function AdminStores() {
     const [stores, setStores] = useState([])

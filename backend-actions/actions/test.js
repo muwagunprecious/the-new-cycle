@@ -1,7 +1,7 @@
 'use server'
 
-import { ApiResponse } from "@/backend/lib/api-response";
-import prisma from "@/backend/lib/prisma";
+import { ApiResponse } from "@/backend-actions/lib/api-response";
+import prisma from "@/backend-actions/lib/prisma";
 
 export async function testServerConnection() {
     console.log("!!! CONNECTION TEST RECEIVED ON SERVER !!!");

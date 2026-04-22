@@ -1,10 +1,10 @@
 'use server'
 
-import { ApiResponse } from "@/backend/lib/api-response"
-import { logger } from "@/backend/lib/api-utils"
-import { sendEmail, sellerWalletCreditEmail, buyerVerifiedEmail, buyerRejectedEmail } from "@/backend/lib/email"
+import { ApiResponse } from "@/backend-actions/lib/api-response"
+import { logger } from "@/backend-actions/lib/api-utils"
+import { sendEmail, sellerWalletCreditEmail, buyerVerifiedEmail, buyerRejectedEmail } from "@/backend-actions/lib/email"
 import { revalidatePath } from "next/cache"
-import prisma from "@/backend/lib/prisma"
+import prisma from "@/backend-actions/lib/prisma"
 
 export async function getPendingSellers() {
     try {
@@ -465,7 +465,7 @@ export async function sendAdminNotification({ target, userId, title, message, ty
 
         // Optionally send email
         if (withEmail) {
-            const { sendEmail: mailer } = await import('@/backend/lib/email')
+            const { sendEmail: mailer } = await import('@/backend-actions/lib/email')
             const emailRecipients = recipients.filter(u => u.email)
             await Promise.all(emailRecipients.map(user =>
                 mailer({
@@ -565,7 +565,7 @@ export async function verifyOrderPayment(orderId) {
         )
         
         // Emails
-        const { orderConfirmationEmail, sellerNewOrderEmail, sendEmail: mailer } = await import('@/backend/lib/email')
+        const { orderConfirmationEmail, sellerNewOrderEmail, sendEmail: mailer } = await import('@/backend-actions/lib/email')
         const productName = order.orderItems[0]?.product?.name || 'Battery'
         
         if (order.user.email) {

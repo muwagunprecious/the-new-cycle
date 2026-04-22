@@ -1,11 +1,11 @@
 'use server'
 
-import { ApiResponse } from "@/backend/lib/api-response"
-import { logger, generateTransactionId, generateOrderId } from "@/backend/lib/api-utils"
-import { sendEmail, orderConfirmationEmail, buyerReceiptEmail, sellerNewOrderEmail } from "@/backend/lib/email"
+import { ApiResponse } from "@/backend-actions/lib/api-response"
+import { logger, generateTransactionId, generateOrderId } from "@/backend-actions/lib/api-utils"
+import { sendEmail, orderConfirmationEmail, buyerReceiptEmail, sellerNewOrderEmail } from "@/backend-actions/lib/email"
 import { createNotification } from "./notification"
 import { revalidatePath } from "next/cache"
-import prisma from "@/backend/lib/prisma"
+import prisma from "@/backend-actions/lib/prisma"
 
 export async function createOrder(orderData) {
     try {
@@ -407,7 +407,7 @@ export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER'
             )
             // Send email to buyer
             if (order.user?.email) {
-                const { rescheduleRequestEmail } = await import('@/backend/lib/email')
+                const { rescheduleRequestEmail } = await import('@/backend-actions/lib/email')
                 sendEmail({
                     to: order.user.email, ...rescheduleRequestEmail({
                         recipientName: order.user.name,
@@ -427,7 +427,7 @@ export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER'
             )
             // Send email to seller
             if (order.store?.email) {
-                const { rescheduleRequestEmail } = await import('@/backend/lib/email')
+                const { rescheduleRequestEmail } = await import('@/backend-actions/lib/email')
                 sendEmail({
                     to: order.store.email, ...rescheduleRequestEmail({
                         recipientName: order.store.name,
@@ -520,7 +520,7 @@ export async function respondToReschedule(orderId, action, alternateDate = null,
         // Send email
         if (emailTo) {
             if (action === 'ACCEPT') {
-                const { rescheduleAcceptedEmail } = await import('@/backend/lib/email')
+                const { rescheduleAcceptedEmail } = await import('@/backend-actions/lib/email')
                 sendEmail({
                     to: emailTo, ...rescheduleAcceptedEmail({
                         recipientName: emailName,
@@ -529,7 +529,7 @@ export async function respondToReschedule(orderId, action, alternateDate = null,
                     })
                 }).catch(err => logger.warn('Reschedule accepted email failed', err))
             } else {
-                const { rescheduleRequestEmail } = await import('@/backend/lib/email')
+                const { rescheduleRequestEmail } = await import('@/backend-actions/lib/email')
                 sendEmail({
                     to: emailTo, ...rescheduleRequestEmail({
                         recipientName: emailName,

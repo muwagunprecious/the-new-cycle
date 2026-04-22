@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Recycle as RecycleIcon, Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon, MapPin as MapPinIcon, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon, ArrowUpRight as ArrowUpRightIcon, Loader2 as Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { subscribeNewsletter } from "@/backend/actions/newsletter";
+import { subscribeNewsletter } from "@/backend-actions/actions/newsletter";
 
 const Footer = () => {
 

@@ -1,8 +1,8 @@
 'use server'
 
-import { ApiResponse } from "@/backend/lib/api-response"
-import { logger } from "@/backend/lib/api-utils"
-import prisma from "@/backend/lib/prisma"
+import { ApiResponse } from "@/backend-actions/lib/api-response"
+import { logger } from "@/backend-actions/lib/api-utils"
+import prisma from "@/backend-actions/lib/prisma"
 
 export async function subscribeNewsletter(email) {
     try {

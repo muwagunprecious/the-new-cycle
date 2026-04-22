@@ -8,9 +8,9 @@ import { useDispatch, useSelector } from "react-redux"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "@/components/Button"
 import ScheduleCalendar from "@/components/ScheduleCalendar"
-import { createProduct, getSellerProducts, deleteProduct as deleteProductAction } from "@/backend/actions/product"
-import { getUserStoreStatus } from "@/backend/actions/auth"
-import { updateStoreBankDetails, updateStoreAddress } from "@/backend/actions/seller"
+import { createProduct, getSellerProducts, deleteProduct as deleteProductAction } from "@/backend-actions/actions/product"
+import { getUserStoreStatus } from "@/backend-actions/actions/auth"
+import { updateStoreBankDetails, updateStoreAddress } from "@/backend-actions/actions/seller"
 import { CONSTANTS } from "@/lib/mockService"
 
 const BATTERY_PRICES = {

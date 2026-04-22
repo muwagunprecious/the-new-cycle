@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { getUserProfile, changePassword, updateUserProfile } from "@/backend/actions/auth"
+import { getUserProfile, changePassword, updateUserProfile } from "@/backend-actions/actions/auth"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import toast from "react-hot-toast"
 import { User as UserIcon, Lock as LockIcon, Save as SaveIcon, Mail as MailIcon, Phone as PhoneIcon } from "lucide-react"

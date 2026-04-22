@@ -1,10 +1,10 @@
 'use server'
 
-import { ApiResponse } from "@/backend/lib/api-response"
-import { logger } from "@/backend/lib/api-utils"
-import { verifyNIN, verifyCAC } from "@/backend/lib/qoreid"
+import { ApiResponse } from "@/backend-actions/lib/api-response"
+import { logger } from "@/backend-actions/lib/api-utils"
+import { verifyNIN, verifyCAC } from "@/backend-actions/lib/qoreid"
 import { revalidatePath } from "next/cache"
-import prisma from "@/backend/lib/prisma"
+import prisma from "@/backend-actions/lib/prisma"
 
 /**
  * Server action to verify NIN

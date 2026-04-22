@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { logout } from "@/lib/features/auth/authSlice"
 import { showLoader } from "@/lib/features/ui/uiSlice"
 import { Bell as BellIcon, LogOut as LogOutIcon, Recycle as RecycleIcon } from "lucide-react"
-import { getNotifications } from "@/backend/actions/notification"
+import { getNotifications } from "@/backend-actions/actions/notification"
 import toast from "react-hot-toast"
 
 const AdminNavbar = () => {

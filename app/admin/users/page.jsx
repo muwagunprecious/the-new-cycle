@@ -6,7 +6,7 @@ import { toggleUserStatus } from "@/lib/features/auth/authSlice"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import { useEffect } from "react"
-import { getAllUsers, banUser, approveBuyer } from "@/backend/actions/admin"
+import { getAllUsers, banUser, approveBuyer } from "@/backend-actions/actions/admin"
 import Loading from "@/components/Loading"
 import { ShieldCheck as ShieldCheckIcon, Search as SearchIcon, Mail as MailIcon, Phone as PhoneIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Check as CheckIcon } from "lucide-react"
 

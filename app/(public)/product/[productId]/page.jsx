@@ -4,7 +4,7 @@ import ProductDetails from "@/components/ProductDetails";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { getProductById } from "@/backend/actions/product";
+import { getProductById } from "@/backend-actions/actions/product";
 
 // Skeleton shimmer component
 function ProductSkeleton() {

@@ -5,8 +5,8 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/Button"
-import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory } from "@/backend/actions/admin"
-import { getAllOrders } from "@/backend/actions/order"
+import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory } from "@/backend-actions/actions/admin"
+import { getAllOrders } from "@/backend-actions/actions/order"
 
 export default function AdminDashboard() {
     const router = useRouter()

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { updateProfile } from '@/lib/features/auth/authSlice'
 import { X as XIcon, FileText, CreditCard, ShieldCheck as ShieldCheckIcon, Lock as LockIcon, CheckCircle as CheckCircleIcon, Loader as LoaderIcon, Zap as ZapIcon, Building as BuildingIcon } from 'lucide-react'
 import Button from './Button'
-import { performNINVerification, performCACVerification } from '@/backend/actions/verification'
+import { performNINVerification, performCACVerification } from '@/backend-actions/actions/verification'
 
 export default function DocumentVerificationModal({ user, onComplete }) {
     const dispatch = useDispatch()

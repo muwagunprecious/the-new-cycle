@@ -1,5 +1,5 @@
-import prisma from "@/backend/lib/prisma";
-import { checkPhoneAvailability } from "@/backend/actions/auth";
+import prisma from "@/backend-actions/lib/prisma";
+import { checkPhoneAvailability } from "@/backend-actions/actions/auth";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {

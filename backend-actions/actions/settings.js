@@ -1,6 +1,6 @@
 'use server'
 
-import prisma from "@/backend/lib/prisma"
+import prisma from "@/backend-actions/lib/prisma"
 import { revalidatePath } from "next/cache"
 
 /**

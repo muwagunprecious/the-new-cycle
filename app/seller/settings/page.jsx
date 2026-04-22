@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { getStoreDetails, updateStoreBankDetails } from "@/backend/actions/seller"
-import { changePassword } from "@/backend/actions/auth"
+import { getStoreDetails, updateStoreBankDetails } from "@/backend-actions/actions/seller"
+import { changePassword } from "@/backend-actions/actions/auth"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import toast from "react-hot-toast"
 import { CreditCard as CreditCardIcon, Save as SaveIcon, Lock as LockIcon } from "lucide-react"

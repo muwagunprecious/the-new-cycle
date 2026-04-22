@@ -1,9 +1,9 @@
 'use server'
 
-import { ApiResponse } from "@/backend/lib/api-response"
-import { generateId, logger, normalizePhone } from "@/backend/lib/api-utils"
-import { sendEmail, welcomeEmail } from "@/backend/lib/email"
-import prisma from "@/backend/lib/prisma"
+import { ApiResponse } from "@/backend-actions/lib/api-response"
+import { generateId, logger, normalizePhone } from "@/backend-actions/lib/api-utils"
+import { sendEmail, welcomeEmail } from "@/backend-actions/lib/email"
+import prisma from "@/backend-actions/lib/prisma"
 import bcrypt from "bcryptjs"
 import { sendOTP } from "../lib/sms"
 
@@ -148,12 +148,12 @@ export async function registerUser(userData) {
 
         // Send welcome & verification email if email is provided
         if (email) {
-            const verificationTemplate = (await import("@/backend/lib/email")).verificationCodeEmail({ name, code: otp })
+            const verificationTemplate = (await import("@/backend-actions/lib/email")).verificationCodeEmail({ name, code: otp })
             sendEmail({ to: email, ...verificationTemplate }).catch(err =>
                 logger.warn("Verification email failed", err)
             )
 
-            const welcomeTemplate = (await import("@/backend/lib/email")).welcomeEmail({ name })
+            const welcomeTemplate = (await import("@/backend-actions/lib/email")).welcomeEmail({ name })
             sendEmail({ to: email, ...welcomeTemplate }).catch(err =>
                 logger.warn("Welcome email failed", err)
             )

@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from "react"
-import { getAdminDashboardSummary } from "@/backend/actions/admin"
+import { getAdminDashboardSummary } from "@/backend-actions/actions/admin"
 
 export default function PendingPayoutSidebar() {
     const currency = '₦'

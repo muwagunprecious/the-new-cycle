@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from "react"
-import { getPendingBuyers, approveBuyer, rejectBuyer } from "@/backend/actions/admin"
+import { getPendingBuyers, approveBuyer, rejectBuyer } from "@/backend-actions/actions/admin"
 import { UserCircle as UserCircleIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, FileText, CreditCard as CreditCardIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import Loading from "@/components/Loading"

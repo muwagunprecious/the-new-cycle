@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
 import { logout } from "@/lib/features/auth/authSlice"
-import { getUserStoreStatus } from "@/backend/actions/auth"
+import { getUserStoreStatus } from "@/backend-actions/actions/auth"
 
 export default function SellerLayout({ children }) {
     const pathname = usePathname()

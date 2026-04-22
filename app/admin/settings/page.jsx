@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { ShieldCheck as ShieldCheckIcon, Globe as GlobeIcon, Key as KeyIcon, Send as SendIcon, Save as SaveIcon, RefreshCw as RefreshCwIcon, CheckCircle2 as CheckCircle2Icon, AlertCircle as AlertCircleIcon } from "lucide-react"
 import toast from "react-hot-toast"
-import { getSettingsByGroup, updateSettings, fetchTermiiSenderIds, getTermiiFullStatus, testQoreIDConnection } from "@/backend/actions/settings"
+import { getSettingsByGroup, updateSettings, fetchTermiiSenderIds, getTermiiFullStatus, testQoreIDConnection } from "@/backend-actions/actions/settings"
 import Button from "@/components/Button"
 import Loading from "@/components/Loading"
 

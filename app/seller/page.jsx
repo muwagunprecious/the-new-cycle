@@ -6,9 +6,9 @@ import { useSelector } from "react-redux"
 import toast from "react-hot-toast"
 import VerificationModal from "@/components/VerificationModal"
 import Button from "@/components/Button"
-import { getSellerOrders, updateOrderStatus } from "@/backend/actions/order"
-import { getSellerProducts } from "@/backend/actions/product"
-import { getStoreDetails, updateStoreBankDetails, getSellerDashboardSummary, getSellerPayoutHistory } from "@/backend/actions/seller"
+import { getSellerOrders, updateOrderStatus } from "@/backend-actions/actions/order"
+import { getSellerProducts } from "@/backend-actions/actions/product"
+import { getStoreDetails, updateStoreBankDetails, getSellerDashboardSummary, getSellerPayoutHistory } from "@/backend-actions/actions/seller"
 
 export default function SellerOverview() {
     const { user } = useSelector(state => state.auth)

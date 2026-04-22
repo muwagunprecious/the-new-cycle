@@ -10,8 +10,8 @@
  * - Number API = no Sender ID required, auto-generated numbers, fallback
  */
 
-import prisma from "@/backend/lib/prisma";
-import { normalizePhone } from "@/backend/lib/api-utils";
+import prisma from "@/backend-actions/lib/prisma";
+import { normalizePhone } from "@/backend-actions/lib/api-utils";
 
 const API_KEY = process.env.TERMII_API_KEY;
 const BASE_URL = process.env.TERMII_BASE_URL || "https://v3.api.termii.com";

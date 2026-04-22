@@ -1,5 +1,5 @@
 'use client'
-import { getVerifiedSellers, updateSellerWallet } from "@/backend/actions/admin"
+import { getVerifiedSellers, updateSellerWallet } from "@/backend-actions/actions/admin"
 import StoreInfo from "@/components/admin/StoreInfo"
 import Loading from "@/components/Loading"
 import { useEffect, useState } from "react"

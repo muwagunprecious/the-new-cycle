@@ -1,7 +1,7 @@
 'use client'
 import { storesDummyData } from "@/assets/assets"
 import StoreInfo from "@/components/admin/StoreInfo"
-import { getPendingSellers, approveSeller, rejectSeller } from "@/backend/actions/admin"
+import { getPendingSellers, approveSeller, rejectSeller } from "@/backend-actions/actions/admin"
 import Loading from "@/components/Loading"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"

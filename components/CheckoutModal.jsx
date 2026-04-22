@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "./Button"
 import { mockOrderService, mockPaymentService, mockNotificationService } from "@/lib/mockService"
-import { createOrder, verifyOrderCollection } from "@/backend/actions/order"
+import { createOrder, verifyOrderCollection } from "@/backend-actions/actions/order"
 
 /**
  * CheckoutModal - Demo payment flow for battery purchase

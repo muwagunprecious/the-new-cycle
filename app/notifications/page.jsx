@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { useState, useEffect } from "react"
 import { markAsRead, markAllAsRead, addNotification } from "@/lib/features/notification/notificationSlice"
 import { Bell as BellIcon, Check as CheckIcon, Trash as TrashIcon, Info as InfoIcon, ShieldAlert as ShieldAlertIcon, Package as PackageIcon } from "lucide-react"
-import { getNotifications, markNotificationAsRead } from "@/backend/actions/notification"
+import { getNotifications, markNotificationAsRead } from "@/backend-actions/actions/notification"
 import Loading from "@/components/Loading"
 
 export default function NotificationsPage() {

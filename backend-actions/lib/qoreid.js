@@ -5,7 +5,7 @@
  * Handles authentication and communication with QoreID API
  */
 
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/backend-actions/lib/prisma";
 
 const DEFAULT_CLIENT_ID = process.env.QOREID_CLIENT_ID;
 const DEFAULT_SECRET_KEY = process.env.QOREID_SECRET_KEY;

@@ -4,7 +4,7 @@ import Title from './Title'
 import ProductCard from './ProductCard'
 import { lagosLGAs } from '@/assets/assets'
 import { MapPin as MapPinIcon, Filter as FilterIcon } from 'lucide-react'
-import { getAllProducts } from '@/backend/actions/product'
+import { getAllProducts } from '@/backend-actions/actions/product'
 import Loading from './Loading'
 
 const LatestProducts = () => {

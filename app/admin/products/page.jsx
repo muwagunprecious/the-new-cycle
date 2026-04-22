@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Search as SearchIcon, ShoppingBag as ShoppingBagIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, Trash2 as Trash2Icon, ExternalLink as ExternalLinkIcon, Battery as BatteryIcon } from "lucide-react"
 import { lagosLGAs } from "@/assets/assets"
 import toast from "react-hot-toast"
-import { getAdminProducts, adminDeleteProduct, adminApproveProduct, adminRejectProduct } from "@/backend/actions/product"
+import { getAdminProducts, adminDeleteProduct, adminApproveProduct, adminRejectProduct } from "@/backend-actions/actions/product"
 
 export default function AdminProducts() {
     const [products, setProducts] = useState([])
