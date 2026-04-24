@@ -5,6 +5,7 @@ import { mapProductToFrontend, logger } from "@/backend-actions/lib/api-utils"
 import { revalidatePath } from "next/cache"
 import prisma from "@/backend-actions/lib/prisma"
 import { sendEmail, productApprovedEmail, productRejectedEmail } from "@/backend-actions/lib/email"
+import { BATTERY_TYPE_MAPPING } from "@/lib/pricing"
 
 export async function createProduct(data, userId) {
     try {
@@ -37,8 +38,7 @@ export async function createProduct(data, userId) {
                 price: price,
                 images: data.images || [],
                 category: "Battery",
-                type: data.batteryType === 'Cars and Truck batt (Wet cell)' ? 'CAR_TRUCK_WET' :
-                    data.batteryType === 'Inverter Batt (Dry cell)' ? 'INVERTER_DRY' : 'INVERTER_WET',
+                type: BATTERY_TYPE_MAPPING[data.batteryType] || 'CAR_TRUCK_WET',
                 brand: data.brand || "",
                 amps: amps,
                 condition: data.condition || "SCRAP",
@@ -78,7 +78,7 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
                     quantity: 5,
                     status: "approved",
                     inStock: true,
-                    type: "CAR_TRUCK_WET",
+                    type: BATTERY_TYPE_MAPPING["Cars and Truck batt (Wet cell)"],
                     collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0], new Date(Date.now() + 172800000).toISOString().split('T')[0]],
                     createdAt: new Date().toISOString()
                 },
@@ -91,7 +91,7 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
                     quantity: 2,
                     status: "pending",
                     inStock: true,
-                    type: "INVERTER_DRY",
+                    type: BATTERY_TYPE_MAPPING["Inverter Batt (Dry cell)"],
                     collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
                     createdAt: new Date().toISOString()
                 }

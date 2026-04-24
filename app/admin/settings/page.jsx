@@ -1,13 +1,18 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { ShieldCheck as ShieldCheckIcon, Globe as GlobeIcon, Key as KeyIcon, Send as SendIcon, Save as SaveIcon, RefreshCw as RefreshCwIcon, CheckCircle2 as CheckCircle2Icon, AlertCircle as AlertCircleIcon } from "lucide-react"
+import { ShieldCheck as ShieldCheckIcon, Globe as GlobeIcon, Key as KeyIcon, Send as SendIcon, Save as SaveIcon, RefreshCw as RefreshCwIcon, CheckCircle2 as CheckCircle2Icon, AlertCircle as AlertCircleIcon, DollarSign as DollarSignIcon, Battery as BatteryIcon, ChevronDown as ChevronDownIcon, ChevronUp as ChevronUpIcon } from "lucide-react"
 import toast from "react-hot-toast"
-import { getSettingsByGroup, updateSettings, fetchTermiiSenderIds, getTermiiFullStatus, testQoreIDConnection } from "@/backend-actions/actions/settings"
+import { getSettingsByGroup, updateSettings, fetchTermiiSenderIds, getTermiiFullStatus, testQoreIDConnection, getPricingConfig, updatePricingConfig } from "@/backend-actions/actions/settings"
+import { DEFAULT_BATTERY_PRICES, BATTERY_TYPES } from "@/lib/pricing"
 import Button from "@/components/Button"
 import Loading from "@/components/Loading"
+import { useSearchParams } from "next/navigation"
 
 export default function SettingsPage() {
+    const searchParams = useSearchParams()
+    const tabParam = searchParams.get('tab')
+
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [fetchingSenders, setFetchingSenders] = useState(false)
@@ -33,18 +38,32 @@ export default function SettingsPage() {
         lastChecked: null
     })
 
-    const [activeTab, setActiveTab] = useState('termii')
+    const [activeTab, setActiveTab] = useState(tabParam || 'termii')
+    const [expandedType, setExpandedType] = useState(BATTERY_TYPES[0])
+    const [expandedSize, setExpandedSize] = useState(null)
+
+    useEffect(() => {
+        if (tabParam) {
+            setActiveTab(tabParam)
+            if (tabParam === 'pricing') {
+                setExpandedType(BATTERY_TYPES[0])
+            }
+        }
+    }, [tabParam])
+
+    const [pricingTable, setPricingTable] = useState(JSON.parse(JSON.stringify(DEFAULT_BATTERY_PRICES)))
+    const [savingPricing, setSavingPricing] = useState(false)
 
     const loadData = async () => {
-        const [termiiRes, qoreidRes] = await Promise.all([
+        const [termiiRes, qoreidRes, pricingRes] = await Promise.all([
             getSettingsByGroup('termii'),
-            getSettingsByGroup('qoreid')
+            getSettingsByGroup('qoreid'),
+            getPricingConfig()
         ])
         
         if (termiiRes.success && Object.keys(termiiRes.data).length > 0) {
             setConfig(prev => ({ ...prev, ...termiiRes.data }))
             
-            // Auto refresh termii status if apiKey exists
             if (termiiRes.data.apiKey) {
                 const statusRes = await getTermiiFullStatus(termiiRes.data.apiKey, termiiRes.data.baseUrl || 'https://api.ng.termii.com')
                 if (statusRes.success) {
@@ -60,6 +79,10 @@ export default function SettingsPage() {
 
         if (qoreidRes.success && Object.keys(qoreidRes.data).length > 0) {
             setQoreidConfig(prev => ({ ...prev, ...qoreidRes.data }))
+        }
+
+        if (pricingRes.success && pricingRes.data) {
+            setPricingTable(pricingRes.data)
         }
 
         setLoading(false)
@@ -115,6 +138,32 @@ export default function SettingsPage() {
         setSaving(false)
     }
 
+    const handleSavePricing = async () => {
+        setSavingPricing(true)
+        const res = await updatePricingConfig(pricingTable)
+        if (res.success) {
+            toast.success("Pricing formula saved! Sellers will see the updated prices immediately.")
+        } else {
+            toast.error(res.error || "Failed to save pricing")
+        }
+        setSavingPricing(false)
+    }
+
+    const handlePriceChange = (batteryType, amps, value) => {
+        setPricingTable(prev => ({
+            ...prev,
+            [batteryType]: {
+                ...prev[batteryType],
+                [amps]: value === '' ? '' : parseInt(value, 10) || 0
+            }
+        }))
+    }
+
+    const handleResetPricing = () => {
+        setPricingTable(JSON.parse(JSON.stringify(DEFAULT_BATTERY_PRICES)))
+        toast("Prices reset to system defaults (not saved yet)", { icon: '↩️' })
+    }
+
     const handleTestQoreID = async () => {
         setTestingQoreID(true)
         const res = await testQoreIDConnection(qoreidConfig.clientId, qoreidConfig.secretKey, qoreidConfig.baseUrl)
@@ -146,9 +195,16 @@ export default function SettingsPage() {
         setFetchingSenders(false)
     }
 
+    const toggleType = (type) => {
+        setExpandedType(expandedType === type ? null : type)
+    }
+
+    const toggleSize = (sizeKey) => {
+        setExpandedSize(expandedSize === sizeKey ? null : sizeKey)
+    }
+
     if (loading) return <Loading />
 
-    // Simplified list for the dropdown (only active ones)
     const activeSenders = status.senders.filter(s => s.status === 'active').map(s => s.sender_id)
 
     return (
@@ -167,7 +223,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Tab Switcher */}
-            <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
+            <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit flex-wrap">
                 <button 
                     onClick={() => setActiveTab('termii')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'termii' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
@@ -180,13 +236,21 @@ export default function SettingsPage() {
                 >
                     QoreID (Live)
                 </button>
+                <button 
+                    onClick={() => setActiveTab('pricing')}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'pricing' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                    💰 Pricing Formula
+                </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Config Card */}
                 <div className="lg:col-span-2 space-y-8">
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
-                        {activeTab === 'termii' ? (
+
+                        {/* ── Termii Tab ── */}
+                        {activeTab === 'termii' && (
                             <>
                                 <div className="bg-slate-900 p-8 text-white">
                                     <div className="flex items-center gap-4">
@@ -202,7 +266,6 @@ export default function SettingsPage() {
 
                                 <form onSubmit={handleSave} className="p-8 space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* API Key */}
                                         <div className="space-y-2 col-span-full">
                                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                                 <KeyIcon size={12} /> Termii API Key (Live)
@@ -217,7 +280,6 @@ export default function SettingsPage() {
                                             />
                                         </div>
 
-                                        {/* Base URL */}
                                         <div className="space-y-2">
                                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                                 <GlobeIcon size={12} /> Regional Base URL
@@ -232,7 +294,6 @@ export default function SettingsPage() {
                                             </select>
                                         </div>
 
-                                        {/* Sender ID */}
                                         <div className="space-y-2">
                                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                                 <RefreshCwIcon size={12} /> Sender ID
@@ -283,7 +344,10 @@ export default function SettingsPage() {
                                     </Button>
                                 </form>
                             </>
-                        ) : (
+                        )}
+
+                        {/* ── QoreID Tab ── */}
+                        {activeTab === 'qoreid' && (
                             <>
                                 <div className="bg-[#000000] p-8 text-white">
                                     <div className="flex items-center gap-4">
@@ -299,7 +363,6 @@ export default function SettingsPage() {
 
                                 <form onSubmit={handleSave} className="p-8 space-y-6">
                                     <div className="grid grid-cols-1 gap-6">
-                                        {/* Client ID */}
                                         <div className="space-y-2">
                                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                                 <KeyIcon size={12} /> QoreID Client ID
@@ -314,7 +377,6 @@ export default function SettingsPage() {
                                             />
                                         </div>
 
-                                        {/* Secret Key */}
                                         <div className="space-y-2">
                                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                                 <KeyIcon size={12} /> QoreID Secret Key
@@ -329,7 +391,6 @@ export default function SettingsPage() {
                                             />
                                         </div>
 
-                                        {/* Base URL */}
                                         <div className="space-y-2">
                                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                                 <GlobeIcon size={12} /> API Environment (Base URL)
@@ -369,9 +430,116 @@ export default function SettingsPage() {
                                 </form>
                             </>
                         )}
+
+                        {/* ── Pricing Formula Tab ── */}
+                        {activeTab === 'pricing' && (
+                            <>
+                                <div className="bg-gradient-to-r from-[#05DF72]/10 to-emerald-50 p-8 border-b border-slate-100">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-[#05DF72]/20 rounded-2xl flex items-center justify-center border border-[#05DF72]/30">
+                                            <DollarSignIcon className="text-[#05DF72]" size={24} />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold tracking-tight text-slate-900">Suggested Price Formula</h2>
+                                            <p className="text-slate-500 text-sm">Set the suggested selling price per battery type and size.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-8 space-y-4">
+                                    {Object.entries(pricingTable).map(([batteryType, sizes]) => (
+                                        <div key={batteryType} className="border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
+                                            {/* Accordion Header */}
+                                            <button 
+                                                onClick={() => toggleType(batteryType)}
+                                                className={`w-full flex items-center justify-between p-5 text-left transition-all ${expandedType === batteryType ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`p-2 rounded-xl ${expandedType === batteryType ? 'bg-[#05DF72]/10 text-[#05DF72]' : 'bg-slate-100 text-slate-400'}`}>
+                                                        <BatteryIcon size={20} />
+                                                    </div>
+                                                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">{batteryType}</h3>
+                                                </div>
+                                                {expandedType === batteryType ? <ChevronUpIcon size={20} className="text-slate-400" /> : <ChevronDownIcon size={20} className="text-slate-400" />}
+                                            </button>
+
+                                            {/* Accordion Content */}
+                                            {expandedType === batteryType && (
+                                                <div className="p-6 bg-white space-y-3 border-t border-slate-50">
+                                                    {Object.entries(sizes).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(([amps, price]) => {
+                                                        const sizeKey = `${batteryType}_${amps}`
+                                                        const isExpanded = expandedSize === sizeKey
+                                                        
+                                                        return (
+                                                            <div key={amps} className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
+                                                                <button 
+                                                                    onClick={() => toggleSize(sizeKey)}
+                                                                    className={`w-full p-4 flex items-center justify-between hover:bg-slate-100 transition-colors text-left ${isExpanded ? 'bg-slate-100' : ''}`}
+                                                                >
+                                                                    <div className="flex items-center gap-4">
+                                                                        <span className="text-xs font-black text-slate-700 bg-white px-3 py-1 rounded-full shadow-sm">{amps} Ah</span>
+                                                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#05DF72]">₦/unit</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3">
+                                                                        {!isExpanded && <span className="text-sm font-bold text-slate-900">₦{price.toLocaleString()}</span>}
+                                                                        {isExpanded ? <ChevronUpIcon size={16} className="text-slate-400" /> : <ChevronDownIcon size={16} className="text-slate-400" />}
+                                                                    </div>
+                                                                </button>
+
+                                                                {isExpanded && (
+                                                                    <div className="p-4 bg-white border-t border-slate-100 space-y-4">
+                                                                        <div className="relative">
+                                                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₦</span>
+                                                                            <input
+                                                                                type="number"
+                                                                                min="0"
+                                                                                step="500"
+                                                                                value={price}
+                                                                                onChange={e => handlePriceChange(batteryType, amps, e.target.value)}
+                                                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-lg font-black text-slate-900 outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] transition-all"
+                                                                                placeholder="Enter unit price"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="bg-slate-50 p-3 rounded-xl flex items-center justify-between">
+                                                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">System Default</span>
+                                                                            <span className="text-xs font-bold text-slate-600">₦{(DEFAULT_BATTERY_PRICES[batteryType]?.[amps] || 0).toLocaleString()}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+
+                                    <div className="pt-8 border-t border-slate-100 flex flex-col sm:row gap-4 mt-4">
+                                        <div className="flex flex-col sm:flex-row gap-4 w-full">
+                                            <button
+                                                type="button"
+                                                onClick={handleResetPricing}
+                                                className="flex-1 py-4 px-6 rounded-2xl border border-slate-200 text-slate-600 text-sm font-black hover:bg-slate-50 transition-all"
+                                            >
+                                                ↩ Reset to Defaults
+                                            </button>
+                                            <Button
+                                                type="button"
+                                                onClick={handleSavePricing}
+                                                loading={savingPricing}
+                                                loadingText="Saving..."
+                                                icon={SaveIcon}
+                                                className="flex-[2] shadow-lg shadow-[#05DF72]/20 py-4 text-lg"
+                                            >
+                                                Save Pricing Formula
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
 
-                    {/* Proactive Help */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="p-6 bg-blue-50 border border-blue-100 rounded-3xl">
                             <div className="flex items-center gap-2 text-blue-600 font-bold text-sm mb-2">
@@ -394,9 +562,7 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
-                {/* Status Dashboard Sidebar */}
                 <div className="space-y-6">
-                    {/* Wallet Card */}
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-lg p-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Balance</h3>
@@ -422,7 +588,6 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
-                    {/* Sender ID Status List */}
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-lg overflow-hidden">
                         <div className="p-6 border-b border-slate-50">
                             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sender ID Status</h3>

@@ -12,19 +12,8 @@ import { createProduct, getSellerProducts, deleteProduct as deleteProductAction 
 import { getUserStoreStatus } from "@/backend-actions/actions/auth"
 import { updateStoreBankDetails, updateStoreAddress } from "@/backend-actions/actions/seller"
 import { CONSTANTS } from "@/lib/mockService"
-
-const BATTERY_PRICES = {
-    "Cars and Truck batt (Wet cell)": {
-        "36": 5000, "45": 7000, "65": 7500, "75": 10000, "88": 12000,
-        "100": 13000, "105": 15000, "120": 20000, "150": 25000, "200": 35000, "220": 40000
-    },
-    "Inverter Batt (Dry cell)": {
-        "100": 30000, "150": 50000, "200": 60000, "250": 70000
-    },
-    "Inverter Batt (Wet Cell)": {
-        "200": 50000, "220": 55000, "250": 60000
-    }
-}
+import { getPricingConfig } from "@/backend-actions/actions/settings"
+import { DEFAULT_BATTERY_PRICES, BATTERY_SIZE_OPTIONS, BATTERY_TYPES } from "@/lib/pricing"
 
 const NIGERIAN_BANKS = {
     "Access Bank": "044",
@@ -70,6 +59,8 @@ export default function SellerProducts() {
     const [showPaymentModal, setShowPaymentModal] = useState(false)
     const [saveAccount, setSaveAccount] = useState(true)
     const [bankLookupLoading, setBankLookupLoading] = useState(false)
+    // Dynamic pricing — loaded from admin settings, falls back to defaults
+    const [batteryPrices, setBatteryPrices] = useState(DEFAULT_BATTERY_PRICES)
     const [bankDetails, setBankDetails] = useState({
         bankName: '',
         bankCode: '',
@@ -175,7 +166,7 @@ export default function SellerProducts() {
 
     // Form State
     const [formData, setFormData] = useState({
-        batteryType: 'Cars and Truck batt (Wet cell)',
+        batteryType: BATTERY_TYPES[0],
         brand: '',
         amps: '',
         unitsAvailable: 1,
@@ -211,21 +202,25 @@ export default function SellerProducts() {
         }
     }
 
-    // Price calc logic: (Amps * 250) * units
+    // Price calc logic: uses admin-configured prices from DB
     useEffect(() => {
         if (formData.batteryType && formData.amps && formData.unitsAvailable && !formData.isManualPrice) {
-            const priceList = BATTERY_PRICES[formData.batteryType]
+            const priceList = batteryPrices[formData.batteryType]
             const suggestedPerUnit = priceList ? (priceList[formData.amps] || 0) : 0
             const totalSuggested = suggestedPerUnit * parseInt(formData.unitsAvailable)
             if (totalSuggested > 0) {
                 setFormData(prev => ({ ...prev, price: totalSuggested.toString() }))
             }
         }
-    }, [formData.batteryType, formData.amps, formData.unitsAvailable, formData.isManualPrice])
+    }, [formData.batteryType, formData.amps, formData.unitsAvailable, formData.isManualPrice, batteryPrices])
 
     useEffect(() => {
         if (user) {
             loadProducts(1)
+            // Load admin-configured pricing
+            getPricingConfig().then(res => {
+                if (res.success && res.data) setBatteryPrices(res.data)
+            })
             const checkStatus = async () => {
                 const res = await getUserStoreStatus(user.id)
                 if (res.success && res.exists) {
@@ -695,7 +690,7 @@ export default function SellerProducts() {
                                             required
                                         >
                                             <option value="">Select Size</option>
-                                            {Object.keys(BATTERY_PRICES[formData.batteryType] || {}).map(size => (
+                                            {(BATTERY_SIZE_OPTIONS[formData.batteryType] || []).map(size => (
                                                 <option key={size} value={size}>{size} Amps</option>
                                             ))}
                                         </select>
@@ -730,7 +725,7 @@ export default function SellerProducts() {
                                             </div>
                                             <div className="relative">
                                                 <input
-                                                    value={formData.batteryType && formData.amps ? ((BATTERY_PRICES[formData.batteryType]?.[formData.amps] || 0) * parseInt(formData.unitsAvailable || 1)).toLocaleString() : ''}
+                                                    value={formData.batteryType && formData.amps ? ((batteryPrices[formData.batteryType]?.[formData.amps] || 0) * parseInt(formData.unitsAvailable || 1)).toLocaleString() : ''}
                                                     readOnly
                                                     placeholder="Auto-calculated"
                                                     className="w-full p-4 bg-slate-100/50 text-slate-400 border-none rounded-2xl outline-none font-medium text-sm cursor-not-allowed"

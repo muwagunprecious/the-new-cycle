@@ -1,7 +1,7 @@
 'use client'
 
-import { usePathname, useRouter } from "next/navigation"
-import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon } from "lucide-react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon, DollarSign as DollarSignIcon } from "lucide-react"
 import { useDispatch } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
 import { logout } from "@/lib/features/auth/authSlice"
@@ -9,7 +9,11 @@ import { logout } from "@/lib/features/auth/authSlice"
 const AdminSidebar = () => {
     const pathname = usePathname()
     const router = useRouter()
+    const searchParams = useSearchParams()
     const dispatch = useDispatch()
+    
+    const currentSearch = searchParams.toString()
+    const fullPath = currentSearch ? `${pathname}?${currentSearch}` : pathname
 
     const sidebarLinks = [
         { name: 'Dashboard', href: '/admin', icon: HomeIcon },
@@ -20,6 +24,7 @@ const AdminSidebar = () => {
         { name: 'Products', href: '/admin/products', icon: ShoppingBagIcon },
         { name: 'Orders', href: '/admin/orders', icon: ShieldCheckIcon },
         { name: 'Notifications', href: '/admin/notifications', icon: BellIcon },
+        { name: 'Pricing Formula', href: '/admin/settings?tab=pricing', icon: DollarSignIcon },
         { name: 'System Settings', href: '/admin/settings', icon: SettingsIcon },
     ]
 
@@ -56,11 +61,11 @@ const AdminSidebar = () => {
                         <button
                             key={index}
                             onClick={() => handleNavigation(link.href, `Loading ${link.name} Panel...`)}
-                            className={`relative flex items-center gap-4 text-slate-500 hover:bg-slate-50 p-3.5 rounded-xl transition w-full text-left ${pathname === link.href ? 'bg-slate-50 text-[#05DF72] font-semibold' : ''}`}
+                            className={`relative flex items-center gap-4 text-slate-500 hover:bg-slate-50 p-3.5 rounded-xl transition w-full text-left ${fullPath === link.href ? 'bg-slate-50 text-[#05DF72] font-semibold' : ''}`}
                         >
                             <link.icon size={20} />
                             <p className="max-sm:hidden text-sm">{link.name}</p>
-                            {pathname === link.href && <span className="absolute bg-[#05DF72] left-0 top-3 bottom-3 w-1.5 rounded-r-full"></span>}
+                            {fullPath === link.href && <span className="absolute bg-[#05DF72] left-0 top-3 bottom-3 w-1.5 rounded-r-full"></span>}
                         </button>
                     ))
                 }

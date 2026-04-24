@@ -2,6 +2,8 @@
 
 import prisma from "@/backend-actions/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { DEFAULT_BATTERY_PRICES, encodePricingKey, decodePricingKey } from "@/lib/pricing"
+
 
 /**
  * Get all settings for a specific group (e.g., 'termii')
@@ -143,5 +145,61 @@ export async function testQoreIDConnection(clientId, secretKey, baseUrl) {
     } catch (error) {
         console.error("QoreID Test Error:", error)
         return { success: false, error: "Connection to QoreID failed" }
+    }
+}
+
+/**
+ * Get the merged pricing config (DB values override defaults, missing keys use defaults)
+ */
+export async function getPricingConfig() {
+    try {
+        const settings = await prisma.setting.findMany({ where: { group: 'pricing' } })
+        
+        // Deep-clone the defaults
+        const merged = JSON.parse(JSON.stringify(DEFAULT_BATTERY_PRICES))
+
+        settings.forEach(s => {
+            const decoded = decodePricingKey(s.key)
+            if (decoded) {
+                merged[decoded.batteryType][decoded.amps] = parseInt(s.value, 10) || 0
+            }
+        })
+
+        return { success: true, data: merged }
+    } catch (error) {
+        console.error("Error fetching pricing config:", error)
+        return { success: true, data: DEFAULT_BATTERY_PRICES } // safe fallback
+    }
+}
+
+/**
+ * Save entire pricing table to the DB
+ * @param {Record<string, Record<string, number>>} priceTable - { batteryType: { amps: price } }
+ */
+export async function updatePricingConfig(priceTable) {
+    try {
+        const settingsList = []
+        for (const [batteryType, sizes] of Object.entries(priceTable)) {
+            for (const [amps, price] of Object.entries(sizes)) {
+                settingsList.push({
+                    key: encodePricingKey(batteryType, amps),
+                    value: String(price)
+                })
+            }
+        }
+        const operations = settingsList.map(s =>
+            prisma.setting.upsert({
+                where: { key: s.key },
+                update: { value: s.value, group: 'pricing' },
+                create: { key: s.key, value: s.value, group: 'pricing' }
+            })
+        )
+        await Promise.all(operations)
+        revalidatePath('/admin/settings')
+        revalidatePath('/seller/products')
+        return { success: true }
+    } catch (error) {
+        console.error("Error saving pricing config:", error)
+        return { success: false, error: "Failed to save pricing configuration" }
     }
 }

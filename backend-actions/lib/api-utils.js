@@ -1,13 +1,20 @@
+import { BATTERY_TYPE_MAPPING, BATTERY_TYPES } from "@/lib/pricing";
+
 /**
  * Map Prisma Product to frontend-friendly structure
  */
 export function mapProductToFrontend(product) {
     if (!product) return null;
+
+    // Inverse mapping for frontend label
+    const reverseMapping = Object.fromEntries(
+        Object.entries(BATTERY_TYPE_MAPPING).map(([label, value]) => [value, label])
+    );
+
     return {
         ...product,
         unitsAvailable: product.quantity,
-        batteryType: product.type === 'CAR_TRUCK_WET' ? 'Cars and Truck batt (Wet cell)' :
-            product.type === 'INVERTER_DRY' ? 'Inverter Batt (Dry cell)' : 'Inverter Batt (Wet Cell)',
+        batteryType: reverseMapping[product.type] || BATTERY_TYPES[0],
         status: product.status || 'pending',
         rejectionReason: product.rejectionReason,
     };

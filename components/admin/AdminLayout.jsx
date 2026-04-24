@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSelector } from "react-redux"
 import { useRouter } from "next/navigation"
 import Loading from "../Loading"
@@ -40,9 +40,13 @@ const AdminLayout = ({ children }) => {
         <div className="flex flex-col h-screen overflow-hidden">
             <AdminNavbar />
             <div className="flex flex-1 items-start h-full overflow-hidden">
-                <AdminSidebar />
+                <Suspense fallback={<div className="w-64 bg-white border-r animate-pulse"></div>}>
+                    <AdminSidebar />
+                </Suspense>
                 <div className="flex-1 h-full p-5 lg:pl-12 lg:pt-12 overflow-y-scroll no-scrollbar">
-                    {children}
+                    <Suspense fallback={<Loading />}>
+                        {children}
+                    </Suspense>
                 </div>
                 <PendingPayoutSidebar />
             </div>
