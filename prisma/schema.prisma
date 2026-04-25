@@ -184,6 +184,8 @@ model Order {
   paymentMethod    PaymentMethod
   paymentSenderName String?
   paymentStatus    String        @default("pending")
+  paymentReference String?       // Flutterwave tx_ref
+  flutterwaveId    String?       // Flutterwave transaction_id
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   isCouponUsed     Boolean       @default(false)
@@ -197,6 +199,7 @@ model Order {
   user             User          @relation("BuyerRelation", fields: [userId], references: [id])
   orderItems       OrderItem[]
 }
+
 
 model Notification {
   id        String   @id @default(cuid())
@@ -232,6 +235,7 @@ enum OrderStatus {
 enum PaymentMethod {
   STRIPE
   MANUAL_TRANSFER
+  FLUTTERWAVE
 }
 
 enum BatteryType {

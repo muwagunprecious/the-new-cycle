@@ -184,10 +184,57 @@ export async function deleteProduct(productId, userId) {
 
 import { supabase } from "@/backend-actions/lib/supabase"
 
+// CENTRALIZED MOCK DATA for Demo/Empty Marketplace
+const MOCK_PRODUCTS = [
+    {
+        id: "PROD-MOCK-001",
+        name: "Isuzu 12V 100AH Battery (Scrap)",
+        description: "High performance car battery, ready for recycling. Verified for lead recovery.",
+        price: 45000,
+        mrp: 52000,
+        category: "Battery",
+        type: "CAR_TRUCK_WET",
+        brand: "Isuzu",
+        amps: 100,
+        condition: "SCRAP",
+        collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
+        images: ["https://images.unsplash.com/photo-1620939511593-33bc917ad001?auto=format&fit=crop&q=80&w=800"],
+        store: { name: "Adebayo's Eco-Store", address: "Ikeja, Lagos", isVerified: true, logo: "", status: "approved" }
+    },
+    {
+        id: "PROD-MOCK-002",
+        name: "Luminous 12V 200AH Gel Battery",
+        description: "Deep cycle solar battery for recovery. Previously used in a bank UPS backup system.",
+        price: 185000,
+        mrp: 210000,
+        category: "Battery",
+        type: "INVERTER_DRY",
+        brand: "Luminous",
+        amps: 200,
+        condition: "SCRAP",
+        collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0], new Date(Date.now() + 172800000).toISOString().split('T')[0]],
+        images: ["https://images.unsplash.com/photo-1617469767053-d3b508a0d182?auto=format&fit=crop&q=80&w=800"],
+        store: { name: "Green Energy Hub", address: "Surulere, Lagos", isVerified: true, logo: "", status: "approved" }
+    },
+    {
+        id: "PROD-MOCK-003",
+        name: "Tiger 12V 75AH Wet Cell",
+        description: "Standard truck battery scrap. Casing is intact, no leaks.",
+        price: 12000,
+        mrp: 15000,
+        category: "Battery",
+        type: "CAR_TRUCK_WET",
+        brand: "Tiger",
+        amps: 75,
+        condition: "SCRAP",
+        collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
+        images: ["https://images.unsplash.com/photo-1548338065-25660684f69f?auto=format&fit=crop&q=80&w=800"],
+        store: { name: "Ojo Battery Dealers", address: "Ojo, Lagos", isVerified: true, logo: "", status: "approved" }
+    }
+]
+
 export async function getAllProducts() {
     try {
-        // PERMANENT FIX: Use Supabase Client (HTTP/443) for Marketplace loading.
-        // This bypasses local PostgreSQL port blocks (5432/6543) and is significantly faster.
         if (supabase) {
             const { data: products, error: supabaseError } = await supabase
                 .from('Product')
@@ -206,162 +253,31 @@ export async function getAllProducts() {
                 .limit(100)
 
             if (!supabaseError && products) {
-                console.log(`[SUPABASE] Successfully fetched ${products.length} products via HTTP/443`);
-                
-                // Standardize the shape to match what the frontend expects (Prisma format)
                 const standardizedProducts = products.map(p => ({
                     ...p,
                     store: Array.isArray(p.store) ? p.store[0] : p.store
                 }))
-
                 const formatted = standardizedProducts.map(mapProductToFrontend)
-                
-                // Demo Enhancement: If marketplace is empty or we are in a demo context, add mock products
                 if (formatted.length < 4) {
-                    const mockMarketplaceProducts = [
-                        {
-                            id: "PROD-MOCK-001",
-                            name: "Isuzu 12V 100AH Battery (Scrap)",
-                            description: "High performance car battery, ready for recycling.",
-                            price: 45000,
-                            mrp: 52000,
-                            category: "Battery",
-                            type: "CAR_TRUCK_WET",
-                            brand: "Isuzu",
-                            amps: 100,
-                            condition: "SCRAP",
-                            images: ["https://images.unsplash.com/photo-1620939511593-33bc917ad001?auto=format&fit=crop&q=80&w=800"],
-                            store: { name: "Adebayo's Eco-Store", address: "Ikeja, Lagos", isVerified: true }
-                        },
-                        {
-                            id: "PROD-MOCK-002",
-                            name: "Luminous 12V 200AH Gel Battery",
-                            description: "Deep cycle solar battery for recovery.",
-                            price: 185000,
-                            mrp: 210000,
-                            category: "Battery",
-                            type: "INVERTER_DRY",
-                            brand: "Luminous",
-                            amps: 200,
-                            condition: "SCRAP",
-                            images: ["https://images.unsplash.com/photo-1617469767053-d3b508a0d182?auto=format&fit=crop&q=80&w=800"],
-                            store: { name: "Green Energy Hub", address: "Surulere, Lagos", isVerified: true }
-                        },
-                        {
-                            id: "PROD-MOCK-003",
-                            name: "Tiger 12V 75AH Wet Cell",
-                            description: "Standard truck battery scrap.",
-                            price: 12000,
-                            mrp: 15000,
-                            category: "Battery",
-                            type: "CAR_TRUCK_WET",
-                            brand: "Tiger",
-                            amps: 75,
-                            condition: "SCRAP",
-                            images: ["https://images.unsplash.com/photo-1548338065-25660684f69f?auto=format&fit=crop&q=80&w=800"],
-                            store: { name: "Ojo Battery Dealers", address: "Ojo, Lagos", isVerified: true }
-                        }
-                    ]
-                    formatted.push(...mockMarketplaceProducts)
+                    formatted.push(...MOCK_PRODUCTS)
                 }
-
                 return ApiResponse.success({ products: formatted, data: formatted })
-            }
-
-            if (supabaseError) {
-                console.warn("[SUPABASE] HTTP Client Error, falling back to Prisma:", supabaseError.message)
             }
         }
 
-        // Fallback or No Supabase Key
-        console.log("[RESTORE] Using Prisma for getAllProducts...")
         const prismaProducts = await prisma.product.findMany({
-            where: {
-                status: 'approved',
-                inStock: true,
-                store: {
-                    status: 'approved',
-                    isActive: true
-                }
-            },
-            select: {
-                id: true,
-                name: true,
-                price: true,
-                mrp: true,
-                images: true,
-                category: true,
-                type: true,
-                brand: true,
-                amps: true,
-                condition: true,
-                store: {
-                    select: {
-                        name: true,
-                        address: true,
-                        isVerified: true
-                    }
-                }
-            },
+            where: { status: 'approved', inStock: true, store: { status: 'approved', isActive: true } },
+            include: { store: { select: { name: true, address: true, isVerified: true } } },
             orderBy: { createdAt: 'desc' },
             take: 100
         })
 
         const formatted = prismaProducts.map(mapProductToFrontend)
-        
-        // Demo Enhancement: If marketplace is empty or we are in a demo context, add mock products
         if (formatted.length < 4) {
-            const mockMarketplaceProducts = [
-                {
-                    id: "PROD-MOCK-001",
-                    name: "Isuzu 12V 100AH Battery (Scrap)",
-                    description: "High performance car battery, ready for recycling.",
-                    price: 45000,
-                    mrp: 52000,
-                    category: "Battery",
-                    type: "CAR_TRUCK_WET",
-                    brand: "Isuzu",
-                    amps: 100,
-                    condition: "SCRAP",
-                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
-                    images: ["https://images.unsplash.com/photo-1620939511593-33bc917ad001?auto=format&fit=crop&q=80&w=800"],
-                    store: { name: "Adebayo's Eco-Store", address: "Ikeja, Lagos", isVerified: true }
-                },
-                {
-                    id: "PROD-MOCK-002",
-                    name: "Luminous 12V 200AH Gel Battery",
-                    description: "Deep cycle solar battery for recovery.",
-                    price: 185000,
-                    mrp: 210000,
-                    category: "Battery",
-                    type: "INVERTER_DRY",
-                    brand: "Luminous",
-                    amps: 200,
-                    condition: "SCRAP",
-                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0], new Date(Date.now() + 172800000).toISOString().split('T')[0]],
-                    images: ["https://images.unsplash.com/photo-1617469767053-d3b508a0d182?auto=format&fit=crop&q=80&w=800"],
-                    store: { name: "Green Energy Hub", address: "Surulere, Lagos", isVerified: true }
-                },
-                {
-                    id: "PROD-MOCK-003",
-                    name: "Tiger 12V 75AH Wet Cell",
-                    description: "Standard truck battery scrap.",
-                    price: 12000,
-                    mrp: 15000,
-                    category: "Battery",
-                    type: "CAR_TRUCK_WET",
-                    brand: "Tiger",
-                    amps: 75,
-                    condition: "SCRAP",
-                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
-                    images: ["https://images.unsplash.com/photo-1548338065-25660684f69f?auto=format&fit=crop&q=80&w=800"],
-                    store: { name: "Ojo Battery Dealers", address: "Ojo, Lagos", isVerified: true }
-                }
-            ]
-            formatted.push(...mockMarketplaceProducts)
+            formatted.push(...MOCK_PRODUCTS)
         }
-
         return ApiResponse.success({ products: formatted, data: formatted })
+
 
     } catch (error) {
         console.error("[CRITICAL] getAllProducts failed:", error.message)
@@ -384,6 +300,16 @@ export async function getAllProducts() {
 export async function getProductById(productId) {
     try {
         console.log("SERVER: Fetching product by ID:", productId)
+
+        // Handle Mock products
+        if (productId.startsWith("PROD-MOCK-")) {
+            const mock = MOCK_PRODUCTS.find(p => p.id === productId)
+            if (mock) {
+                console.log("SERVER: Returning MOCK product:", mock.name)
+                return ApiResponse.success(mock)
+            }
+        }
+
         const product = await prisma.product.findUnique({
             where: { id: productId },
             include: {
@@ -400,7 +326,6 @@ export async function getProductById(productId) {
 
         console.log("SERVER: Product FOUND:", product.name)
         const mapped = mapProductToFrontend(product)
-        console.log("SERVER: Product MAPPED successfully. Image count:", mapped.images?.length || 0)
         return ApiResponse.success(mapped)
     } catch (error) {
         console.error("SERVER: getProductById EXCEPTION:", error)

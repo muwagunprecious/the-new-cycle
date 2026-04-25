@@ -1,33 +1,51 @@
 'use client'
-import { useState } from "react"
-import { X as XIcon, Wallet as WalletIcon, CheckCircle as CheckCircleIcon, Copy as CopyIcon, Calendar as CalendarIcon, MapPin as MapPinIcon, Loader as LoaderIcon, AlertCircle as AlertCircleIcon, ShieldCheck as ShieldCheckIcon } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { X as XIcon, Wallet as WalletIcon, CheckCircle as CheckCircleIcon, Calendar as CalendarIcon, Loader as LoaderIcon, AlertCircle as AlertCircleIcon, ShieldCheck as ShieldCheckIcon, CreditCard as CreditCardIcon, Building2 as BankIcon, Zap as ZapIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "./Button"
-import { mockOrderService, mockPaymentService, mockNotificationService } from "@/lib/mockService"
-import { createOrder, verifyOrderCollection } from "@/backend-actions/actions/order"
+import { createOrder } from "@/backend-actions/actions/order"
 
 /**
- * CheckoutModal - Demo payment flow for battery purchase
+ * CheckoutModal - Payment flow for battery purchase
  * 
  * Flow:
  * 1. Order Summary
- * 2. Mock Payment Processing
- * 3. Success with Collection Token
- * 
- * No Pay on Delivery - Pay Now only as per requirements
+ * 2. Payment Method Selection (Flutterwave or Manual Transfer)
+ * 3a. Flutterwave Inline Popup → Auto-verify → Success
+ * 3b. Manual Transfer Details → Submit → Pending Verification
+ * 4. Success / Failed
  */
 export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, selectedDate }) {
     const router = useRouter()
     const dispatch = useDispatch()
     const { user } = useSelector(state => state.auth)
 
-    const [step, setStep] = useState('SUMMARY') // SUMMARY | PAYMENT_DETAILS | PROCESSING | SUCCESS | FAILED
+    const [step, setStep] = useState('SUMMARY')
+    // SUMMARY | PAYMENT_METHOD | PAYMENT_DETAILS | PROCESSING | SUCCESS | FAILED
     const [isLoading, setIsLoading] = useState(false)
     const [orderResult, setOrderResult] = useState(null)
     const [senderName, setSenderName] = useState('')
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('FLUTTERWAVE')
+    const [flwScriptLoaded, setFlwScriptLoaded] = useState(false)
+
+    // Load Flutterwave inline script
+    useEffect(() => {
+        if (typeof window === 'undefined') return
+        if (document.getElementById('flutterwave-inline-script')) {
+            setFlwScriptLoaded(true)
+            return
+        }
+        const script = document.createElement('script')
+        script.id = 'flutterwave-inline-script'
+        script.src = 'https://checkout.flutterwave.com/v3.js'
+        script.async = true
+        script.onload = () => setFlwScriptLoaded(true)
+        script.onerror = () => console.error('[Flutterwave] Failed to load inline script')
+        document.head.appendChild(script)
+    }, [])
 
     if (!isOpen) return null
 
@@ -36,11 +54,130 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     const platformFee = subtotal * 0.05
     const totalAmount = subtotal + platformFee
 
-    const handlePayNow = () => {
-        setStep('PAYMENT_DETAILS')
+    const handleSelectPaymentMethod = () => {
+        setStep('PAYMENT_METHOD')
     }
 
-    const handleSubmitPayment = async () => {
+    const handleFlutterwavePayment = async () => {
+        setIsLoading(true)
+        setStep('PROCESSING')
+
+        try {
+            // 1. Create order with FLUTTERWAVE method
+            const result = await createOrder({
+                buyerId: user?.id,
+                sellerId: product.sellerId || product.userId || product.store?.userId,
+                productId: product.id,
+                quantity,
+                subtotal,
+                buyerFee: platformFee,
+                totalAmount,
+                collectionDate: selectedDate,
+                paymentMethod: 'FLUTTERWAVE'
+            })
+
+            if (!result.success) {
+                toast.error(result.error || "Failed to create order")
+                setStep('FAILED')
+                setIsLoading(false)
+                return
+            }
+
+            const order = result.data || result.order
+            const txRef = order.paymentReference
+
+            if (!txRef) {
+                toast.error("Payment reference missing")
+                setStep('FAILED')
+                setIsLoading(false)
+                return
+            }
+
+            // 2. Launch Flutterwave inline popup
+            if (!window.FlutterwaveCheckout) {
+                toast.error("Payment gateway is loading. Please try again.")
+                setStep('PAYMENT_METHOD')
+                setIsLoading(false)
+                return
+            }
+
+            setIsLoading(false) // Popup handles its own loading
+
+            const flwModal = window.FlutterwaveCheckout({
+                public_key: process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY,
+                tx_ref: txRef,
+                amount: totalAmount,
+                currency: 'NGN',
+                payment_options: 'card,banktransfer,ussd',
+                customer: {
+                    email: user?.email || 'buyer@gocycle.ng',
+                    phone_number: user?.phone || '',
+                    name: user?.name || 'GoCycle Buyer'
+                },
+                customizations: {
+                    title: 'GoCycle Battery Purchase',
+                    description: `Payment for ${product?.name || 'Battery'}`,
+                    logo: 'https://gocycle.ng/favicon.ico'
+                },
+                callback: async (response) => {
+                    // Payment completed — verify on server
+                    setStep('PROCESSING')
+                    setIsLoading(true)
+
+                    try {
+                        const verifyRes = await fetch('/api/flutterwave/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                transaction_id: response.transaction_id,
+                                tx_ref: txRef
+                            })
+                        })
+
+                        const verifyData = await verifyRes.json()
+
+                        if (verifyData.success) {
+                            setOrderResult({
+                                ...order,
+                                ...verifyData.order,
+                                collectionToken: order.collectionToken || verifyData.order?.collectionToken,
+                                paymentMethod: 'FLUTTERWAVE'
+                            })
+                            
+                            // Close the Flutterwave popup automatically
+                            if (flwModal && typeof flwModal.close === 'function') {
+                                flwModal.close()
+                            }
+                            
+                            setStep('SUCCESS')
+                        } else {
+                            toast.error(verifyData.message || "Payment verification failed")
+                            setStep('FAILED')
+                        }
+                    } catch (err) {
+                        console.error('[Flutterwave] Verify error:', err)
+                        toast.error("Verification failed. Contact support if debited.")
+                        setStep('FAILED')
+                    }
+
+                    setIsLoading(false)
+                },
+                onclose: () => {
+                    // User closed the Flutterwave popup without completing
+                    if (step === 'PROCESSING' || step === 'SUCCESS') return // Already finished
+                    setStep('PAYMENT_METHOD')
+                }
+            })
+
+        } catch (error) {
+            console.error('[Checkout] Flutterwave error:', error)
+            toast.error("Payment initialization failed")
+            setStep('FAILED')
+            setIsLoading(false)
+        }
+    }
+
+    const handleSubmitManualTransfer = async () => {
         if (!senderName.trim()) {
             toast.error("Please enter the sender's account name")
             return
@@ -50,7 +187,6 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
         setStep('PROCESSING')
 
         try {
-            // Create order with manual transfer details
             const result = await createOrder({
                 buyerId: user?.id,
                 sellerId: product.sellerId || product.userId || product.store?.userId,
@@ -65,9 +201,11 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
             })
 
             if (result.success) {
+                const order = result.data || result.order
                 setOrderResult({
-                    ...result.order,
-                    collectionToken: result.collectionToken
+                    ...order,
+                    collectionToken: order.collectionToken,
+                    paymentMethod: 'MANUAL_TRANSFER'
                 })
                 setStep('SUCCESS')
             } else {
@@ -89,6 +227,8 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
         onClose()
         setStep('SUMMARY')
         setOrderResult(null)
+        setSenderName('')
+        setSelectedPaymentMethod('FLUTTERWAVE')
     }
 
     const formatDate = (dateStr) => {
@@ -116,16 +256,18 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                     <div className="flex items-center gap-2 text-emerald-400 mb-3 font-black uppercase tracking-[0.2em] text-[10px]">
                         <WalletIcon size={14} />
                         {step === 'SUMMARY' && 'Secure Checkout'}
+                        {step === 'PAYMENT_METHOD' && 'Choose Payment'}
                         {step === 'PAYMENT_DETAILS' && 'Make Payment'}
                         {step === 'PROCESSING' && 'Authenticating Transaction'}
-                        {step === 'SUCCESS' && 'Order Received'}
+                        {step === 'SUCCESS' && (orderResult?.paymentMethod === 'FLUTTERWAVE' ? 'Payment Confirmed' : 'Order Received')}
                         {step === 'FAILED' && 'Transaction Error'}
                     </div>
                     <h2 className="text-xl sm:text-3xl font-black tracking-tight">
                         {step === 'SUMMARY' && 'Confirm Order'}
+                        {step === 'PAYMENT_METHOD' && 'How Would You Like to Pay?'}
                         {step === 'PAYMENT_DETAILS' && 'Bank Transfer'}
                         {step === 'PROCESSING' && 'Processing...'}
-                        {step === 'SUCCESS' && 'Pending Verification'}
+                        {step === 'SUCCESS' && (orderResult?.paymentMethod === 'FLUTTERWAVE' ? 'Payment Successful!' : 'Pending Verification')}
                         {step === 'FAILED' && 'Payment Failed'}
                     </h2>
                 </div>
@@ -190,7 +332,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
 
                             {/* Pay Button */}
                             <Button
-                                onClick={handlePayNow}
+                                onClick={handleSelectPaymentMethod}
                                 className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
                             >
                                 <ShieldCheckIcon size={18} className="mr-2" />
@@ -203,7 +345,124 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                         </div>
                     )}
 
-                    {/* STEP 1.5: Payment Details */}
+                    {/* STEP 2: Payment Method Selection */}
+                    {step === 'PAYMENT_METHOD' && (
+                        <div className="space-y-6">
+                            <p className="text-xs text-slate-500 font-medium text-center">
+                                Select your preferred payment method for <span className="font-black text-slate-900">{currency}{totalAmount.toLocaleString()}</span>
+                            </p>
+
+                            {/* Flutterwave Option */}
+                            <button
+                                onClick={() => setSelectedPaymentMethod('FLUTTERWAVE')}
+                                className={`w-full p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] text-left transition-all duration-300 border-2 relative overflow-hidden group ${
+                                    selectedPaymentMethod === 'FLUTTERWAVE'
+                                        ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 shadow-xl shadow-emerald-500/10'
+                                        : 'border-slate-100 bg-white/80 hover:border-emerald-200'
+                                }`}
+                            >
+                                <div className="flex items-start gap-4 relative z-10">
+                                    <div className={`p-3 rounded-2xl transition-all ${
+                                        selectedPaymentMethod === 'FLUTTERWAVE'
+                                            ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
+                                            : 'bg-slate-100'
+                                    }`}>
+                                        <CreditCardIcon size={20} className={selectedPaymentMethod === 'FLUTTERWAVE' ? 'text-white' : 'text-slate-400'} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h3 className="font-black text-slate-900 text-sm">Pay with Flutterwave</h3>
+                                            <span className="bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">Instant</span>
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                            Card • Bank Transfer • USSD
+                                        </p>
+                                        <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                                            Pay instantly with your debit card, bank account, or USSD code. Payment is verified automatically.
+                                        </p>
+                                    </div>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
+                                        selectedPaymentMethod === 'FLUTTERWAVE'
+                                            ? 'border-emerald-500 bg-emerald-500'
+                                            : 'border-slate-300'
+                                    }`}>
+                                        {selectedPaymentMethod === 'FLUTTERWAVE' && (
+                                            <CheckCircleIcon size={12} className="text-white" />
+                                        )}
+                                    </div>
+                                </div>
+                                {selectedPaymentMethod === 'FLUTTERWAVE' && (
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl"></div>
+                                )}
+                            </button>
+
+                            {/* Manual Transfer Option */}
+                            <button
+                                onClick={() => setSelectedPaymentMethod('MANUAL_TRANSFER')}
+                                className={`w-full p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] text-left transition-all duration-300 border-2 relative overflow-hidden group ${
+                                    selectedPaymentMethod === 'MANUAL_TRANSFER'
+                                        ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-orange-50 shadow-xl shadow-amber-500/10'
+                                        : 'border-slate-100 bg-white/80 hover:border-amber-200'
+                                }`}
+                            >
+                                <div className="flex items-start gap-4 relative z-10">
+                                    <div className={`p-3 rounded-2xl transition-all ${
+                                        selectedPaymentMethod === 'MANUAL_TRANSFER'
+                                            ? 'bg-amber-500 shadow-lg shadow-amber-500/30'
+                                            : 'bg-slate-100'
+                                    }`}>
+                                        <BankIcon size={20} className={selectedPaymentMethod === 'MANUAL_TRANSFER' ? 'text-white' : 'text-slate-400'} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h3 className="font-black text-slate-900 text-sm">Manual Bank Transfer</h3>
+                                            <span className="bg-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">24-48hrs</span>
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                            Direct Bank Transfer • Admin Verified
+                                        </p>
+                                        <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                                            Transfer to our bank account. Payment is verified manually by our finance team within 24-48 hours.
+                                        </p>
+                                    </div>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
+                                        selectedPaymentMethod === 'MANUAL_TRANSFER'
+                                            ? 'border-amber-500 bg-amber-500'
+                                            : 'border-slate-300'
+                                    }`}>
+                                        {selectedPaymentMethod === 'MANUAL_TRANSFER' && (
+                                            <CheckCircleIcon size={12} className="text-white" />
+                                        )}
+                                    </div>
+                                </div>
+                            </button>
+
+                            {/* Continue Button */}
+                            <Button
+                                onClick={() => {
+                                    if (selectedPaymentMethod === 'FLUTTERWAVE') {
+                                        handleFlutterwavePayment()
+                                    } else {
+                                        setStep('PAYMENT_DETAILS')
+                                    }
+                                }}
+                                disabled={!flwScriptLoaded && selectedPaymentMethod === 'FLUTTERWAVE'}
+                                className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
+                            >
+                                <ZapIcon size={18} className="mr-2" />
+                                {selectedPaymentMethod === 'FLUTTERWAVE' ? 'Pay Now' : 'Continue to Transfer Details'}
+                            </Button>
+
+                            <button
+                                onClick={() => setStep('SUMMARY')}
+                                className="w-full text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-slate-600 transition-colors py-2"
+                            >
+                                ← Back to Order Summary
+                            </button>
+                        </div>
+                    )}
+
+                    {/* STEP 3: Bank Transfer Details (Manual only) */}
                     {step === 'PAYMENT_DETAILS' && (
                         <div className="space-y-6">
                             <div className="p-5 sm:p-8 bg-slate-900 rounded-3xl border border-slate-800 space-y-6 relative overflow-hidden text-white shadow-xl shadow-slate-900/20">
@@ -245,16 +504,23 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             </div>
 
                             <Button
-                                onClick={handleSubmitPayment}
+                                onClick={handleSubmitManualTransfer}
                                 loading={isLoading}
                                 className="w-full !py-4 sm:!py-5 !rounded-2xl shadow-2xl shadow-emerald-500/20 text-sm font-black tracking-widest uppercase mt-4"
                             >
                                 I Have Transferred The Funds
                             </Button>
+
+                            <button
+                                onClick={() => setStep('PAYMENT_METHOD')}
+                                className="w-full text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-slate-600 transition-colors py-2"
+                            >
+                                ← Change Payment Method
+                            </button>
                         </div>
                     )}
 
-                    {/* STEP 2: Processing */}
+                    {/* STEP 4: Processing */}
                     {step === 'PROCESSING' && (
                         <div className="py-16 text-center space-y-8 animate-in fade-in zoom-in-95">
                             <div className="relative inline-block">
@@ -265,60 +531,101 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             </div>
                             <div className="space-y-2">
                                 <h3 className="text-xl font-black text-slate-900 tracking-tight">Securing Your Transaction</h3>
-                                <p className="text-sm text-slate-400 font-medium max-w-[240px] mx-auto">Connecting to bank authentication servers...</p>
+                                <p className="text-sm text-slate-400 font-medium max-w-[240px] mx-auto">Connecting to payment gateway...</p>
                             </div>
                             <div className="flex flex-col items-center gap-3 text-[10px] font-black text-slate-300 uppercase tracking-widest">
                                 <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Validating order details</span>
                                 <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Secure gateway handshake</span>
-                                <span className="flex items-center gap-2 animate-pulse"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div> Minting collection token</span>
+                                <span className="flex items-center gap-2 animate-pulse"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div> Awaiting payment confirmation</span>
                             </div>
                         </div>
                     )}
 
-                    {/* STEP 3: Success */}
+                    {/* STEP 5: Success */}
                     {step === 'SUCCESS' && orderResult && (
                         <div className="py-10 text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
-                            <div className="w-24 h-24 bg-amber-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/20 rotate-6">
-                                <WalletIcon className="text-white" size={48} />
-                            </div>
+                            {orderResult.paymentMethod === 'FLUTTERWAVE' ? (
+                                <>
+                                    {/* Flutterwave Success — Instant Confirmation */}
+                                    <div className="w-24 h-24 bg-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/30 rotate-6">
+                                        <CheckCircleIcon className="text-white" size={48} />
+                                    </div>
 
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Verification Pending</h3>
-                                <p className="text-sm text-slate-400 font-medium">We have received your order details.</p>
-                            </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Payment Confirmed!</h3>
+                                        <p className="text-sm text-slate-400 font-medium">Your order has been paid and confirmed.</p>
+                                    </div>
 
-                            {/* Info banner */}
-                            <div className="bg-amber-50 border border-amber-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
-                                <div className="p-2.5 bg-amber-500 rounded-xl shrink-0">
-                                    <AlertCircleIcon size={16} className="text-white" />
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Admin Verification Required</p>
-                                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                        Your payment from <span className="font-bold text-amber-600">{orderResult.paymentSenderName || senderName}</span> is currently being verified by our finance team. You will be notified by email once approved, and your order will proceed.
-                                    </p>
-                                </div>
-                            </div>
+                                    {/* Collection Token */}
+                                    {orderResult.collectionToken && (
+                                        <div className="bg-emerald-50 border border-emerald-100 rounded-[2rem] p-6 space-y-3">
+                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Collection Token</p>
+                                            <p className="text-4xl font-mono font-black text-emerald-700 tracking-[0.3em]">
+                                                {orderResult.collectionToken}
+                                            </p>
+                                            <p className="text-xs text-emerald-600/70 font-medium">
+                                                Show this token when collecting your battery.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
+                                        <div className="p-2.5 bg-emerald-500 rounded-xl shrink-0">
+                                            <ShieldCheckIcon size={16} className="text-white" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-black text-slate-900 uppercase tracking-widest">What's Next?</p>
+                                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                                The seller has been notified. Collect your battery on the scheduled pickup date using the token above. A confirmation email has been sent.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    {/* Manual Transfer Success — Pending Verification */}
+                                    <div className="w-24 h-24 bg-amber-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/20 rotate-6">
+                                        <WalletIcon className="text-white" size={48} />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Verification Pending</h3>
+                                        <p className="text-sm text-slate-400 font-medium">We have received your order details.</p>
+                                    </div>
+
+                                    <div className="bg-amber-50 border border-amber-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
+                                        <div className="p-2.5 bg-amber-500 rounded-xl shrink-0">
+                                            <AlertCircleIcon size={16} className="text-white" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Admin Verification Required</p>
+                                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                                Your payment from <span className="font-bold text-amber-600">{orderResult.paymentSenderName || senderName}</span> is currently being verified by our finance team. You will be notified by email once approved, and your order will proceed.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
                             <div className="grid grid-cols-1 gap-3">
                                 <Button onClick={handleClose} className="w-full !py-5 !rounded-2xl shadow-none text-xs font-black uppercase tracking-widest">
                                     Go to My Orders
                                 </Button>
                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                                    <ShieldCheckIcon size={12} /> Ref: {orderResult?.id?.slice(0, 12) || 'N/A'}
+                                    <ShieldCheckIcon size={12} /> Ref: {orderResult?.id?.slice(0, 12) || orderResult?.transactionId || 'N/A'}
                                 </p>
                             </div>
                         </div>
                     )}
 
-                    {/* STEP 4: Failed */}
+                    {/* STEP 6: Failed */}
                     {step === 'FAILED' && (
                         <div className="py-16 text-center space-y-8 animate-in fade-in zoom-in-95">
-                            <div className="w-24 h-24 bg-red-50 rounded-[2.5rem] flex items-center justify-center mx-auto rotate-12 bg-red-50">
+                            <div className="w-24 h-24 bg-red-50 rounded-[2.5rem] flex items-center justify-center mx-auto rotate-12">
                                 <AlertCircleIcon className="text-red-500" size={48} />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Payment Declined</h3>
+                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Payment Failed</h3>
                                 <p className="text-sm text-slate-400 font-medium max-w-[260px] mx-auto">
                                     We couldn't process this transaction. Please check your balance or try again.
                                 </p>
@@ -331,7 +638,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                     Cancel Order
                                 </button>
                                 <Button
-                                    onClick={() => setStep('SUMMARY')}
+                                    onClick={() => setStep('PAYMENT_METHOD')}
                                     className="flex-1 !py-5 !rounded-2xl !bg-slate-900"
                                 >
                                     Try Again
