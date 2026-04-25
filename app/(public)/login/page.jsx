@@ -97,15 +97,6 @@ function LoginContent() {
         }
     }
 
-    const demoAccounts = [
-        { email: 'admin@gocycle.com', password: 'admin123', label: 'Admin' },
-        { email: 'adebayo@ecovolt.com', password: 'seller123', label: 'Seller' },
-        { email: 'buyer@gocycle.com', password: 'buyer123', label: 'Buyer' }
-    ]
-
-    const handleDemoLogin = (account) => {
-        setFormData({ identifier: account.email, password: account.password })
-    }
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
@@ -226,25 +217,6 @@ function LoginContent() {
                             </div>
                         </form>
                     )}
-
-                    <div className="mt-8 pt-6 border-t border-black/[0.04]">
-                        <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest text-center mb-4">Quick Access</p>
-                        <div className="flex flex-wrap gap-2 justify-center">
-                            {demoAccounts.map(account => (
-                                <button
-                                    key={account.email}
-                                    type="button"
-                                    onClick={() => handleDemoLogin(account)}
-                                    className={`text-[9px] px-4 py-2 rounded-xl font-bold uppercase tracking-widest transition-all ${formData.identifier === account.email
-                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                        : 'bg-slate-50 text-slate-500 border border-black/[0.06] hover:bg-slate-100 hover:text-slate-700'
-                                        }`}
-                                >
-                                    {account.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
 
                     <div className="mt-10 text-center space-y-4">
                         <div className="relative">
