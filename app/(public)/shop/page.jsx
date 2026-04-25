@@ -155,7 +155,7 @@ function ShopContent() {
                 ) : (
                     <>
                         {filteredProducts.length > 0 ? (
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-8 mb-32">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-8 mb-32">
                                 {filteredProducts.map((product) => (
                                     <ProductCard
                                         key={product.id}

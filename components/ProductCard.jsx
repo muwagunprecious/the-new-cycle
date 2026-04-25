@@ -33,15 +33,16 @@ const ProductCard = ({ product, onQuickBuy }) => {
             onClick={() => { router.push(`/product/${product.id}`) }}
             className='premium-card group cursor-pointer'
         >
-            <div className='relative h-64 overflow-hidden bg-slate-50 flex items-center justify-center p-8'>
-                <Image
-                    src={getImageUrl(product.images?.[0])}
-                    alt={product.name}
-                    width={300}
-                    height={300}
-                    className='object-contain w-full h-full group-hover:scale-110 transition-transform duration-700'
-                    onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
-                />
+            <div className='relative h-48 sm:h-64 overflow-hidden bg-slate-50 flex items-center justify-center p-4 sm:p-8'>
+                <div className='w-full h-full relative'>
+                    <Image
+                        src={getImageUrl(product.images?.[0])}
+                        alt={product.name}
+                        fill
+                        className='object-contain group-hover:scale-110 transition-transform duration-700'
+                        onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
+                    />
+                </div>
 
                 {/* Condition Badge */}
                 <div className="absolute top-4 left-4 z-10">
@@ -59,7 +60,7 @@ const ProductCard = ({ product, onQuickBuy }) => {
                 </div>
             </div>
 
-            <div className='p-6'>
+            <div className='p-4 sm:p-6'>
                 <div className="flex items-center gap-2 mb-2">
                     <span className="bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-emerald-100">
                         {product.batteryType || 'BATTERY'}
@@ -71,13 +72,13 @@ const ProductCard = ({ product, onQuickBuy }) => {
                     )}
                 </div>
 
-                <h3 className='text-base font-bold text-slate-900 line-clamp-1 group-hover:text-emerald-600 transition-colors'>{product.name}</h3>
-                <p className='text-xs text-slate-400 mt-1 font-medium'>Available: {product.unitsAvailable || 1} units</p>
+                <h3 className='text-sm sm:text-base font-bold text-slate-900 line-clamp-1 group-hover:text-emerald-600 transition-colors'>{product.name}</h3>
+                <p className='text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 font-medium'>Available: {product.unitsAvailable || 1} units</p>
 
-                <div className='flex items-center justify-between mt-5 pt-4 border-t border-slate-50'>
-                    <div className="flex flex-col">
-                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Price</span>
-                        <span className='text-xl font-black text-slate-900'>{currency}{(product.price || 0).toLocaleString()}</span>
+                <div className='flex flex-row items-center justify-between mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-50 gap-2'>
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-[7px] sm:text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Price</span>
+                        <span className='text-sm sm:text-xl font-black text-slate-900 truncate'>{currency}{(product.price || 0).toLocaleString()}</span>
                     </div>
                     <button
                         onClick={(e) => {
@@ -88,10 +89,10 @@ const ProductCard = ({ product, onQuickBuy }) => {
                                 router.push(`/product/${product.id}`);
                             }
                         }}
-                        className="h-10 px-4 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all flex items-center gap-2"
+                        className="h-8 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-slate-900 text-white text-[8px] sm:text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all flex items-center gap-1 sm:gap-2 shrink-0"
                     >
-                        Buy Now
-                        <ChevronRightIcon size={14} />
+                        Buy <span className='hidden sm:inline'>Now</span>
+                        <ChevronRightIcon size={12} className='sm:w-3.5 sm:h-3.5' />
                     </button>
                 </div>
             </div>
