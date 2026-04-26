@@ -103,71 +103,91 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
 
             setIsLoading(false) // Popup handles its own loading
 
-            const flwModal = window.FlutterwaveCheckout({
-                public_key: process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY,
-                tx_ref: txRef,
-                amount: totalAmount,
-                currency: 'NGN',
-                payment_options: 'card,banktransfer,ussd',
-                customer: {
-                    email: user?.email || 'buyer@gocycle.ng',
-                    phone_number: user?.phone || '',
-                    name: user?.name || 'GoCycle Buyer'
-                },
-                customizations: {
-                    title: 'GoCycle Battery Purchase',
-                    description: `Payment for ${product?.name || 'Battery'}`,
-                    logo: 'https://gocycle.ng/favicon.ico'
-                },
-                callback: async (response) => {
-                    // Payment completed — verify on server
-                    setStep('PROCESSING')
-                    setIsLoading(true)
+            try {
+                // Diagnostic check for Live/Vercel
+                if (typeof window.FlutterwaveCheckout !== 'function') {
+                    console.error('[Flutterwave] SDK not found on window object')
+                    throw new Error("Payment gateway is taking too long to load. Please refresh.")
+                }
 
-                    try {
-                        const verifyRes = await fetch('/api/flutterwave/verify', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                transaction_id: response.transaction_id,
-                                tx_ref: txRef
+                const publicKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY
+                if (!publicKey || publicKey === 'undefined') {
+                    console.error('[Flutterwave] NEXT_PUBLIC_FLW_PUBLIC_KEY is missing or undefined.')
+                    throw new Error("Payment setup is incomplete. Admin needs to check Vercel environment variables.")
+                }
+
+                console.log('[Flutterwave] Launching with Key:', publicKey.substring(0, 15) + '...')
+
+                const flwModal = window.FlutterwaveCheckout({
+                    public_key: publicKey,
+                    tx_ref: txRef,
+                    amount: totalAmount,
+                    currency: 'NGN',
+                    payment_options: 'card,banktransfer,ussd',
+                    customer: {
+                        email: user?.email || 'buyer@gocycle.ng',
+                        phone_number: user?.phone || '',
+                        name: user?.name || 'GoCycle Buyer'
+                    },
+                    customizations: {
+                        title: 'GoCycle Battery Purchase',
+                        description: `Payment for ${product?.name || 'Battery'}`,
+                        logo: 'https://gocycle.ng/favicon.ico'
+                    },
+                    callback: async (response) => {
+                        console.log('[Flutterwave] Callback received:', response)
+                        setStep('PROCESSING')
+                        setIsLoading(true)
+
+                        try {
+                            const verifyRes = await fetch('/api/flutterwave/verify', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    transaction_id: response.transaction_id,
+                                    tx_ref: txRef
+                                })
                             })
-                        })
 
-                        const verifyData = await verifyRes.json()
+                            const verifyData = await verifyRes.json()
 
-                        if (verifyData.success) {
-                            setOrderResult({
-                                ...order,
-                                ...verifyData.order,
-                                collectionToken: order.collectionToken || verifyData.order?.collectionToken,
-                                paymentMethod: 'FLUTTERWAVE'
-                            })
-                            
-                            // Close the Flutterwave popup automatically
-                            if (flwModal && typeof flwModal.close === 'function') {
-                                flwModal.close()
+                            if (verifyData.success) {
+                                setOrderResult({
+                                    ...order,
+                                    ...verifyData.order,
+                                    collectionToken: order.collectionToken || verifyData.order?.collectionToken,
+                                    paymentMethod: 'FLUTTERWAVE'
+                                })
+                                
+                                if (flwModal && typeof flwModal.close === 'function') {
+                                    flwModal.close()
+                                }
+                                
+                                setStep('SUCCESS')
+                            } else {
+                                toast.error(verifyData.message || "Payment verification failed")
+                                setStep('FAILED')
                             }
-                            
-                            setStep('SUCCESS')
-                        } else {
-                            toast.error(verifyData.message || "Payment verification failed")
+                        } catch (err) {
+                            console.error('[Flutterwave] Verify error:', err)
+                            toast.error("Verification failed. Contact support if debited.")
                             setStep('FAILED')
                         }
-                    } catch (err) {
-                        console.error('[Flutterwave] Verify error:', err)
-                        toast.error("Verification failed. Contact support if debited.")
-                        setStep('FAILED')
-                    }
 
-                    setIsLoading(false)
-                },
-                onclose: () => {
-                    // User closed the Flutterwave popup without completing
-                    if (step === 'PROCESSING' || step === 'SUCCESS') return // Already finished
-                    setStep('PAYMENT_METHOD')
-                }
-            })
+                        setIsLoading(false)
+                    },
+                    onclose: () => {
+                        console.log('[Flutterwave] Popup closed by user')
+                        if (step === 'PROCESSING' || step === 'SUCCESS') return 
+                        setStep('PAYMENT_METHOD')
+                    }
+                })
+            } catch (err) {
+                console.error('[Flutterwave] Launcher Error:', err.message)
+                toast.error(err.message)
+                setStep('PAYMENT_METHOD')
+                setIsLoading(false)
+            }
 
         } catch (error) {
             console.error('[Checkout] Flutterwave error:', error)
