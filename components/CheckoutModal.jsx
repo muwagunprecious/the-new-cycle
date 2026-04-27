@@ -576,27 +576,60 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                         <p className="text-sm text-slate-400 font-medium">Your order has been paid and confirmed.</p>
                                     </div>
 
-                                    {/* Collection Token */}
-                                    {orderResult.collectionToken && (
-                                        <div className="bg-emerald-50 border border-emerald-100 rounded-[2rem] p-6 space-y-3">
-                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Collection Token</p>
-                                            <p className="text-4xl font-mono font-black text-emerald-700 tracking-[0.3em]">
-                                                {orderResult.collectionToken}
-                                            </p>
-                                            <p className="text-xs text-emerald-600/70 font-medium">
-                                                Show this token when collecting your battery.
-                                            </p>
+                                    {/* E-Receipt */}
+                                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2.5rem] p-8 space-y-5 text-left relative overflow-hidden shadow-inner">
+                                        <div className="absolute -top-6 -right-6 p-4 opacity-[0.03] text-slate-900">
+                                            <ShieldCheckIcon size={160} />
                                         </div>
-                                    )}
+                                        <div className="flex justify-between items-center pb-4 border-b border-slate-200/60">
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Electronic Receipt</p>
+                                                <h4 className="text-sm font-black text-slate-900">Go-Cycle Marketplace</h4>
+                                            </div>
+                                            <span className="text-[9px] font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full uppercase tracking-widest">
+                                                Paid
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="space-y-3.5">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">Transaction Ref</span>
+                                                <span className="text-[11px] font-mono font-black text-slate-900">{orderResult?.paymentReference || orderResult?.id?.slice(0, 12)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">Amount Paid</span>
+                                                <span className="text-[11px] font-black text-slate-900">₦{totalAmount.toLocaleString()}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">Payment Method</span>
+                                                <span className="text-[11px] font-black text-slate-900 flex items-center gap-1.5">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                                    FLW / {orderResult.paymentMethod || 'Instant'}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">Date & Time</span>
+                                                <span className="text-[11px] font-black text-slate-900 uppercase">
+                                                    {new Date().toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                </span>
+                                            </div>
+                                        </div>
 
-                                    <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
-                                        <div className="p-2.5 bg-emerald-500 rounded-xl shrink-0">
-                                            <ShieldCheckIcon size={16} className="text-white" />
+                                        <div className="pt-4 border-t border-slate-200/60 flex items-center justify-center gap-2">
+                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
+                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
+                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white border border-slate-100 rounded-[2rem] p-6 text-left flex items-start gap-4 shadow-sm">
+                                        <div className="p-2.5 bg-emerald-500 rounded-xl shrink-0 shadow-lg shadow-emerald-500/20">
+                                            <ZapIcon size={16} className="text-white" />
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-xs font-black text-slate-900 uppercase tracking-widest">What's Next?</p>
-                                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                                The seller has been notified. Collect your battery on the scheduled pickup date using the token above. A confirmation email has been sent.
+                                            <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Order Processing</p>
+                                            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                                                The seller has been notified of your payment. Please proceed to <span className="font-bold text-slate-900">{orderResult?.store?.address || product?.pickupAddress || "the collection point"}</span> on the scheduled date. A detailed receipt has been sent to your email.
                                             </p>
                                         </div>
                                     </div>
