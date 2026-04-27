@@ -28,13 +28,16 @@ const ProductCard = ({ product, onQuickBuy }) => {
         return '/placeholder-battery.jpg'
     }
 
+    const isSold = product.status === 'sold' || product.inStock === false
+
     return (
         <div
-            onClick={() => { router.push(`/product/${product.id}`) }}
-            className='premium-card group cursor-pointer'
+            onClick={() => { if (!isSold) router.push(`/product/${product.id}`) }}
+            className={`premium-card group ${isSold ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
         >
+            {/* Same content as before, just fixing structure */}
             <div className='relative h-48 sm:h-64 overflow-hidden bg-slate-50 flex items-center justify-center p-4 sm:p-8'>
-                <div className='w-full h-full relative'>
+                <div className={`w-full h-full relative ${isSold ? 'grayscale italic' : ''}`}>
                     <Image
                         src={getImageUrl(product.images?.[0])}
                         alt={product.name}
@@ -45,10 +48,15 @@ const ProductCard = ({ product, onQuickBuy }) => {
                 </div>
 
                 {/* Condition Badge */}
-                <div className="absolute top-4 left-4 z-10">
+                <div className="absolute top-4 left-4 z-10 flex gap-2">
                     <span className="bg-slate-900/80 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-white/10">
                         {product.condition || 'SCRAP'}
                     </span>
+                    {isSold && (
+                        <span className="bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-red-400/50 shadow-lg shadow-red-500/20 animate-pulse">
+                            BOUGHT / SOLD
+                        </span>
+                    )}
                 </div>
 
                 {/* Seller LGA Overlay */}
@@ -65,34 +73,42 @@ const ProductCard = ({ product, onQuickBuy }) => {
                     <span className="bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-emerald-100">
                         {product.batteryType || 'BATTERY'}
                     </span>
-                    {product.verified && (
+                    {product.verified && !isSold && (
                         <div className="flex items-center gap-1 text-[8px] font-black text-blue-500 uppercase tracking-widest">
                             <ShieldCheckIcon size={10} /> Verified
                         </div>
                     )}
                 </div>
 
-                <h3 className='text-sm sm:text-base font-bold text-slate-900 line-clamp-1 group-hover:text-emerald-600 transition-colors'>{product.name}</h3>
-                <p className='text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 font-medium'>Available: {product.unitsAvailable || 1} units</p>
+                <h3 className={`text-sm sm:text-base font-bold text-slate-900 line-clamp-1 transition-colors ${isSold ? 'text-slate-400' : 'group-hover:text-emerald-600'}`}>{product.name}</h3>
+                <p className='text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 font-medium'>
+                    {isSold ? 'Status: Out of Market' : `Available: ${product.unitsAvailable || 1} units`}
+                </p>
 
                 <div className='flex flex-row items-center justify-between mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-50 gap-2'>
                     <div className="flex flex-col min-w-0">
                         <span className="text-[7px] sm:text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Price</span>
-                        <span className='text-sm sm:text-xl font-black text-slate-900 truncate'>{currency}{(product.price || 0).toLocaleString()}</span>
+                        <span className={`text-sm sm:text-xl font-black truncate ${isSold ? 'text-slate-300' : 'text-slate-900'}`}>{currency}{(product.price || 0).toLocaleString()}</span>
                     </div>
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
+                            if (isSold) return;
                             if (onQuickBuy) {
                                 onQuickBuy();
                             } else {
                                 router.push(`/product/${product.id}`);
                             }
                         }}
-                        className="h-8 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-slate-900 text-white text-[8px] sm:text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all flex items-center gap-1 sm:gap-2 shrink-0"
+                        disabled={isSold}
+                        className={`h-8 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 sm:gap-2 shrink-0 ${
+                            isSold 
+                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                            : 'bg-slate-900 text-white hover:bg-emerald-500 shadow-lg shadow-slate-900/10'
+                        }`}
                     >
-                        Buy <span className='hidden sm:inline'>Now</span>
-                        <ChevronRightIcon size={12} className='sm:w-3.5 sm:h-3.5' />
+                        {isSold ? 'Sold' : 'Buy Now'}
+                        {!isSold && <ChevronRightIcon size={12} className='sm:w-3.5 sm:h-3.5' />}
                     </button>
                 </div>
             </div>

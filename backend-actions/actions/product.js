@@ -199,6 +199,8 @@ const MOCK_PRODUCTS = [
         condition: "SCRAP",
         collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
         images: ["https://images.unsplash.com/photo-1620939511593-33bc917ad001?auto=format&fit=crop&q=80&w=800"],
+        status: "approved",
+        inStock: true,
         store: { name: "Adebayo's Eco-Store", address: "Ikeja, Lagos", isVerified: true, logo: "", status: "approved" }
     },
     {
@@ -214,6 +216,8 @@ const MOCK_PRODUCTS = [
         condition: "SCRAP",
         collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0], new Date(Date.now() + 172800000).toISOString().split('T')[0]],
         images: ["https://images.unsplash.com/photo-1617469767053-d3b508a0d182?auto=format&fit=crop&q=80&w=800"],
+        status: "approved",
+        inStock: true,
         store: { name: "Green Energy Hub", address: "Surulere, Lagos", isVerified: true, logo: "", status: "approved" }
     },
     {
@@ -229,6 +233,8 @@ const MOCK_PRODUCTS = [
         condition: "SCRAP",
         collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
         images: ["https://images.unsplash.com/photo-1548338065-25660684f69f?auto=format&fit=crop&q=80&w=800"],
+        status: "approved",
+        inStock: true,
         store: { name: "Ojo Battery Dealers", address: "Ojo, Lagos", isVerified: true, logo: "", status: "approved" }
     }
 ]

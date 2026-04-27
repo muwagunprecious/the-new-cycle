@@ -24,6 +24,14 @@ function ShopContent() {
     const [activeLga, setActiveLga] = useState('All')
     const [activeType, setActiveType] = useState('All')
     const [filteredProducts, setFilteredProducts] = useState(products)
+    const [localBoughtIds, setLocalBoughtIds] = useState([])
+
+    useEffect(() => {
+        try {
+            const bought = JSON.parse(localStorage.getItem('gocycle_bought_products') || '[]')
+            setLocalBoughtIds(bought)
+        } catch (e) {}
+    }, [])
 
     // Quick Buy State
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
@@ -84,13 +92,29 @@ function ShopContent() {
                 result = result.filter(p => p.batteryType === activeType || p.category === activeType)
             }
 
+            // 3.5 Availability Filter (Backend + Local Session)
+            result = result.filter(p => 
+                p.status !== 'sold' && 
+                p.inStock !== false && 
+                !localBoughtIds.includes(p.id)
+            )
+
+            // 4. Sort: Put sold/out-of-market items at the end
+            result.sort((a, b) => {
+                const aSold = a.status === 'sold' || a.inStock === false;
+                const bSold = b.status === 'sold' || b.inStock === false;
+                if (aSold && !bSold) return 1;
+                if (!aSold && bSold) return -1;
+                return 0;
+            });
+
             setFilteredProducts(result)
             setLoading(false)
         }
 
         fetchAndFilter()
 
-    }, [search, activeLga, activeType, dispatch]) // removed 'products' dependency to avoid infinite loop if we update it inside
+    }, [search, activeLga, activeType, dispatch, localBoughtIds]) // removed 'products' dependency to avoid infinite loop if we update it inside
 
     const handleLgaChange = (lga) => {
         setActiveLga(lga)

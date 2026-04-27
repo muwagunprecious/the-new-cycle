@@ -23,8 +23,21 @@ const LatestProducts = () => {
         fetchProducts()
     }, [])
 
+    const [localBoughtIds, setLocalBoughtIds] = useState([])
+
+    useEffect(() => {
+        try {
+            const bought = JSON.parse(localStorage.getItem('gocycle_bought_products') || '[]')
+            setLocalBoughtIds(bought)
+        } catch (e) {}
+    }, [products])
+
     const filteredProducts = useMemo(() => {
-        let list = [...products] // Already sorted by backend
+        let list = [...products].filter(p => 
+            p.status !== 'sold' && 
+            p.inStock !== false &&
+            !localBoughtIds.includes(p.id)
+        )
 
         if (selectedLGA !== 'All') {
             // Check pickupAddress or store address? Using product.pickupAddress as mostly relevant

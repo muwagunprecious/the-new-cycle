@@ -162,6 +162,15 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                 if (flwModal && typeof flwModal.close === 'function') {
                                     flwModal.close()
                                 }
+
+                                // Mark as bought locally (for instant UI update in demo mode)
+                                try {
+                                    const bought = JSON.parse(localStorage.getItem('gocycle_bought_products') || '[]')
+                                    if (!bought.includes(product.id)) {
+                                        bought.push(product.id)
+                                        localStorage.setItem('gocycle_bought_products', JSON.stringify(bought))
+                                    }
+                                } catch (e) {}
                                 
                                 setStep('SUCCESS')
                             } else {
