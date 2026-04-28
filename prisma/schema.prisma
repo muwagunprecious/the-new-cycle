@@ -10,45 +10,46 @@ datasource db {
 }
 
 model User {
-  id                String         @id
-  name              String
-  firstName         String?
-  lastName          String?
-  fullName          String?
-  email             String?        @unique
-  password          String?
-  image             String
-  role              Role           @default(USER)
-  cart              Json           @default("{}")
-  walletBalance     Float          @default(0)
-  phone             String         @unique
-  isEmailVerified   Boolean        @default(false)
-  isPhoneVerified   Boolean        @default(false)
-  bankName          String?
-  accountNumber     String?
-  accountName       String?
-  accountStatus     String         @default("pending")
-  status            String         @default("active")
-  ninDocument       String?
-  cacDocument       String?
-  businessName      String?
-  businessType      String?
+  id                 String         @id
+  name               String
+  firstName          String?
+  lastName           String?
+  fullName           String?
+  email              String?        @unique
+  password           String?
+  image              String
+  role               Role           @default(USER)
+  cart               Json           @default("{}")
+  walletBalance      Float          @default(0)
+  phone              String         @unique
+  isEmailVerified    Boolean        @default(false)
+  isPhoneVerified    Boolean        @default(false)
+  bankName           String?
+  accountNumber      String?
+  accountName        String?
+  accountStatus      String         @default("pending")
+  status             String         @default("active")
+  ninDocument        String?
+  cacDocument        String?
+  businessName       String?
+  businessType       String?
   isDirectorVerified Boolean        @default(false)
-  verificationNotes String?
-  verificationCode  String?
-  verifiedAt        DateTime?
-  identityToken     String?
-  businessToken     String?
-  gender            String?
-  state             String?        @default("Lagos")
-  lga               String?
-  Address           Address[]
-  notifications     Notification[]
-  buyerOrders       Order[]        @relation("BuyerRelation")
-  ratings           Rating[]
-  store             Store?
-  blogs             Blog[]
+  verificationNotes  String?
+  verificationCode   String?
+  verifiedAt         DateTime?
+  identityToken      String?
+  businessToken      String?
+  gender             String?
+  state              String?        @default("Lagos")
+  lga                String?
+  Address            Address[]
+  notifications      Notification[]
+  buyerOrders        Order[]        @relation("BuyerRelation")
+  ratings            Rating[]
+  store              Store?
+  blogs              Blog[]
 
+  @@index([role])
   @@map("users")
 }
 
@@ -77,6 +78,7 @@ model Rating {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId, orderId])
+  @@index([productId])
   @@map("Rating")
 }
 
@@ -94,6 +96,8 @@ model Address {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   Order     Order[]
+
+  @@index([userId])
 }
 
 model Coupon {
@@ -108,31 +112,31 @@ model Coupon {
 }
 
 model Store {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  name            String
-  description     String
-  username        String    @unique
-  address         String
-  status          String    @default("pending")
-  isActive        Boolean   @default(false)
-  logo            String
-  email           String
-  contact         String
-  bankName        String?
-  accountNumber   String?
-  accountName     String?
-  isVerified      Boolean   @default(false)
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  name               String
+  description        String
+  username           String    @unique
+  address            String
+  status             String    @default("pending")
+  isActive           Boolean   @default(false)
+  logo               String
+  email              String
+  contact            String
+  bankName           String?
+  accountNumber      String?
+  accountName        String?
+  isVerified         Boolean   @default(false)
   isDirectorVerified Boolean   @default(false)
-  nin             String?
-  cac             String?
-  walletBalance   Float     @default(0)
-  rejectionReason String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  Order           Order[]
-  Product         Product[]
-  user            User      @relation(fields: [userId], references: [id])
+  nin                String?
+  cac                String?
+  walletBalance      Float     @default(0)
+  rejectionReason    String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  Order              Order[]
+  Product            Product[]
+  user               User      @relation(fields: [userId], references: [id])
 
   @@map("Store")
 }
@@ -164,43 +168,51 @@ model Product {
   store               Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
   rating              Rating[]
 
+  @@index([storeId])
+  @@index([category])
+  @@index([status])
+  @@index([type])
   @@map("Product")
 }
 
 model Order {
-  id               String        @id
-  transactionId    String?       @unique
-  total            Float
-  status           OrderStatus   @default(ORDER_PLACED)
-  collectionStatus PickupStatus  @default(PENDING)
-  collectionToken  String?
-  collectionDate   String?
-  proposedDate     String?
-  proposedBy       String?
-  payoutStatus     String        @default("none")
-  userId           String
-  storeId          String
-  addressId        String?
-  isPaid           Boolean       @default(false)
-  paymentMethod    PaymentMethod
+  id                String        @id
+  transactionId     String?       @unique
+  total             Float
+  status            OrderStatus   @default(ORDER_PLACED)
+  collectionStatus  PickupStatus  @default(PENDING)
+  collectionToken   String?
+  collectionDate    String?
+  proposedDate      String?
+  proposedBy        String?
+  payoutStatus      String        @default("none")
+  userId            String
+  storeId           String
+  addressId         String?
+  isPaid            Boolean       @default(false)
+  paymentMethod     PaymentMethod
   paymentSenderName String?
-  paymentStatus    String        @default("pending")
-  paymentReference String?       // Flutterwave tx_ref
-  flutterwaveId    String?       // Flutterwave transaction_id
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  isCouponUsed     Boolean       @default(false)
-  coupon           Json          @default("{}")
-  buyerFee         Float         @default(0)
-  payoutAmount     Float         @default(0)
-  sellerFee        Float         @default(0)
-  subtotal         Float         @default(0)
-  address          Address?      @relation(fields: [addressId], references: [id])
-  store            Store         @relation(fields: [storeId], references: [id])
-  user             User          @relation("BuyerRelation", fields: [userId], references: [id])
-  orderItems       OrderItem[]
-}
+  paymentStatus     String        @default("pending")
+  paymentReference  String? // Flutterwave tx_ref
+  flutterwaveId     String? // Flutterwave transaction_id
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  isCouponUsed      Boolean       @default(false)
+  coupon            Json          @default("{}")
+  buyerFee          Float         @default(0)
+  payoutAmount      Float         @default(0)
+  sellerFee         Float         @default(0)
+  subtotal          Float         @default(0)
+  address           Address?      @relation(fields: [addressId], references: [id])
+  store             Store         @relation(fields: [storeId], references: [id])
+  user              User          @relation("BuyerRelation", fields: [userId], references: [id])
+  orderItems        OrderItem[]
 
+  @@index([userId])
+  @@index([storeId])
+  @@index([status])
+  @@index([createdAt])
+}
 
 model Notification {
   id        String   @id @default(cuid())
@@ -252,6 +264,7 @@ enum PickupStatus {
   RESCHEDULE_REQUESTED
   RESCHEDULED
 }
+
 model Setting {
   id        String   @id @default(cuid())
   key       String   @unique

@@ -63,11 +63,12 @@ export default async function BlogReadingPage({ params }) {
             {/* Headline Image if exists */}
             {blog.headlineImage && (
                 <div className="w-full max-w-[1000px] mx-auto px-6 -mt-8 relative z-10">
-                    <div className="aspect-video w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-100">
-                        <img 
+                    <div className="aspect-video w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-100 relative">
+                        <Image 
                             src={blog.headlineImage} 
                             alt={blog.title} 
-                            className="w-full h-full object-cover" 
+                            fill
+                            className="object-cover" 
                         />
                     </div>
                 </div>

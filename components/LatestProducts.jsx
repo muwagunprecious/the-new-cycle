@@ -4,24 +4,9 @@ import Title from './Title'
 import ProductCard from './ProductCard'
 import { lagosLGAs } from '@/assets/assets'
 import { MapPin as MapPinIcon, Filter as FilterIcon } from 'lucide-react'
-import { getAllProducts } from '@/backend-actions/actions/product'
-import Loading from './Loading'
-
-const LatestProducts = () => {
-    const [products, setProducts] = useState([])
-    const [loading, setLoading] = useState(true)
+const LatestProducts = ({ initialProducts = [] }) => {
+    const [products, setProducts] = useState(initialProducts)
     const [selectedLGA, setSelectedLGA] = useState('All')
-
-    useEffect(() => {
-        const fetchProducts = async () => {
-            const result = await getAllProducts()
-            if (result.success) {
-                setProducts(result.products)
-            }
-            setLoading(false)
-        }
-        fetchProducts()
-    }, [])
 
     const [localBoughtIds, setLocalBoughtIds] = useState([])
 
@@ -48,8 +33,6 @@ const LatestProducts = () => {
 
     const displayQuantity = 8
 
-    if (loading) return <div className="py-20"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#05DF72] mx-auto"></div></div>
-    
     return (
         <div className='px-6 py-10 max-w-7xl mx-auto'>
             <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-12 mb-12">

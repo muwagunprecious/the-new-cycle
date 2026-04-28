@@ -1,24 +1,13 @@
-'use client'
-
-import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Calendar as CalendarIcon, ArrowRight as ArrowRightIcon, FileText as FileTextIcon } from "lucide-react"
 import { getBlogs } from "@/backend-actions/actions/blog"
 
-export default function BlogListingPage() {
-    const [blogs, setBlogs] = useState([])
-    const [isLoading, setIsLoading] = useState(true)
+export const revalidate = 60 // Revalidate every 60 seconds
 
-    useEffect(() => {
-        const fetchBlogs = async () => {
-            const res = await getBlogs(1, 20)
-            if (res.success) {
-                setBlogs(res.blogs)
-            }
-            setIsLoading(false)
-        }
-        fetchBlogs()
-    }, [])
+export default async function BlogListingPage() {
+    const res = await getBlogs(1, 20)
+    const blogs = res.success ? res.blogs : []
 
     return (
         <div className="bg-slate-50 min-h-screen py-12">
@@ -32,13 +21,7 @@ export default function BlogListingPage() {
                     </p>
                 </div>
 
-                {isLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="animate-pulse bg-white rounded-3xl h-96 shadow-sm"></div>
-                        ))}
-                    </div>
-                ) : blogs.length === 0 ? (
+                {blogs.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-slate-100 max-w-3xl mx-auto">
                         <FileTextIcon size={48} className="mx-auto text-slate-200 mb-6" />
                         <h3 className="text-2xl font-bold text-slate-900">No blogs now</h3>
@@ -50,7 +33,7 @@ export default function BlogListingPage() {
                             <Link href={`/blog/${blog.slug}`} key={blog.id} className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-100 transition-all hover:-translate-y-1 flex flex-col">
                                 <div className="aspect-video w-full bg-slate-100 relative overflow-hidden">
                                     {blog.headlineImage ? (
-                                        <img src={blog.headlineImage} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        <Image src={blog.headlineImage} alt={blog.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center bg-emerald-50 text-[#05DF72]/20">
                                             <FileTextIcon size={64} />
