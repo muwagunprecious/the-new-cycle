@@ -6,11 +6,16 @@ import prisma from "@/backend-actions/lib/prisma"
 
 // Generate static params for existing blogs (optional optimization)
 export async function generateStaticParams() {
-    const blogs = await prisma.blog.findMany({
-        where: { status: 'published' },
-        select: { slug: true }
-    })
-    return blogs.map(blog => ({ slug: blog.slug }))
+    try {
+        const blogs = await prisma.blog.findMany({
+            where: { status: 'published' },
+            select: { slug: true }
+        })
+        return blogs.map(blog => ({ slug: blog.slug }))
+    } catch (error) {
+        console.warn("Failed to fetch blogs during build. The Blog table might not exist yet:", error.message)
+        return []
+    }
 }
 
 // Ensure the page gets dynamically regenerated or is dynamic
