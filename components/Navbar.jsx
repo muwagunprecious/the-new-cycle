@@ -70,7 +70,7 @@ const Navbar = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={15} />
                         <input
                             type="text"
-                            placeholder="Find eco-batteries..."
+                            placeholder="Search for scrapped batteries..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full bg-slate-50 border border-black/[0.05] rounded-xl py-2.5 pl-11 pr-4 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500/40 transition-all"

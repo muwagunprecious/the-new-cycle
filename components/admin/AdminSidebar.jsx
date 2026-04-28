@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon, DollarSign as DollarSignIcon } from "lucide-react"
+import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon, DollarSign as DollarSignIcon, FileText as FileTextIcon } from "lucide-react"
 import { useDispatch } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
 import { logout } from "@/lib/features/auth/authSlice"
@@ -25,6 +25,7 @@ const AdminSidebar = () => {
         { name: 'Orders', href: '/admin/orders', icon: ShieldCheckIcon },
         { name: 'Notifications', href: '/admin/notifications', icon: BellIcon },
         { name: 'Pricing Formula', href: '/admin/settings?tab=pricing', icon: DollarSignIcon },
+        { name: 'Blogs & Articles', href: '/admin/blogs', icon: FileTextIcon },
         { name: 'System Settings', href: '/admin/settings', icon: SettingsIcon },
     ]
 

@@ -35,7 +35,7 @@ const Footer = () => {
         { text: "Trade Process", path: '/trade-process' },
         { text: "Terms & Conditions", path: '/terms' },
         { text: "Sell4meByGocycle", path: '/sell4me' },
-        { text: "Blog", path: '#' },
+        { text: "Blog", path: '/blog' },
         { text: "FAQ", path: '/faq' },
     ];
 
