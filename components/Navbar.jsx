@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/lib/features/auth/authSlice";
-import { showLoader } from "@/lib/features/ui/uiSlice";
+import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice";
 
 const Navbar = () => {
 
@@ -29,8 +29,11 @@ const Navbar = () => {
 
     const handleLogout = () => {
         dispatch(showLoader("Signing you out..."))
-        dispatch(logout())
-        router.push('/')
+        setTimeout(() => {
+            dispatch(logout())
+            dispatch(hideLoader())
+            router.push('/')
+        }, 500)
     }
 
     const getDashboardLink = () => {
