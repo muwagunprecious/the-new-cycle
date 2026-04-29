@@ -1,6 +1,6 @@
 'use server'
 
-import { ApiResponse } from "@/backend-actions/lib/api-response"
+import { ApiResponse, handleDbError } from "@/backend-actions/lib/api-response"
 import { generateId, logger, normalizePhone } from "@/backend-actions/lib/api-utils"
 import { sendEmail, welcomeEmail } from "@/backend-actions/lib/email"
 import prisma from "@/backend-actions/lib/prisma"
@@ -165,14 +165,7 @@ export async function registerUser(userData) {
         return ApiResponse.success({ user, requiresVerification: true }, "Registration successful")
     } catch (error) {
         logger.error("Register Error", error)
-        if (error.code === 'P2002') {
-            const target = error.meta?.target || []
-            if (target.includes('email')) return ApiResponse.error("A user with this email already exists.", 409)
-            if (target.includes('phone')) return ApiResponse.error("This phone number is already registered.", 409)
-            if (target.includes('username')) return ApiResponse.error("Business name is already taken.", 409)
-            return ApiResponse.error("An account with these details already exists.", 409)
-        }
-        return ApiResponse.error(`Registration failed: ${error.message}`)
+        return handleDbError(error, "registerUser")
     }
 }
 
@@ -236,11 +229,7 @@ export async function checkPhoneAvailability(phone) {
         return ApiResponse.success({ available: true }, "Verification code sent to your phone.")
     } catch (error) {
         logger.error("Check Phone Error", error)
-        let message = error.message || "Database connection failure."
-        if (message.includes("firstName")) {
-            message = "Database Error: The 'firstName' column is missing. Please run the Remote Repair Tool."
-        }
-        return ApiResponse.error("Phone verification failed: " + message)
+        return handleDbError(error, "checkPhoneAvailability")
     }
 }
 
@@ -307,7 +296,7 @@ export async function loginUser(identifier, password) {
         return ApiResponse.success({ user: userWithoutPassword }, "Login successful")
     } catch (error) {
         logger.error("Login Error", error)
-        return ApiResponse.error(`Login failed: ${error.message}`)
+        return handleDbError(error, "loginUser")
     }
 }
 

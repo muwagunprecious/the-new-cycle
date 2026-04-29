@@ -1,6 +1,6 @@
 'use server'
 
-import { ApiResponse } from "@/backend-actions/lib/api-response"
+import { ApiResponse, handleDbError } from "@/backend-actions/lib/api-response"
 import { mapProductToFrontend, logger } from "@/backend-actions/lib/api-utils"
 import { revalidatePath } from "next/cache"
 import prisma from "@/backend-actions/lib/prisma"
@@ -81,7 +81,7 @@ export async function createProduct(data, userId) {
         return ApiResponse.success(product, "Product created successfully")
     } catch (error) {
         logger.error("Create Product Error", error)
-        return ApiResponse.error(`Publication failed: ${error.message}`)
+        return handleDbError(error, "createProduct")
     }
 }
 
