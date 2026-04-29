@@ -52,8 +52,16 @@ export async function createBlog(data, userId) {
 
         return ApiResponse.success(blog, "Blog published successfully")
     } catch (error) {
-        logger.error("Create Blog Error", { message: error.message, stack: error.stack })
-        return ApiResponse.error(`Server Error: ${error.message}`)
+        // SYSTEM LOG: Explicit error tracking for production debugging
+        console.error("[BLOG ACTION ERROR]", {
+            message: error.message,
+            code: error.code,
+            stack: error.stack,
+            model: "Blog",
+            timestamp: new Date().toISOString()
+        });
+        
+        return ApiResponse.error(`Server Error: ${error.message}. (Ref: ${Date.now()})`)
     }
 }
 
