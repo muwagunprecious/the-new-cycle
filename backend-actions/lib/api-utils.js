@@ -73,7 +73,7 @@ export const normalizePhone = (phone) => {
  * Clean logger for production
  */
 export const logger = {
-    info: (msg, data = {}) => console.log(`[INFO] ${msg}`, JSON.stringify(data)),
-    error: (msg, err) => console.error(`[ERROR] ${msg}`, err?.message || err || ""),
-    warn: (msg, data = {}) => console.warn(`[WARN] ${msg}`, data),
+    info: (msg, data = {}) => console.log(`[${new Date().toISOString()}] [INFO] ${msg}`, data ? JSON.stringify(data) : ""),
+    error: (msg, err) => console.error(`[${new Date().toISOString()}] [ERROR] ${msg}`, err?.stack || err?.message || err || ""),
+    warn: (msg, data = {}) => console.warn(`[${new Date().toISOString()}] [WARN] ${msg}`, data),
 };

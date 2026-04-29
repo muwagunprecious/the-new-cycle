@@ -6,8 +6,11 @@ import { sendEmail, welcomeEmail } from "@/backend-actions/lib/email"
 import prisma from "@/backend-actions/lib/prisma"
 import bcrypt from "bcryptjs"
 import { sendOTP } from "../lib/sms"
+import { rateLimit } from "../lib/rate-limit"
+import { headers } from "next/headers"
 
 export async function registerUser(userData) {
+    logger.info("Registering new user", { email: userData.email, role: userData.role })
     try {
         let { firstName, lastName, name, email, password, role, whatsapp, businessName, gender, state, lga, address } = userData
 
@@ -174,7 +177,7 @@ export async function registerUser(userData) {
 }
 
 export async function checkPhoneAvailability(phone) {
-    console.log(`[STAGE 1] Checking phone availability for: ${phone}`);
+    logger.info(`Checking phone availability`, { phone })
     try {
         const normalizedPhone = normalizePhone(phone)
         console.log(`[STAGE 2] Normalized phone: ${normalizedPhone}`);
@@ -269,41 +272,12 @@ export async function verifyPhoneStandalone(phone, code) {
 
 export async function loginUser(identifier, password) {
     try {
+        const headerList = await headers()
+        const ip = headerList.get('x-forwarded-for') || 'unknown'
+        await rateLimit(`login_${ip}`, 5) // Limit login attempts by IP
+
         const safeId = identifier?.trim().toLowerCase()
-        
-        if (safeId === 'admin@gocycle.com' && password === 'admin123') {
-            return ApiResponse.success({
-                user: { id: "admin_demo", name: "Admin Superuser", email: "admin@gocycle.com", role: "ADMIN", status: "active" }
-            }, "Offline Demo Login successful")
-        }
-        if (safeId === 'adebayo@ecovolt.com' && password === 'seller123') {
-            return ApiResponse.success({
-                user: { 
-                    id: "seller_demo", 
-                    name: "Adebayo Kola", 
-                    email: "adebayo@ecovolt.com", 
-                    role: "SELLER", 
-                    status: "active",
-                    isEmailVerified: true,
-                    isPhoneVerified: true,
-                    businessName: "Adebayo Kola's Store"
-                }
-            }, "Offline Demo Login successful")
-        }
-        if (safeId === 'buyer@gocycle.com' && password === 'buyer123') {
-            return ApiResponse.success({
-                user: { 
-                    id: "buyer_demo", 
-                    name: "Demo Buyer", 
-                    email: "buyer@gocycle.com", 
-                    role: "USER", 
-                    status: "active",
-                    isEmailVerified: true,
-                    isPhoneVerified: true,
-                    accountStatus: "approved"
-                }
-            }, "Offline Demo Login successful")
-        }
+        logger.info("Login attempt", { identifier: safeId, ip })
 
         const normalizedIdentifier = identifier.includes('@') ? identifier : normalizePhone(identifier)
         const user = await prisma.user.findFirst({
@@ -414,22 +388,9 @@ export async function createStoreApplication(storeData, userId) {
 }
 
 export async function getUserStoreStatus(userId) {
+    logger.info("Fetching store status", { userId })
     try {
         if (!userId) return ApiResponse.unauthorized()
-
-        // Handle Demo Seller ID specially to bypass DB check
-        if (userId === "seller_demo") {
-            return ApiResponse.success({
-                exists: true,
-                status: 'approved',
-                isActive: true,
-                bankName: "Guaranty Trust Bank",
-                accountNumber: "0123456789",
-                accountName: "Adebayo Kola",
-                lga: "Ikeja",
-                address: "10 Industrial Way, Ikeja, Lagos"
-            })
-        }
 
         const store = await prisma.store.findUnique({ where: { userId } })
         if (!store) return ApiResponse.success({ exists: false })
@@ -469,35 +430,9 @@ export async function approveStore(userId) {
 }
 
 export async function getUserProfile(userId) {
+    logger.info("Fetching user profile", { userId })
     try {
         if (!userId) return ApiResponse.unauthorized()
-
-        if (userId === "seller_demo") {
-            return ApiResponse.success({
-                id: "seller_demo",
-                name: "Adebayo Kola",
-                email: "adebayo@ecovolt.com",
-                role: "SELLER",
-                status: "active",
-                isEmailVerified: true,
-                isPhoneVerified: true,
-                accountStatus: "approved",
-                phone: "+234 800-000-0001"
-            })
-        }
-        if (userId === "buyer_demo") {
-            return ApiResponse.success({
-                id: "buyer_demo",
-                name: "Demo Buyer",
-                email: "buyer@gocycle.com",
-                role: "USER",
-                status: "active",
-                isEmailVerified: true,
-                isPhoneVerified: true,
-                accountStatus: "approved",
-                phone: "+234 800-000-0002"
-            })
-        }
 
         const user = await prisma.user.findUnique({ where: { id: userId } })
         if (!user) return ApiResponse.error("Profile not found", 404)

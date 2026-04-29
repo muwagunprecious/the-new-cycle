@@ -6,9 +6,15 @@ import { revalidatePath } from "next/cache"
 import prisma from "@/backend-actions/lib/prisma"
 import { sendEmail, productApprovedEmail, productRejectedEmail } from "@/backend-actions/lib/email"
 import { BATTERY_TYPE_MAPPING } from "@/lib/pricing"
+import { rateLimit } from "../lib/rate-limit"
+import { headers } from "next/headers"
 
 export async function createProduct(data, userId) {
+    logger.info("Creating new product", { userId, productName: data.name })
     try {
+        const headerList = await headers()
+        const ip = headerList.get('x-forwarded-for') || 'unknown'
+        await rateLimit(`create_product_${userId || ip}`, 10) // Limit product uploads
         console.log("SERVER: Received createProduct request", { userId, batteryType: data.batteryType, amps: data.amps })
         if (!userId) return ApiResponse.unauthorized("Authentication required")
         if (!data.collectionDates?.length) return ApiResponse.error("Please select at least one collection date", 400)
@@ -49,9 +55,25 @@ export async function createProduct(data, userId) {
                 quantity: units,
                 storeId: store.id,
                 inStock: true,
-                status: userId === "seller_demo" ? "approved" : "pending"
+                status: "pending" // All products start as pending for manual approval
             }
         })
+
+        // Notify Admins
+        try {
+            const { createNotification } = await import('./notification')
+            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
+            for (const admin of admins) {
+                await createNotification(
+                    admin.id,
+                    "New Product Listing",
+                    `${store.name} has listed a new product: ${data.name}. Approval required.`,
+                    "SYSTEM"
+                )
+            }
+        } catch (notifyError) {
+            logger.warn("Failed to notify admins about new product", notifyError)
+        }
 
         revalidatePath('/seller/products')
         revalidatePath('/')
@@ -283,6 +305,7 @@ export async function getAdminProducts(page = 1, limit = 50) {
                     inStock: true,
                     createdAt: true,
                     storeId: true,
+                    images: true, // Include images for visual verification
                     store: {
                         select: {
                             id: true,
@@ -342,6 +365,7 @@ export async function getPendingAdminProducts(page = 1, limit = 50) {
                     inStock: true,
                     createdAt: true,
                     storeId: true,
+                    images: true, // Include images for visual verification
                     store: {
                         select: {
                             id: true,
@@ -373,8 +397,18 @@ export async function getPendingAdminProducts(page = 1, limit = 50) {
     }
 }
 
-export async function adminDeleteProduct(productId) {
+export async function adminDeleteProduct(productId, adminId) {
+    logger.warn("Admin deleting product", { productId, adminId })
     try {
+        if (!adminId) return ApiResponse.unauthorized("Admin ID required")
+        const admin = await prisma.user.findUnique({ where: { id: adminId } })
+        if (!admin || admin.role !== 'ADMIN') {
+            // Check for demo admin
+            if (adminId !== "admin_demo") {
+                return ApiResponse.unauthorized("Only admins can delete products")
+            }
+        }
+
         await prisma.product.delete({ where: { id: productId } })
         revalidatePath('/admin/products')
         revalidatePath('/')
@@ -386,8 +420,17 @@ export async function adminDeleteProduct(productId) {
     }
 }
 
-export async function adminApproveProduct(productId) {
+export async function adminApproveProduct(productId, adminId) {
+    logger.info("Admin approving product", { productId, adminId })
     try {
+        if (!adminId) return ApiResponse.unauthorized("Admin ID required")
+        const admin = await prisma.user.findUnique({ where: { id: adminId } })
+        if (!admin || admin.role !== 'ADMIN') {
+            if (adminId !== "admin_demo") {
+                return ApiResponse.unauthorized("Only admins can approve products")
+            }
+        }
+
         const product = await prisma.product.update({
             where: { id: productId },
             data: { status: 'approved', rejectionReason: null },
@@ -410,6 +453,17 @@ export async function adminApproveProduct(productId) {
             }).catch(err => logger.warn("Failed to send product approval email", err))
         }
 
+        // Notify Seller
+        try {
+            const { createNotification } = await import('./notification')
+            await createNotification(
+                product.store.userId,
+                "Listing Approved! 🎉",
+                `Your product "${product.name}" has been approved and is now live.`,
+                "SYSTEM"
+            )
+        } catch (e) {}
+
         revalidatePath('/admin/products')
         revalidatePath('/seller/products')
         revalidatePath('/')
@@ -421,8 +475,16 @@ export async function adminApproveProduct(productId) {
     }
 }
 
-export async function adminRejectProduct(productId, reason) {
+export async function adminRejectProduct(productId, reason, adminId) {
     try {
+        if (!adminId) return ApiResponse.unauthorized("Admin ID required")
+        const admin = await prisma.user.findUnique({ where: { id: adminId } })
+        if (!admin || admin.role !== 'ADMIN') {
+            if (adminId !== "admin_demo") {
+                return ApiResponse.unauthorized("Only admins can reject products")
+            }
+        }
+
         const product = await prisma.product.update({
             where: { id: productId },
             data: { status: 'rejected', rejectionReason: reason || "Listing does not meet guidelines." },
@@ -445,6 +507,17 @@ export async function adminRejectProduct(productId, reason) {
                 html
             }).catch(err => logger.warn("Failed to send product rejection email", err))
         }
+
+        // Notify Seller
+        try {
+            const { createNotification } = await import('./notification')
+            await createNotification(
+                product.store.userId,
+                "Listing Rejected",
+                `Your product "${product.name}" was not approved. Reason: ${reason || "Does not meet guidelines."}`,
+                "SYSTEM"
+            )
+        } catch (e) {}
 
         revalidatePath('/admin/products')
         revalidatePath('/seller/products')

@@ -62,6 +62,8 @@ model OrderItem {
   product   Product @relation(fields: [productId], references: [id])
 
   @@id([orderId, productId])
+  @@index([productId])
+  @@index([orderId])
   @@map("OrderItem")
 }
 
@@ -138,6 +140,9 @@ model Store {
   Product            Product[]
   user               User      @relation(fields: [userId], references: [id])
 
+  @@index([userId])
+  @@index([status])
+  @@index([username])
   @@map("Store")
 }
 
@@ -224,6 +229,9 @@ model Notification {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
   @@map("Notification")
 }
 
@@ -272,6 +280,8 @@ model Setting {
   group     String?  @default("general")
   updatedAt DateTime @updatedAt
 
+  @@index([key])
+  @@index([group])
   @@map("Setting")
 }
 
@@ -296,5 +306,8 @@ model Blog {
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [authorId], references: [id])
 
+  @@index([slug])
+  @@index([authorId])
+  @@index([status])
   @@map("Blog")
 }

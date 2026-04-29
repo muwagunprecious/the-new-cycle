@@ -1,11 +1,8 @@
-'use client'
-import { useState, useEffect } from "react"
-import { Search as SearchIcon, ShoppingBag as ShoppingBagIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, Trash2 as Trash2Icon, ExternalLink as ExternalLinkIcon, Battery as BatteryIcon } from "lucide-react"
-import { lagosLGAs } from "@/assets/assets"
-import toast from "react-hot-toast"
+import { useSelector } from "react-redux"
 import { getPendingAdminProducts, adminDeleteProduct, adminApproveProduct, adminRejectProduct } from "@/backend-actions/actions/product"
 
 export default function AdminPendingProductsClient({ initialProducts }) {
+    const { user } = useSelector(state => state.auth)
     const [products, setProducts] = useState(initialProducts || [])
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
@@ -24,7 +21,7 @@ export default function AdminPendingProductsClient({ initialProducts }) {
     }
 
     const handleApprove = async (id) => {
-        const res = await adminApproveProduct(id)
+        const res = await adminApproveProduct(id, user?.id)
         if (res.success) {
             toast.success("Product approved successfully")
             fetchProducts()
@@ -36,7 +33,7 @@ export default function AdminPendingProductsClient({ initialProducts }) {
     const handleReject = async (id) => {
         const reason = prompt("Enter rejection reason (optional):", "Listing does not meet guidelines.")
         if (reason !== null) {
-            const res = await adminRejectProduct(id, reason)
+            const res = await adminRejectProduct(id, reason, user?.id)
             if (res.success) {
                 toast.success("Product rejected")
                 fetchProducts()
@@ -48,7 +45,7 @@ export default function AdminPendingProductsClient({ initialProducts }) {
 
     const handleDelete = async (id) => {
         if (confirm("Are you sure you want to delete this listing? This action is permanent.")) {
-            const res = await adminDeleteProduct(id)
+            const res = await adminDeleteProduct(id, user?.id)
             if (res.success) {
                 toast.success("Product deleted successfully")
                 fetchProducts()

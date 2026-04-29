@@ -53,6 +53,22 @@ exports.createProduct = async (req, res) => {
             }
         });
 
+        // Notify Admins
+        try {
+            const { createNotification } = require('../services/notification.service');
+            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+            for (const admin of admins) {
+                await createNotification(
+                    admin.id,
+                    "New Product Listing",
+                    `${store.name} has listed a new product: ${data.name}. Approval required.`,
+                    "SYSTEM"
+                );
+            }
+        } catch (notifyError) {
+            console.warn("Failed to notify admins about new product", notifyError);
+        }
+
         res.status(201).json({ success: true, data: product, message: 'Product created successfully' });
     } catch (error) {
         console.error("Create Product Error:", error);
