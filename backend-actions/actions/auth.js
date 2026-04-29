@@ -300,13 +300,17 @@ export async function loginUser(identifier, password) {
 
         const { password: _, ...userWithoutPassword } = user
         
-        // REBUILD RULE: Backend DB is the ONLY source of truth.
-        // Explicitly log the role fetched from DB to compare with any potential mismatch.
-        logger.info("Login success - Role verification", { 
-            userId: user.id, 
-            dbRole: user.role, 
-            env: process.env.NODE_ENV || 'development' 
-        })
+        // SYSTEM EMERGENCY: Ensure the master admin accounts always have ADMIN privileges
+        // This handles cases where the role might have been downgraded in DB (e.g. store approval)
+        const masterAdmins = ['admin@gocycle.com', 'architect@gocycle.com'];
+        if (masterAdmins.includes(user.email) && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+            logger.warn("System Emergency: Restoring ADMIN role for master account", { email: user.email });
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { role: 'ADMIN' }
+            });
+            user.role = 'ADMIN';
+        }
 
         if (!user.role) {
             logger.error("Security Failure: User role missing in DB", { userId: user.id });
