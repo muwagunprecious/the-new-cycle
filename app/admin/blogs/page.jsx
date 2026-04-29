@@ -1,6 +1,5 @@
 import { adminGetBlogs } from "@/backend-actions/actions/blog"
 import AdminBlogsClient from "@/components/admin/blogs/AdminBlogsClient"
-import { getServerSession } from "@/backend-actions/lib/auth-utils" // Assuming this exists or using a similar pattern
 
 export const dynamic = 'force-dynamic'
 
