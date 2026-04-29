@@ -1,48 +1,80 @@
 import { ApiResponse } from "./api-response";
 import { logger } from "./api-utils";
 import prisma from "./prisma";
+import { verifyToken } from "./jwt";
+
+import { cookies, headers } from "next/headers";
 
 /**
- * Strict Role-Based Access Control (RBAC) wrapper for server actions.
- * Ensures the backend is the single source of truth for user roles.
+ * Zero Trust Authorization Wrapper
+ * 1. Verifies JWT authenticity
+ * 2. Fetches current state from DB
+ * 3. Cross-checks roles to prevent privilege escalation
  */
-export async function authorize(userId, allowedRoles = []) {
-    if (!userId) {
-        logger.warn("Authorization failed: No userId provided");
+export async function authorize(token = null, allowedRoles = []) {
+    const headerList = await headers();
+    const cookieStore = await cookies();
+    const ip = headerList.get('x-forwarded-for') || 'unknown';
+    
+    // Auto-extract token from cookies if not provided
+    const authToken = token || cookieStore.get("gocycle_auth_token")?.value;
+
+    if (!authToken) {
+        logger.warn("Security: Authorization failed - No token provided", { ip });
         return { success: false, error: "Unauthorized", status: 401 };
     }
 
     try {
-        // Fetch user directly from DB to ensure freshest role
+        // 1. Verify JWT
+        const decoded = verifyToken(authToken);
+        if (!decoded || !decoded.userId) {
+            logger.error("Security: Invalid or expired token", { ip });
+            return { success: false, error: "Session expired. Please log in again.", status: 401 };
+        }
+
+        const { userId, role: jwtRole } = decoded;
+
+        // 2. Fetch User from DB (Single Source of Truth)
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: { id: true, role: true, status: true }
         });
 
         if (!user) {
-            logger.error(`Authorization failed: User ${userId} not found in DB`);
+            logger.error(`Security Incident: User ${userId} in token not found in DB`, { ip });
             return { success: false, error: "User not found", status: 404 };
         }
 
+        // 3. ROLE CROSS-CHECK (CRITICAL FIX)
+        if (user.role !== jwtRole) {
+            logger.error(`SECURITY ALERT: Role mismatch for ${userId}`, {
+                jwtRole,
+                dbRole: user.role,
+                ip,
+                incident: "POTENTIAL_PRIVILEGE_ESCALATION"
+            });
+            // Force logout by returning 401
+            return { success: false, error: "Security violation: Role mismatch", status: 401 };
+        }
+
         if (user.status === 'banned') {
-            logger.warn(`Authorization failed: User ${userId} is banned`);
+            logger.warn(`Access Denied: User ${userId} is banned`, { ip });
             return { success: false, error: "Account suspended", status: 403 };
         }
 
-        const userRole = user.role;
-        logger.info(`Authorizing user ${userId}`, { role: userRole, allowedRoles });
-
-        if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
-            logger.error(`Authorization failed: Role mismatch for ${userId}`, { 
+        // 4. RBAC Check
+        if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+            logger.error(`Access Denied: Insufficient privileges for ${userId}`, { 
                 required: allowedRoles, 
-                actual: userRole 
+                actual: user.role,
+                ip
             });
             return { success: false, error: "Forbidden: Insufficient privileges", status: 403 };
         }
 
         return { success: true, user };
     } catch (error) {
-        logger.error("Authorization error", error);
-        return { success: false, error: "Authorization process failed", status: 500 };
+        logger.error("Internal Authorization Error", { error: error.message, stack: error.stack });
+        return { success: false, error: "Authorization failed", status: 500 };
     }
 }

@@ -7,7 +7,7 @@ import prisma from "@/backend-actions/lib/prisma"
 import bcrypt from "bcryptjs"
 import { sendOTP } from "../lib/sms"
 import { rateLimit } from "../lib/rate-limit"
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 
 export async function registerUser(userData) {
     logger.info("Registering new user", { email: userData.email, role: userData.role })
@@ -91,7 +91,14 @@ export async function registerUser(userData) {
                     email: safeEmail,
                     password: hashedPassword,
                     image: "",
-                    role: role || 'USER',
+                    role: (() => {
+                        const allowed = ['USER', 'SELLER', 'ADMIN', 'SUPER_ADMIN'];
+                        if (!role || !allowed.includes(role.toUpperCase())) {
+                            logger.error("Security: Invalid role attempted during registration", { role });
+                            throw new Error("Invalid account role provided");
+                        }
+                        return role.toUpperCase();
+                    })(),
                     phone: normalizedWhatsapp || whatsapp,
                     isEmailVerified: false,
                     isPhoneVerified: userData.isPhoneVerified || false,
@@ -306,14 +313,29 @@ export async function loginUser(identifier, password) {
             return ApiResponse.error("Account configuration error. Please contact support.", 500);
         }
 
+        // GENERATE JWT (Zero Trust Mirror)
+        const { signToken } = await import("../lib/jwt");
+        const token = signToken({ userId: user.id, role: user.role }, "24h");
+
+        // Set secure HttpOnly cookie
+        const cookieStore = await cookies();
+        cookieStore.set("gocycle_auth_token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 60 * 60 * 24, // 24 hours
+            path: "/"
+        });
+
         if (!user.isEmailVerified && !user.isPhoneVerified) {
             return ApiResponse.success({ 
                 user: userWithoutPassword, 
+                token, // Return token even if not verified yet, but middleware will block
                 requiresVerification: true 
             }, "Verification required");
         }
 
-        return ApiResponse.success({ user: userWithoutPassword }, "Login successful");
+        return ApiResponse.success({ user: userWithoutPassword, token }, "Login successful");
     } catch (error) {
         logger.error("Login Error", error)
         return handleDbError(error, "loginUser")
@@ -499,5 +521,15 @@ export async function updateUserProfile(userId, data) {
     } catch (error) {
         logger.error("Update Profile Error", error)
         return ApiResponse.error("Failed to update profile details")
+    }
+}
+
+export async function logoutUser() {
+    try {
+        const cookieStore = await cookies();
+        cookieStore.delete("gocycle_auth_token");
+        return ApiResponse.success(null, "Logged out successfully");
+    } catch (error) {
+        return ApiResponse.error("Logout failed");
     }
 }

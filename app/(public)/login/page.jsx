@@ -2,7 +2,7 @@
 import { useState, Suspense } from "react"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/lib/features/auth/authSlice"
-import { loginUser } from "@/backend-actions/actions/auth"
+import { loginUser, logoutUser } from "@/backend-actions/actions/auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShieldCheck as ShieldCheckIcon, Mail as MailIcon, Lock as LockIcon, Loader as LoaderIcon, Zap as ZapIcon, Eye as EyeIcon, EyeOff as EyeOffIcon } from "lucide-react"
 import Link from "next/link"
@@ -85,6 +85,7 @@ function LoginContent() {
                     console.error(`[SECURITY FAILURE] Unknown role detected: ${userRole}`)
                     toast.error("Account security violation: Unknown role")
                     // Immediate cleanup and redirect to login
+                    await logoutUser()
                     dispatch(setCredentials(null))
                     localStorage.removeItem('gocycle_session')
                     router.push('/login')
@@ -140,6 +141,7 @@ function LoginContent() {
                     } else {
                         console.error(`[SECURITY FAILURE] Unknown role after verification: ${role}`)
                         toast.error("Account security violation")
+                        await logoutUser()
                         dispatch(setCredentials(null))
                         localStorage.removeItem('gocycle_session')
                         router.push('/login')

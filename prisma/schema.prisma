@@ -18,7 +18,7 @@ model User {
   email              String?        @unique
   password           String?
   image              String
-  role               Role           @default(USER)
+  role               Role
   cart               Json           @default("{}")
   walletBalance      Float          @default(0)
   phone              String         @unique
