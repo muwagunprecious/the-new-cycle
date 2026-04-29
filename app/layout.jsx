@@ -1,6 +1,7 @@
 import { Toaster } from "react-hot-toast";
 import StoreProvider from "@/app/StoreProvider";
 import GlobalLoader from "@/components/GlobalLoader";
+import PerformanceTracker from "@/components/PerformanceTracker";
 import "./globals.css";
 
 export const metadata = {
@@ -41,6 +42,7 @@ export default function RootLayout({ children }) {
                         <Toaster />
                     </div>
                     <GlobalLoader />
+                    <PerformanceTracker />
                     {children}
                 </StoreProvider>
             </body>

@@ -7,6 +7,8 @@ import toast from "react-hot-toast"
 import Button from "@/components/Button"
 import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory } from "@/backend-actions/actions/admin"
 import { getAllOrders } from "@/backend-actions/actions/order"
+import dynamic from 'next/dynamic'
+const AdminDiagnosticsPanel = dynamic(() => import('@/components/admin/AdminDiagnosticsPanel'), { ssr: false })
 
 export default function AdminDashboardClient({ initialSummary, initialUsers, initialOrders, initialPayouts }) {
     const router = useRouter()
@@ -145,6 +147,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         { id: 'orders', label: `Orders (${dashboardData.orders})` },
         { id: 'payouts', label: 'Payouts' },
         { id: 'notify', label: '📣 Notify' },
+        { id: 'diagnostics', label: '🩺 Diagnostics' },
     ]
 
     const statsCards = [
@@ -669,6 +672,25 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                             </Button>
                         </form>
                     </div>
+                </div>
+            )}
+            {/* Diagnostics Tab */}
+            {activeTab === 'diagnostics' && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
+                            <span className="text-lg">🩺</span>
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900">Platform Diagnostics</h2>
+                            <p className="text-sm text-slate-500">Real-time performance insights, active users, and system health</p>
+                        </div>
+                        <div className="ml-auto flex items-center gap-1.5">
+                            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                            <span className="text-xs font-bold text-emerald-600">Live</span>
+                        </div>
+                    </div>
+                    <AdminDiagnosticsPanel />
                 </div>
             )}
         </div>
