@@ -36,9 +36,9 @@ export default function PerformanceTracker() {
             const duration = Date.now() - start
             // Use sendBeacon for non-blocking
             if (navigator.sendBeacon) {
-                navigator.sendBeacon('/api/diagnostics/metrics', JSON.stringify({ page: pathname, duration }))
+                navigator.sendBeacon('/api/platform-diagnostics/metrics', JSON.stringify({ page: pathname, duration }))
             } else {
-                fetch('/api/diagnostics/metrics', {
+                fetch('/api/platform-diagnostics/metrics', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ page: pathname, duration }),
@@ -70,9 +70,9 @@ export default function PerformanceTracker() {
                 role: user?.role || 'visitor'
             })
             if (navigator.sendBeacon) {
-                navigator.sendBeacon('/api/diagnostics/heartbeat', payload)
+                navigator.sendBeacon('/api/platform-diagnostics/heartbeat', payload)
             } else {
-                fetch('/api/diagnostics/heartbeat', {
+                fetch('/api/platform-diagnostics/heartbeat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: payload,

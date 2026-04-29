@@ -1,26 +1,13 @@
+const { PrismaClient } = require('@prisma/client')
+const p = new PrismaClient()
 
-const { PrismaClient } = require('@prisma/client');
-
-async function listUsers() {
-    const prisma = new PrismaClient();
-    try {
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                email: true,
-                role: true,
-                isEmailVerified: true
-            }
-        });
-        console.log('Users found in database:');
-        users.forEach(u => {
-            console.log(`- Email: ${u.email}, Role: ${u.role}, Verified: ${u.isEmailVerified}, ID: ${u.id}`);
-        });
-    } catch (error) {
-        console.error('Failed to list users:', error.message);
-    } finally {
-        await prisma.$disconnect();
-    }
+async function main() {
+  const users = await p.user.findMany()
+  console.log('All Users:', users.map(u => ({ id: u.id, email: u.email, phone: u.phone, role: u.role, name: u.name })))
+  await p.$disconnect()
 }
 
-listUsers();
+main().catch(e => {
+  console.error('Error:', e)
+  p.$disconnect()
+})

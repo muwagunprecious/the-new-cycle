@@ -17,9 +17,7 @@ export async function createBlog(data, userId) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        const user = userId === 'admin_demo' 
-            ? { role: 'ADMIN' } 
-            : await prisma.user.findUnique({ where: { id: userId } })
+        const user = await prisma.user.findUnique({ where: { id: userId } })
 
         if (!user || user.role !== 'ADMIN') {
             return ApiResponse.unauthorized("Only admins can create blogs.")
@@ -113,9 +111,7 @@ export async function adminGetBlogs(page = 1, limit = 20, userId) {
         // If userId is provided, verify admin status. 
         // If not provided, we assume this is an internal server-to-server call (e.g. from a Server Component)
         if (userId) {
-            const user = userId === 'admin_demo' 
-                ? { role: 'ADMIN' } 
-                : await prisma.user.findUnique({ where: { id: userId } })
+            const user = await prisma.user.findUnique({ where: { id: userId } })
             
             if (!user || user.role !== 'ADMIN') return ApiResponse.unauthorized()
         }
@@ -148,9 +144,7 @@ export async function adminGetBlogs(page = 1, limit = 20, userId) {
 
 export async function deleteBlog(id, userId) {
     try {
-        const user = userId === 'admin_demo' 
-            ? { role: 'ADMIN' } 
-            : await prisma.user.findUnique({ where: { id: userId } })
+        const user = await prisma.user.findUnique({ where: { id: userId } })
 
         if (!user || user.role !== 'ADMIN') return ApiResponse.unauthorized()
 
