@@ -604,3 +604,20 @@ export async function verifyOrderPayment(orderId) {
         return ApiResponse.error("Failed to verify order payment")
     }
 }
+
+export async function runEmergencyDBDiagnostic() {
+    try {
+        const url = process.env.DATABASE_URL || "NOT_SET";
+        const hostInfo = url !== "NOT_SET" ? url.split('@')[1] : "UNKNOWN";
+        
+        // Run a raw query to check tables
+        const result = await prisma.$queryRaw`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`;
+        
+        return ApiResponse.success({
+            host: hostInfo,
+            tables: result.map(r => r.table_name)
+        });
+    } catch (error) {
+        return ApiResponse.error(`Diag Error: ${error.message}`);
+    }
+}
