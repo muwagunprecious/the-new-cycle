@@ -338,13 +338,34 @@ function SignupContent() {
                 dispatch(hideLoader())
                 toast.success(`Welcome to GoCycle, ${formData.name}!`)
 
-                // Redirect based on role or param
+                // REBUILD RULE: Deterministic explicit mapping only
+                const userRole = (loginResult.user.role || '').toUpperCase()
+                
+                console.log(`[AUTH SYSTEM] Auto-Login Redirection Decision`, {
+                    userId: loginResult.user.id,
+                    role: userRole,
+                    target: redirect || 'INTERNAL_MAP'
+                })
+
                 if (redirect) {
                     router.push(redirect)
-                } else if (formData.role === 'BUYER') {
-                    router.push('/buyer')
                 } else {
-                    router.push('/seller')
+                    const ROLE_ROUTES = {
+                        'SUPER_ADMIN': '/admin',
+                        'ADMIN': '/admin',
+                        'SELLER': '/seller',
+                        'USER': '/buyer'
+                    }
+
+                    const destination = ROLE_ROUTES[userRole]
+
+                    if (destination) {
+                        router.push(destination)
+                    } else {
+                        console.error(`[SECURITY FAILURE] Unknown role after signup: ${userRole}`)
+                        toast.error("Account security violation")
+                        router.push('/login')
+                    }
                 }
             }
         } catch (error) {

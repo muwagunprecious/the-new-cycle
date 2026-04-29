@@ -238,6 +238,7 @@ model Notification {
 enum Role {
   USER
   ADMIN
+  SUPER_ADMIN
   SELLER
 }
 

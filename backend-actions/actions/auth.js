@@ -138,7 +138,11 @@ export async function registerUser(userData) {
 
         if (role === 'USER') {
             const { createNotification } = await import('./notification')
-            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
+            const admins = await prisma.user.findMany({ 
+                where: { 
+                    role: { in: ['ADMIN', 'SUPER_ADMIN'] } 
+                } 
+            })
             for (const admin of admins) {
                 await createNotification(
                     admin.id,
@@ -288,12 +292,28 @@ export async function loginUser(identifier, password) {
         if (!isMatch) return ApiResponse.error("Invalid credentials", 401)
 
         const { password: _, ...userWithoutPassword } = user
+        
+        // REBUILD RULE: Backend DB is the ONLY source of truth.
+        // Explicitly log the role fetched from DB to compare with any potential mismatch.
+        logger.info("Login success - Role verification", { 
+            userId: user.id, 
+            dbRole: user.role, 
+            env: process.env.NODE_ENV || 'development' 
+        })
 
-        if (!user.isEmailVerified && !user.isPhoneVerified) {
-            return ApiResponse.success({ user: userWithoutPassword, requiresVerification: true }, "Verification required")
+        if (!user.role) {
+            logger.error("Security Failure: User role missing in DB", { userId: user.id });
+            return ApiResponse.error("Account configuration error. Please contact support.", 500);
         }
 
-        return ApiResponse.success({ user: userWithoutPassword }, "Login successful")
+        if (!user.isEmailVerified && !user.isPhoneVerified) {
+            return ApiResponse.success({ 
+                user: userWithoutPassword, 
+                requiresVerification: true 
+            }, "Verification required");
+        }
+
+        return ApiResponse.success({ user: userWithoutPassword }, "Login successful");
     } catch (error) {
         logger.error("Login Error", error)
         return handleDbError(error, "loginUser")

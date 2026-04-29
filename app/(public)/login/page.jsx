@@ -55,10 +55,41 @@ function LoginContent() {
             toast.success("Logged in successfully!")
 
             const user = result.user
-            if (redirect) router.push(redirect)
-            else if (user.role === 'ADMIN') router.push('/admin')
-            else if (user.role === 'SELLER') router.push('/seller')
-            else router.push('/buyer')
+            const userRole = (user.role || '').toUpperCase()
+            
+            // SYSTEM RULE: Explicit routing decision log
+            console.log(`[AUTH SYSTEM] Redirection Decision`, {
+                userId: user.id,
+                role: userRole,
+                target: redirect || 'INTERNAL_MAP',
+                reason: redirect ? 'USER_REDIRECT_PARAM' : 'ROLE_BASED_MAPPING'
+            })
+
+            if (redirect) {
+                router.push(redirect)
+            } else {
+                // REBUILD RULE: Deterministic explicit mapping only
+                const ROLE_ROUTES = {
+                    'SUPER_ADMIN': '/admin',
+                    'ADMIN': '/admin',
+                    'SELLER': '/seller',
+                    'USER': '/buyer'
+                }
+
+                const destination = ROLE_ROUTES[userRole]
+                
+                if (destination) {
+                    router.push(destination)
+                } else {
+                    // SECURITY FAILURE: Unknown role, force logout
+                    console.error(`[SECURITY FAILURE] Unknown role detected: ${userRole}`)
+                    toast.error("Account security violation: Unknown role")
+                    // Immediate cleanup and redirect to login
+                    dispatch(setCredentials(null))
+                    localStorage.removeItem('gocycle_session')
+                    router.push('/login')
+                }
+            }
 
         } catch (error) {
             dispatch(hideLoader())
@@ -85,7 +116,34 @@ function LoginContent() {
                 if (loginResult.success) {
                     dispatch(setCredentials(loginResult.user))
                     dispatch(hideLoader())
-                    router.push(loginResult.user.role === 'SELLER' ? '/seller' : '/buyer')
+                    
+                    const role = (loginResult.user.role || '').toUpperCase()
+                    
+                    // SYSTEM RULE: Explicit routing decision log (Post-Verification)
+                    console.log(`[AUTH SYSTEM] Verification Redirection Decision`, {
+                        userId: loginResult.user.id,
+                        role: role,
+                        target: 'ROLE_BASED_MAPPING'
+                    })
+
+                    const ROLE_ROUTES = {
+                        'SUPER_ADMIN': '/admin',
+                        'ADMIN': '/admin',
+                        'SELLER': '/seller',
+                        'USER': '/buyer'
+                    }
+
+                    const destination = ROLE_ROUTES[role]
+
+                    if (destination) {
+                        router.push(destination)
+                    } else {
+                        console.error(`[SECURITY FAILURE] Unknown role after verification: ${role}`)
+                        toast.error("Account security violation")
+                        dispatch(setCredentials(null))
+                        localStorage.removeItem('gocycle_session')
+                        router.push('/login')
+                    }
                 }
             } else {
                 throw new Error(res.error)

@@ -9,6 +9,37 @@ import { logout } from "@/lib/features/auth/authSlice"
 export default function BuyerLayout({ children }) {
     const pathname = usePathname()
     const router = useRouter()
+    const { user, isLoggedIn, isHydrated } = useSelector((state) => state.auth)
+    const [loading, setLoading] = useState(true)
+
+    // Auth Protection
+    useEffect(() => {
+        if (!isHydrated) return
+
+        if (!isLoggedIn) {
+            router.push('/login')
+            return
+        }
+
+        // REBUILD RULE: Deterministic explicit access control
+        if (user?.role !== 'USER') {
+            console.error(`[SECURITY] Unauthorized access attempt to Buyer Dashboard`, {
+                userId: user?.id,
+                role: user?.role
+            })
+            // Redirect to their correct dashboard
+            const ROLE_ROUTES = {
+                'SUPER_ADMIN': '/admin',
+                'ADMIN': '/admin',
+                'SELLER': '/seller'
+            }
+            router.push(ROLE_ROUTES[user?.role] || '/login')
+            return
+        }
+
+        setLoading(false)
+    }, [isLoggedIn, user?.role, isHydrated, router])
+
     const dispatch = useDispatch()
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -32,6 +63,14 @@ export default function BuyerLayout({ children }) {
         setTimeout(() => {
             router.push(href)
         }, 500)
+    }
+
+    if (loading) {
+        return (
+            <div className="h-screen w-full flex items-center justify-center bg-white">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#05DF72]"></div>
+            </div>
+        )
     }
 
     return (

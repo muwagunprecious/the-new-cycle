@@ -117,6 +117,19 @@ export const storesDummyData = [
 
 export const dummyUsers = [
     {
+        id: "super_admin_demo",
+        name: "Architect Super Admin",
+        email: "architect@gocycle.com",
+        password: "superadmin123",
+        whatsapp: "+234 700 000 0000",
+        role: "SUPER_ADMIN",
+        status: "active",
+        isEmailVerified: true,
+        isPhoneVerified: true,
+        verificationStatus: "verified",
+        image: profile_pic3
+    },
+    {
         id: "admin_demo",
         name: "Admin Superuser",
         email: "admin@gocycle.com",
