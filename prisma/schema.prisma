@@ -310,5 +310,5 @@ model Blog {
   @@index([slug])
   @@index([authorId])
   @@index([status])
-  @@map("Blog")
+  @@map("blogs")
 }
