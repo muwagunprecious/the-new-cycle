@@ -15,12 +15,11 @@ const generateSlug = (title) => {
 
 export async function createBlog(data, userId) {
     try {
-        if (!userId) return ApiResponse.unauthorized()
-
-        const user = await prisma.user.findUnique({ where: { id: userId } })
-
-        if (!user || user.role !== 'ADMIN') {
-            return ApiResponse.unauthorized("Only admins can create blogs.")
+        const { authorize } = await import("../lib/api-middleware")
+        const auth = await authorize(null, ['ADMIN', 'SUPER_ADMIN'])
+        
+        if (!auth.success) {
+            return ApiResponse.unauthorized(auth.error || "Only admins can create blogs.")
         }
 
         if (!data.title || !data.content) {
@@ -108,13 +107,10 @@ export async function getBlogBySlug(slug) {
 
 export async function adminGetBlogs(page = 1, limit = 20, userId) {
     try {
-        // If userId is provided, verify admin status. 
-        // If not provided, we assume this is an internal server-to-server call (e.g. from a Server Component)
-        if (userId) {
-            const user = await prisma.user.findUnique({ where: { id: userId } })
-            
-            if (!user || user.role !== 'ADMIN') return ApiResponse.unauthorized()
-        }
+        const { authorize } = await import("../lib/api-middleware")
+        const auth = await authorize(null, ['ADMIN', 'SUPER_ADMIN'])
+        
+        if (!auth.success) return ApiResponse.unauthorized(auth.error)
 
         const skip = (page - 1) * limit
         const [blogs, total] = await Promise.all([
@@ -144,9 +140,10 @@ export async function adminGetBlogs(page = 1, limit = 20, userId) {
 
 export async function deleteBlog(id, userId) {
     try {
-        const user = await prisma.user.findUnique({ where: { id: userId } })
-
-        if (!user || user.role !== 'ADMIN') return ApiResponse.unauthorized()
+        const { authorize } = await import("../lib/api-middleware")
+        const auth = await authorize(null, ['ADMIN', 'SUPER_ADMIN'])
+        
+        if (!auth.success) return ApiResponse.unauthorized(auth.error)
 
         await prisma.blog.delete({ where: { id } })
 

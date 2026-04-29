@@ -62,11 +62,19 @@ function LoginContent() {
             const user = result.user
             const userRole = (user.role || '').toUpperCase()
             
+            const ROLE_ROUTES = {
+                'SUPER_ADMIN': '/admin',
+                'ADMIN': '/admin',
+                'SELLER': '/seller',
+                'USER': '/buyer'
+            }
+
             // SYSTEM RULE: Explicit routing decision log
             console.log(`[AUTH SYSTEM] Redirection Decision`, {
                 userId: user.id,
                 role: userRole,
-                target: redirect || 'INTERNAL_MAP',
+                email: user.email,
+                destination: redirect || ROLE_ROUTES[userRole] || 'NONE',
                 reason: redirect ? 'USER_REDIRECT_PARAM' : 'ROLE_BASED_MAPPING'
             })
 
@@ -74,14 +82,6 @@ function LoginContent() {
                 if (redirect) {
                     router.push(redirect)
                 } else {
-                    // REBUILD RULE: Deterministic explicit mapping only
-                    const ROLE_ROUTES = {
-                        'SUPER_ADMIN': '/admin',
-                        'ADMIN': '/admin',
-                        'SELLER': '/seller',
-                        'USER': '/buyer'
-                    }
-
                     const destination = ROLE_ROUTES[userRole]
                     
                     if (destination) {

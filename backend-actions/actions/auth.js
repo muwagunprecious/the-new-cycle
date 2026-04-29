@@ -303,7 +303,8 @@ export async function loginUser(identifier, password) {
         // SYSTEM EMERGENCY: Ensure the master admin accounts always have ADMIN privileges
         // This handles cases where the role might have been downgraded in DB (e.g. store approval)
         const masterAdmins = ['admin@gocycle.com', 'architect@gocycle.com'];
-        if (masterAdmins.includes(user.email) && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+        const normalizedEmail = (user.email || '').toLowerCase();
+        if (masterAdmins.includes(normalizedEmail) && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
             logger.warn("System Emergency: Restoring ADMIN role for master account", { email: user.email });
             await prisma.user.update({
                 where: { id: user.id },
