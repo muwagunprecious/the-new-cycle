@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const SECRET = process.env.JWT_SECRET || "fallback_secret_for_dev_only";
+const SECRET = process.env.JWT_SECRET || "gocycle_secure_session_secret_2026_rbac_hardened";
 
 /**
  * Sign a new access token

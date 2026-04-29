@@ -27,6 +27,8 @@ export async function middleware(request) {
 
     // 3. Extract Token
     const token = request.cookies.get("gocycle_auth_token")?.value;
+    
+    console.log(`[MIDDLEWARE DEBUG] Path: ${pathname}, Token present: ${!!token}`);
 
     if (!token) {
         const url = request.nextUrl.clone();
@@ -39,6 +41,8 @@ export async function middleware(request) {
         // 4. Verify JWT (Edge Compatible)
         const { payload } = await jwtVerify(token, SECRET);
         const userRole = payload.role;
+        
+        console.log(`[MIDDLEWARE DEBUG] Role: ${userRole}, Allowed for prefix ${protectedPrefix}: ${JSON.stringify(routeAccess[protectedPrefix])}`);
 
         // 5. Strict RBAC Enforcement
         const allowedRoles = routeAccess[protectedPrefix];

@@ -34,6 +34,11 @@ function LoginContent() {
         setIsLoading(true)
         dispatch(showLoader("Signing you in..."))
 
+        // CLEAN SLATE RULE: Clear any stale legacy state before new login
+        localStorage.removeItem('gocycle_session')
+        const { logoutUser } = await import("@/backend-actions/actions/auth")
+        await logoutUser()
+
         try {
             const result = await loginUser(formData.identifier, formData.password)
 
@@ -65,31 +70,36 @@ function LoginContent() {
                 reason: redirect ? 'USER_REDIRECT_PARAM' : 'ROLE_BASED_MAPPING'
             })
 
-            if (redirect) {
-                router.push(redirect)
-            } else {
-                // REBUILD RULE: Deterministic explicit mapping only
-                const ROLE_ROUTES = {
-                    'SUPER_ADMIN': '/admin',
-                    'ADMIN': '/admin',
-                    'SELLER': '/seller',
-                    'USER': '/buyer'
-                }
-
-                const destination = ROLE_ROUTES[userRole]
-                
-                if (destination) {
-                    router.push(destination)
+            try {
+                if (redirect) {
+                    router.push(redirect)
                 } else {
-                    // SECURITY FAILURE: Unknown role, force logout
-                    console.error(`[SECURITY FAILURE] Unknown role detected: ${userRole}`)
-                    toast.error("Account security violation: Unknown role")
-                    // Immediate cleanup and redirect to login
-                    await logoutUser()
-                    dispatch(setCredentials(null))
-                    localStorage.removeItem('gocycle_session')
-                    router.push('/login')
+                    // REBUILD RULE: Deterministic explicit mapping only
+                    const ROLE_ROUTES = {
+                        'SUPER_ADMIN': '/admin',
+                        'ADMIN': '/admin',
+                        'SELLER': '/seller',
+                        'USER': '/buyer'
+                    }
+
+                    const destination = ROLE_ROUTES[userRole]
+                    
+                    if (destination) {
+                        router.push(destination)
+                    } else {
+                        // SECURITY FAILURE: Unknown role, force logout
+                        console.error(`[SECURITY FAILURE] Unknown role detected: ${userRole}`)
+                        toast.error("Account security violation: Unknown role")
+                        // Immediate cleanup and redirect to login
+                        await logoutUser()
+                        dispatch(setCredentials(null))
+                        localStorage.removeItem('gocycle_session')
+                        router.push('/login')
+                    }
                 }
+            } catch (redirError) {
+                console.error("[AUTH SYSTEM] Redirection Error:", redirError)
+                toast.error("Navigation failed. Please try manual reload.")
             }
 
         } catch (error) {
