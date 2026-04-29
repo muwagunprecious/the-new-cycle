@@ -19,11 +19,12 @@ export async function createBlog(data, userId) {
         const auth = await authorize(null, ['ADMIN', 'SUPER_ADMIN'])
         
         if (!auth.success) {
-            return ApiResponse.unauthorized(auth.error || "Only admins can create blogs.")
+            logger.error("Blog Publication Blocked", { error: auth.error, status: auth.status })
+            return ApiResponse.error(auth.error || "Permission Denied", auth.status || 403)
         }
 
         if (!data.title || !data.content) {
-            return ApiResponse.error("Title and content are required.")
+            return ApiResponse.error("Missing required fields: title and content are mandatory.")
         }
 
         let slug = generateSlug(data.title)
@@ -51,8 +52,8 @@ export async function createBlog(data, userId) {
 
         return ApiResponse.success(blog, "Blog published successfully")
     } catch (error) {
-        logger.error("Create Blog Error", error)
-        return ApiResponse.error("Failed to publish blog")
+        logger.error("Create Blog Error", { message: error.message, stack: error.stack })
+        return ApiResponse.error(`Server Error: ${error.message}`)
     }
 }
 
