@@ -1,10 +1,12 @@
 import nodemailer from 'nodemailer'
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: process.env.SMTP_HOST || 'mail.gocycle.africa',
+    port: parseInt(process.env.SMTP_PORT || '465'),
+    secure: true, // SSL
     auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
+        user: process.env.SMTP_USER || 'admin@gocycle.africa',
+        pass: process.env.SMTP_PASS,
     },
 })
 
