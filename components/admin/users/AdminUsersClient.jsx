@@ -1,12 +1,12 @@
 'use client'
 // Admin User Management - Platform Governance
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { toggleUserStatus } from "@/lib/features/auth/authSlice"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
-import { useEffect } from "react"
-import { getAllUsers, banUser, approveBuyer } from "@/backend-actions/actions/admin"
+import { useSearchParams } from "next/navigation"
+import { getAllUsers, banUser, approveBuyer, createAdminAccount } from "@/backend-actions/actions/admin"
 import Loading from "@/components/Loading"
 import { ShieldCheck as ShieldCheckIcon, Search as SearchIcon, Mail as MailIcon, Phone as PhoneIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Check as CheckIcon } from "lucide-react"
 
@@ -15,6 +15,17 @@ export default function AdminUsersClient({ initialUsers }) {
     const [dbUsers, setDbUsers] = useState(initialUsers || [])
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
+    const [isAddAdminOpen, setIsAddAdminOpen] = useState(false)
+    const [adminForm, setAdminForm] = useState({ name: '', email: '', phone: '', password: '' })
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const searchParams = useSearchParams()
+
+    // Auto-open Create Admin modal if navigated from sidebar
+    useEffect(() => {
+        if (searchParams.get('action') === 'create-admin') {
+            setIsAddAdminOpen(true)
+        }
+    }, [searchParams])
 
     // Users are passed as props!
 
@@ -55,6 +66,31 @@ export default function AdminUsersClient({ initialUsers }) {
         }
     }
 
+    const handleCreateAdmin = async (e) => {
+        e.preventDefault()
+        if (!adminForm.name || !adminForm.email || !adminForm.phone || !adminForm.password) {
+            toast.error("Please fill in all fields")
+            return
+        }
+
+        setIsSubmitting(true)
+        dispatch(showLoader("Creating Admin Account..."))
+        
+        const res = await createAdminAccount(adminForm)
+        
+        dispatch(hideLoader())
+        setIsSubmitting(false)
+
+        if (res.success) {
+            toast.success("Admin account created successfully")
+            setDbUsers(prev => [res.data.user, ...prev])
+            setIsAddAdminOpen(false)
+            setAdminForm({ name: '', email: '', phone: '', password: '' })
+        } else {
+            toast.error(res.error || "Failed to create admin account")
+        }
+    }
+
     return (
         <div className="p-8 bg-slate-50 min-h-screen">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
@@ -65,15 +101,23 @@ export default function AdminUsersClient({ initialUsers }) {
                     <h1 className="text-4xl font-black text-slate-900 leading-tight">User <span className="text-[#05DF72]">Database</span></h1>
                     <p className="text-slate-400 font-bold text-sm mt-1">Control access and visibility across all platform roles.</p>
                 </div>
-                <div className="relative group">
-                    <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#05DF72] transition-colors" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Search by name, email or whatsapp..."
-                        className="pl-12 pr-6 py-4 bg-white border-none rounded-[2rem] shadow-xl shadow-slate-200/50 outline-none w-full md:w-80 font-medium text-sm focus:ring-2 focus:ring-[#05DF72]/20 transition-all"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="relative group w-full sm:w-auto">
+                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#05DF72] transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search by name, email or whatsapp..."
+                            className="pl-12 pr-6 py-4 bg-white border-none rounded-[2rem] shadow-xl shadow-slate-200/50 outline-none w-full md:w-80 font-medium text-sm focus:ring-2 focus:ring-[#05DF72]/20 transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <button 
+                        onClick={() => setIsAddAdminOpen(true)}
+                        className="px-6 py-4 bg-[#05DF72] hover:bg-[#04c966] text-white rounded-[2rem] font-bold text-sm shadow-xl shadow-[#05DF72]/30 transition-all w-full sm:w-auto flex items-center justify-center gap-2"
+                    >
+                        <ShieldCheckIcon size={18} /> Create Admin
+                    </button>
                 </div>
             </div>
 
@@ -179,6 +223,94 @@ export default function AdminUsersClient({ initialUsers }) {
                     </div>
                 )}
             </div>
+
+            {/* Create Admin Modal */}
+            {isAddAdminOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#05DF72]/10 text-[#05DF72] flex items-center justify-center">
+                                    <ShieldCheckIcon size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-slate-900">Create Admin</h3>
+                                    <p className="text-xs text-slate-400 font-medium">Add a new administrator account</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setIsAddAdminOpen(false)}
+                                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors"
+                            >
+                                <BanIcon size={16} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleCreateAdmin} className="p-6 flex flex-col gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Full Name</label>
+                                <input 
+                                    type="text" 
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
+                                    placeholder="e.g. John Doe"
+                                    value={adminForm.name}
+                                    onChange={(e) => setAdminForm({...adminForm, name: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Email Address</label>
+                                <input 
+                                    type="email" 
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
+                                    placeholder="admin@example.com"
+                                    value={adminForm.email}
+                                    onChange={(e) => setAdminForm({...adminForm, email: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Phone Number</label>
+                                <input 
+                                    type="text" 
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
+                                    placeholder="+234..."
+                                    value={adminForm.phone}
+                                    onChange={(e) => setAdminForm({...adminForm, phone: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Password</label>
+                                <input 
+                                    type="password" 
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
+                                    placeholder="••••••••"
+                                    value={adminForm.password}
+                                    onChange={(e) => setAdminForm({...adminForm, password: e.target.value})}
+                                />
+                            </div>
+                            
+                            <div className="pt-4 flex gap-3">
+                                <button 
+                                    type="button"
+                                    onClick={() => setIsAddAdminOpen(false)}
+                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-slate-900 text-white hover:bg-[#05DF72] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isSubmitting ? 'Creating...' : 'Create Admin'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

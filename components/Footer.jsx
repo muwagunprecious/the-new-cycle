@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link";
-import { Recycle as RecycleIcon, Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon, MapPin as MapPinIcon, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon, ArrowUpRight as ArrowUpRightIcon, Loader2 as Loader2Icon } from "lucide-react";
+import { BatteryCharging, Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon, MapPin as MapPinIcon, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon, ArrowUpRight as ArrowUpRightIcon, Loader2 as Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { subscribeNewsletter } from "@/backend-actions/actions/newsletter";
@@ -65,7 +65,7 @@ const Footer = () => {
                     <div className="space-y-8 pr-6">
                         <div className="flex items-center gap-3 group cursor-pointer">
                             <div className="bg-emerald-500 p-2.5 rounded-xl shadow-lg shadow-emerald-500/10 transition-transform group-hover:scale-105">
-                                <RecycleIcon className="text-white fill-white" size={18} />
+                                <BatteryCharging className="text-white fill-white" size={18} />
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-xl font-bold text-white tracking-tighter leading-none">Go<span className="text-emerald-500">Cycle</span></span>

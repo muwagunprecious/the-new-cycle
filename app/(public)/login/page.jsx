@@ -2,7 +2,7 @@
 import { useState, Suspense } from "react"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/lib/features/auth/authSlice"
-import { loginUser, logoutUser } from "@/backend-actions/actions/auth"
+import { loginUser, logoutUser, verifyAdmin2FA, resendAdmin2FA } from "@/backend-actions/actions/auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShieldCheck as ShieldCheckIcon, Mail as MailIcon, Lock as LockIcon, Loader as LoaderIcon, Zap as ZapIcon, Eye as EyeIcon, EyeOff as EyeOffIcon } from "lucide-react"
 import Link from "next/link"
@@ -17,8 +17,10 @@ function LoginContent() {
     const redirect = searchParams.get('redirect')
 
     const [isLoading, setIsLoading] = useState(false)
-    const [step, setStep] = useState('LOGIN') // LOGIN | VERIFY
+    const [step, setStep] = useState('LOGIN') // LOGIN | VERIFY | ADMIN_2FA
     const [otp, setOtp] = useState('')
+    const [twoFACode, setTwoFACode] = useState('')
+    const [twoFAData, setTwoFAData] = useState(null) // { userId, email, user }
     const [showPassword, setShowPassword] = useState(false)
     const [formData, setFormData] = useState({
         identifier: '',
@@ -44,6 +46,21 @@ function LoginContent() {
 
             if (!result.success) {
                 throw new Error(result.error)
+            }
+
+            // ─── Admin 2FA Gate ───
+            if (result.requires2FA || result.data?.requires2FA) {
+                const data = result.data || result;
+                dispatch(hideLoader())
+                setIsLoading(false)
+                setTwoFAData({
+                    userId: data.userId,
+                    email: data.email,
+                    user: data.user
+                })
+                setStep('ADMIN_2FA')
+                toast("2FA code sent to your email.", { icon: "🔐" })
+                return
             }
 
             if (result.requiresVerification) {
@@ -167,6 +184,51 @@ function LoginContent() {
         }
     }
 
+    const handleAdmin2FA = async (e) => {
+        e.preventDefault()
+        if (!twoFACode || twoFACode.length !== 6) {
+            return toast.error("Please enter the 6-digit code from your email")
+        }
+
+        setIsLoading(true)
+        dispatch(showLoader("Verifying 2FA code..."))
+
+        try {
+            const result = await verifyAdmin2FA(twoFAData.userId, twoFACode)
+
+            if (!result.success) {
+                throw new Error(result.error)
+            }
+
+            dispatch(setCredentials(result.data.user))
+            dispatch(hideLoader())
+            setIsLoading(false)
+            toast.success("2FA verified! Welcome back, Admin.")
+            router.push('/admin')
+        } catch (error) {
+            dispatch(hideLoader())
+            setIsLoading(false)
+            toast.error(error.message)
+        }
+    }
+
+    const handleResend2FA = async () => {
+        if (!twoFAData?.userId) return
+        dispatch(showLoader("Resending 2FA code..."))
+        try {
+            const res = await resendAdmin2FA(twoFAData.userId)
+            dispatch(hideLoader())
+            if (res.success) {
+                toast.success("New 2FA code sent to your email.")
+            } else {
+                toast.error(res.error || "Failed to resend code")
+            }
+        } catch (error) {
+            dispatch(hideLoader())
+            toast.error("Failed to resend code")
+        }
+    }
+
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
@@ -181,10 +243,10 @@ function LoginContent() {
                             <ZapIcon className="text-emerald-500" size={40} />
                         </div>
                         <h1 className="text-3xl font-bold text-slate-950 mb-2 tracking-tight">
-                            {step === 'LOGIN' ? 'Welcome Back' : 'Security Check'}
+                            {step === 'LOGIN' ? 'Welcome Back' : step === 'ADMIN_2FA' ? 'Admin Verification' : 'Security Check'}
                         </h1>
                         <p className="text-slate-500 font-medium text-sm">
-                            {step === 'LOGIN' ? 'Log in to your GoCycle account' : `Verifying ${formData.identifier}`}
+                            {step === 'LOGIN' ? 'Log in to your GoCycle account' : step === 'ADMIN_2FA' ? `Code sent to ${twoFAData?.email || 'your email'}` : `Verifying ${formData.identifier}`}
                         </p>
                     </div>
 
@@ -240,6 +302,56 @@ function LoginContent() {
                             >
                                 SECURE LOGIN
                             </Button>
+                        </form>
+                    ) : step === 'ADMIN_2FA' ? (
+                        <form onSubmit={handleAdmin2FA} className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                            <div className="text-center">
+                                <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-50 rounded-3xl border border-emerald-200 shadow-sm mx-auto mb-4">
+                                    <span className="text-4xl">🔐</span>
+                                </div>
+                                <p className="text-slate-600 text-sm font-medium">
+                                    A 6-digit verification code has been sent to your admin email address. Enter it below to complete your secure login.
+                                </p>
+                            </div>
+
+                            <div className="flex justify-center">
+                                <input
+                                    type="text"
+                                    placeholder="0 0 0 0 0 0"
+                                    className="text-center text-4xl tracking-[0.5em] w-full max-w-sm py-6 bg-slate-50 border border-black/[0.06] rounded-2xl outline-none focus:border-emerald-500/50 focus:bg-white text-slate-950 font-bold placeholder:text-slate-300 transition-all shadow-inner"
+                                    value={twoFACode}
+                                    onChange={e => setTwoFACode(e.target.value.replace(/\D/g, ''))}
+                                    maxLength={6}
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="space-y-4">
+                                <Button
+                                    type="submit"
+                                    loading={isLoading}
+                                    loadingText="VERIFYING..."
+                                    className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm"
+                                >
+                                    VERIFY & LOGIN
+                                </Button>
+                                <div className="flex items-center justify-between">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setStep('LOGIN'); setTwoFACode(''); setTwoFAData(null); }}
+                                        className="text-[10px] font-black text-slate-500 hover:text-emerald-400 transition-all uppercase tracking-widest"
+                                    >
+                                        ← Back to Login
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleResend2FA}
+                                        className="text-[10px] font-black text-emerald-600 hover:text-emerald-400 transition-all uppercase tracking-widest"
+                                    >
+                                        Resend Code
+                                    </button>
+                                </div>
+                            </div>
                         </form>
                     ) : (
                         <form onSubmit={handleVerify} className="space-y-8 animate-in fade-in slide-in-from-right-4">

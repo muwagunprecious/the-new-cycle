@@ -318,7 +318,63 @@ export async function loginUser(identifier, password) {
             return ApiResponse.error("Account configuration error. Please contact support.", 500);
         }
 
-        // GENERATE JWT (Zero Trust Mirror)
+        // ─── 2FA Gate for Admin/Super Admin ───────────────────────────────
+        const adminRoles = ['ADMIN', 'SUPER_ADMIN'];
+        if (adminRoles.includes(user.role)) {
+            // Generate 6-digit 2FA code
+            const twoFACode = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // Store the 2FA code in the user record (reuses verificationCode field)
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { verificationCode: twoFACode }
+            });
+
+            // Send 2FA code via email
+            if (user.email) {
+                const { sendEmail: mailer } = await import('@/backend-actions/lib/email');
+                const yr = new Date().getFullYear();
+                await mailer({
+                    to: user.email,
+                    subject: `${twoFACode} – Go-Cycle Admin 2FA Code`,
+                    html: `
+                    <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+                        <div style="background:#0f172a;padding:24px;text-align:center;">
+                            <h1 style="color:#05DF72;margin:0;font-size:22px;">Go-Cycle</h1>
+                            <p style="color:#94a3b8;margin:4px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Admin Security Verification</p>
+                        </div>
+                        <div style="padding:28px;text-align:center;">
+                            <div style="width:64px;height:64px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;border:2px solid #bbf7d0;">
+                                <span style="font-size:28px;">🔐</span>
+                            </div>
+                            <h2 style="color:#0f172a;margin-top:0;">Two-Factor Authentication</h2>
+                            <p style="color:#475569;">A sign-in attempt requires verification. Use the code below to complete your admin login:</p>
+                            <div style="background:#f8fafc;border:2px dashed #05DF72;border-radius:16px;padding:28px;margin:24px 0;">
+                                <p style="margin:0 0 8px;font-size:11px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:2px;">Your 2FA Code</p>
+                                <h2 style="margin:0;font-size:40px;color:#0f172a;letter-spacing:10px;font-weight:800;">${twoFACode}</h2>
+                            </div>
+                            <p style="color:#ef4444;font-size:12px;font-weight:bold;">⚠️ This code expires in 10 minutes. Do not share it.</p>
+                        </div>
+                        <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                            <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle Nigeria. All rights reserved.</p>
+                        </div>
+                    </div>`
+                }).catch(err => logger.warn("Admin 2FA email failed", err));
+            }
+
+            logger.info(`[2FA] Code sent to admin ${user.email}`, { userId: user.id });
+
+            // Return requires2FA flag — do NOT issue JWT yet
+            return ApiResponse.success({
+                requires2FA: true,
+                userId: user.id,
+                email: user.email ? user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3') : null,
+                user: userWithoutPassword
+            }, "2FA verification required");
+        }
+        // ─── End 2FA Gate ─────────────────────────────────────────────────
+
+        // GENERATE JWT (Zero Trust Mirror) — Non-admin users
         const { signToken } = await import("../lib/jwt");
         const token = signToken({ userId: user.id, role: user.role }, "24h");
 
@@ -526,6 +582,107 @@ export async function updateUserProfile(userId, data) {
     } catch (error) {
         logger.error("Update Profile Error", error)
         return ApiResponse.error("Failed to update profile details")
+    }
+}
+
+export async function verifyAdmin2FA(userId, code) {
+    try {
+        if (!userId || !code) {
+            return ApiResponse.error("User ID and 2FA code are required", 400);
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+
+        if (!user) return ApiResponse.error("User not found", 404);
+
+        // Check the 2FA code
+        if (user.verificationCode !== code) {
+            logger.warn(`[2FA] Invalid code attempt for admin ${user.email}`, { userId });
+            return ApiResponse.error("Invalid 2FA code. Please check your email and try again.", 400);
+        }
+
+        // Clear the code after successful verification
+        await prisma.user.update({
+            where: { id: userId },
+            data: { verificationCode: null }
+        });
+
+        // NOW issue the JWT
+        const { signToken } = await import("../lib/jwt");
+        const token = signToken({ userId: user.id, role: user.role }, "24h");
+
+        // Set secure HttpOnly cookie
+        const headerList = await headers();
+        const cookieStore = await cookies();
+        cookieStore.set("gocycle_auth_token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production" && !headerList.get('host')?.includes('localhost'),
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24,
+            path: "/"
+        });
+
+        const { password: _, ...userWithoutPassword } = user;
+        logger.info(`[2FA] Admin ${user.email} verified successfully`, { userId });
+
+        return ApiResponse.success({ user: userWithoutPassword, token }, "2FA verified. Login successful.");
+    } catch (error) {
+        logger.error("Verify Admin 2FA Error", error);
+        return ApiResponse.error("2FA verification failed");
+    }
+}
+
+export async function resendAdmin2FA(userId) {
+    try {
+        if (!userId) return ApiResponse.error("User ID is required", 400);
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) return ApiResponse.error("User not found", 404);
+
+        const adminRoles = ['ADMIN', 'SUPER_ADMIN'];
+        if (!adminRoles.includes(user.role)) {
+            return ApiResponse.error("Unauthorized", 403);
+        }
+
+        const twoFACode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { verificationCode: twoFACode }
+        });
+
+        if (user.email) {
+            const { sendEmail: mailer } = await import('@/backend-actions/lib/email');
+            const yr = new Date().getFullYear();
+            await mailer({
+                to: user.email,
+                subject: `${twoFACode} – Go-Cycle Admin 2FA Code (Resent)`,
+                html: `
+                <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+                    <div style="background:#0f172a;padding:24px;text-align:center;">
+                        <h1 style="color:#05DF72;margin:0;font-size:22px;">Go-Cycle</h1>
+                        <p style="color:#94a3b8;margin:4px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Admin Security Verification</p>
+                    </div>
+                    <div style="padding:28px;text-align:center;">
+                        <h2 style="color:#0f172a;margin-top:0;">New 2FA Code</h2>
+                        <p style="color:#475569;">Here is your new verification code:</p>
+                        <div style="background:#f8fafc;border:2px dashed #05DF72;border-radius:16px;padding:28px;margin:24px 0;">
+                            <p style="margin:0 0 8px;font-size:11px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:2px;">Your 2FA Code</p>
+                            <h2 style="margin:0;font-size:40px;color:#0f172a;letter-spacing:10px;font-weight:800;">${twoFACode}</h2>
+                        </div>
+                        <p style="color:#ef4444;font-size:12px;font-weight:bold;">⚠️ This code expires in 10 minutes. Do not share it.</p>
+                    </div>
+                    <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                        <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle Nigeria. All rights reserved.</p>
+                    </div>
+                </div>`
+            }).catch(err => logger.warn("Admin 2FA resend email failed", err));
+        }
+
+        return ApiResponse.success(null, "New 2FA code sent to your email.");
+    } catch (error) {
+        logger.error("Resend Admin 2FA Error", error);
+        return ApiResponse.error("Failed to resend 2FA code");
     }
 }
 

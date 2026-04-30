@@ -1,4 +1,4 @@
-import { Search, ShoppingCart, Recycle as RecycleIcon, Leaf as LeafIcon, Bell as BellIcon, LogOut as LogOutIcon, LayoutDashboard as LayoutDashboardIcon } from "lucide-react";
+import { Search, ShoppingCart, BatteryCharging, Leaf as LeafIcon, Bell as BellIcon, LogOut as LogOutIcon, LayoutDashboard as LayoutDashboardIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -52,7 +52,7 @@ const Navbar = () => {
                 <Link href="/" className="flex flex-col items-start gap-1 group">
                     <div className="flex items-center gap-2.5">
                         <div className="bg-emerald-500 p-2 rounded-xl shadow-sm transition-transform group-hover:scale-105">
-                            <RecycleIcon className="text-white" size={20} />
+                            <BatteryCharging className="text-white" size={20} />
                         </div>
                         <span className="text-2xl font-bold tracking-tighter text-slate-950">Go<span className="text-emerald-500">Cycle</span></span>
                     </div>

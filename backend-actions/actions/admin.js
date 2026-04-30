@@ -5,6 +5,8 @@ import { logger } from "@/backend-actions/lib/api-utils"
 import { sendEmail, sellerWalletCreditEmail, buyerVerifiedEmail, buyerRejectedEmail } from "@/backend-actions/lib/email"
 import { revalidatePath } from "next/cache"
 import prisma from "@/backend-actions/lib/prisma"
+import bcrypt from "bcryptjs"
+import { generateId } from "@/backend-actions/lib/api-utils"
 
 export async function getPendingSellers() {
     try {
@@ -619,5 +621,54 @@ export async function runEmergencyDBDiagnostic() {
         });
     } catch (error) {
         return ApiResponse.error(`Diag Error: ${error.message}`);
+    }
+}
+
+export async function createAdminAccount(data) {
+    try {
+        const { name, email, phone, password } = data;
+        
+        if (!name || !email || !password || !phone) {
+            return ApiResponse.error("Name, email, phone, and password are required.");
+        }
+
+        // Check for existing users
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { phone }
+                ]
+            }
+        });
+
+        if (existingUser) {
+            return ApiResponse.error("A user with this email or phone number already exists.");
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newAdmin = await prisma.user.create({
+            data: {
+                id: generateId("admin"),
+                name,
+                fullName: name,
+                email,
+                password: hashedPassword,
+                phone,
+                role: 'ADMIN',
+                image: "",
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                accountStatus: 'approved',
+                status: 'active'
+            }
+        });
+
+        revalidatePath('/admin/users');
+        return ApiResponse.success({ user: newAdmin }, "Admin account created successfully");
+    } catch (error) {
+        logger.error("Create Admin Error", error);
+        return ApiResponse.error("Failed to create admin account");
     }
 }
