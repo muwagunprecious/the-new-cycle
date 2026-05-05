@@ -31,6 +31,9 @@ export const metadata = {
         description: "Nigeria's #1 marketplace for sustainable battery recycling. Recycle your batteries in Lagos with GoCycle.ng.",
         creator: "@GoCycleNG",
     },
+    verification: {
+        google: 'google2801bcae551181ea',
+    },
 };
 
 export default function RootLayout({ children }) {
