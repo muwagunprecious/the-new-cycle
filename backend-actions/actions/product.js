@@ -3,7 +3,8 @@
 import { ApiResponse, handleDbError } from "@/backend-actions/lib/api-response"
 import { mapProductToFrontend, logger } from "@/backend-actions/lib/api-utils"
 import { revalidatePath } from "next/cache"
-import prisma from "@/backend-actions/lib/prisma"
+import prisma, { withRetry } from "@/backend-actions/lib/prisma"
+
 import { sendEmail, productApprovedEmail, productRejectedEmail } from "@/backend-actions/lib/email"
 import { BATTERY_TYPE_MAPPING } from "@/lib/pricing"
 import { rateLimit } from "../lib/rate-limit"
@@ -36,7 +37,9 @@ export async function createProduct(data, userId) {
         const collectionDateEnd = data.collectionDates?.length ? new Date(data.collectionDates[data.collectionDates.length - 1]) : new Date()
 
 
-        const product = await prisma.product.create({
+        console.log(`SERVER: Attempting DB create for product: ${data.name}. Image count: ${data.images?.length || 0}`);
+        
+        const product = await withRetry(() => prisma.product.create({
             data: {
                 name: data.name,
                 description: data.comments || "",
@@ -57,7 +60,10 @@ export async function createProduct(data, userId) {
                 inStock: true,
                 status: "pending" // All products start as pending for manual approval
             }
-        })
+        }))
+        
+        console.log(`SERVER: DB create successful for: ${product.id}`);
+
 
         // Notify Admins
         try {
