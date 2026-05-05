@@ -13,10 +13,10 @@ const AboutPage = () => {
                     <div className="max-w-3xl space-y-6">
                         <h3 className="text-emerald-500 font-black text-[10px] uppercase tracking-[0.4em]">Company Profile</h3>
                         <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase leading-[0.9]">
-                            About <span className="text-emerald-500">Gocycle</span>
+                            About <span className="text-emerald-500">Gocycle.ng</span>
                         </h1>
                         <p className="text-xl font-bold text-slate-400 tracking-tight uppercase">
-                            The Architects of Africa’s Circular Economy
+                            The Architects of Nigeria’s Circular Economy
                         </p>
                     </div>
                 </div>
@@ -158,7 +158,7 @@ const AboutPage = () => {
                     <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">Join the Circular Revolution</h2>
                     <div className="flex flex-wrap justify-center gap-10">
                         <div className="flex items-center gap-3 text-emerald-500 font-bold uppercase tracking-widest text-xs">
-                            <Mail size={18} /> Hello@Gocyce.Africa
+                            <Mail size={18} /> Hello@Gocycle.ng
                         </div>
                         <div className="flex items-center gap-3 text-emerald-500 font-bold uppercase tracking-widest text-xs">
                             <Phone size={18} /> +234 704-728-3000

@@ -1,11 +1,11 @@
 import nodemailer from 'nodemailer'
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'mail.gocycle.africa',
+    host: process.env.SMTP_HOST || 'mail.gocycle.ng',
     port: parseInt(process.env.SMTP_PORT || '465'),
     secure: true, // SSL
     auth: {
-        user: process.env.SMTP_USER || 'admin@gocycle.africa',
+        user: process.env.SMTP_USER || 'admin@gocycle.ng',
         pass: process.env.SMTP_PASS,
     },
 })
