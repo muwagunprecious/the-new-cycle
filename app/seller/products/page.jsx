@@ -14,6 +14,8 @@ import { updateStoreBankDetails, updateStoreAddress } from "@/backend-actions/ac
 import { CONSTANTS } from "@/lib/mockService"
 import { getPricingConfig } from "@/backend-actions/actions/settings"
 import { DEFAULT_BATTERY_PRICES, BATTERY_SIZE_OPTIONS, BATTERY_TYPES } from "@/lib/pricing"
+import { addWatermark } from "@/lib/image-utils"
+
 
 const NIGERIAN_BANKS = {
     "Access Bank": "044",
@@ -323,11 +325,13 @@ export default function SellerProducts() {
             }
 
             const reader = new FileReader()
-            reader.onloadend = () => {
-                setFormData(prev => ({ ...prev, images: [...prev.images, reader.result] }))
+            reader.onloadend = async () => {
+                const watermarked = await addWatermark(reader.result)
+                setFormData(prev => ({ ...prev, images: [...prev.images, watermarked] }))
             }
             reader.readAsDataURL(file)
         })
+
     }
 
     const removeImage = (index) => {
