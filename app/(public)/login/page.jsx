@@ -2,7 +2,7 @@
 import { useState, Suspense } from "react"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/lib/features/auth/authSlice"
-import { loginUser, logoutUser, verifyAdmin2FA, resendAdmin2FA } from "@/backend-actions/actions/auth"
+import { loginUser, logoutUser, verifyAdmin2FA, resendAdmin2FA, changePassword, verifyOTP } from "@/backend-actions/actions/auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShieldCheck as ShieldCheckIcon, Mail as MailIcon, Lock as LockIcon, Loader as LoaderIcon, Zap as ZapIcon, Eye as EyeIcon, EyeOff as EyeOffIcon } from "lucide-react"
 import Link from "next/link"
@@ -24,7 +24,9 @@ function LoginContent() {
     const [showPassword, setShowPassword] = useState(false)
     const [formData, setFormData] = useState({
         identifier: '',
-        password: ''
+        password: '',
+        newPassword: '',
+        confirmPassword: ''
     })
 
     const handleChange = (e) => {
@@ -134,7 +136,6 @@ function LoginContent() {
         dispatch(showLoader("Verifying account..."))
 
         try {
-            const { verifyOTP } = await import("@/backend-actions/actions/auth")
             const res = await verifyOTP(formData.identifier, otp)
 
             if (res.success) {
@@ -200,11 +201,52 @@ function LoginContent() {
                 throw new Error(result.error)
             }
 
+            if (result.data.user.needsPasswordChange) {
+                setStep('CHANGE_PASSWORD')
+                toast("Please set a new password for your admin account.", { icon: "🔐" })
+                return
+            }
+
             dispatch(setCredentials(result.data.user))
             dispatch(hideLoader())
             setIsLoading(false)
             toast.success("2FA verified! Welcome back, Admin.")
             router.push('/admin')
+        } catch (error) {
+            dispatch(hideLoader())
+            setIsLoading(false)
+            toast.error(error.message)
+        }
+    }
+
+    const handlePasswordChange = async (e) => {
+        e.preventDefault()
+        if (!formData.newPassword || !formData.confirmPassword) {
+            return toast.error("Please fill in both password fields")
+        }
+        if (formData.newPassword !== formData.confirmPassword) {
+            return toast.error("Passwords do not match")
+        }
+        if (formData.newPassword.length < 8) {
+            return toast.error("Password must be at least 8 characters long")
+        }
+
+        setIsLoading(true)
+        dispatch(showLoader("Updating password..."))
+
+        try {
+            const res = await changePassword(twoFAData.userId, formData.password, formData.newPassword)
+
+            if (res.success) {
+                toast.success("Password updated successfully!")
+                // Now complete the login
+                dispatch(setCredentials(twoFAData.user))
+                dispatch(hideLoader())
+                setIsLoading(false)
+                router.push('/admin')
+            } else {
+                throw new Error(res.error)
+            }
         } catch (error) {
             dispatch(hideLoader())
             setIsLoading(false)
@@ -243,10 +285,10 @@ function LoginContent() {
                             <ZapIcon className="text-emerald-500" size={40} />
                         </div>
                         <h1 className="text-3xl font-bold text-slate-950 mb-2 tracking-tight">
-                            {step === 'LOGIN' ? 'Welcome Back' : step === 'ADMIN_2FA' ? 'Admin Verification' : 'Security Check'}
+                            {step === 'LOGIN' ? 'Welcome Back' : step === 'ADMIN_2FA' ? 'Admin Verification' : step === 'CHANGE_PASSWORD' ? 'Update Password' : 'Security Check'}
                         </h1>
                         <p className="text-slate-500 font-medium text-sm">
-                            {step === 'LOGIN' ? 'Log in to your GoCycle account' : step === 'ADMIN_2FA' ? `Code sent to ${twoFAData?.email || 'your email'}` : `Verifying ${formData.identifier}`}
+                            {step === 'LOGIN' ? 'Log in to your GoCycle account' : step === 'ADMIN_2FA' ? `Code sent to ${twoFAData?.email || 'your email'}` : step === 'CHANGE_PASSWORD' ? 'One-time security update required' : `Verifying ${formData.identifier}`}
                         </p>
                     </div>
 
@@ -352,6 +394,58 @@ function LoginContent() {
                                     </button>
                                 </div>
                             </div>
+                        </form>
+                    ) : step === 'CHANGE_PASSWORD' ? (
+                        <form onSubmit={handlePasswordChange} className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                            <div className="text-center">
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-sm mx-auto mb-4">
+                                    <ShieldCheckIcon className="text-emerald-500" size={32} />
+                                </div>
+                                <p className="text-slate-600 text-sm font-medium mb-6">
+                                    For security purposes, please set a new strong password for your admin account.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">New Password</label>
+                                <div className="relative group">
+                                    <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        name="newPassword"
+                                        value={formData.newPassword}
+                                        placeholder="••••••••"
+                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400"
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Confirm New Password</label>
+                                <div className="relative group">
+                                    <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        placeholder="••••••••"
+                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400"
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                loading={isLoading}
+                                loadingText="UPDATING..."
+                                className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm mt-4"
+                            >
+                                UPDATE PASSWORD & LOGIN
+                            </Button>
                         </form>
                     ) : (
                         <form onSubmit={handleVerify} className="space-y-8 animate-in fade-in slide-in-from-right-4">

@@ -47,6 +47,7 @@ model User {
   buyerOrders        Order[]        @relation("BuyerRelation")
   ratings            Rating[]
   store              Store?
+  needsPasswordChange Boolean        @default(false)
   blogs              Blog[]
 
   @@index([role])

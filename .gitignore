@@ -13,3 +13,4 @@ build/
 prisma/generated/
 /express-api/node_modules/
 /express-api/.env
+.next_old/

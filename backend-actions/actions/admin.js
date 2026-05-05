@@ -4,7 +4,7 @@ import { ApiResponse } from "@/backend-actions/lib/api-response"
 import { logger } from "@/backend-actions/lib/api-utils"
 import { sendEmail, sellerWalletCreditEmail, buyerVerifiedEmail, buyerRejectedEmail } from "@/backend-actions/lib/email"
 import { revalidatePath } from "next/cache"
-import prisma from "@/backend-actions/lib/prisma"
+import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 import bcrypt from "bcryptjs"
 import { generateId } from "@/backend-actions/lib/api-utils"
 
@@ -148,7 +148,7 @@ export async function getAdminDashboardSummary() {
             pendingPayoutsData,
             recentOrders,
             pendingVerifications
-        ] = await Promise.all([
+        ] = await withRetry(() => Promise.all([
             prisma.user.count({ where: { role: 'SELLER' } }),
             prisma.product.count(),
             prisma.order.count(),
@@ -178,12 +178,17 @@ export async function getAdminDashboardSummary() {
             prisma.order.findMany({
                 where: { paymentStatus: 'pending' },
                 orderBy: { createdAt: 'desc' },
-                include: {
+                take: 10, // Limit to 10 for dashboard overview
+                select: {
+                    id: true,
+                    total: true,
+                    paymentSenderName: true,
+                    createdAt: true,
                     user: { select: { name: true } },
                     store: { select: { name: true } }
                 }
             })
-        ])
+        ]))
 
         return ApiResponse.success({
             products: productCount,
@@ -214,7 +219,7 @@ export async function getAdminDashboardSummary() {
 export async function getAllUsers(page = 1, limit = 50) {
     try {
         const skip = (page - 1) * limit
-        const [users, total] = await Promise.all([
+        const [users, total] = await withRetry(() => Promise.all([
             prisma.user.findMany({
                 skip,
                 take: limit,
@@ -230,7 +235,7 @@ export async function getAllUsers(page = 1, limit = 50) {
                 }
             }),
             prisma.user.count()
-        ])
+        ]))
 
         return ApiResponse.success({
             users,
@@ -661,7 +666,8 @@ export async function createAdminAccount(data) {
                 isEmailVerified: true,
                 isPhoneVerified: true,
                 accountStatus: 'approved',
-                status: 'active'
+                status: 'active',
+                needsPasswordChange: true
             }
         });
 

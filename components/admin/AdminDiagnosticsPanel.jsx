@@ -1,4 +1,4 @@
-'use client'
+    'use client'
 
 import { useEffect, useState, useCallback } from 'react'
 import {
@@ -50,19 +50,25 @@ const formatMs = (ms) => {
 export default function AdminDiagnosticsPanel() {
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
     const [lastRefresh, setLastRefresh] = useState(null)
     const [autoRefresh, setAutoRefresh] = useState(true)
 
     const fetchDiagnostics = useCallback(async () => {
         try {
+            setError(null)
             const res = await fetch('/api/admin/diagnostics', { cache: 'no-store' })
+            if (!res.ok) throw new Error('Network response was not ok')
             const json = await res.json()
             if (json.success) {
                 setData(json.data)
                 setLastRefresh(new Date())
+            } else {
+                throw new Error(json.error || 'Failed to fetch diagnostics')
             }
-        } catch {
-            // Silent fail
+        } catch (err) {
+            console.error('Diagnostics Fetch Error:', err)
+            setError(err.message || 'Network Error')
         } finally {
             setLoading(false)
         }
@@ -78,12 +84,33 @@ export default function AdminDiagnosticsPanel() {
         return () => clearInterval(interval)
     }, [autoRefresh, fetchDiagnostics])
 
-    if (loading) {
+    if (loading && !data) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[...Array(8)].map((_, i) => (
                     <div key={i} className="h-28 bg-slate-100 rounded-2xl animate-pulse" />
                 ))}
+            </div>
+        )
+    }
+
+    if (error && !data) {
+        return (
+            <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-500">
+                    <WifiIcon size={32} />
+                </div>
+                <h3 className="text-xl font-black text-red-900">Network Error</h3>
+                <p className="text-red-700 mt-2 max-w-sm mx-auto">
+                    We couldn't connect to the diagnostics server. Please check your internet connection or try again.
+                </p>
+                <button 
+                    onClick={fetchDiagnostics}
+                    className="mt-6 flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200 active:scale-95"
+                >
+                    <RefreshCwIcon size={18} className={loading ? 'animate-spin' : ''} />
+                    {loading ? 'Retrying...' : 'Retry Connection'}
+                </button>
             </div>
         )
     }

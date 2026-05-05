@@ -13,7 +13,7 @@ export default function PerformanceTracker() {
     const pathname = usePathname()
     const { user } = useSelector(state => state.auth)
     const sessionIdRef = useRef(null)
-    const pageStartRef = useRef(Date.now())
+    const navigationStartRef = useRef(typeof window !== 'undefined' ? performance.now() : Date.now())
 
     // Generate or reuse a session ID
     useEffect(() => {
@@ -31,32 +31,41 @@ export default function PerformanceTracker() {
 
     // Track page load time when route changes
     useEffect(() => {
-        const start = pageStartRef.current
+        // This runs after the new page component has mounted/rendered
+        const end = performance.now()
+        const start = navigationStartRef.current
+        const duration = Math.round(end - start)
+
         const sendMetric = () => {
-            const duration = Date.now() - start
-            // Use sendBeacon for non-blocking
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon('/api/platform-diagnostics/metrics', JSON.stringify({ page: pathname, duration }))
-            } else {
-                fetch('/api/platform-diagnostics/metrics', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ page: pathname, duration }),
-                    keepalive: true
-                }).catch(() => {})
+            // Only report if duration is sane (e.g. < 30s)
+            if (duration > 0 && duration < 30000) {
+                const payload = JSON.stringify({ page: pathname, duration })
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon('/api/platform-diagnostics/metrics', payload)
+                } else {
+                    fetch('/api/platform-diagnostics/metrics', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payload,
+                        keepalive: true
+                    }).catch(() => {})
+                }
             }
         }
 
-        // Use requestIdleCallback so it doesn't impact performance
+        // Use requestIdleCallback so it doesn't impact interactivity
         if (typeof window !== 'undefined') {
             if ('requestIdleCallback' in window) {
-                window.requestIdleCallback(sendMetric, { timeout: 2000 })
+                window.requestIdleCallback(sendMetric, { timeout: 3000 })
             } else {
-                setTimeout(sendMetric, 500)
+                setTimeout(sendMetric, 1000)
             }
         }
 
-        pageStartRef.current = Date.now()
+        // Reset for the NEXT navigation (will be updated when pathname changes)
+        return () => {
+            navigationStartRef.current = performance.now()
+        }
     }, [pathname])
 
     // Heartbeat every 30 seconds

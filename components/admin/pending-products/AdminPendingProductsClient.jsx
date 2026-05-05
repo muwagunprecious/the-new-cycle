@@ -1,5 +1,10 @@
+'use client'
+
+import { useState } from "react"
 import { useSelector } from "react-redux"
 import { getPendingAdminProducts, adminDeleteProduct, adminApproveProduct, adminRejectProduct } from "@/backend-actions/actions/product"
+import { toast } from "react-hot-toast"
+import { Search as SearchIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, ExternalLink as ExternalLinkIcon, Trash2 as Trash2Icon } from "lucide-react"
 
 export default function AdminPendingProductsClient({ initialProducts }) {
     const { user } = useSelector(state => state.auth)

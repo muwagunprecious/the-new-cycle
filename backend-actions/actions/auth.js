@@ -112,7 +112,8 @@ export async function registerUser(userData) {
                     bankName: userData.bankName || null,
                     accountNumber: userData.accountNumber || null,
                     accountName: userData.accountName || null,
-                    verificationCode: otp
+                    verificationCode: otp,
+                    needsPasswordChange: role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'SUPER_ADMIN'
                 }
             })
 
@@ -549,7 +550,10 @@ export async function changePassword(userId, currentPassword, newPassword) {
         const hashedNewPassword = await bcrypt.hash(newPassword, 10)
         await prisma.user.update({
             where: { id: userId },
-            data: { password: hashedNewPassword }
+            data: { 
+                password: hashedNewPassword,
+                needsPasswordChange: false
+            }
         })
 
         return ApiResponse.success(null, "Password changed successfully")
@@ -622,7 +626,7 @@ export async function verifyAdmin2FA(userId, code) {
             path: "/"
         });
 
-        const { password: _, ...userWithoutPassword } = user;
+        const { password: _, verificationCode: __, ...userWithoutPassword } = user;
         logger.info(`[2FA] Admin ${user.email} verified successfully`, { userId });
 
         return ApiResponse.success({ user: userWithoutPassword, token }, "2FA verified. Login successful.");

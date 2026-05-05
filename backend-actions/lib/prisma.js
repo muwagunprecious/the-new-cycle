@@ -33,8 +33,10 @@ export async function withRetry(fn, retries = 1) {
       error?.code === 'P1001' ||
       error?.code === 'P1002' ||
       error?.code === 'P1008' ||
+      error?.code === 'P2024' ||
       error?.message?.includes("Can't reach database") ||
-      error?.message?.includes("connection")
+      error?.message?.includes("connection") ||
+      error?.message?.includes("pool timeout")
 
     if (retries > 0 && isConnectionError) {
       console.warn(`[PRISMA] Connection error, retrying... (${retries} left)`)

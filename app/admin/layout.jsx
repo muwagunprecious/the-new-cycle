@@ -5,6 +5,7 @@ export const metadata = {
     description: "GoCart. - Admin",
 };
 
+
 export default function RootAdminLayout({ children }) {
 
     return (

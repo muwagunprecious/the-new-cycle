@@ -6,10 +6,15 @@ const SECRET = new TextEncoder().encode(
 );
 
 /**
- * Global RBAC Middleware (Zero Trust)
+ * Global RBAC Proxy (Zero Trust) — Next.js 16 proxy.js convention
  */
-export async function middleware(request) {
+export async function proxy(request) {
     const { pathname } = request.nextUrl;
+
+    // 0. Never intercept API routes â€” let them pass through always
+    if (pathname.startsWith('/api/')) {
+        return NextResponse.next();
+    }
 
     // 1. Define Route Access Whitelist
     const routeAccess = {
@@ -18,8 +23,10 @@ export async function middleware(request) {
         "/buyer": ["USER"]
     };
 
-    // 2. Identify if route is protected
-    const protectedPrefix = Object.keys(routeAccess).find(prefix => pathname.startsWith(prefix));
+    // 2. Identify if route is protected (exact prefix match: /admin, /admin/*, not /administration)
+    const protectedPrefix = Object.keys(routeAccess).find(prefix =>
+        pathname === prefix || pathname.startsWith(prefix + '/')
+    );
 
     if (!protectedPrefix) {
         return NextResponse.next();
@@ -63,11 +70,11 @@ export async function middleware(request) {
     }
 }
 
-// 6. Matcher Config
+// 6. Matcher Config â€” explicitly exclude /api/, _next, and static files
 export const config = {
     matcher: [
-        "/admin/:path*",
-        "/seller/:path*",
-        "/buyer/:path*",
+        '/admin/:path*',
+        '/seller/:path*',
+        '/buyer/:path*',
     ],
 };

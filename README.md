@@ -1,13 +1,13 @@
 <div align="center">
-  <h1><img src="https://gocartshop.in/favicon.ico" width="20" height="20" alt="GoCart Favicon">
-   GoCart</h1>
+  <h1><img src="/favicon.ico" width="20" height="20" alt="GoCycle Favicon">
+   GoCycle</h1>
   <p>
-    An open-source multi-vendor e-commerce platform built with Next.js and Tailwind CSS.
+    A tech-enabled battery recycling and sustainability platform for Africa. 
+    Transforming hazardous e-waste into immediate value through a secure, digital-first marketplace.
   </p>
   <p>
-    <a href="https://github.com/GreatStackDev/goCart/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/GreatStackDev/goCart?style=for-the-badge" alt="License"></a>
-    <a href="https://github.com/GreatStackDev/goCart/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge" alt="PRs Welcome"></a>
-    <a href="https://github.com/GreatStackDev/goCart/issues"><img src="https://img.shields.io/github/issues/GreatStackDev/goCart?style=for-the-badge" alt="GitHub issues"></a>
+    <a href="#"><img src="https://img.shields.io/badge/Status-Beta-brightgreen.svg?style=for-the-badge" alt="Status"></a>
+    <a href="#"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge" alt="PRs Welcome"></a>
   </p>
 </div>
 
@@ -25,10 +25,11 @@
 
 ## Features
 
-- **Multi-Vendor Architecture:** Allows multiple vendors to register, manage their own products, and sell on a single platform.
-- **Customer-Facing Storefront:** A beautiful and responsive user interface for customers to browse and purchase products.
-- **Vendor Dashboards:** Dedicated dashboards for vendors to manage products, view sales analytics, and track orders.
-- **Admin Panel:** A comprehensive dashboard for platform administrators to oversee vendors, products, and commissions.
+- **Battery Recycling Marketplace:** A secure platform for buying and selling used batteries and e-waste.
+- **Smart Pickup Scheduling:** Tech-enabled logistics for collecting hazardous waste from individuals and businesses.
+- **Sustainability Dashboard:** Real-time tracking of environmental impact, including CO2 reduction and waste diversion stats.
+- **Corporate ESG Reporting:** Tools for businesses to manage their environmental liabilities and generate compliance reports.
+- **Duly Verified Participants:** All vendors and buyers are vetted through a robust verification process (QoreID integration).
 
 ## 🛠️ Tech Stack <a name="-tech-stack"></a>
 
