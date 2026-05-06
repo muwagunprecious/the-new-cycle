@@ -1,6 +1,9 @@
+import { logToFile } from "./server-logger"
+
 /**
  * Standardized API response structure
  */
+
 
 /**
  * Centralized Prisma/DB error handler.
@@ -9,6 +12,9 @@
 export function handleDbError(error, context = "") {
     const msg = error?.message || ""
     const code = error?.code || ""
+
+    logToFile(`DB ERROR [${context}]`, { code, message: msg });
+
 
     // Connection / reachability errors
     if (

@@ -4,6 +4,8 @@ import { ApiResponse, handleDbError } from "@/backend-actions/lib/api-response"
 import { mapProductToFrontend, logger } from "@/backend-actions/lib/api-utils"
 import { revalidatePath } from "next/cache"
 import prisma, { withRetry } from "@/backend-actions/lib/prisma"
+import { logToFile } from "@/backend-actions/lib/server-logger"
+
 
 import { sendEmail, productApprovedEmail, productRejectedEmail } from "@/backend-actions/lib/email"
 import { BATTERY_TYPE_MAPPING } from "@/lib/pricing"
@@ -26,8 +28,7 @@ export async function createProduct(data, userId) {
 
         if (isNaN(price) || price <= 0) return ApiResponse.error("Invalid price", 400)
         if (units < 0) return ApiResponse.error("Invalid quantity", 400)
-
-        const store = await prisma.store.findUnique({ where: { userId } })
+        const store = await withRetry(() => prisma.store.findUnique({ where: { userId } }))
         if (!store) return ApiResponse.error("Store not found. Please create a store first.", 404)
         if (store.status !== 'approved' || !store.isActive) {
             return ApiResponse.error("Your store must be 'Approved' and 'Active' to list batteries.", 403)
@@ -36,8 +37,13 @@ export async function createProduct(data, userId) {
         const collectionDateStart = data.collectionDates?.length ? new Date(data.collectionDates[0]) : new Date()
         const collectionDateEnd = data.collectionDates?.length ? new Date(data.collectionDates[data.collectionDates.length - 1]) : new Date()
 
+        logToFile(`CREATING PRODUCT: ${data.name}`, { 
+            imageCount: data.images?.length || 0,
+            payloadSize: JSON.stringify(data).length 
+        });
 
         console.log(`SERVER: Attempting DB create for product: ${data.name}. Image count: ${data.images?.length || 0}`);
+
         
         const product = await withRetry(() => prisma.product.create({
             data: {
