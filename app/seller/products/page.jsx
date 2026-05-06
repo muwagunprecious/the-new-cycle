@@ -257,6 +257,16 @@ export default function SellerProducts() {
         }
     }, [isUploadModalOpen])
 
+    const getImageUrl = (image) => {
+        if (!image) return '/placeholder-battery.jpg'
+        if (typeof image === 'string') {
+            if (image === '[object Object]' || image === '') return '/placeholder-battery.jpg'
+            return image
+        }
+        if (typeof image === 'object' && image.src) return image.src
+        return '/placeholder-battery.jpg'
+    }
+
     const deleteProduct = async (id) => {
         if (confirm("Confirm deletion of this listing?")) {
             dispatch(showLoader("Removing listing..."))
@@ -476,16 +486,6 @@ export default function SellerProducts() {
 
         setShowPaymentModal(false)
         doPublish()
-    }
-
-    const getImageUrl = (image) => {
-        if (!image) return '/placeholder-battery.jpg'
-        if (typeof image === 'string') {
-            if (image === '[object Object]' || image === '') return '/placeholder-battery.jpg'
-            return image
-        }
-        if (typeof image === 'object' && image.src) return image.src
-        return '/placeholder-battery.jpg'
     }
 
     return (

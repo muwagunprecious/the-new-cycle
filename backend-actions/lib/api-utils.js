@@ -11,8 +11,14 @@ export function mapProductToFrontend(product) {
         Object.entries(BATTERY_TYPE_MAPPING).map(([label, value]) => [value, label])
     );
 
+    const addressParts = product.pickupAddress?.split(' | ') || [];
+    const mainAddress = addressParts[0] || product.pickupAddress || "";
+    const lga = addressParts[1] || "";
+
     return {
         ...product,
+        address: mainAddress,
+        lga: lga,
         unitsAvailable: product.quantity,
         batteryType: reverseMapping[product.type] || BATTERY_TYPES[0],
         status: product.status || 'pending',

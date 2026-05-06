@@ -57,7 +57,7 @@ export async function createProduct(data, userId) {
                 brand: data.brand || "",
                 amps: amps,
                 condition: data.condition || "SCRAP",
-                pickupAddress: data.address,
+                pickupAddress: `${data.address}${data.lga ? ` | ${data.lga}` : ''}`,
                 collectionDateStart,
                 collectionDateEnd,
                 collectionDates: data.collectionDates,
@@ -68,7 +68,9 @@ export async function createProduct(data, userId) {
             }
         }))
         
+        logToFile(`SERVER: DB create successful for: ${product.id}`);
         console.log(`SERVER: DB create successful for: ${product.id}`);
+
 
 
         // Notify Admins
@@ -101,44 +103,14 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        if (userId === "seller_demo") {
-            const mockProducts = [
-                {
-                    id: "PROD-DEMO-001",
-                    name: "Isuzu 12V 100AH Battery",
-                    description: "High performance car battery",
-                    price: 45000,
-                    mrp: 52000,
-                    quantity: 5,
-                    status: "approved",
-                    inStock: true,
-                    type: BATTERY_TYPE_MAPPING["Cars and Truck batt (Wet cell)"],
-                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0], new Date(Date.now() + 172800000).toISOString().split('T')[0]],
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: "PROD-DEMO-002",
-                    name: "Luminous 12V 200AH Gel",
-                    description: "Deep cycle solar battery",
-                    price: 185000,
-                    mrp: 210000,
-                    quantity: 2,
-                    status: "pending",
-                    inStock: true,
-                    type: BATTERY_TYPE_MAPPING["Inverter Batt (Dry cell)"],
-                    collectionDates: [new Date(Date.now() + 86400000).toISOString().split('T')[0]],
-                    createdAt: new Date().toISOString()
-                }
-            ]
-            return ApiResponse.success({
-                products: mockProducts,
-                data: mockProducts,
-                pagination: { page: 1, limit: 50, totalCount: 2, totalPages: 1 }
-            })
+
+        const store = await withRetry(() => prisma.store.findUnique({ where: { userId } }))
+        if (!store) {
+            logToFile(`GET_SELLER_PRODUCTS: Store not found for user ${userId}`);
+            return ApiResponse.success({ products: [], data: [], pagination: { page, totalPages: 0, totalCount: 0 } }, "No store found")
         }
 
-        const store = await prisma.store.findUnique({ where: { userId } })
-        if (!store) return ApiResponse.success({ products: [], data: [], pagination: { page, totalPages: 0, totalCount: 0 } }, "No store found")
+        logToFile(`GET_SELLER_PRODUCTS: Fetching for store ${store.id}`, { userId });
 
         const skip = (page - 1) * limit
 
@@ -176,7 +148,9 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
             prisma.product.count({ where: { storeId: store.id } })
         ])
 
+        logToFile(`GET_SELLER_PRODUCTS: Found ${products.length} products (Total: ${totalCount})`);
         const formatted = products.map(mapProductToFrontend)
+
         return ApiResponse.success({
             products: formatted,
             data: formatted,
@@ -298,7 +272,7 @@ export async function getProductById(productId) {
 export async function getAdminProducts(page = 1, limit = 50) {
     try {
         const skip = (page - 1) * limit
-        const [products, total] = await Promise.all([
+        const [products, total] = await withRetry(() => Promise.all([
             prisma.product.findMany({
                 skip,
                 take: limit,
@@ -331,8 +305,9 @@ export async function getAdminProducts(page = 1, limit = 50) {
                 orderBy: { createdAt: 'desc' }
             }),
             prisma.product.count()
-        ])
+        ]))
 
+        logToFile(`GET_ADMIN_PRODUCTS: Found ${products.length} products (Total: ${total})`);
         const formatted = products.map(mapProductToFrontend)
         return ApiResponse.success({
             products: formatted,
@@ -357,7 +332,7 @@ export async function getPendingAdminProducts(page = 1, limit = 50) {
         // But for a better demo, if the DB is empty, provide a few.
         
         const skip = (page - 1) * limit
-        const [products, total] = await Promise.all([
+        const [products, total] = await withRetry(() => Promise.all([
             prisma.product.findMany({
                 where: { status: 'pending' },
                 skip,
@@ -390,8 +365,9 @@ export async function getPendingAdminProducts(page = 1, limit = 50) {
                 orderBy: { createdAt: 'desc' }
             }),
             prisma.product.count({ where: { status: 'pending' } })
-        ])
+        ]))
 
+        logToFile(`GET_PENDING_ADMIN_PRODUCTS: Found ${products.length} products (Total: ${total})`);
         const formatted = products.map(mapProductToFrontend)
         return ApiResponse.success({
             products: formatted,
