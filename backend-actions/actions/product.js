@@ -158,8 +158,8 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
                     rejectionReason: true,
                     storeId: true,
                     createdAt: true,
-                    updatedAt: true
-                    // Excluding images for list view efficiency
+                    updatedAt: true,
+                    images: true
                 },
                 orderBy: { createdAt: 'desc' },
                 skip,
