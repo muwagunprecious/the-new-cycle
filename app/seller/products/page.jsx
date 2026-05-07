@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "@/components/Button"
 import ScheduleCalendar from "@/components/ScheduleCalendar"
-import { createProduct, getSellerProducts, deleteProduct as deleteProductAction } from "@/backend-actions/actions/product"
+import { createProduct, getSellerProducts, deleteProduct as deleteProductAction, verifyProductImages } from "@/backend-actions/actions/product"
 import { getUserStoreStatus } from "@/backend-actions/actions/auth"
 import { updateStoreBankDetails, updateStoreAddress } from "@/backend-actions/actions/seller"
 import { CONSTANTS } from "@/lib/mockService"
@@ -370,6 +370,26 @@ export default function SellerProducts() {
         if (!formData.price || formData.price < 1) {
             toast.error("Please enter a valid price")
             return
+        }
+
+        // AI SCAN PRE-SUBMISSION
+        if (formData.images.length > 0) {
+            dispatch(showLoader("AI is verifying your battery images..."))
+            try {
+                const aiCheck = await verifyProductImages(formData.images)
+                dispatch(hideLoader())
+                
+                if (aiCheck.success && !aiCheck.data.isBattery) {
+                    // Even if confidence is 0, if the AI says it's NOT a battery, we should be careful
+                    toast.error(`AI Alert: ${aiCheck.data.reason}`, { duration: 6000 })
+                    if (!confirm(`Our AI detects that these images might not be a battery. Reason: ${aiCheck.data.reason}. Are you sure you want to proceed?`)) {
+                        return
+                    }
+                }
+            } catch (err) {
+                dispatch(hideLoader())
+                console.error("AI Scan failed", err)
+            }
         }
         if (formData.images.length < 2) {
             toast.error("Please upload at least 2 images of the battery")

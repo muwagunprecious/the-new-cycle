@@ -5,6 +5,7 @@ import { mapProductToFrontend, logger } from "@/backend-actions/lib/api-utils"
 import { revalidatePath } from "next/cache"
 import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 import { logToFile } from "@/backend-actions/lib/server-logger"
+import { verifyIsBattery } from "@/backend-actions/lib/ai-service"
 
 
 import { sendEmail, productApprovedEmail, productRejectedEmail } from "@/backend-actions/lib/email"
@@ -44,7 +45,16 @@ export async function createProduct(data, userId) {
 
         console.log(`SERVER: Attempting DB create for product: ${data.name}. Image count: ${data.images?.length || 0}`);
 
-        
+        // AI Verification Step
+        const aiResult = await verifyIsBattery(data.images || []);
+        let initialStatus = 'pending';
+        let rejectionReason = null;
+
+        if (!aiResult.isBattery) {
+            initialStatus = 'rejected';
+            rejectionReason = `AI Verification Failed: ${aiResult.reason}`;
+            logToFile(`PRODUCT_AUTO_REJECTED: ${data.name}`, aiResult);
+        }
         const product = await withRetry(() => prisma.product.create({
             data: {
                 name: data.name,
@@ -62,9 +72,10 @@ export async function createProduct(data, userId) {
                 collectionDateEnd,
                 collectionDates: data.collectionDates,
                 quantity: units,
+                status: initialStatus,
+                rejectionReason: rejectionReason,
                 storeId: store.id,
-                inStock: true,
-                status: "pending" // All products start as pending for manual approval
+                inStock: true
             }
         }))
         
@@ -77,16 +88,25 @@ export async function createProduct(data, userId) {
         try {
             const { createNotification } = await import('./notification')
             const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
+            
+            const notificationMsg = initialStatus === 'rejected' 
+                ? `AUTO-REJECTED: ${store.name} tried listing a non-battery item: ${data.name}`
+                : `${store.name} has listed a new product: ${data.name}. Approval required.`;
+
             for (const admin of admins) {
                 await createNotification(
                     admin.id,
-                    "New Product Listing",
-                    `${store.name} has listed a new product: ${data.name}. Approval required.`,
+                    initialStatus === 'rejected' ? "Auto-Rejection Alert" : "New Product Listing",
+                    notificationMsg,
                     "SYSTEM"
                 )
             }
         } catch (notifyError) {
-            logger.warn("Failed to notify admins about new product", notifyError)
+            logger.warn("Failed to notify admins", notifyError)
+        }
+
+        if (initialStatus === 'rejected') {
+            return ApiResponse.error(`Listing rejected: Our AI detected that this image is not a battery. (${aiResult.reason})`, 400);
         }
 
         revalidatePath('/seller/products')
@@ -515,5 +535,15 @@ export async function adminRejectProduct(productId, reason, adminId) {
     } catch (error) {
         logger.error("Admin Reject Product Error", error)
         return ApiResponse.error("Failed to reject product")
+    }
+}
+export async function verifyProductImages(images) {
+    try {
+        if (!images || images.length === 0) return ApiResponse.error("No images to verify", 400);
+        const result = await verifyIsBattery(images);
+        return ApiResponse.success(result);
+    } catch (error) {
+        logger.error("AI Verification Action Error", error);
+        return ApiResponse.error("Failed to verify images");
     }
 }
