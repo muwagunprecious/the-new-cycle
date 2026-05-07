@@ -8,6 +8,96 @@ import bcrypt from "bcryptjs"
 import { sendOTP } from "../lib/sms"
 import { rateLimit } from "../lib/rate-limit"
 import { cookies, headers } from "next/headers"
+import crypto from "crypto"
+
+export async function requestAdminPasswordReset(email) {
+    try {
+        if (!email) return ApiResponse.error("Email is required", 400);
+
+        const user = await prisma.user.findFirst({ where: { email } });
+        if (!user) {
+            // Security: Don't reveal if user exists
+            return ApiResponse.success(null, "If an account with that email exists, a reset link has been sent.");
+        }
+
+        // Generate token
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+
+        // Save to DB
+        await prisma.passwordResetToken.create({
+            data: {
+                email,
+                token,
+                expiresAt
+            }
+        });
+
+        // Send email
+        const resetUrl = `https://gocycle.ng/reset-password?token=${token}`;
+        const { sendEmail: mailer } = await import('@/backend-actions/lib/email');
+        const yr = new Date().getFullYear();
+        
+        await mailer({
+            to: email,
+            subject: "Reset Your Go-Cycle Admin Password",
+            html: `
+            <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+                <div style="background:#0f172a;padding:24px;text-align:center;">
+                    <h1 style="color:#05DF72;margin:0;font-size:22px;">Go-Cycle</h1>
+                    <p style="color:#94a3b8;margin:4px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Security Administration</p>
+                </div>
+                <div style="padding:28px;text-align:center;">
+                    <h2 style="color:#0f172a;margin-top:0;">Password Reset Request</h2>
+                    <p style="color:#475569;">You requested a password reset for your admin account. Click the button below to set a new password:</p>
+                    <div style="margin:32px 0;">
+                        <a href="${resetUrl}" style="background:#05DF72;color:#000;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">Reset Password</a>
+                    </div>
+                    <p style="color:#64748b;font-size:13px;">This link will expire in 1 hour. If you didn't request this, you can safely ignore this email.</p>
+                </div>
+                <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
+                    <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle Nigeria. All rights reserved.</p>
+                </div>
+            </div>`
+        }).catch(err => logger.warn("Password reset email failed", err));
+
+        return ApiResponse.success(null, "Reset link sent successfully.");
+    } catch (error) {
+        logger.error("Request Password Reset Error", error);
+        return ApiResponse.error("Failed to process request");
+    }
+}
+
+export async function resetAdminPassword(token, newPassword) {
+    try {
+        if (!token || !newPassword) return ApiResponse.error("Token and new password are required", 400);
+
+        const resetToken = await prisma.passwordResetToken.findUnique({
+            where: { token }
+        });
+
+        if (!resetToken || resetToken.expiresAt < new Date()) {
+            return ApiResponse.error("Invalid or expired reset token", 400);
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { email: resetToken.email },
+                data: { password: hashedPassword, needsPasswordChange: false }
+            }),
+            prisma.passwordResetToken.delete({
+                where: { id: resetToken.id }
+            })
+        ]);
+
+        return ApiResponse.success(null, "Password reset successfully. You can now log in.");
+    } catch (error) {
+        logger.error("Reset Password Error", error);
+        return ApiResponse.error("Failed to reset password");
+    }
+}
 
 export async function registerUser(userData) {
     logger.info("Registering new user", { email: userData.email, role: userData.role })

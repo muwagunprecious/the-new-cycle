@@ -313,7 +313,7 @@ function LoginContent() {
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between px-2">
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Password</label>
-                                    <button type="button" className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest hover:text-emerald-500">Forgot?</button>
+                                    <Link href="/forgot-password" size="sm" className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest hover:text-emerald-500">Forgot?</Link>
                                 </div>
                                 <div className="relative group">
                                     <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
