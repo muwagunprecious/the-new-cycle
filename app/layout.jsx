@@ -1,3 +1,4 @@
+import Script from "next/script";
 import { Toaster } from "react-hot-toast";
 import StoreProvider from "@/app/StoreProvider";
 import GlobalLoader from "@/components/GlobalLoader";
@@ -37,8 +38,46 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "GoCycle.ng",
+        "url": "https://gocycle.ng",
+        "description": "Nigeria's #1 Battery Recycling Marketplace",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://gocycle.ng/shop?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    };
+
+    const orgJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "GoCycle.ng",
+        "url": "https://gocycle.ng",
+        "logo": "https://gocycle.ng/logo.png",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+234-XXX-XXXX",
+            "contactType": "customer service"
+        }
+    };
+
     return (
         <html lang="en" suppressHydrationWarning>
+            <head>
+                <Script
+                    id="json-ld"
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                />
+                <Script
+                    id="org-json-ld"
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+                />
+            </head>
             <body className="antialiased" suppressHydrationWarning>
                 <StoreProvider>
                     <div suppressHydrationWarning>
