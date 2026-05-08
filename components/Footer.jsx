@@ -5,6 +5,8 @@ import { BatteryCharging, Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { subscribeNewsletter } from "@/backend-actions/actions/newsletter";
+import { getPartners } from "@/backend-actions/actions/partners";
+import { useEffect } from "react";
 
 const Footer = () => {
 
@@ -30,6 +32,25 @@ const Footer = () => {
             setIsSubscribing(false);
         }
     };
+
+    const [partners, setPartners] = useState([]);
+    const [isLoadingPartners, setIsLoadingPartners] = useState(true);
+
+    useEffect(() => {
+        const fetchPartners = async () => {
+            try {
+                const res = await getPartners();
+                if (res.success) {
+                    setPartners(res.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch partners:", error);
+            } finally {
+                setIsLoadingPartners(false);
+            }
+        };
+        fetchPartners();
+    }, []);
     const platformLinks = [
         { text: "Marketplace", path: '/marketplace' },
         { text: "Trade Process", path: '/trade-process' },
@@ -165,6 +186,41 @@ const Footer = () => {
                     </div>
 
                 </div>
+
+                {/* Partners Section */}
+                {partners.length > 0 && (
+                    <div className="py-16 border-t border-white/[0.08] mb-12">
+                        <div className="flex flex-col items-center space-y-10">
+                            <div className="flex flex-col items-center">
+                                <h3 className="text-[10px] font-bold text-white uppercase tracking-[0.4em] mb-3">Our Strategic Partners</h3>
+                                <div className="h-0.5 w-12 bg-emerald-500/50 rounded-full"></div>
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-10 opacity-50 hover:opacity-100 transition-opacity duration-500">
+                                {partners.map((partner) => (
+                                    <div key={partner.id} className="group flex flex-col items-center">
+                                        {partner.link ? (
+                                            <a 
+                                                href={partner.link} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="transition-transform duration-300 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                                            >
+                                                <img src={partner.logo} alt={partner.name} className="h-8 md:h-10 w-auto object-contain" />
+                                            </a>
+                                        ) : (
+                                            <div className="transition-transform duration-300 group-hover:scale-110 grayscale group-hover:grayscale-0">
+                                                <img src={partner.logo} alt={partner.name} className="h-8 md:h-10 w-auto object-contain" />
+                                            </div>
+                                        )}
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {partner.name}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Bottom Bar */}
                 <div className="pt-12 border-t border-white/[0.08] flex flex-col md:flex-row items-center justify-between gap-6">
