@@ -367,27 +367,32 @@ export async function loginUser(identifier, password) {
         const ip = headerList.get('x-forwarded-for') || 'unknown'
         await rateLimit(`login_${ip}`, 5) // Limit login attempts by IP
 
-        const safeId = identifier?.trim().toLowerCase()
-        logger.info("Login attempt", { identifier: safeId, ip })
+        const safeId = identifier?.trim().toLowerCase();
+        const safePassword = password?.trim();
+        logger.info("Login attempt", { identifier: safeId, ip });
 
-        const normalizedIdentifier = identifier.includes('@') ? identifier : normalizePhone(identifier)
+        const normalizedIdentifier = identifier.includes('@') ? safeId : normalizePhone(identifier);
+        
         const user = await prisma.user.findFirst({
             where: {
                 OR: [
-                    { email: identifier }, 
+                    { email: { equals: safeId, mode: 'insensitive' } }, 
                     { phone: normalizedIdentifier },
-                    { phone: identifier } // fallback
+                    { phone: safeId }
                 ]
             }
-        })
+        });
 
         if (!user || !user.password) {
-            logger.warn(`Login failed: User not found or no password for ${identifier}`)
-            return ApiResponse.error("Invalid credentials", 401)
+            logger.warn(`DIAGNOSTIC: Login failed - User not found for: [${safeId}]`);
+            return ApiResponse.error("Invalid credentials", 401);
         }
 
-        const isMatch = await bcrypt.compare(password, user.password)
-        if (!isMatch) return ApiResponse.error("Invalid credentials", 401)
+        const isMatch = await bcrypt.compare(safePassword, user.password);
+        if (!isMatch) {
+            logger.warn(`DIAGNOSTIC: Login failed - Password mismatch for: [${user.email}]`);
+            return ApiResponse.error("Invalid credentials", 401);
+        }
 
         const { password: _, ...userWithoutPassword } = user
         

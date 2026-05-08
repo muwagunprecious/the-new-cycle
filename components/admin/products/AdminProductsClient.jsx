@@ -1,4 +1,8 @@
+'use client'
+import { useState } from "react"
 import { useSelector } from "react-redux"
+import { toast } from "react-hot-toast"
+import { Search as SearchIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, ExternalLink as ExternalLinkIcon, Trash2 as Trash2Icon } from "lucide-react"
 import { getAdminProducts, adminDeleteProduct, adminApproveProduct, adminRejectProduct } from "@/backend-actions/actions/product"
 
 export default function AdminProductsClient({ initialProducts }) {

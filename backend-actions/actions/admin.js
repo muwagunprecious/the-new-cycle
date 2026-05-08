@@ -230,7 +230,7 @@ export async function getAllUsers(page = 1, limit = 50) {
                     email: true,
                     role: true,
                     accountStatus: true,
-                    createdAt: true
+                    // createdAt: true
                     // Exclude heavy fields like 'image' if not needed in the list
                 }
             }),

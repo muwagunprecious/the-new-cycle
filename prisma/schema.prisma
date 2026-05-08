@@ -49,6 +49,8 @@ model User {
   store              Store?
   needsPasswordChange Boolean        @default(false)
   blogs              Blog[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @default(now()) @updatedAt
 
   @@index([role])
   @@map("users")
