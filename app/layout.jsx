@@ -3,7 +3,14 @@ import { Toaster } from "react-hot-toast";
 import StoreProvider from "@/app/StoreProvider";
 import GlobalLoader from "@/components/GlobalLoader";
 import PerformanceTracker from "@/components/PerformanceTracker";
+import { Outfit } from "next/font/google";
 import "./globals.css";
+
+const outfit = Outfit({
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700", "800", "900"],
+    display: "swap",
+});
 
 export const metadata = {
     title: {
@@ -78,7 +85,7 @@ export default function RootLayout({ children }) {
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
                 />
             </head>
-            <body className="antialiased" suppressHydrationWarning>
+            <body className={`${outfit.className} antialiased`} suppressHydrationWarning>
                 <StoreProvider>
                     <div suppressHydrationWarning>
                         <Toaster />

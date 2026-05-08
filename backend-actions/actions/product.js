@@ -232,7 +232,7 @@ export async function getAllProducts() {
                 .eq('store.status', 'approved')
                 .eq('store.isActive', true)
                 .order('createdAt', { ascending: false })
-                .limit(100)
+                .limit(20)
 
             if (!supabaseError && products) {
                 const standardizedProducts = products.map(p => ({
@@ -246,9 +246,23 @@ export async function getAllProducts() {
 
         const prismaProducts = await prisma.product.findMany({
             where: { status: 'approved', inStock: true, store: { status: 'approved', isActive: true } },
-            include: { store: { select: { name: true, address: true, isVerified: true } } },
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                mrp: true,
+                images: true,
+                category: true,
+                type: true,
+                brand: true,
+                amps: true,
+                condition: true,
+                status: true,
+                inStock: true,
+                store: { select: { name: true, address: true, isVerified: true } }
+            },
             orderBy: { createdAt: 'desc' },
-            take: 100
+            take: 20
         })
 
         const formatted = prismaProducts.map(mapProductToFrontend)
