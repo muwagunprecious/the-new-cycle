@@ -173,7 +173,7 @@ export default function AdminPendingProductsClient({ initialProducts }) {
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={() => window.open(`/product/${product.id}`, '_blank')}
+                                                    onClick={() => window.open(`/product/${product.id}?adminPreview=true`, '_blank')}
                                                     className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-200 hover:text-slate-700 transition-all shadow-sm"
                                                     title="View Preview"
                                                 >

@@ -59,6 +59,11 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     }
 
     const handleFlutterwavePayment = async () => {
+        if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
+            toast.error("Administrators are not permitted to make purchases.")
+            return
+        }
+
         setIsLoading(true)
         setStep('PROCESSING')
 
@@ -207,6 +212,11 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     }
 
     const handleSubmitManualTransfer = async () => {
+        if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
+            toast.error("Administrators are not permitted to make purchases.")
+            return
+        }
+
         if (!senderName.trim()) {
             toast.error("Please enter the sender's account name")
             return

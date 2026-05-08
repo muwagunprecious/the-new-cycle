@@ -111,6 +111,7 @@ export async function createProduct(data, userId) {
 
         revalidatePath('/seller/products')
         revalidatePath('/')
+        revalidatePath('/shop')
 
         return ApiResponse.success(product, "Product created successfully")
     } catch (error) {

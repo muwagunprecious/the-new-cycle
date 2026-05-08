@@ -3,10 +3,13 @@ import { MapPin as MapPinIcon, ShieldCheck as ShieldCheckIcon, ChevronRight as C
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import React, { useState, useEffect } from 'react'
+import { useSelector } from 'react-redux'
 
 const ProductCard = ({ product, onQuickBuy }) => {
     const [selectedDate, setSelectedDate] = useState(null)
     const [quantity, setQuantity] = useState(1)
+    const { user } = useSelector(state => state.auth)
+    const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
 
     // Pre-select first date for 1-minute checkout
     useEffect(() => {
@@ -104,11 +107,13 @@ const ProductCard = ({ product, onQuickBuy }) => {
                         className={`h-8 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 sm:gap-2 shrink-0 ${
                             isSold 
                             ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                            : isAdmin
+                            ? 'bg-slate-50 text-slate-400 cursor-default border border-slate-100'
                             : 'bg-slate-900 text-white hover:bg-emerald-500 shadow-lg shadow-slate-900/10'
                         }`}
                     >
-                        {isSold ? 'Sold' : 'Buy Now'}
-                        {!isSold && <ChevronRightIcon size={12} className='sm:w-3.5 sm:h-3.5' />}
+                        {isSold ? 'Sold' : isAdmin ? 'Admin Mode' : 'Buy Now'}
+                        {!isSold && !isAdmin && <ChevronRightIcon size={12} className='sm:w-3.5 sm:h-3.5' />}
                     </button>
                 </div>
             </div>

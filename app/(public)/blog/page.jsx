@@ -45,7 +45,7 @@ export default async function BlogListingPage() {
                                         <CalendarIcon size={14} className="text-[#05DF72]" />
                                         {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 mb-4 line-clamp-2 group-hover:text-[#05DF72] transition-colors">{blog.title}</h3>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-4 line-clamp-2 break-words group-hover:text-[#05DF72] transition-colors">{blog.title}</h3>
                                     
                                     <div className="mt-auto pt-6 flex items-center justify-between border-t border-slate-50">
                                         <div className="flex items-center gap-2">

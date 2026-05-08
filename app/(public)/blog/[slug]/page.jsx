@@ -43,7 +43,7 @@ export default async function BlogReadingPage({ params }) {
                         <ArrowLeftIcon size={16} /> Back to Insights
                     </Link>
                     
-                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-[1.2] mb-8">
+                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-[1.2] mb-8 break-words">
                         {blog.title}
                     </h1>
 
@@ -77,7 +77,7 @@ export default async function BlogReadingPage({ params }) {
             {/* Markdown / HTML Content rendered */}
             <div className={`max-w-[800px] mx-auto px-6 ${blog.headlineImage ? 'pt-20' : 'pt-16'} pb-32`}>
                 <div 
-                    className="prose prose-lg prose-slate prose-img:rounded-2xl prose-img:shadow-lg prose-headings:font-bold prose-a:text-[#05DF72] hover:prose-a:text-emerald-600 prose-p:leading-relaxed max-w-none"
+                    className="prose prose-lg prose-slate break-words prose-img:rounded-2xl prose-img:shadow-lg prose-headings:font-bold prose-a:text-[#05DF72] hover:prose-a:text-emerald-600 prose-p:leading-relaxed max-w-none"
                     dangerouslySetInnerHTML={{ __html: blog.content }}
                 />
             </div>

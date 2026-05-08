@@ -21,6 +21,7 @@ const OrderSummary = ({ totalPrice, items }) => {
     const [couponCodeInput, setCouponCodeInput] = useState('');
     const [coupon, setCoupon] = useState('');
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+    const { user } = useSelector(state => state.auth);
 
     const handleCouponCode = async (event) => {
         event.preventDefault();
@@ -28,6 +29,10 @@ const OrderSummary = ({ totalPrice, items }) => {
     }
 
     const openCheckout = () => {
+        if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
+            toast.error("Administrators are not permitted to make purchases.")
+            return
+        }
         if (!selectedAddress && addressList.length === 0) {
             toast.error("Please add a delivery address first.")
             return
@@ -60,9 +65,15 @@ const OrderSummary = ({ totalPrice, items }) => {
                 <p className='font-black text-2xl text-slate-900 tracking-tighter'>{currency}{totalPrice.toLocaleString()}</p>
             </div>
 
-            <button onClick={openCheckout} className='w-full btn-primary !py-5 shadow-2xl shadow-[#05DF72]/30'>
-                Proceed to Checkout
-            </button>
+            {user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' ? (
+                <div className="w-full py-4 rounded-xl bg-slate-100 text-slate-400 font-bold text-center text-xs border border-slate-200 shadow-inner">
+                    ADMIN PREVIEW MODE
+                </div>
+            ) : (
+                <button onClick={openCheckout} className='w-full btn-primary !py-5 shadow-2xl shadow-[#05DF72]/30'>
+                    Proceed to Checkout
+                </button>
+            )}
 
             {showAddressModal && <AddressModal setShowAddressModal={setShowAddressModal} />}
 

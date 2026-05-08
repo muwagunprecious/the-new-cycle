@@ -38,12 +38,17 @@ function ShopClientContent({ initialProducts = [] }) {
     // Quick Buy State
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState(null)
-    const { isLoggedIn } = useSelector(state => state.auth)
+    const { isLoggedIn, user } = useSelector(state => state.auth)
 
     const handleQuickBuy = (product) => {
         if (!isLoggedIn) {
             toast.error("Please login to buy instantly")
             router.push('/login?redirect=/shop')
+            return
+        }
+
+        if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
+            toast.error("Administrators are not permitted to make purchases.")
             return
         }
 

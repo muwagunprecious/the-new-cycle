@@ -11,7 +11,7 @@ import {
     Info as InfoIcon
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CheckoutModal from "./CheckoutModal";
@@ -36,6 +36,8 @@ const ProductDetails = ({ product }) => {
     const dispatch = useDispatch()
     const router = useRouter()
     const { user, isLoggedIn } = useSelector(state => state.auth)
+    const searchParams = useSearchParams()
+    const isAdminPreview = searchParams.get('adminPreview') === 'true'
 
     const [mainImage, setMainImage] = useState(product.images?.[0])
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
@@ -43,10 +45,14 @@ const ProductDetails = ({ product }) => {
     const quantity = product?.unitsAvailable || product?.quantity || 1
 
     const handlePayNow = () => {
-        // Check if user is logged in
         if (!isLoggedIn) {
-            toast.error("Please login to continue")
-            router.push('/login?redirect=/product/' + product.id)
+            toast.error("Please login to proceed with purchase")
+            router.push(`/login?redirect=/product/${product?.id}`)
+            return
+        }
+
+        if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
+            toast.error("Administrators are not permitted to make purchases.")
             return
         }
 
@@ -206,13 +212,20 @@ const ProductDetails = ({ product }) => {
                         </div>
                     </div>
 
-                    <Button
-                        onClick={handlePayNow}
-                        className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] text-sm sm:text-lg shadow-2xl"
-                    >
-                        <WalletIcon size={22} className="mr-2" />
-                        PROCEED TO SECURE CHECKOUT
-                    </Button>
+                    {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || isAdminPreview) ? (
+                        <div className="w-full py-4 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] text-sm sm:text-lg bg-slate-100 text-slate-400 font-bold text-center flex items-center justify-center border border-slate-200 shadow-inner">
+                            <ShieldCheckIcon size={20} className="mr-2 opacity-50" />
+                            ADMIN PREVIEW MODE - PURCHASE DISABLED
+                        </div>
+                    ) : (
+                        <Button
+                            onClick={handlePayNow}
+                            className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] text-sm sm:text-lg shadow-2xl"
+                        >
+                            <WalletIcon size={22} className="mr-2" />
+                            PROCEED TO SECURE CHECKOUT
+                        </Button>
+                    )}
 
                     <div className="flex items-center justify-center gap-4 text-center">
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">

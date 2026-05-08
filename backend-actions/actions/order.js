@@ -51,6 +51,10 @@ export async function createOrder(orderData) {
             return ApiResponse.error("Your account is pending verification. Orders are restricted.", 403)
         }
 
+        if (buyer.role === 'ADMIN' || buyer.role === 'SUPER_ADMIN') {
+            return ApiResponse.error("Administrators are not permitted to make purchases.", 403)
+        }
+
         // Calculate seller fee and net payout with rounding
         const sellerFee = Math.round(subtotal * 0.05)
         const payoutAmount = subtotal - sellerFee
