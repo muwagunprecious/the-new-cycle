@@ -246,3 +246,39 @@ exports.verifyOrderCode = async (req, res) => {
         res.status(500).json({ success: false, message: 'Verification failed' });
     }
 };
+
+/**
+ * @desc    Verify order payment (Admin)
+ * @route   POST /api/orders/:id/verify-payment
+ */
+exports.verifyOrderPayment = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const order = await prisma.order.findUnique({
+            where: { id },
+            include: { user: true, store: true }
+        });
+
+        if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+        if (order.isPaid) return res.status(400).json({ success: false, message: 'Order already verified' });
+
+        const updatedOrder = await prisma.order.update({
+            where: { id },
+            data: {
+                isPaid: true,
+                paymentStatus: 'verified',
+                status: 'PAID'
+            }
+        });
+
+        // Notifications
+        await createNotification(order.userId, "Payment Verified!", `Your payment for Order #${order.id} has been verified.`, "PAYMENT");
+        await createNotification(order.store.userId, "New Paid Order!", `Order #${order.id} is now paid. You can prepare for pickup.`, "ORDER");
+
+        res.status(200).json({ success: true, data: updatedOrder, message: 'Payment verified successfully' });
+    } catch (error) {
+        console.error("Verify Payment Error:", error);
+        res.status(500).json({ success: false, message: 'Payment verification failed' });
+    }
+};

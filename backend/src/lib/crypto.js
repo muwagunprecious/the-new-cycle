@@ -1,10 +1,5 @@
-const crypto = require('crypto');
-
-const generateVerificationCode = (length = 8) => {
-    return crypto.randomBytes(Math.ceil(length / 2))
-        .toString('hex')
-        .slice(0, length)
-        .toUpperCase();
+const generateVerificationCode = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 module.exports = {

@@ -216,33 +216,23 @@ import { supabase } from "@/backend-actions/lib/supabase"
 
 export async function getAllProducts() {
     try {
-        if (supabase) {
-            const { data: products, error: supabaseError } = await supabase
-                .from('Product')
-                .select(`
-                    id, name, price, mrp, images, category, type, brand, amps, condition, 
-                    storeId, collectionDates, collectionDateStart, collectionDateEnd,
-                    store:Store!inner (
-                        name, address, isVerified, status, isActive
-                    )
-                `)
-                .eq('status', 'approved')
-                .eq('inStock', true)
-                .eq('store.status', 'approved')
-                .eq('store.isActive', true)
-                .order('createdAt', { ascending: false })
-                .limit(20)
-
-            if (!supabaseError && products) {
-                const standardizedProducts = products.map(p => ({
-                    ...p,
-                    store: Array.isArray(p.store) ? p.store[0] : p.store
-                }))
-                const formatted = standardizedProducts.map(mapProductToFrontend);
-                return ApiResponse.success({ products: formatted, data: formatted })
+        // Attempt to fetch from the separate backend first (for speed and decoupled hosting)
+        try {
+            const apiRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
+                next: { revalidate: 60 } // Cache for 1 minute
+            });
+            if (apiRes.ok) {
+                const result = await apiRes.json();
+                if (result.success) {
+                    console.log("[BRIDGE] Fetched products from standalone backend");
+                    return result;
+                }
             }
+        } catch (apiErr) {
+            console.warn("[BRIDGE] Standalone backend unreachable, falling back to internal DB", apiErr.message);
         }
 
+        // Fallback to internal Prisma logic (Original logic)
         const prismaProducts = await prisma.product.findMany({
             where: { status: 'approved', inStock: true, store: { status: 'approved', isActive: true } },
             select: {
@@ -269,7 +259,6 @@ export async function getAllProducts() {
 
         const formatted = prismaProducts.map(mapProductToFrontend);
         return ApiResponse.success({ products: formatted, data: formatted })
-
 
     } catch (error) {
         console.error("[CRITICAL] getAllProducts failed:", error.message)
