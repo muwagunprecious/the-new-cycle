@@ -365,7 +365,9 @@ export async function loginUser(identifier, password) {
     try {
         const headerList = await headers()
         const ip = headerList.get('x-forwarded-for') || 'unknown'
-        await rateLimit(`login_${ip}`, 5) // Limit login attempts by IP
+        const start = Date.now()
+        await rateLimit(`login_${ip}`, 5) 
+        const afterRateLimit = Date.now()
 
         const safeId = identifier?.trim().toLowerCase();
         const safePassword = password?.trim();
@@ -382,6 +384,7 @@ export async function loginUser(identifier, password) {
                 ]
             }
         });
+        const afterDb = Date.now()
 
         if (!user || !user.password) {
             logger.warn(`DIAGNOSTIC: Login failed - User not found for: [${safeId}]`);
@@ -389,6 +392,14 @@ export async function loginUser(identifier, password) {
         }
 
         const isMatch = await bcrypt.compare(safePassword, user.password);
+        const afterBcrypt = Date.now()
+        
+        logger.info("Login performance trace", {
+            totalMs: afterBcrypt - start,
+            dbMs: afterDb - afterRateLimit,
+            bcryptMs: afterBcrypt - afterDb
+        })
+
         if (!isMatch) {
             logger.warn(`DIAGNOSTIC: Login failed - Password mismatch for: [${user.email}]`);
             return ApiResponse.error("Invalid credentials", 401);
@@ -428,11 +439,10 @@ export async function loginUser(identifier, password) {
                 data: { verificationCode: twoFACode }
             });
 
-            // Send 2FA code via email
+            // Send 2FA code via email (Non-blocking)
             if (user.email) {
-                const { sendEmail: mailer } = await import('@/backend-actions/lib/email');
                 const yr = new Date().getFullYear();
-                await mailer({
+                sendEmail({
                     to: user.email,
                     subject: `${twoFACode} – Go-Cycle Admin 2FA Code`,
                     html: `

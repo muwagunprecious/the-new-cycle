@@ -2,6 +2,8 @@ const prisma = require('../config/prisma');
 const { logger, generateOrderId } = require('../lib/api-utils');
 const { sendEmail, orderConfirmationEmail, buyerReceiptEmail, sellerNewOrderEmail } = require('../lib/email');
 const { createNotification } = require('../services/notification.service');
+const { generateVerificationCode } = require('../lib/crypto');
+const { emitToUser } = require('../lib/socket');
 
 /**
  * @desc    Create a new order
@@ -70,9 +72,11 @@ exports.createOrder = async (req, res) => {
                         quantity: quantity,
                         price: subtotal / quantity
                     }]
-                }
+                },
+                verificationCode: generateVerificationCode(),
+                verificationStatus: 'PENDING'
             },
-            include: { user: true, store: true }
+            include: { user: true, store: true, orderItems: { include: { product: true } } }
         });
 
         // Reserve the product
@@ -82,7 +86,17 @@ exports.createOrder = async (req, res) => {
         });
 
         // Notifications
-        await createNotification(store.userId, "New Order Received!", `You have a new order for ${quantity} unit(s).`, "ORDER");
+        const notification = await createNotification(store.userId, "New Purchase Request", `You have a new purchase for ${order.orderItems?.[0]?.product?.name}. Total: ₦${totalAmount.toLocaleString()}`, "ORDER");
+        
+        // Real-time emit
+        emitToUser(store.userId, 'NEW_PURCHASE', {
+            orderId: order.id,
+            buyerName: buyer.name,
+            productName: order.orderItems?.[0]?.product?.name || 'Battery',
+            amount: totalAmount,
+            collectionDate: collectionDate || 'Pending',
+            verificationCode: order.verificationCode
+        });
         
         const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
         for (const admin of admins) {
@@ -177,9 +191,58 @@ exports.getAllOrders = async (req, res) => {
 };
 
 /**
- * @desc    Verify bank transfer (Admin)
+ * @desc    Verify order with code (Seller)
+ * @route   POST /api/orders/:id/verify-code
  */
-exports.verifyOrderPayment = async (req, res) => {
-    // This will be migrated from admin.js logic
-    res.status(501).json({ message: 'Not implemented yet' });
+exports.verifyOrderCode = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { code } = req.body;
+
+        const order = await prisma.order.findUnique({
+            where: { id },
+            include: { user: true, store: true }
+        });
+
+        if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+        
+        if (order.verificationStatus === 'VERIFIED') {
+            return res.status(400).json({ success: false, message: 'Order already verified' });
+        }
+
+        if (order.verificationCode !== code?.toUpperCase()) {
+            return res.status(400).json({ success: false, message: 'Invalid verification code' });
+        }
+
+        const updatedOrder = await prisma.order.update({
+            where: { id },
+            data: {
+                status: 'COMPLETED',
+                verificationStatus: 'VERIFIED',
+                collectionStatus: 'COLLECTED',
+                payoutStatus: 'released'
+            }
+        });
+
+        // Pay Seller
+        await prisma.store.update({
+            where: { id: order.storeId },
+            data: { walletBalance: { increment: order.payoutAmount } }
+        });
+
+        // Pay Admin Fee
+        const totalFee = order.buyerFee + order.sellerFee;
+        await prisma.user.updateMany({
+            where: { role: 'ADMIN' },
+            data: { walletBalance: { increment: totalFee } }
+        });
+
+        // Notify Buyer
+        await createNotification(order.userId, "Order Completed", `Your order #${order.id} has been verified and completed.`, "ORDER");
+
+        res.status(200).json({ success: true, data: updatedOrder, message: 'Order verified and completed successfully' });
+    } catch (error) {
+        console.error("Verify Code Error:", error);
+        res.status(500).json({ success: false, message: 'Verification failed' });
+    }
 };

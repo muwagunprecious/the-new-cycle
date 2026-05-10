@@ -10,18 +10,15 @@ const transporter = nodemailer.createTransport({
     },
 })
 
+import worker from './worker'
+
 /**
- * Send a transactional email
- * @param {Object} options
- * @param {string} options.to - Recipient email address
- * @param {string} options.subject - Email subject
- * @param {string} options.html - HTML email body
- * @param {string} [options.text] - Optional plain text fallback
+ * Internal synchronous sender for the worker
  */
-export async function sendEmail({ to, subject, html, text }) {
+async function _sendEmailInternal({ to, subject, html, text }) {
     console.log(`[Email] Attempting to send to ${to}... Subject: ${subject}`);
     const mailOptions = {
-        from: process.env.EMAIL_FROM,
+        from: process.env.EMAIL_FROM || 'admin@gocycle.ng',
         to,
         subject,
         html,
@@ -34,14 +31,22 @@ export async function sendEmail({ to, subject, html, text }) {
         return { success: true, messageId: info.messageId }
     } catch (error) {
         console.error(`[Email] FAILED to send to ${to}:`, error.message)
-        console.error(`[Email] Error details:`, error)
         return { success: false, error: error.message }
     }
 }
 
+/**
+ * Send a transactional email (Non-blocking by default)
+ */
+export async function sendEmail(options) {
+    // Return immediately and let the worker handle it
+    worker.enqueue(`EMAIL_TO_${options.to}`, () => _sendEmailInternal(options));
+    return { success: true, status: 'enqueued' };
+}
+
 // ─── Email Templates ───────────────────────────────────────────────────────────
 
-export function orderConfirmationEmail({ buyerName, orderId, productName, amount, collectionDate, token }) {
+export function orderConfirmationEmail({ buyerName, orderId, productName, amount, collectionDate }) {
     return {
         subject: `Order Confirmed – #${orderId}`,
         html: `
@@ -54,13 +59,10 @@ export function orderConfirmationEmail({ buyerName, orderId, productName, amount
                 <h2 style="color:#0f172a;margin-top:0;">Hi ${buyerName},</h2>
                 <p style="color:#475569;">Your order has been placed successfully!</p>
                 
-                ${token ? `
-                <div style="background:#f0fdf4;border:2px dashed #05DF72;border-radius:12px;padding:24px;margin:20px 0;text-align:center;">
-                    <p style="margin:0 0 8px;font-size:12px;color:#15803d;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Collection Token</p>
-                    <h2 style="margin:0;font-size:32px;color:#0f172a;letter-spacing:8px;">${token}</h2>
-                    <p style="margin:8px 0 0;font-size:11px;color:#64748b;">Present this code to the seller at point of pickup</p>
+                <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;border-radius:12px;padding:24px;margin:20px 0;text-align:center;">
+                    <p style="margin:0;font-size:14px;color:#15803d;font-weight:bold;">Safe Pickup Instructions</p>
+                    <p style="margin:8px 0 0;font-size:13px;color:#1e293b;line-height:1.5;">When you arrive at the pickup location, <strong>ask the seller for the verification code</strong>. You will need to enter this code in your dashboard to confirm receipt of your battery.</p>
                 </div>
-                ` : ''}
 
                 <div style="background:#f8fafc;border-radius:10px;padding:16px;margin:20px 0;">
                     <p style="margin:0 0 8px;font-size:13px;color:#64748b;">ORDER DETAILS</p>
@@ -69,7 +71,7 @@ export function orderConfirmationEmail({ buyerName, orderId, productName, amount
                     <p style="margin:4px 0;"><strong>Amount:</strong> ₦${Number(amount).toLocaleString()}</p>
                     <p style="margin:4px 0;"><strong>Collection Date:</strong> ${collectionDate}</p>
                 </div>
-                <p style="color:#475569;font-size:14px;">The seller will be in touch with collection details. This 6-digit token is also sent to your registered phone number.</p>
+                <p style="color:#475569;font-size:14px;">The seller will provide you with the secret code only after they have handed over the items to you.</p>
             </div>
             <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
                 <p style="color:#94a3b8;font-size:12px;margin:0;">© ${new Date().getFullYear()} Go-Cycle. All rights reserved.</p>
@@ -509,9 +511,9 @@ export function sellerNewOrderEmail({ sellerName, orderId, productName, amount, 
                 <p style="color:#475569;">Great news! You have a new order from <strong>${buyerName}</strong>.</p>
 
                 <div style="background:#f0fdf4;border:2px dashed #05DF72;border-radius:12px;padding:24px;margin:20px 0;text-align:center;">
-                    <p style="margin:0 0 8px;font-size:12px;color:#15803d;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Collection Token</p>
+                    <p style="margin:0 0 8px;font-size:12px;color:#15803d;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Verification Code</p>
                     <h2 style="margin:0;font-size:32px;color:#0f172a;letter-spacing:8px;">${token}</h2>
-                    <p style="margin:8px 0 0;font-size:11px;color:#64748b;">The buyer will present this code at point of pickup</p>
+                    <p style="margin:8px 0 0;font-size:11px;color:#64748b;"><strong>Give this code to the buyer</strong> once they have picked up the items. They will need it to confirm the transaction.</p>
                 </div>
 
                 <div style="background:#f8fafc;border-radius:10px;padding:16px;margin:20px 0;">
@@ -523,7 +525,7 @@ export function sellerNewOrderEmail({ sellerName, orderId, productName, amount, 
                     <p style="margin:4px 0;"><strong>Collection Date:</strong> ${collectionDate}</p>
                 </div>
 
-                <p style="color:#475569;font-size:14px;">Please ensure the batteries are ready for pickup on the collection date. The buyer will present the 6-digit token above to confirm collection.</p>
+                <p style="color:#475569;font-size:14px;">The buyer will ask you for this secret code to complete the verification on their side. Do not share it until the hand-off is complete.</p>
             </div>
 
             <!-- Footer -->

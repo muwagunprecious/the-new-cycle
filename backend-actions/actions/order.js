@@ -18,33 +18,25 @@ export async function createOrder(orderData) {
 
         const collectionToken = Math.floor(100000 + Math.random() * 900000).toString()
 
-        let store;
-        
-        // Handle Mock products
+        let storePromise;
         if (typeof productId === 'string' && productId.startsWith("PROD-MOCK-")) {
-            console.log("SERVER: Handling order for MOCK product:", productId)
-            // Assign a stable mock store for these items
-            store = { id: "STORE-MOCK-001", userId: "seller_demo", name: "Mock Store" }
+            storePromise = Promise.resolve({ id: "STORE-MOCK-001", userId: "seller_demo", name: "Mock Store" })
         } else if (sellerId) {
-            store = await prisma.store.findUnique({ where: { userId: sellerId } })
+            storePromise = prisma.store.findUnique({ where: { userId: sellerId } })
         } else {
-            const product = await prisma.product.findUnique({
+            storePromise = prisma.product.findUnique({
                 where: { id: productId },
                 include: { store: true }
-            })
-            store = product?.store
+            }).then(p => p?.store)
         }
+
+        const buyerPromise = (buyerId === "buyer_demo" || buyerId === "user_demo")
+            ? Promise.resolve({ id: buyerId, name: "Demo User", role: "USER", accountStatus: "approved" })
+            : prisma.user.findUnique({ where: { id: buyerId } })
+
+        const [store, buyer] = await Promise.all([storePromise, buyerPromise])
 
         if (!store) return ApiResponse.error("Seller store not found", 404)
-
-        // Handle Demo User or real DB lookup
-        let buyer;
-        if (buyerId === "buyer_demo" || buyerId === "user_demo") {
-            buyer = { id: buyerId, name: "Demo User", role: "USER", accountStatus: "approved" }
-        } else {
-            buyer = await prisma.user.findUnique({ where: { id: buyerId } })
-        }
-
         if (!buyer) return ApiResponse.error("Buyer account not found", 404)
 
         if (buyer.role === 'USER' && buyer.accountStatus !== 'approved') {
@@ -55,179 +47,117 @@ export async function createOrder(orderData) {
             return ApiResponse.error("Administrators are not permitted to make purchases.", 403)
         }
 
-        // Calculate seller fee and net payout with rounding
+        // Calculate seller fee and net payout
         const sellerFee = Math.round(subtotal * 0.05)
         const payoutAmount = subtotal - sellerFee
-
-        // Generate payment reference for Flutterwave orders
         const paymentReference = paymentMethod === 'FLUTTERWAVE' ? generatePaymentRef() : null
-
         const orderId = generateOrderId()
-        const transactionId = orderId // Use consistent ID for both fields
+        const transactionId = orderId
+        const verificationCode = Math.random().toString(36).substring(2, 10).toUpperCase()
 
         let order;
         try {
-            order = await prisma.order.create({
-                data: {
-                    id: orderId,
-                    transactionId,
-                    total: totalAmount,
-                    subtotal,
-                    buyerFee,
-                    sellerFee,
-                    payoutAmount,
-                    status: 'ORDER_PLACED',
-                    collectionStatus: 'PENDING',
-                    collectionToken: collectionToken,
-                    collectionDate: collectionDate,
-                    userId: buyerId,
-                    storeId: store.id,
-                    isPaid: false,
-                    paymentMethod: paymentMethod,
-                    paymentSenderName: paymentSenderName || null,
-                    paymentReference: paymentReference,
-                    paymentStatus: paymentMethod === 'FLUTTERWAVE' ? 'awaiting_gateway' : 'pending',
-                    orderItems: {
-                        create: [{
-                            productId: productId,
-                            quantity: quantity,
-                            price: subtotal / quantity
-                        }]
-                    }
-                },
-                include: { user: true, store: true }
-            })
-
-            // Reserve the product (only if DB is reachable)
-            if (!productId.startsWith("PROD-MOCK-")) {
-                await prisma.product.update({
-                    where: { id: productId },
-                    data: { inStock: false, status: 'sold' }
-                })
-            }
+            // Parallelize Order creation and Product update
+            const [newOrder] = await Promise.all([
+                prisma.order.create({
+                    data: {
+                        id: orderId,
+                        transactionId,
+                        total: totalAmount,
+                        subtotal,
+                        buyerFee,
+                        sellerFee,
+                        payoutAmount,
+                        status: 'ORDER_PLACED',
+                        collectionStatus: 'PENDING',
+                        collectionToken: collectionToken,
+                        collectionDate: collectionDate,
+                        userId: buyerId,
+                        storeId: store.id,
+                        isPaid: false,
+                        paymentMethod: paymentMethod,
+                        paymentSenderName: paymentSenderName || null,
+                        paymentReference: paymentReference,
+                        paymentStatus: paymentMethod === 'FLUTTERWAVE' ? 'awaiting_gateway' : 'pending',
+                        verificationCode: verificationCode,
+                        verificationStatus: 'PENDING',
+                        orderItems: {
+                            create: [{
+                                productId: productId,
+                                quantity: quantity,
+                                price: subtotal / quantity
+                            }]
+                        }
+                    },
+                    include: { user: true, store: true }
+                }),
+                !productId.startsWith("PROD-MOCK-") 
+                    ? prisma.product.update({ where: { id: productId }, data: { inStock: false, status: 'sold' } })
+                    : Promise.resolve()
+            ])
+            order = newOrder;
         } catch (dbError) {
-            console.error("SERVER: DB CONNECTION ERROR DURING ORDER:", dbError.message)
-            
-            // DEMO FALLBACK: If DB is unreachable but we're buying a MOCK product, return a fake order
+            logger.error("DB Error during order creation", dbError);
             if (productId.startsWith("PROD-MOCK-") || buyerId === "buyer_demo" || buyerId === "user_demo") {
-                console.log("SERVER: Entering DEMO FALLBACK mode for order creation")
-                order = {
-                    id: orderId,
-                    transactionId,
-                    total: totalAmount,
-                    subtotal,
-                    buyerFee,
-                    collectionToken,
-                    collectionDate,
-                    status: 'ORDER_PLACED',
-                    paymentMethod,
-                    paymentReference,
-                    userId: buyerId,
-                    user: buyer,
-                    store: store
+                order = { id: orderId, transactionId, total: totalAmount, subtotal, buyerFee, collectionToken, collectionDate, status: 'ORDER_PLACED', paymentMethod, paymentReference, userId: buyerId, user: buyer, store: store }
+            } else throw dbError;
+        }
+
+        // NON-BLOCKING SIDE EFFECTS: Enqueue all notifications and emails
+        import('../lib/worker').then(m => {
+            const worker = m.default;
+            worker.enqueue(`ORDER_SIDE_EFFECTS_${orderId}`, async () => {
+                // 1. In-app notifications — include rich data for the popup
+                try {
+                    const product = await prisma.product.findUnique({ where: { id: productId }, select: { name: true } });
+                    const productName = product?.name || "Battery Product";
+                    const sellerMsg = `BUYER:${buyer.name}|PHONE:${buyer.phone || 'N/A'}|AMOUNT:${totalAmount}|CODE:${verificationCode}|DATE:${collectionDate || 'TBD'}|ORDER:${transactionId}|QTY:${quantity}|PROD:${productName}`;
+                    await createNotification(store.userId, "New Purchase Request", sellerMsg, "ORDER");
+                    const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
+                    await Promise.all(admins.map(admin => createNotification(admin.id, "New Platform Sale", `Order #${transactionId} placed. Total: ₦${totalAmount.toLocaleString()}`, "ORDER")));
+                } catch (e) { logger.warn("Order background notifications failed", e); }
+
+                // 2. Socket/Backend Notification
+                try {
+                    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
+                    await fetch(`${backendUrl}/api/orders/${orderId}/notify-seller`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sellerId: store.userId, buyerName: buyer.name, productName: "Battery Product", amount: totalAmount, collectionDate: collectionDate || 'Pending', verificationCode: verificationCode }),
+                    });
+                } catch (e) { logger.warn("Socket notification failed", e); }
+
+                // 3. Emails — buyer always gets confirmation; seller always gets alert
+                const seller = await prisma.user.findUnique({ where: { id: store.userId } });
+
+                // Buyer email
+                if (buyer.email) {
+                    if (paymentMethod === 'MANUAL_TRANSFER') {
+                        await sendEmail({
+                            to: buyer.email,
+                            subject: "[Go-Cycle] Order Received - Payment Verification Pending",
+                            html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;"><h1 style="color:#05DF72;font-size:22px;">Order Received</h1><p>Hello ${buyer.name},</p><p>We have received your order. Transaction ID: <b>${transactionId}</b>. Our team will verify your bank transfer within 24-48 hours.</p></div>`
+                        });
+                    } else {
+                        const emailTemplate = orderConfirmationEmail({ buyerName: buyer.name, orderId: transactionId, productName: "Battery", amount: totalAmount, collectionDate: collectionDate || 'TBD', token: collectionToken });
+                        await sendEmail({ to: buyer.email, ...emailTemplate });
+                    }
                 }
-            } else {
-                // If it's a real product and DB is down, we must fail
-                throw dbError
-            }
-        }
 
-        // Notify Stakeholders (Best effort, don't fail order if DB is blocked)
-        try {
-            await createNotification(
-                store.userId,
-                "New Order Received!",
-                `You have a new order for ${quantity} unit(s). Total: ₦${totalAmount.toLocaleString()}`,
-                "ORDER"
-            )
-
-            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
-            for (const admin of admins) {
-                await createNotification(
-                    admin.id,
-                    "New Platform Sale",
-                    `Order #${transactionId} placed. Total: ₦${totalAmount.toLocaleString()}`,
-                    "ORDER"
-                )
-            }
-        } catch (notifError) {
-            console.warn("SERVER: Could not send in-app notifications (DB likely blocked):", notifError.message)
-        }
+                // Seller email — fires for BOTH payment methods
+                if (seller?.email) {
+                    const sellerEmailTemplate = sellerNewOrderEmail({ sellerName: seller.name, orderId: transactionId, productName: "Battery", amount: totalAmount, quantity, collectionDate: collectionDate || 'TBD', token: collectionToken, buyerName: buyer.name });
+                    await sendEmail({ to: seller.email, ...sellerEmailTemplate });
+                }
+            });
+        });
 
         revalidatePath('/buyer/orders')
         revalidatePath('/seller/orders')
         revalidatePath('/admin/orders')
-
-        // Send confirmation email to buyer
-        if (buyer.email) {
-            let productName = "Battery Product";
-            try {
-                if (!productId.startsWith("PROD-MOCK-")) {
-                    const productData = await prisma.product.findUnique({ where: { id: productId }, select: { name: true } })
-                    productName = productData?.name || "Battery Product";
-                } else {
-                    // Get mock name from centralized MOCK_PRODUCTS (simplified here)
-                    productName = productId.includes("002") ? "Luminous Gel Battery" : "Isuzu Battery";
-                }
-            } catch (err) {
-                console.warn("SERVER: Could not fetch product name for email (DB likely blocked)")
-            }
-            if (paymentMethod === 'MANUAL_TRANSFER') {
-                sendEmail({
-                    to: buyer.email,
-                    subject: "[Go-Cycle] Order Received - Payment Verification Pending",
-                    html: `
-                    <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;">
-                        <h1 style="color:#05DF72;font-size:22px;">Order Received</h1>
-                        <p>Hello ${buyer.name},</p>
-                        <p>We have successfully received your order for <b>${productName}</b> (Qty: ${quantity}).</p>
-                        <p>Your bank transfer (Sender Name: <b>${paymentSenderName || 'Not Provided'}</b>) is currently pending admin verification.</p>
-                        <p>Once our finance team confirms receipt of the funds, you will receive an approval email and the vendor will be notified to prepare the product for pickup.</p>
-                        <p>Transaction ID: <b>${transactionId}</b></p>
-                        <br/>
-                        <p>Thank you for using GoCycle!</p>
-                    </div>`
-                }).catch(err => logger.warn("Order pending email failed", err))
-            } else {
-                const emailTemplate = orderConfirmationEmail({
-                    buyerName: buyer.name,
-                    orderId: transactionId,
-                    productName: productName,
-                    amount: totalAmount,
-                    collectionDate: collectionDate ? new Date(collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
-                    token: collectionToken
-                })
-                sendEmail({ to: buyer.email, ...emailTemplate }).catch(err =>
-                    logger.warn("Order confirmation email failed", err)
-                )
-
-                // Send order notification email to seller ONLY IF paid
-                let seller;
-                try {
-                    seller = await prisma.user.findUnique({ where: { id: store.userId } })
-                } catch (err) {
-                    console.warn("SERVER: Could not fetch seller details for email (DB likely blocked)")
-                }
-
-                if (seller?.email) {
-                    const sellerEmailTemplate = sellerNewOrderEmail({
-                        sellerName: seller.name,
-                        orderId: transactionId,
-                        productName: productName,
-                        amount: totalAmount,
-                        quantity: quantity,
-                        collectionDate: collectionDate ? new Date(collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
-                        token: collectionToken,
-                        buyerName: buyer.name
-                    })
-                    sendEmail({ to: seller.email, ...sellerEmailTemplate }).catch(err =>
-                        logger.warn("Seller order notification email failed", err)
-                    )
-                }
-            }
-        }
-
+        
         return ApiResponse.success({ ...order, paymentReference, collectionToken }, "Order placed successfully")
+
     } catch (error) {
         logger.error("Create Order Error", error)
         return ApiResponse.error(`Order creation failed: ${error.message}`)
@@ -360,7 +290,7 @@ export async function verifyOrderCollection(orderId, token) {
             }
         })
         if (!order) return ApiResponse.error("Order not found", 404)
-        if (order.collectionToken !== token) return ApiResponse.error("Invalid collection token", 400)
+        if (order.verificationCode !== token?.toUpperCase()) return ApiResponse.error("Invalid verification code. Ask the seller for the correct code.", 400)
 
         const updatedOrder = await prisma.order.update({
             where: { id: orderId },
@@ -419,9 +349,11 @@ export async function verifyOrderCollection(orderId, token) {
                 collectionDate: new Date().toLocaleDateString('en-NG', { dateStyle: 'long' }),
                 storeName: order.store?.name || 'Seller'
             })
-            sendEmail({ to: order.user.email, ...emailTemplate }).catch(err =>
-                logger.warn("Buyer receipt email failed", err)
-            )
+            setTimeout(() => {
+                sendEmail({ to: order.user.email, ...emailTemplate }).catch(err =>
+                    logger.warn("Buyer receipt email failed", err)
+                )
+            }, 0)
         }
 
         return ApiResponse.success(updatedOrder, "Collection verified successfully")
@@ -464,10 +396,24 @@ export async function getAllOrders(page = 1, limit = 50) {
     }
 }
 
-export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER') {
+export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER', message = null) {
     try {
+        // Resolve the real database ID if a transactionId (GCY-...) was provided
+        const targetOrder = await prisma.order.findFirst({
+            where: {
+                OR: [
+                    { id: orderId },
+                    { transactionId: orderId }
+                ]
+            }
+        })
+
+        if (!targetOrder) {
+            return ApiResponse.error("Order record not found", 404)
+        }
+
         const order = await prisma.order.update({
-            where: { id: orderId },
+            where: { id: targetOrder.id },
             data: {
                 collectionStatus: 'RESCHEDULE_REQUESTED',
                 proposedDate: newDate,
@@ -479,23 +425,26 @@ export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER'
         // Notify the OTHER party
         if (requestedBy === 'SELLER') {
             // Seller proposed → notify buyer
+            const notificationMsg = `${order.store.name} has proposed a new pickup date: ${newDate}.${message ? ` \n\nNote: "${message}"` : ""} Please accept or suggest an alternative.`
             await createNotification(
                 order.userId,
                 "Pickup Date Change Proposed",
-                `${order.store.name} has proposed a new pickup date: ${newDate}. Please accept or suggest an alternative.`,
+                notificationMsg,
                 "ORDER"
             )
             // Send email to buyer
             if (order.user?.email) {
                 const { rescheduleRequestEmail } = await import('@/backend-actions/lib/email')
-                sendEmail({
-                    to: order.user.email, ...rescheduleRequestEmail({
-                        recipientName: order.user.name,
-                        proposedDate: newDate,
-                        proposedBy: order.store.name,
-                        orderId: order.transactionId || order.id
-                    })
-                }).catch(err => logger.warn('Reschedule email failed', err))
+                setTimeout(() => {
+                    sendEmail({
+                        to: order.user.email, ...rescheduleRequestEmail({
+                            recipientName: order.user.name,
+                            proposedDate: newDate,
+                            proposedBy: order.store.name,
+                            orderId: order.transactionId || order.id
+                        })
+                    }).catch(err => logger.warn('Reschedule email failed', err))
+                }, 0)
             }
         } else {
             // Buyer proposed → notify seller
@@ -508,14 +457,16 @@ export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER'
             // Send email to seller
             if (order.store?.email) {
                 const { rescheduleRequestEmail } = await import('@/backend-actions/lib/email')
-                sendEmail({
-                    to: order.store.email, ...rescheduleRequestEmail({
-                        recipientName: order.store.name,
-                        proposedDate: newDate,
-                        proposedBy: order.user.name,
-                        orderId: order.transactionId || order.id
-                    })
-                }).catch(err => logger.warn('Reschedule email failed', err))
+                setTimeout(() => {
+                    sendEmail({
+                        to: order.store.email, ...rescheduleRequestEmail({
+                            recipientName: order.store.name,
+                            proposedDate: newDate,
+                            proposedBy: order.user.name,
+                            orderId: order.transactionId || order.id
+                        })
+                    }).catch(err => logger.warn('Reschedule email failed', err))
+                }, 0)
             }
         }
 
@@ -601,23 +552,27 @@ export async function respondToReschedule(orderId, action, alternateDate = null,
         if (emailTo) {
             if (action === 'ACCEPT') {
                 const { rescheduleAcceptedEmail } = await import('@/backend-actions/lib/email')
-                sendEmail({
-                    to: emailTo, ...rescheduleAcceptedEmail({
-                        recipientName: emailName,
-                        confirmedDate: order.proposedDate,
-                        orderId: order.transactionId || order.id
-                    })
-                }).catch(err => logger.warn('Reschedule accepted email failed', err))
+                setTimeout(() => {
+                    sendEmail({
+                        to: emailTo, ...rescheduleAcceptedEmail({
+                            recipientName: emailName,
+                            confirmedDate: order.proposedDate,
+                            orderId: order.transactionId || order.id
+                        })
+                    }).catch(err => logger.warn('Reschedule accepted email failed', err))
+                }, 0)
             } else {
                 const { rescheduleRequestEmail } = await import('@/backend-actions/lib/email')
-                sendEmail({
-                    to: emailTo, ...rescheduleRequestEmail({
-                        recipientName: emailName,
-                        proposedDate: alternateDate,
-                        proposedBy: respondedBy === 'BUYER' ? order.user.name : order.store.name,
-                        orderId: order.transactionId || order.id
-                    })
-                }).catch(err => logger.warn('Reschedule counter email failed', err))
+                setTimeout(() => {
+                    sendEmail({
+                        to: emailTo, ...rescheduleRequestEmail({
+                            recipientName: emailName,
+                            proposedDate: alternateDate,
+                            proposedBy: respondedBy === 'BUYER' ? order.user.name : order.store.name,
+                            orderId: order.transactionId || order.id
+                        })
+                    }).catch(err => logger.warn('Reschedule counter email failed', err))
+                }, 0)
             }
         }
 

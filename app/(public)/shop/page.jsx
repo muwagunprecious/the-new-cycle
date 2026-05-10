@@ -1,7 +1,7 @@
 import { getAllProducts } from "@/backend-actions/actions/product"
 import ShopClient from "@/components/ShopClient"
 
-export const revalidate = 60 // Revalidate cache every 60 seconds
+export const dynamic = 'force-dynamic' 
 
 export default async function Shop() {
     // 1. Fetch data directly on the server before sending HTML to browser

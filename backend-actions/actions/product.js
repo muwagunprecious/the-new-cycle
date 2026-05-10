@@ -6,12 +6,13 @@ import { revalidatePath } from "next/cache"
 import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 import { logToFile } from "@/backend-actions/lib/server-logger"
 import { verifyIsBattery } from "@/backend-actions/lib/ai-service"
+import { BATTERY_TYPE_MAPPING } from "@/lib/pricing"
+import worker from "@/backend-actions/lib/worker"
+import { rateLimit } from "@/backend-actions/lib/rate-limit"
+import { headers } from "next/headers"
 
 
 import { sendEmail, productApprovedEmail, productRejectedEmail } from "@/backend-actions/lib/email"
-import { BATTERY_TYPE_MAPPING } from "@/lib/pricing"
-import { rateLimit } from "../lib/rate-limit"
-import { headers } from "next/headers"
 
 export async function createProduct(data, userId) {
     logger.info("Creating new product", { userId, productName: data.name })
@@ -45,16 +46,6 @@ export async function createProduct(data, userId) {
 
         console.log(`SERVER: Attempting DB create for product: ${data.name}. Image count: ${data.images?.length || 0}`);
 
-        // AI Verification Step
-        const aiResult = await verifyIsBattery(data.images || []);
-        let initialStatus = 'pending';
-        let rejectionReason = null;
-
-        if (!aiResult.isBattery) {
-            initialStatus = 'rejected';
-            rejectionReason = `AI Verification Failed: ${aiResult.reason}`;
-            logToFile(`PRODUCT_AUTO_REJECTED: ${data.name}`, aiResult);
-        }
         const product = await withRetry(() => prisma.product.create({
             data: {
                 name: data.name,
@@ -72,42 +63,50 @@ export async function createProduct(data, userId) {
                 collectionDateEnd,
                 collectionDates: data.collectionDates,
                 quantity: units,
-                status: initialStatus,
-                rejectionReason: rejectionReason,
+                status: 'pending',
                 storeId: store.id,
                 inStock: true
             }
         }))
         
         logToFile(`SERVER: DB create successful for: ${product.id}`);
-        console.log(`SERVER: DB create successful for: ${product.id}`);
 
-
-
-        // Notify Admins
-        try {
-            const { createNotification } = await import('./notification')
-            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
+        // BACKGROUND TASK: AI Verification & Admin Notification
+        worker.enqueue(`AI_VERIFY_${product.id}`, async () => {
+            const aiResult = await verifyIsBattery(data.images || []);
             
-            const notificationMsg = initialStatus === 'rejected' 
-                ? `AUTO-REJECTED: ${store.name} tried listing a non-battery item: ${data.name}`
-                : `${store.name} has listed a new product: ${data.name}. Approval required.`;
-
-            for (const admin of admins) {
-                await createNotification(
-                    admin.id,
-                    initialStatus === 'rejected' ? "Auto-Rejection Alert" : "New Product Listing",
-                    notificationMsg,
-                    "SYSTEM"
-                )
+            if (!aiResult.isBattery) {
+                await prisma.product.update({
+                    where: { id: product.id },
+                    data: { 
+                        status: 'rejected',
+                        rejectionReason: `AI Verification Failed: ${aiResult.reason}`
+                    }
+                });
+                logToFile(`PRODUCT_AUTO_REJECTED: ${data.name}`, aiResult);
             }
-        } catch (notifyError) {
-            logger.warn("Failed to notify admins", notifyError)
-        }
 
-        if (initialStatus === 'rejected') {
-            return ApiResponse.error(`Listing rejected: Our AI detected that this image is not a battery. (${aiResult.reason})`, 400);
-        }
+            // Notify Admins in background
+            try {
+                const { createNotification } = await import('./notification');
+                const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+                
+                const notificationMsg = !aiResult.isBattery 
+                    ? `AUTO-REJECTED: ${store.name} tried listing a non-battery item: ${data.name}`
+                    : `${store.name} has listed a new product: ${data.name}. Approval required.`;
+
+                for (const admin of admins) {
+                    await createNotification(
+                        admin.id,
+                        !aiResult.isBattery ? "Auto-Rejection Alert" : "New Product Listing",
+                        notificationMsg,
+                        "SYSTEM"
+                    );
+                }
+            } catch (notifyError) {
+                console.warn("Failed to notify admins in worker", notifyError);
+            }
+        });
 
         revalidatePath('/seller/products')
         revalidatePath('/')
@@ -170,7 +169,7 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
         ])
 
         logToFile(`GET_SELLER_PRODUCTS: Found ${products.length} products (Total: ${totalCount})`);
-        const formatted = products.map(mapProductToFrontend)
+        const formatted = products.map(mapProductToFrontend);
 
         return ApiResponse.success({
             products: formatted,
@@ -222,7 +221,7 @@ export async function getAllProducts() {
                 .from('Product')
                 .select(`
                     id, name, price, mrp, images, category, type, brand, amps, condition, 
-                    storeId,
+                    storeId, collectionDates, collectionDateStart, collectionDateEnd,
                     store:Store!inner (
                         name, address, isVerified, status, isActive
                     )
@@ -239,7 +238,7 @@ export async function getAllProducts() {
                     ...p,
                     store: Array.isArray(p.store) ? p.store[0] : p.store
                 }))
-                const formatted = standardizedProducts.map(mapProductToFrontend)
+                const formatted = standardizedProducts.map(mapProductToFrontend);
                 return ApiResponse.success({ products: formatted, data: formatted })
             }
         }
@@ -259,13 +258,16 @@ export async function getAllProducts() {
                 condition: true,
                 status: true,
                 inStock: true,
-                store: { select: { name: true, address: true, isVerified: true } }
+                collectionDates: true,
+                collectionDateStart: true,
+                collectionDateEnd: true,
+                store: { select: { name: true, address: true, isVerified: true, status: true, isActive: true, userId: true } }
             },
             orderBy: { createdAt: 'desc' },
             take: 20
         })
 
-        const formatted = prismaProducts.map(mapProductToFrontend)
+        const formatted = prismaProducts.map(mapProductToFrontend);
         return ApiResponse.success({ products: formatted, data: formatted })
 
 
@@ -326,7 +328,9 @@ export async function getAdminProducts(page = 1, limit = 50) {
                     inStock: true,
                     createdAt: true,
                     storeId: true,
-                    images: true, // Include images for visual verification
+                    collectionDates: true,
+                    collectionDateStart: true,
+                    collectionDateEnd: true,
                     store: {
                         select: {
                             id: true,
@@ -387,7 +391,9 @@ export async function getPendingAdminProducts(page = 1, limit = 50) {
                     inStock: true,
                     createdAt: true,
                     storeId: true,
-                    images: true, // Include images for visual verification
+                    collectionDates: true,
+                    collectionDateStart: true,
+                    collectionDateEnd: true,
                     store: {
                         select: {
                             id: true,
@@ -464,28 +470,23 @@ export async function adminApproveProduct(productId, adminId) {
             }
         })
 
-        if (product.store?.user?.email) {
-            const { subject, html } = productApprovedEmail({
-                sellerName: product.store.name,
-                productName: product.name
-            })
-            sendEmail({
-                to: product.store.user.email,
-                subject,
-                html
-            }).catch(err => logger.warn("Failed to send product approval email", err))
-        }
-
-        // Notify Seller
-        try {
-            const { createNotification } = await import('./notification')
-            await createNotification(
-                product.store.userId,
-                "Listing Approved! 🎉",
-                `Your product "${product.name}" has been approved and is now live.`,
-                "SYSTEM"
-            )
-        } catch (e) {}
+        // Offload side effects to worker
+        import('../lib/worker').then(m => {
+            const worker = m.default;
+            worker.enqueue(`ADMIN_APPROVE_PRODUCT_${productId}`, async () => {
+                if (product.store?.user?.email) {
+                    const { subject, html } = productApprovedEmail({
+                        sellerName: product.store.name,
+                        productName: product.name
+                    })
+                    await sendEmail({ to: product.store.user.email, subject, html }).catch(err => logger.warn("Approval email failed", err))
+                }
+                try {
+                    const { createNotification } = await import('./notification')
+                    await createNotification(product.store.userId, "Listing Approved! 🎉", `Your product "${product.name}" has been approved and is now live.`, "SYSTEM")
+                } catch (e) {}
+            });
+        });
 
         revalidatePath('/admin/products')
         revalidatePath('/seller/products')
@@ -518,29 +519,24 @@ export async function adminRejectProduct(productId, reason, adminId) {
             }
         })
 
-        if (product.store?.user?.email) {
-            const { subject, html } = productRejectedEmail({
-                sellerName: product.store.name,
-                productName: product.name,
-                reason: reason || "Listing does not meet guidelines."
-            })
-            sendEmail({
-                to: product.store.user.email,
-                subject,
-                html
-            }).catch(err => logger.warn("Failed to send product rejection email", err))
-        }
-
-        // Notify Seller
-        try {
-            const { createNotification } = await import('./notification')
-            await createNotification(
-                product.store.userId,
-                "Listing Rejected",
-                `Your product "${product.name}" was not approved. Reason: ${reason || "Does not meet guidelines."}`,
-                "SYSTEM"
-            )
-        } catch (e) {}
+        // Offload side effects to worker
+        import('../lib/worker').then(m => {
+            const worker = m.default;
+            worker.enqueue(`ADMIN_REJECT_PRODUCT_${productId}`, async () => {
+                if (product.store?.user?.email) {
+                    const { subject, html } = productRejectedEmail({
+                        sellerName: product.store.name,
+                        productName: product.name,
+                        reason: reason || "Listing does not meet guidelines."
+                    })
+                    await sendEmail({ to: product.store.user.email, subject, html }).catch(err => logger.warn("Rejection email failed", err))
+                }
+                try {
+                    const { createNotification } = await import('./notification')
+                    await createNotification(product.store.userId, "Listing Rejected", `Your product "${product.name}" was not approved. Reason: ${reason || "Does not meet guidelines."}`, "SYSTEM")
+                } catch (e) {}
+            });
+        });
 
         revalidatePath('/admin/products')
         revalidatePath('/seller/products')

@@ -2,7 +2,7 @@
 import { useState, Suspense } from "react"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/lib/features/auth/authSlice"
-import { loginUser, logoutUser, verifyAdmin2FA, resendAdmin2FA, changePassword, verifyOTP } from "@/backend-actions/actions/auth"
+import { loginUser, verifyAdmin2FA, resendAdmin2FA, changePassword, verifyOTP } from "@/backend-actions/actions/auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShieldCheck as ShieldCheckIcon, Mail as MailIcon, Lock as LockIcon, Loader as LoaderIcon, Zap as ZapIcon, Eye as EyeIcon, EyeOff as EyeOffIcon } from "lucide-react"
 import Link from "next/link"
@@ -36,12 +36,10 @@ function LoginContent() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setIsLoading(true)
-        dispatch(showLoader("Signing you in..."))
+        // Removed global showLoader to allow button-level loading for better UX
 
-        // CLEAN SLATE RULE: Clear any stale legacy state before new login
+        // Clear any stale legacy localStorage state (safe — does not touch cookies)
         localStorage.removeItem('gocycle_session')
-        const { logoutUser } = await import("@/backend-actions/actions/auth")
-        await logoutUser()
 
         try {
             const result = await loginUser(formData.identifier, formData.password)

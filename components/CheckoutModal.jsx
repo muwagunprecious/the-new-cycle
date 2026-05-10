@@ -372,6 +372,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             {/* Pay Button */}
                             <Button
                                 onClick={handleSelectPaymentMethod}
+                                loading={isLoading}
                                 className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
                             >
                                 <ShieldCheckIcon size={18} className="mr-2" />
@@ -485,6 +486,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                         setStep('PAYMENT_DETAILS')
                                     }
                                 }}
+                                loading={isLoading}
                                 disabled={!flwScriptLoaded && selectedPaymentMethod === 'FLUTTERWAVE'}
                                 className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
                             >

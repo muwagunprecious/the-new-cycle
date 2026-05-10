@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux'
 const ProductCard = ({ product, onQuickBuy }) => {
     const [selectedDate, setSelectedDate] = useState(null)
     const [quantity, setQuantity] = useState(1)
+    const [isNavigating, setIsNavigating] = useState(false)
     const { user } = useSelector(state => state.auth)
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
 
@@ -96,15 +97,17 @@ const ProductCard = ({ product, onQuickBuy }) => {
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (isSold) return;
+                            if (isSold || isNavigating) return;
+                            setIsNavigating(true);
                             if (onQuickBuy) {
                                 onQuickBuy();
+                                setIsNavigating(false);
                             } else {
                                 router.push(`/product/${product.id}`);
                             }
                         }}
-                        disabled={isSold}
-                        className={`h-8 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1 sm:gap-2 shrink-0 ${
+                        disabled={isSold || isNavigating}
+                        className={`h-8 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1 sm:gap-2 shrink-0 ${
                             isSold 
                             ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
                             : isAdmin
@@ -112,8 +115,14 @@ const ProductCard = ({ product, onQuickBuy }) => {
                             : 'bg-slate-900 text-white hover:bg-emerald-500 shadow-lg shadow-slate-900/10'
                         }`}
                     >
-                        {isSold ? 'Sold' : isAdmin ? 'Admin Mode' : 'Buy Now'}
-                        {!isSold && !isAdmin && <ChevronRightIcon size={12} className='sm:w-3.5 sm:h-3.5' />}
+                        {isNavigating ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <>
+                                {isSold ? 'Sold' : isAdmin ? 'Admin Mode' : 'Buy Now'}
+                                {!isSold && !isAdmin && <ChevronRightIcon size={12} className='sm:w-3.5 sm:h-3.5' />}
+                            </>
+                        )}
                     </button>
                 </div>
             </div>

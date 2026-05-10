@@ -203,6 +203,8 @@ model Order {
   paymentStatus     String        @default("pending")
   paymentReference  String? // Flutterwave tx_ref
   flutterwaveId     String? // Flutterwave transaction_id
+  verificationCode  String?
+  verificationStatus String       @default("PENDING")
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   isCouponUsed      Boolean       @default(false)

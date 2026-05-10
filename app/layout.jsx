@@ -1,6 +1,7 @@
 import Script from "next/script";
 import { Toaster } from "react-hot-toast";
 import StoreProvider from "@/app/StoreProvider";
+import RealTimeNotifications from "@/components/notifications/RealTimeNotifications";
 import GlobalLoader from "@/components/GlobalLoader";
 import PerformanceTracker from "@/components/PerformanceTracker";
 import { Outfit } from "next/font/google";
@@ -92,6 +93,7 @@ export default function RootLayout({ children }) {
                     </div>
                     <GlobalLoader />
                     <PerformanceTracker />
+                    <RealTimeNotifications />
                     {children}
                 </StoreProvider>
             </body>

@@ -3,9 +3,10 @@ import { useState, useEffect } from "react"
 import { getSellerOrders, updateOrderStatus, requestReschedule, respondToReschedule } from "@/backend-actions/actions/order"
 import { useSelector } from "react-redux"
 import Loading from "@/components/Loading"
-import { AlertCircle as AlertCircleIcon, CheckCircle as CheckCircleIcon, Calendar as CalendarIcon, Truck as TruckIcon, Wallet as WalletIcon, X as XIcon, Clock as ClockIcon } from "lucide-react"
+import { AlertCircle as AlertCircleIcon, CheckCircle as CheckCircleIcon, Calendar as CalendarIcon, Truck as TruckIcon, Wallet as WalletIcon, X as XIcon, Clock as ClockIcon, User, Phone, Copy } from "lucide-react"
 import toast from "react-hot-toast"
 import ScheduleCalendar from "@/components/ScheduleCalendar"
+import RescheduleModal from "@/components/RescheduleModal"
 
 export default function SellerOrders() {
     const { user } = useSelector(state => state.auth)
@@ -83,6 +84,28 @@ export default function SellerOrders() {
         }
     }
 
+    const handleVerifyOrder = async (orderId, code) => {
+        setLoading(true)
+        try {
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
+            const response = await fetch(`${backendUrl}/api/orders/${orderId}/verify-code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            })
+            const data = await response.json()
+            if (data.success) {
+                setOrders(orders.map(o => o.id === orderId ? data.data : o))
+                toast.success("Order verified and completed!")
+            } else {
+                toast.error(data.message || "Invalid verification code")
+            }
+        } catch (error) {
+            toast.error("Verification failed")
+        }
+        setLoading(false)
+    }
+
     if (loading) return <Loading />
 
     return (
@@ -95,108 +118,190 @@ export default function SellerOrders() {
             <div className="grid grid-cols-1 gap-6">
                 {orders.map((order) => (
                     <div key={order.id} className="card p-6 bg-white flex flex-col md:flex-row gap-6 items-start md:items-center justify-between group">
-                        <div className="flex items-start gap-4">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${order.status === 'Pending' ? 'bg-orange-50 text-orange-500' : 'bg-green-50 text-green-500'}`}>
-                                {order.status === 'Pending' ? <AlertCircleIcon /> : <CheckCircleIcon />}
+                        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center w-full">
+                            <div className="flex items-start gap-4 flex-1">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${order.status === 'ORDER_PLACED' ? 'bg-orange-50 text-orange-500' : (order.status === 'COMPLETED' ? 'bg-green-50 text-green-500' : 'bg-[#05DF72]/10 text-[#05DF72]')}`}>
+                                    {order.status === 'ORDER_PLACED' ? <AlertCircleIcon /> : <CheckCircleIcon />}
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                                        <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-none truncate max-w-[150px] sm:max-w-none">{order.transactionId || order.id}</span>
+                                        <span className={`status-badge text-[9px] sm:text-[10px] whitespace-nowrap ${order.status === 'ORDER_PLACED' ? 'status-pending' : (order.status === 'COMPLETED' ? 'status-picked' : 'status-approved')}`}>
+                                            {order.status.replace('_', ' ')}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm font-bold text-slate-600 line-clamp-1">{order.orderItems?.map(item => item.product?.name).join(', ') || 'Battery Order'}</p>
+                                    <div className="flex flex-wrap items-center gap-4 text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-widest">
+                                        <div className="flex items-center gap-1.5">
+                                            <CalendarIcon size={12} />
+                                            Ordered: {new Date(order.createdAt).toLocaleDateString()}
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[#05DF72]">
+                                            <TruckIcon size={12} />
+                                            Pickup: {order.collectionDate || 'Pending Selection'}
+                                            {order.collectionStatus === 'RESCHEDULE_REQUESTED' && (
+                                                <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-[8px] font-black rounded-full animate-pulse">
+                                                    RESCHEDULE PENDING
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-lg font-bold text-slate-900">{order.id}</span>
-                                    <span className={`status-badge ${order.status === 'Pending' ? 'status-pending' : (order.status === 'Picked' ? 'status-picked' : 'status-approved')}`}>
-                                        {order.status}
-                                    </span>
-                                </div>
-                                <p className="text-sm font-medium text-slate-600 line-clamp-1">{order.orderItems?.map(item => item.product?.name).join(', ') || 'Battery Order'}</p>
-                                <div className="flex items-center gap-4 text-xs text-slate-400 mt-2">
-                                    <div className="flex items-center gap-1">
-                                        <CalendarIcon size={14} />
-                                        Ordered: {new Date(order.createdAt).toLocaleDateString()}
-                                    </div>
-                                    <div className="flex items-center gap-1 text-[#05DF72] font-semibold">
-                                        <TruckIcon size={14} />
-                                        Pickup: {order.collectionDate || 'Pending Selection'}
+
+                            {/* Buyer & Verification Info */}
+                            <div className="flex flex-wrap gap-6 items-center border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-8">
+                                <div className="space-y-2 min-w-[140px]">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                        <User size={12} /> Buyer
+                                    </p>
+                                    <div className="space-y-0.5">
+                                        <p className="text-sm font-black text-slate-900 leading-none">{order.user?.name}</p>
+                                        {order.user?.phone && (
+                                            <a href={`tel:${order.user.phone}`} className="text-[10px] font-bold text-[#05DF72] hover:underline flex items-center gap-1">
+                                                <Phone size={10} /> {order.user.phone}
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
+
+                                {order.status !== 'COMPLETED' && (
+                                    <div className="space-y-2 bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                <CheckCircleIcon size={12} /> Code to share
+                                            </p>
+                                            {!order.isPaid && (
+                                                <span className="text-[9px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-tight">
+                                                    UNPAID
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="bg-slate-900 text-white px-4 py-2 rounded-xl font-black tracking-[0.2em] text-sm shadow-lg shadow-slate-900/20">
+                                                {order.verificationCode || "GEN-ERR"}
+                                            </div>
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(order.verificationCode)
+                                                    toast.success("Code copied!")
+                                                }}
+                                                className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-[#05DF72] hover:border-[#05DF72] transition-all"
+                                            >
+                                                <Copy size={16} />
+                                            </button>
+                                        </div>
+                                        {!order.isPaid && (
+                                            <p className="text-[8px] font-bold text-slate-400 leading-tight">
+                                                Only share after confirming payment
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0">
                             <span className="text-xl font-black text-slate-900">₦{(order.payoutAmount || order.total || 0).toLocaleString()}</span>
-                            <div className="bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 flex items-center gap-1.5 mb-2 mt-1 w-full md:w-auto">
-                                <AlertCircleIcon size={12} className="text-amber-500 shrink-0" />
-                                <span className="text-[9px] font-bold text-amber-700 uppercase tracking-widest leading-tight text-left md:text-right">
-                                    5% Admin Platform Fee Deducted
-                                </span>
-                            </div>
+                            {order.isPaid && (
+                                <div className="bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 flex items-center gap-1.5 mb-2 mt-1 w-full md:w-auto animate-in slide-in-from-right-4 duration-300">
+                                    <AlertCircleIcon size={12} className="text-amber-500 shrink-0" />
+                                    <span className="text-[9px] font-bold text-amber-700 uppercase tracking-widest leading-tight text-left md:text-right">
+                                        5% Admin Platform Fee Deducted
+                                    </span>
+                                </div>
+                            )}
                             <div className="flex gap-2 w-full md:w-auto mt-2">
                                 {order.status === 'COMPLETED' || order.payoutStatus === 'released' ? (
-                                    <div className="flex items-center gap-2 bg-green-50 text-green-600 px-4 py-2 rounded-xl border border-green-100">
-                                        <WalletIcon size={14} />
-                                        <span className="text-xs font-black uppercase tracking-widest">
-                                            Paid to Wallet
-                                        </span>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {(order.status === 'ORDER_PLACED' || order.status === 'PAID') && (
-                                            <>
-                                                <button onClick={() => updateStatus(order.id, 'APPROVED')} className="flex-1 md:flex-none btn-primary !py-2 !px-4 text-sm">Accept Order</button>
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedOrder(order)
-                                                        setIsRescheduleModalOpen(true)
-                                                    }}
-                                                    className="flex-1 md:flex-none px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-500 hover:bg-slate-50"
-                                                >
-                                                    Reschedule
-                                                </button>
-                                            </>
-                                        )}
-                                        {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'BUYER' ? (
-                                            <div className="flex flex-col items-end gap-2">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1">
-                                                    <ClockIcon size={14} /> Buyer proposed: {order.proposedDate}
-                                                </p>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => handleSellerRescheduleAction(order.id, 'ACCEPT')}
-                                                        className="px-3 py-1.5 bg-[#05DF72] text-white font-bold text-[10px] rounded-lg hover:shadow-lg transition-all flex items-center gap-1"
-                                                    >
-                                                        <CheckCircleIcon size={12} /> Accept
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedOrder({ ...order, rescheduleMode: 'COUNTER' })
-                                                            setIsRescheduleModalOpen(true)
-                                                        }}
-                                                        className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 transition-all"
-                                                    >
-                                                        Counter
-                                                    </button>
+                                     <div className="flex items-center gap-2 bg-green-50 text-green-600 px-4 py-2 rounded-xl border border-green-100">
+                                         <WalletIcon size={14} />
+                                         <span className="text-xs font-black uppercase tracking-widest">
+                                             Paid to Wallet
+                                         </span>
+                                     </div>
+                                 ) : (
+<div className="flex flex-col items-end gap-3 w-full">
+                                          <div className="flex flex-wrap gap-2 justify-end w-full">
+                                             {order.isPaid && (
+                                                  <div className="flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg border border-blue-100">
+                                                     <CheckCircleIcon size={14} />
+                                                     <span className="text-xs font-bold uppercase tracking-widest">Payment Verified</span>
+                                                 </div>
+                                             )}
+    
+                                            {order.status === 'ORDER_PLACED' && !order.isPaid && (
+                                                 <div className="flex items-center gap-2 bg-amber-50 text-amber-600 px-3 py-2 rounded-lg border border-amber-100">
+                                                    <ClockIcon size={14} />
+                                                    <span className="text-xs font-bold uppercase tracking-widest">Awaiting Payment</span>
                                                 </div>
-                                            </div>
-                                        ) : order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'SELLER' ? (
-                                            <div className="flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg border border-blue-100">
-                                                <ClockIcon size={14} />
-                                                <span className="text-xs font-bold uppercase tracking-widest">Awaiting Buyer Response</span>
-                                            </div>
-                                        ) : null}
-                                        {order.status === 'APPROVED' && (
-                                            <div className="flex flex-col items-end">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Collection Code</span>
-                                                <div className="text-xl font-black text-[#05DF72] tracking-widest bg-[#05DF72]/10 px-3 py-1 rounded-lg border border-[#05DF72]/20 mt-1">
-                                                    {order.collectionToken}
-                                                </div>
-                                                <span className="text-[10px] text-slate-400 mt-1">Share with buyer to confirm pickup</span>
-                                            </div>
-                                        )}
-                                        {order.status === 'PICKED_UP' && (
-                                            <div className="flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg border border-blue-100">
-                                                <CheckCircleIcon size={14} />
-                                                <span className="text-xs font-bold uppercase tracking-widest">Picked Up</span>
-                                            </div>
-                                        )}
-                                    </>
+                                            )}
+                                          </div>
+
+                                          {/* Reschedule Management */}
+                                          {order.status !== 'COMPLETED' && order.status !== 'PICKED_UP' && (
+                                              <div className="w-full">
+                                                  {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'BUYER' ? (
+                                                      <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl space-y-3 mt-1">
+                                                          <div className="flex items-center justify-between">
+                                                              <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest">Buyer Proposed: {order.proposedDate}</p>
+                                                              <span className="text-[8px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-black uppercase tracking-tight">Review Required</span>
+                                                          </div>
+                                                          <div className="flex gap-2">
+                                                              <button 
+                                                                  onClick={() => handleSellerRescheduleAction(order.id, 'ACCEPT')}
+                                                                  className="flex-1 px-4 py-2 bg-[#05DF72] text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-[#04c764] transition-all"
+                                                              >
+                                                                  Accept
+                                                              </button>
+                                                              <button 
+                                                                  onClick={() => {
+                                                                      setSelectedOrder(order);
+                                                                      setIsRescheduleModalOpen(true);
+                                                                  }}
+                                                                  className="flex-1 px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all"
+                                                              >
+                                                                  Counter
+                                                              </button>
+                                                          </div>
+                                                      </div>
+                                                  ) : order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'SELLER' ? (
+                                                      <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl space-y-2 mt-1">
+                                                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">You Proposed: {order.proposedDate}</p>
+                                                          <div className="flex items-center gap-2">
+                                                              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                                                              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">Awaiting Buyer Acceptance</p>
+                                                          </div>
+                                                          <button 
+                                                              onClick={() => {
+                                                                  setSelectedOrder(order);
+                                                                  setIsRescheduleModalOpen(true);
+                                                              }}
+                                                              className="text-[9px] font-black text-[#05DF72] uppercase underline"
+                                                          >
+                                                              Change Proposal
+                                                          </button>
+                                                      </div>
+                                                  ) : (
+                                                      <button 
+                                                          onClick={() => {
+                                                              setSelectedOrder(order);
+                                                              setIsRescheduleModalOpen(true);
+                                                          }}
+                                                          className="w-full sm:w-auto px-5 py-2.5 bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                                                      >
+                                                          <CalendarIcon size={14} /> Reschedule Pickup
+                                                      </button>
+                                                  )}
+                                              </div>
+                                          )}
+
+                                          {order.status === 'PICKED_UP' && (
+                                              <div className="flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg border border-blue-100">
+                                                  <CheckCircleIcon size={14} />
+                                                  <span className="text-xs font-bold uppercase tracking-widest">Picked Up</span>
+                                              </div>
+                                          )}
+                                      </div>
                                 )}
                             </div>
                         </div>
@@ -221,46 +326,18 @@ export default function SellerOrders() {
                 </div>
             )}
             {/* Reschedule Modal */}
-            {isRescheduleModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
-                            <div>
-                                <h3 className="text-2xl font-black text-slate-900 leading-none">Reschedule <span className="text-[#05DF72]">Pickup</span></h3>
-                                <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Select an Available Collection Date for the buyer</p>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    setIsRescheduleModalOpen(false)
-                                    setSelectedOrder(null)
-                                }}
-                                className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:shadow-lg transition-all"
-                            >
-                                <XIcon size={24} />
-                            </button>
-                        </div>
-
-                        <div className="p-8">
-                            <ScheduleCalendar onSelect={(dateInfo) => {
-                                if (selectedOrder?.rescheduleMode === 'COUNTER') {
-                                    handleSellerRescheduleAction(selectedOrder.id, 'COUNTER', dateInfo.date)
-                                } else {
-                                    handleRescheduleRequest(dateInfo)
-                                }
-                            }} />
-
-                            {rescheduleLoading && (
-                                <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center z-10">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="w-10 h-10 border-4 border-[#05DF72] border-t-transparent rounded-full animate-spin"></div>
-                                        <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Sending Request...</p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+            <RescheduleModal 
+                isOpen={isRescheduleModalOpen}
+                onClose={() => {
+                    setIsRescheduleModalOpen(false);
+                    setSelectedOrder(null);
+                }}
+                orderId={selectedOrder?.id}
+                role="SELLER"
+                onRescheduled={(updatedOrder) => {
+                    setOrders(orders.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+                }}
+            />
         </div>
     )
 }

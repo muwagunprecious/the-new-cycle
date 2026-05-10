@@ -23,6 +23,11 @@ export function mapProductToFrontend(product) {
         batteryType: reverseMapping[product.type] || BATTERY_TYPES[0],
         status: product.status || 'pending',
         rejectionReason: product.rejectionReason,
+        collectionDates: Array.isArray(product.collectionDates) && product.collectionDates.length > 0 
+            ? product.collectionDates 
+            : (product.collectionDateStart 
+                ? [new Date(product.collectionDateStart).toISOString().split('T')[0]] 
+                : [])
     };
 }
 
@@ -76,10 +81,19 @@ export const normalizePhone = (phone) => {
 };
 
 /**
- * Clean logger for production
+ * Clean logger for production - avoids stringifying massive objects like base64 images
  */
 export const logger = {
-    info: (msg, data = {}) => console.log(`[${new Date().toISOString()}] [INFO] ${msg}`, data ? JSON.stringify(data) : ""),
-    error: (msg, err) => console.error(`[${new Date().toISOString()}] [ERROR] ${msg}`, err?.stack || err?.message || err || ""),
-    warn: (msg, data = {}) => console.warn(`[${new Date().toISOString()}] [WARN] ${msg}`, data),
+    info: (msg, data = null) => {
+        const sanitized = data ? JSON.parse(JSON.stringify(data, (key, value) => {
+            if (key === 'images' || key === 'image' || (typeof value === 'string' && value.length > 1000)) return '[TRUNCATED]';
+            return value;
+        })) : null;
+        console.log(`[${new Date().toISOString()}] [INFO] ${msg}`, sanitized ? JSON.stringify(sanitized) : "");
+    },
+    error: (msg, err) => {
+        const errObj = err instanceof Error ? { message: err.message, stack: err.stack } : err;
+        console.error(`[${new Date().toISOString()}] [ERROR] ${msg}`, errObj);
+    },
+    warn: (msg, data = null) => console.warn(`[${new Date().toISOString()}] [WARN] ${msg}`, data),
 };

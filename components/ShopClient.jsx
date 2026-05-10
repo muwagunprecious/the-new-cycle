@@ -53,8 +53,19 @@ function ShopClientContent({ initialProducts = [] }) {
         }
 
         if (!product.collectionDates || product.collectionDates.length === 0) {
-            toast.error("This seller has no available collection dates")
-            return
+            console.warn("[DEBUG] Missing collectionDates for product:", product.id, {
+                collectionDates: product.collectionDates,
+                collectionDateStart: product.collectionDateStart,
+                collectionDateEnd: product.collectionDateEnd
+            });
+            
+            // Last resort fallback for UI
+            if (product.collectionDateStart) {
+                product.collectionDates = [new Date(product.collectionDateStart).toISOString().split('T')[0]]
+            } else {
+                toast.error("This seller has no available collection dates")
+                return
+            }
         }
 
         setSelectedProduct(product)

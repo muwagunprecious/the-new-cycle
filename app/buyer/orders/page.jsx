@@ -150,30 +150,13 @@ export default function BuyerOrders() {
                                         </div>
                                     </div>
 
-                                    <form onSubmit={(e) => {
-                                        e.preventDefault()
-                                        handleVerifyCollection(e, order.id)
-                                    }} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
-                                        <input
-                                            type="text"
-                                            maxLength={6}
-                                            placeholder="ENTER CODE"
-                                            className="w-32 bg-transparent border-none text-center font-black tracking-widest text-sm focus:ring-0 outline-none uppercase placeholder:text-slate-300 placeholder:font-bold placeholder:tracking-normal"
-                                            value={selectedOrder?.id === order.id ? verifyToken : ''}
-                                            onChange={(e) => {
-                                                setSelectedOrder(order)
-                                                setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))
-                                            }}
-                                            onClick={() => setSelectedOrder(order)}
-                                        />
-                                        <button
-                                            type="submit"
-                                            disabled={verifying || (selectedOrder?.id === order.id && verifyToken.length < 6)}
-                                            className="p-2 bg-[#05DF72] text-white rounded-lg hover:bg-[#04c764] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#05DF72]/20"
-                                        >
-                                            {verifying && selectedOrder?.id === order.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckIcon size={16} />}
-                                        </button>
-                                    </form>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Code</span>
+                                        <div className="text-2xl font-black text-[#05DF72] tracking-[0.2em] bg-[#05DF72]/5 px-4 py-2 rounded-xl border border-[#05DF72]/10 mt-1">
+                                            {order.verificationCode}
+                                        </div>
+                                        <span className="text-[10px] text-slate-400 mt-1 font-bold">Give this to seller during pickup</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -259,45 +242,13 @@ export default function BuyerOrders() {
                                         <p className="text-[10px] text-slate-400">You proposed: {order.proposedDate}</p>
                                     </div>
                                 ) : ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid ? (
-                                    <form onSubmit={(e) => {
-                                        e.preventDefault()
-                                        handleVerifyCollection(e, order.id)
-                                    }} className="flex flex-col items-end gap-2">
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="text"
-                                                maxLength={6}
-                                                placeholder="ENTER CODE"
-                                                className="w-32 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-center font-black tracking-widest text-sm focus:border-[#05DF72] outline-none uppercase placeholder:text-slate-300 placeholder:font-bold placeholder:tracking-normal"
-                                                value={selectedOrder?.id === order.id ? verifyToken : ''}
-                                                onChange={(e) => {
-                                                    setSelectedOrder(order)
-                                                    setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))
-                                                }}
-                                                onClick={() => setSelectedOrder(order)}
-                                            />
-                                            <button
-                                                type="submit"
-                                                disabled={verifying || (selectedOrder?.id === order.id && verifyToken.length < 6)}
-                                                className="p-2.5 bg-[#05DF72] text-white rounded-lg hover:bg-[#04c764] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#05DF72]/20"
-                                            >
-                                                <CheckIcon size={18} />
-                                            </button>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Code</span>
+                                        <div className="text-xl font-black text-[#05DF72] tracking-widest bg-[#05DF72]/5 px-3 py-1.5 rounded-lg border border-[#05DF72]/10 mt-1">
+                                            {order.verificationCode}
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Enter seller code to confirm</p>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedOrder({ ...order, rescheduleMode: 'INITIATE' })
-                                                    setIsRescheduleModalOpen(true)
-                                                }}
-                                                className="text-[10px] font-bold text-amber-500 hover:text-amber-600 uppercase tracking-wide flex items-center gap-1"
-                                            >
-                                                <CalendarIcon size={10} /> Reschedule
-                                            </button>
-                                        </div>
-                                    </form>
+                                        <span className="text-[10px] text-slate-400 mt-1">For seller verification</span>
+                                    </div>
                                 ) : (
                                     <button
                                         onClick={() => handleNavigation(`/product/${order.orderItems?.[0]?.productId || ''}`)}

@@ -6,9 +6,12 @@ import path from 'path';
  */
 export function logToFile(message, data = null) {
     try {
-        const logDir = path.join(process.cwd(), 'tmp');
+        if (process.env.NODE_ENV === 'development') return; // Don't write to file in dev to avoid rebuild loops
+        
+        // Move logs outside the project root to prevent Next.js from watching them and re-compiling constantly
+        const logDir = path.join(process.cwd(), '..', 'gocycle-logs');
         if (!fs.existsSync(logDir)) {
-            fs.mkdirSync(logDir);
+            fs.mkdirSync(logDir, { recursive: true });
         }
         const logPath = path.join(logDir, 'server-debug.log');
         const timestamp = new Date().toISOString();

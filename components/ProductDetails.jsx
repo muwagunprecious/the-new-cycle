@@ -41,6 +41,7 @@ const ProductDetails = ({ product }) => {
 
     const [mainImage, setMainImage] = useState(product.images?.[0])
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
+    const [isInitializing, setIsInitializing] = useState(false)
     const [selectedDate, setSelectedDate] = useState(product?.collectionDates?.[0] || null)
     const quantity = product?.unitsAvailable || product?.quantity || 1
 
@@ -62,9 +63,11 @@ const ProductDetails = ({ product }) => {
             return
         }
 
+        setIsInitializing(true)
         dispatch(showLoader("Setting up checkout..."))
         setTimeout(() => {
             dispatch(hideLoader())
+            setIsInitializing(false)
             setIsCheckoutOpen(true)
         }, 800)
     }
@@ -220,6 +223,7 @@ const ProductDetails = ({ product }) => {
                     ) : (
                         <Button
                             onClick={handlePayNow}
+                            loading={isInitializing}
                             className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] text-sm sm:text-lg shadow-2xl"
                         >
                             <WalletIcon size={22} className="mr-2" />

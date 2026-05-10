@@ -127,7 +127,7 @@ export default function SellerLayout({ children }) {
 
             {/* Mobile Header */}
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-50 flex items-center justify-between px-6">
-                <h1 className="font-bold text-slate-900" onClick={() => handleNavigation('/')}>GoCycle Seller</h1>
+                <p className="font-black text-slate-900 tracking-tight" onClick={() => handleNavigation('/')}>GoCycle Seller</p>
                 <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-500">
                     {isSidebarOpen ? <XIcon /> : <MenuIcon />}
                 </button>

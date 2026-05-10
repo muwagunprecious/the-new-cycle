@@ -39,11 +39,9 @@ const AdminSidebar = () => {
         }, 800)
     }
 
-    const handleNavigation = (href, message) => {
-        dispatch(showLoader(message))
-        setTimeout(() => {
-            router.push(href)
-        }, 500)
+    const handleNavigation = (href) => {
+        // Direct navigation for instant feel
+        router.push(href)
     }
 
     return (

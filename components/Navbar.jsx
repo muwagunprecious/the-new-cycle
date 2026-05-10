@@ -18,7 +18,7 @@ const Navbar = () => {
     const unreadCount = notifications.filter(n => n.status === 'unread').length
 
     const handleNavigation = (href, message = "Loading...") => {
-        dispatch(showLoader(message))
+        // Removed manual loader dispatch to allow for smoother, instant-feeling transitions
         router.push(href)
     }
 

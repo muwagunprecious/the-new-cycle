@@ -4,6 +4,7 @@ import Loading from "@/components/Loading"
 import { useState, useEffect } from "react"
 import { productDummyData, orderDummyData } from "@/assets/assets"
 import Link from "next/link"
+import RescheduleModal from "@/components/RescheduleModal"
 import { useDispatch, useSelector } from "react-redux"
 import { updateProfile } from "@/lib/features/auth/authSlice"
 import { getUserProfile } from "@/backend-actions/actions/auth"
@@ -21,6 +22,7 @@ export default function BuyerDashboard() {
     const [showVerificationModal, setShowVerificationModal] = useState(false)
     const [verifyToken, setVerifyToken] = useState('')
     const [verifying, setVerifying] = useState(false)
+    const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
     const [selectedOrder, setSelectedOrder] = useState(null)
     const [notifications, setNotifications] = useState([])
 
@@ -62,7 +64,7 @@ export default function BuyerDashboard() {
     const handleVerifyCollection = async (e, orderId) => {
         e.preventDefault()
         if (!verifyToken || verifyToken.length < 6) {
-            toast.error("Please enter a valid 6-digit code")
+            toast.error("Please enter the verification code provided by the seller")
             return
         }
 
@@ -222,13 +224,13 @@ export default function BuyerDashboard() {
                                         }} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
                                             <input
                                                 type="text"
-                                                maxLength={6}
+                                                maxLength={8}
                                                 placeholder="ENTER CODE"
                                                 className="w-32 bg-transparent border-none text-center font-black tracking-widest text-sm focus:ring-0 outline-none uppercase placeholder:text-slate-300 placeholder:font-bold placeholder:tracking-normal"
                                                 value={selectedOrder?.id === order.id ? verifyToken : ''}
                                                 onChange={(e) => {
                                                     setSelectedOrder(order)
-                                                    setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))
+                                                    setVerifyToken(e.target.value)
                                                 }}
                                                 onClick={() => setSelectedOrder(order)}
                                             />
@@ -318,7 +320,49 @@ export default function BuyerDashboard() {
                                                             })
                                                             : 'TBD'}
                                                     </p>
+                                                    {order.collectionStatus === 'RESCHEDULE_REQUESTED' && (
+                                                        <span className="mt-1 block w-fit px-2 py-0.5 bg-amber-100 text-amber-700 text-[8px] font-black rounded-full animate-pulse">
+                                                            PENDING RESCHEDULE
+                                                        </span>
+                                                    )}
                                                 </div>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <button 
+                                                    onClick={() => {
+                                                        setSelectedOrder(order);
+                                                        setIsRescheduleModalOpen(true);
+                                                    }}
+                                                    className="text-[10px] font-black text-[#05DF72] uppercase tracking-widest hover:underline flex items-center gap-1"
+                                                >
+                                                    <CalendarIcon size={12} /> Reschedule Pickup
+                                                </button>
+                                                {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'BUYER' && (
+                                                    <div className="bg-slate-50 border border-slate-100 p-2 rounded-lg">
+                                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">You Proposed: {order.proposedDate}</p>
+                                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 flex items-center gap-1">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" /> Awaiting Seller Acceptance
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'SELLER' && (
+                                                    <div className="bg-amber-50 border border-amber-100 p-2 rounded-lg">
+                                                        <p className="text-[9px] font-bold text-amber-700 uppercase tracking-tight">Seller Proposed: {order.proposedDate}</p>
+                                                        <button 
+                                                            onClick={async () => {
+                                                                const { respondToReschedule } = await import('@/backend-actions/actions/order');
+                                                                const res = await respondToReschedule(order.id, 'ACCEPT', null, 'BUYER');
+                                                                if (res.success) {
+                                                                    toast.success("Date accepted!");
+                                                                    window.location.reload();
+                                                                }
+                                                            }}
+                                                            className="text-[9px] font-black text-amber-900 uppercase underline mt-1"
+                                                        >
+                                                            Accept Date
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Location */}
@@ -339,7 +383,7 @@ export default function BuyerDashboard() {
                                         {(order.status === 'AWAITING_PICKUP' || order.status === 'PAID' || order.status === 'SOLD' || order.status === 'sold') && (
                                             <div className={`mt-4 p-4 rounded-xl border ${order.isPaid ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-200'}`}>
                                                 <p className={`text-xs ${order.isPaid ? 'text-amber-700' : 'text-slate-500 font-bold'}`}>
-                                                    <strong>📋 Next Step:</strong> {order.isPaid ? 'Visit the pickup location on your collection date and show your token to the seller.' : 'Your transfer is currently being verified by our admins. You will be notified shortly.'}
+                                                    <strong>📋 Next Step:</strong> {order.isPaid ? 'Visit the pickup location on your collection date. Once you have received the battery, ask the seller for the verification code and enter it here.' : 'Your transfer is currently being verified by our admins. You will be notified shortly.'}
                                                 </p>
                                             </div>
                                         )}
