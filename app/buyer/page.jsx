@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { productDummyData, orderDummyData } from "@/assets/assets"
 import Link from "next/link"
 import RescheduleModal from "@/components/RescheduleModal"
+import BottomActionSheet from "@/components/BottomActionSheet"
 import { useDispatch, useSelector } from "react-redux"
 import { updateProfile } from "@/lib/features/auth/authSlice"
 import { getUserProfile } from "@/backend-actions/actions/auth"
@@ -23,6 +24,7 @@ export default function BuyerDashboard() {
     const [verifyToken, setVerifyToken] = useState('')
     const [verifying, setVerifying] = useState(false)
     const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
+    const [isActionSheetOpen, setIsActionSheetOpen] = useState(false)
     const [selectedOrder, setSelectedOrder] = useState(null)
     const [notifications, setNotifications] = useState([])
 
@@ -327,53 +329,20 @@ export default function BuyerDashboard() {
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col gap-2">
+                                            
+                                            <div className="mt-4">
                                                 <button 
                                                     onClick={() => {
                                                         setSelectedOrder(order);
-                                                        setIsRescheduleModalOpen(true);
+                                                        setIsActionSheetOpen(true);
                                                     }}
-                                                    className="text-[10px] font-black text-[#05DF72] uppercase tracking-widest hover:underline flex items-center gap-1"
+                                                    className="w-full sm:w-auto px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10"
                                                 >
-                                                    <CalendarIcon size={12} /> Reschedule Pickup
+                                                    <CalendarIcon size={14} /> Manage Pickup
+                                                    {order.collectionStatus === 'RESCHEDULE_REQUESTED' && (
+                                                        <span className="w-2 h-2 rounded-full bg-[#05DF72] animate-pulse" />
+                                                    )}
                                                 </button>
-                                                {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'BUYER' && (
-                                                    <div className="bg-slate-50 border border-slate-100 p-2 rounded-lg">
-                                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">You Proposed: {order.proposedDate}</p>
-                                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 flex items-center gap-1">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" /> Awaiting Seller Acceptance
-                                                        </p>
-                                                    </div>
-                                                )}
-                                                {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'SELLER' && (
-                                                    <div className="bg-amber-50 border border-amber-100 p-2 rounded-lg">
-                                                        <p className="text-[9px] font-bold text-amber-700 uppercase tracking-tight">Seller Proposed: {order.proposedDate}</p>
-                                                        <button 
-                                                            onClick={async () => {
-                                                                const { respondToReschedule } = await import('@/backend-actions/actions/order');
-                                                                const res = await respondToReschedule(order.id, 'ACCEPT', null, 'BUYER');
-                                                                if (res.success) {
-                                                                    toast.success("Date accepted!");
-                                                                    window.location.reload();
-                                                                }
-                                                            }}
-                                                            className="text-[9px] font-black text-amber-900 uppercase underline mt-1"
-                                                        >
-                                                            Accept Date
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Location */}
-                                            <div className="flex items-center gap-3">
-                                                <MapPinIcon size={16} className="text-slate-400" />
-                                                <div>
-                                                    <p className="text-[10px] font-bold uppercase text-slate-400">Pickup Location</p>
-                                                    <p className="text-sm font-bold text-slate-700">
-                                                        {order.product?.lga || 'Lagos'}, Lagos
-                                                    </p>
-                                                </div>
                                             </div>
 
 

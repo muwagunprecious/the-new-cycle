@@ -102,7 +102,7 @@ const HeroSlider = () => {
                         </div>
 
                         {/* Image Side */}
-                        <div className="w-full md:w-1/2 h-48 md:h-full relative flex items-center justify-center mb-6 md:mb-0">
+                        <div className="w-full md:w-1/2 h-72 md:h-full relative flex items-center justify-center mb-6 md:mb-0">
                             <Image
                                 src={slide.image}
                                 alt={slide.title}

@@ -53,7 +53,7 @@ export async function createOrder(orderData) {
         const paymentReference = paymentMethod === 'FLUTTERWAVE' ? generatePaymentRef() : null
         const orderId = generateOrderId()
         const transactionId = orderId
-        const verificationCode = Math.random().toString(36).substring(2, 10).toUpperCase()
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
 
         let order;
         try {

@@ -111,7 +111,7 @@ function ShopClientContent({ initialProducts = [] }) {
             <div className="max-w-7xl mx-auto py-10">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                     <div>
-                        <h1 onClick={() => router.push('/shop')} className="text-4xl font-black text-slate-900 flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
+                        <h1 onClick={() => router.push('/shop')} className="text-2xl md:text-4xl font-black text-slate-900 flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity tracking-tight">
                             {search && <MoveLeftIcon size={24} className="text-[#05DF72]" />}
                             Browse <span className="text-[#05DF72]">Marketplace</span>
                         </h1>

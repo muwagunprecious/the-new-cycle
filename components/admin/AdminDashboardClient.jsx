@@ -25,7 +25,8 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
     const [activeTab, setActiveTab] = useState('overview') // overview | users | orders | payouts
     const [users, setUsers] = useState(initialUsers?.data || [])
     const [orders, setOrders] = useState(initialOrders?.data || [])
-    const [products, setProducts] = useState([])
+    const [payoutHistory, setPayoutHistory] = useState(initialPayouts?.data || [])
+    
     const [dashboardData, setDashboardData] = useState(initialSummary || {
         products: 0,
         revenue: 0,
@@ -44,7 +45,6 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
             platformEarnings: 0
         }
     })
-    const [payoutHistory, setPayoutHistory] = useState(initialPayouts?.data || [])
     const [sendingNotification, setSendingNotification] = useState(false)
     const [notificationForm, setNotificationForm] = useState({
         target: 'all',      // 'all' | 'buyers' | 'sellers' | 'specific'
@@ -55,11 +55,56 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         withEmail: false
     })
 
+    const [fetchingData, setFetchingData] = useState({ users: false, orders: false, payouts: false })
+
     const [pagination, setPagination] = useState({
         users: initialUsers?.pagination || { page: 1, totalPages: 1 },
         orders: initialOrders?.pagination || { page: 1, totalPages: 1 },
         payouts: initialPayouts?.pagination || { page: 1, totalPages: 1 }
     })
+
+    // Fetch data when switching tabs if it hasn't been loaded yet
+    useEffect(() => {
+        if (activeTab === 'users' && users.length === 0 && !fetchingData.users) {
+            fetchUsers()
+        }
+        if (activeTab === 'orders' && orders.length === 0 && !fetchingData.orders) {
+            fetchOrders()
+        }
+        if (activeTab === 'payouts' && payoutHistory.length === 0 && !fetchingData.payouts) {
+            fetchPayouts()
+        }
+    }, [activeTab])
+
+    const fetchUsers = async () => {
+        setFetchingData(prev => ({ ...prev, users: true }))
+        const res = await getAllUsers(1, 50)
+        if (res.success) {
+            setUsers(res.data)
+            setPagination(prev => ({ ...prev, users: res.pagination }))
+        }
+        setFetchingData(prev => ({ ...prev, users: false }))
+    }
+
+    const fetchOrders = async () => {
+        setFetchingData(prev => ({ ...prev, orders: true }))
+        const res = await getAllOrders(1, 50)
+        if (res.success) {
+            setOrders(res.data)
+            setPagination(prev => ({ ...prev, orders: res.pagination }))
+        }
+        setFetchingData(prev => ({ ...prev, orders: false }))
+    }
+
+    const fetchPayouts = async () => {
+        setFetchingData(prev => ({ ...prev, payouts: true }))
+        const res = await getAdminPayoutHistory(1, 50)
+        if (res.success) {
+            setPayoutHistory(res.data)
+            setPagination(prev => ({ ...prev, payouts: res.pagination }))
+        }
+        setFetchingData(prev => ({ ...prev, payouts: false }))
+    }
 
     // Initial data is passed as props, removing Client-side initial waterfalls!
 

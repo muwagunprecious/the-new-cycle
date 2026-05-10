@@ -1,4 +1,4 @@
-import { Search, ShoppingCart, BatteryCharging, Leaf as LeafIcon, Bell as BellIcon, LogOut as LogOutIcon, LayoutDashboard as LayoutDashboardIcon } from "lucide-react";
+import { Search, ShoppingCart, BatteryCharging, Leaf as LeafIcon, Bell as BellIcon, LogOut as LogOutIcon, LayoutDashboard as LayoutDashboardIcon, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,14 +12,23 @@ const Navbar = () => {
     const dispatch = useDispatch();
 
     const [search, setSearch] = useState('')
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
     const cartCount = useSelector(state => state.cart.total)
     const { user, isLoggedIn } = useSelector(state => state.auth)
     const notifications = useSelector(state => state.notifications.list)
     const unreadCount = notifications.filter(n => n.status === 'unread').length
 
     const handleNavigation = (href, message = "Loading...") => {
-        // Removed manual loader dispatch to allow for smoother, instant-feeling transitions
-        router.push(href)
+        setIsMenuOpen(false)
+        if (href === '/shop') {
+            dispatch(showLoader(message))
+            setTimeout(() => {
+                router.push(href)
+                dispatch(hideLoader())
+            }, 300)
+        } else {
+            router.push(href)
+        }
     }
 
     const handleSearch = (e) => {
@@ -28,6 +37,7 @@ const Navbar = () => {
     }
 
     const handleLogout = () => {
+        setIsMenuOpen(false)
         dispatch(showLoader("Signing you out..."))
         setTimeout(() => {
             dispatch(logout())
@@ -49,7 +59,7 @@ const Navbar = () => {
             <div className={`max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between`}>
 
                 {/* Logo */}
-                <Link href="/" className="flex flex-col items-start gap-1 group">
+                <Link href="/" className="flex flex-col items-start gap-1 group z-50">
                     <div className="flex items-center gap-2.5">
                         <div className="bg-emerald-500 p-2 rounded-xl shadow-sm transition-transform group-hover:scale-105">
                             <BatteryCharging className="text-white" size={20} />
@@ -60,15 +70,23 @@ const Navbar = () => {
                 </Link>
 
                 {/* Desktop Menu */}
-                <div className="hidden lg:flex items-center gap-10">
-                    <button onClick={() => handleNavigation('/shop', 'Entering Marketplace...')} className="text-[13px] font-medium text-slate-600 hover:text-emerald-600 transition-colors relative group py-2">
+                <div className="hidden lg:flex items-center gap-8">
+                    <button onClick={() => handleNavigation('/shop', 'Entering Marketplace...')} className="text-[13px] font-bold text-slate-600 hover:text-emerald-600 transition-colors relative group py-2">
                         Marketplace
+                        <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
+                    </button>
+                    <button onClick={() => handleNavigation('/about')} className="text-[13px] font-bold text-slate-600 hover:text-emerald-600 transition-colors relative group py-2">
+                        About Us
+                        <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
+                    </button>
+                    <button onClick={() => handleNavigation('/blog')} className="text-[13px] font-bold text-slate-600 hover:text-emerald-600 transition-colors relative group py-2">
+                        Blogs
                         <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
                     </button>
                 </div>
 
                 {/* Search Bar */}
-                <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-sm relative group items-center">
+                <form onSubmit={handleSearch} className="hidden xl:flex flex-1 max-w-sm relative group items-center">
                     <div className="relative w-full">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={15} />
                         <input
@@ -104,7 +122,7 @@ const Navbar = () => {
                     <div className="h-6 w-[1px] bg-black/[0.06] hidden sm:block"></div>
 
                     {!isLoggedIn ? (
-                        <div className="flex items-center gap-2">
+                        <div className="hidden sm:flex items-center gap-2">
                             <button onClick={() => handleNavigation('/login', 'Redirecting to login...')} className="px-4 py-2 text-[12px] font-bold text-slate-600 hover:text-slate-950 transition-colors uppercase tracking-widest">
                                 Sign In
                             </button>
@@ -113,7 +131,7 @@ const Navbar = () => {
                             </button>
                         </div>
                     ) : (
-                        <div className="flex items-center gap-2 pointer-events-auto">
+                        <div className="hidden sm:flex items-center gap-2 pointer-events-auto">
                             <button onClick={() => handleNavigation(getDashboardLink(), 'Loading Portal...')} className="px-5 md:px-7 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-600 transition-all flex items-center gap-2.5 group shadow-lg shadow-slate-900/10">
                                 <LayoutDashboardIcon size={14} className="opacity-70" /> <span className="hidden md:inline">Portal</span>
                             </button>
@@ -122,10 +140,103 @@ const Navbar = () => {
                             </button>
                         </div>
                     )}
+
+                    {/* Mobile Menu Toggle */}
+                    <button 
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className="p-2.5 bg-slate-50 text-slate-600 rounded-xl lg:hidden hover:bg-emerald-50 hover:text-emerald-600 transition-all z-[60]"
+                    >
+                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
+            </div>
+
+            {/* Mobile Sidebar Overlay */}
+            {isMenuOpen && (
+                <div className="fixed inset-0 bg-slate-950/20 backdrop-blur-sm lg:hidden z-[55] transition-all duration-300" onClick={() => setIsMenuOpen(false)} />
+            )}
+
+            {/* Mobile Sidebar */}
+            <div className={`fixed top-0 right-0 h-screen w-[280px] bg-white shadow-2xl z-[58] transform transition-transform duration-300 ease-in-out lg:hidden pt-24 px-6 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className="flex flex-col gap-4">
+                    <button 
+                        onClick={() => handleNavigation('/shop', 'Opening Marketplace...')}
+                        className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl text-slate-900 font-bold hover:bg-emerald-50 hover:text-emerald-600 transition-all"
+                    >
+                        Marketplace <ArrowRight size={18} className="opacity-30" />
+                    </button>
+
+                    <button 
+                        onClick={() => handleNavigation('/about')}
+                        className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl text-slate-900 font-bold hover:bg-emerald-50 hover:text-emerald-600 transition-all"
+                    >
+                        About Us <ArrowRight size={18} className="opacity-30" />
+                    </button>
+
+                    <button 
+                        onClick={() => handleNavigation('/blog')}
+                        className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl text-slate-900 font-bold hover:bg-emerald-50 hover:text-emerald-600 transition-all"
+                    >
+                        Blogs <ArrowRight size={18} className="opacity-30" />
+                    </button>
+
+                    <div className="h-[1px] bg-slate-100 my-2"></div>
+
+                    {!isLoggedIn ? (
+                        <div className="flex flex-col gap-3">
+                            <button 
+                                onClick={() => handleNavigation('/login')}
+                                className="w-full py-4 text-slate-600 font-bold text-sm border-2 border-slate-100 rounded-2xl hover:bg-slate-50 transition-all"
+                            >
+                                Sign In
+                            </button>
+                            <button 
+                                onClick={() => handleNavigation('/signup')}
+                                className="w-full py-4 bg-slate-900 text-white font-bold text-sm rounded-2xl shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all"
+                            >
+                                Create Account
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            <button 
+                                onClick={() => handleNavigation(getDashboardLink())}
+                                className="w-full py-4 bg-emerald-500 text-white font-bold text-sm rounded-2xl shadow-xl shadow-emerald-500/10"
+                            >
+                                Go to Dashboard
+                            </button>
+                            <button 
+                                onClick={handleLogout}
+                                className="w-full py-4 bg-white text-rose-500 border-2 border-rose-100 font-bold text-sm rounded-2xl"
+                            >
+                                Sign Out
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                <div className="absolute bottom-10 left-6 right-6">
+                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] text-center">GoCycle Africa v1.0</p>
                 </div>
             </div>
         </nav>
     )
 }
+
+const ArrowRight = ({ size, className }) => (
+    <svg 
+        width={size} 
+        height={size} 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="3" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        className={className}
+    >
+        <path d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+)
 
 export default Navbar;
