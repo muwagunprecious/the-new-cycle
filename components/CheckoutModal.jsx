@@ -674,7 +674,19 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                         <div className="space-y-1">
                                             <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Admin Verification Required</p>
                                             <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                                Your payment from <span className="font-bold text-amber-600">{orderResult.paymentSenderName || senderName}</span> is currently being verified by our finance team. You will be notified by email once approved, and your order will proceed.
+                                                Your payment from <span className="font-bold text-amber-600">{orderResult.paymentSenderName || senderName}</span> is currently being verified by our finance team. You will be notified by email once approved.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white border border-slate-100 rounded-[2rem] p-6 text-left flex items-start gap-4 shadow-sm">
+                                        <div className="p-2.5 bg-[#05DF72] rounded-xl shrink-0 shadow-lg shadow-[#05DF72]/20">
+                                            <ZapIcon size={16} className="text-white" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Order Processing</p>
+                                            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                                                The seller has been notified of your payment. Please proceed to <span className="font-bold text-slate-900">{orderResult?.store?.address || product?.pickupAddress || "the collection point"}</span> on the scheduled date. A detailed receipt has been sent to your email.
                                             </p>
                                         </div>
                                     </div>
