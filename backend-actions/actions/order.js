@@ -181,8 +181,8 @@ export async function getUserOrders(userId) {
                     product: { name: "Isuzu 12V 100AH Battery", lga: "Ikeja" },
                     store: {
                         name: "EcoVolt Solutions",
-                        address: "45 Ikeja Industrial Estate, Ikeja, Lagos",
-                        contact: "+234 801 234 5678"
+                        address: "12 Yaba street, Glory Land Estate, Lagos",
+                        contact: "09023323399"
                     }
                 }
             ]
