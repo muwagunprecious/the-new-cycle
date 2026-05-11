@@ -178,7 +178,12 @@ export async function getUserOrders(userId) {
                     createdAt: new Date().toISOString(),
                     collectionDate: new Date(Date.now() + 172800000).toISOString(),
                     productId: "PROD-DEMO-001",
-                    product: { name: "Isuzu 12V 100AH Battery", lga: "Ikeja" }
+                    product: { name: "Isuzu 12V 100AH Battery", lga: "Ikeja" },
+                    store: {
+                        name: "EcoVolt Solutions",
+                        address: "45 Ikeja Industrial Estate, Ikeja, Lagos",
+                        contact: "+234 801 234 5678"
+                    }
                 }
             ]
             return ApiResponse.success({ orders: mockOrders, data: mockOrders })

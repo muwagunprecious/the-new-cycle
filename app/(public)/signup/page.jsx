@@ -35,7 +35,7 @@ function SignupContent() {
         email: '',
         password: '',
         whatsapp: '+234 ',
-        role: roleParam,
+        role: roleParam || '',
         businessName: '',
         state: 'Lagos',
         lga: '',
@@ -122,7 +122,7 @@ function SignupContent() {
         console.log("CLIENT: Calling server action 'checkPhoneAvailability'...");
         try {
             const check = await checkPhoneAvailability(formData.whatsapp)
-            
+
             if (!check) {
                 return toast.error("Server connection lost. Please check your internet.")
             }
@@ -190,14 +190,14 @@ function SignupContent() {
             if (data.success) {
                 const fetchedFirst = data.firstname || formData.firstName;
                 const fetchedLast = data.lastname || formData.lastName;
-                
+
                 setFormData(prev => ({
                     ...prev,
                     firstName: fetchedFirst,
                     lastName: fetchedLast,
                     name: `${fetchedFirst} ${fetchedLast}`.trim()
                 }))
-                
+
                 // If it was a lookup (no names provided initially), just fill them and don't advance step yet
                 if (data.lookupMode) {
                     toast.success(`Identity found: ${fetchedFirst} ${fetchedLast}`)
@@ -340,7 +340,7 @@ function SignupContent() {
 
                 // REBUILD RULE: Deterministic explicit mapping only
                 const userRole = (loginResult.user.role || '').toUpperCase()
-                
+
                 console.log(`[AUTH SYSTEM] Auto-Login Redirection Decision`, {
                     userId: loginResult.user.id,
                     role: userRole,
@@ -392,15 +392,15 @@ function SignupContent() {
                             <ZapIcon className="text-emerald-500" size={40} />
                         </div>
                         <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mb-2 tracking-tight">
-                            {step === 'IDENTITY_VERIFY' ? (formData.role === 'SELLER' ? 'Join as Seller' : 'Join as Buyer') : 
-                             step === 'REGISTER' ? (formData.role === 'SELLER' ? 'Join as Seller' : 'Join as Buyer') : 
-                             'Secure Verification'}
+                            {step === 'IDENTITY_VERIFY' ? (formData.role === 'SELLER' ? 'Join as Seller' : 'Join as Buyer') :
+                                step === 'REGISTER' ? (formData.role === 'SELLER' ? 'Join as Seller' : 'Join as Buyer') :
+                                    'Secure Verification'}
                         </h1>
                         <p className="text-slate-500 font-medium">
                             {step === 'CHOOSE_ROLE' ? 'Please select your role to continue' :
-                             step === 'IDENTITY_VERIFY' ? 'Verify your identity to begin your journey' : 
-                             step === 'REGISTER' ? 'Complete your registration details' : 
-                             `Enter the code sent to ${formData.whatsapp}`}
+                                step === 'IDENTITY_VERIFY' ? 'Verify your identity to begin your journey' :
+                                    step === 'REGISTER' ? 'Complete your registration details' :
+                                        `Enter the code sent to ${formData.whatsapp}`}
                         </p>
                     </div>
 
@@ -408,7 +408,7 @@ function SignupContent() {
                         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
                             <div className="bg-emerald-50/50 border border-emerald-500/10 p-8 rounded-[32px] text-center">
                                 <label className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 block mb-6">Choose Your Path</label>
-                                
+
                                 <div className="relative max-w-sm mx-auto group">
                                     <div className="absolute inset-x-0 -top-px -bottom-px bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     <div className="relative">
@@ -427,9 +427,9 @@ function SignupContent() {
                                 </div>
 
                                 <p className="mt-6 text-sm text-slate-500 font-medium px-4">
-                                    {formData.role === 'BUYER' ? 'Start buying verified batteries and contribute to the circular economy.' : 
-                                     formData.role === 'SELLER' ? 'List your inventory, manage sales, and grow your battery business.' : 
-                                     'Select whether you want to buy or sell batteries on Nigeria\'s largest network.'}
+                                    {formData.role === 'BUYER' ? 'Start buying verified batteries and contribute to the circular economy.' :
+                                        formData.role === 'SELLER' ? 'List your inventory, manage sales, and grow your battery business.' :
+                                            'Select whether you want to buy or sell batteries on Nigeria\'s largest network.'}
                                 </p>
                             </div>
 
@@ -456,7 +456,7 @@ function SignupContent() {
 
                     {step === 'IDENTITY_VERIFY' && (
                         <form className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500" onSubmit={verifyType === 'NIN' ? handleNINVerify : handleCACVerify}>
-                             {/* Name Fields (moved to top as per request) */}
+                            {/* Name Fields (moved to top as per request) */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">First Name</label>
@@ -522,8 +522,8 @@ function SignupContent() {
                                         />
                                     </div>
                                     <p className="text-[10px] text-slate-400 ml-2 font-medium">
-                                        Verify your identity instantly via NIMC. 
-                                        <span className="text-emerald-500 ml-1">Test NIN: 70123456789</span>
+                                        Verify your identity instantly via NIMC.
+                                        <span className="text-emerald-500 ml-1"></span>
                                     </p>
                                 </div>
                             )}
@@ -544,7 +544,7 @@ function SignupContent() {
                                         />
                                     </div>
                                     <p className="text-[10px] text-slate-400 ml-2 font-medium">
-                                        Verify your business registration via CAC. 
+                                        Verify your business registration via CAC.
                                         <span className="text-emerald-500 ml-1">Test RC: RC0000000</span>
                                     </p>
                                 </div>
@@ -630,47 +630,47 @@ function SignupContent() {
                                     </div>
                                 </div>
 
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Gender</label>
-                                            <div className="flex gap-4">
-                                                {['Male', 'Female'].map((g) => (
-                                                    <label key={g} className={`flex-1 flex items-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${formData.gender === g ? 'bg-emerald-50 border-emerald-500/30 text-emerald-700 shadow-sm' : 'bg-slate-50 border-black/[0.04] text-slate-500 hover:bg-white hover:shadow-sm'}`}>
-                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${formData.gender === g ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300'}`}>
-                                                            {formData.gender === g && <div className="w-2 h-2 rounded-full bg-white shadow-sm" />}
-                                                        </div>
-                                                        <input
-                                                            type="radio"
-                                                            name="gender"
-                                                            value={g}
-                                                            required
-                                                            className="hidden"
-                                                            checked={formData.gender === g}
-                                                            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                                                        />
-                                                        <span className="text-sm font-bold uppercase tracking-widest text-slate-950">{g}</span>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Gender</label>
+                                    <div className="flex gap-4">
+                                        {['Male', 'Female'].map((g) => (
+                                            <label key={g} className={`flex-1 flex items-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${formData.gender === g ? 'bg-emerald-50 border-emerald-500/30 text-emerald-700 shadow-sm' : 'bg-slate-50 border-black/[0.04] text-slate-500 hover:bg-white hover:shadow-sm'}`}>
+                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${formData.gender === g ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300'}`}>
+                                                    {formData.gender === g && <div className="w-2 h-2 rounded-full bg-white shadow-sm" />}
+                                                </div>
+                                                <input
+                                                    type="radio"
+                                                    name="gender"
+                                                    value={g}
+                                                    required
+                                                    className="hidden"
+                                                    checked={formData.gender === g}
+                                                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                                                />
+                                                <span className="text-sm font-bold uppercase tracking-widest text-slate-950">{g}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
 
-                                        <LocationSelector 
-                                            selectedState={formData.state}
-                                            selectedLga={formData.lga}
-                                            onStateChange={(state) => setFormData({ ...formData, state })}
-                                            onLgaChange={(lga) => setFormData({ ...formData, lga })}
-                                        />
+                                <LocationSelector
+                                    selectedState={formData.state}
+                                    selectedLga={formData.lga}
+                                    onStateChange={(state) => setFormData({ ...formData, state })}
+                                    onLgaChange={(lga) => setFormData({ ...formData, lga })}
+                                />
 
-                                        <div className="space-y-2 col-span-full">
-                                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Full Address</label>
-                                            <textarea
-                                                required
-                                                placeholder="Enter your street address, building number, and landmark..."
-                                                rows={2}
-                                                className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 px-6 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400 resize-none"
-                                                value={formData.address}
-                                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                            />
-                                        </div>
+                                <div className="space-y-2 col-span-full">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Full Address</label>
+                                    <textarea
+                                        required
+                                        placeholder="Enter your street address, building number, and landmark..."
+                                        rows={2}
+                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 px-6 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400 resize-none"
+                                        value={formData.address}
+                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                    />
+                                </div>
 
                             </div>
 
@@ -825,33 +825,33 @@ function SignupContent() {
                             </div>
                         </form>
                     )}
-                    </div>
-                    
-                    <div className="mt-8 pt-6 border-t border-black/[0.04] text-center">
-                        <button 
-                            type="button"
-                            onClick={async () => {
-                                toast.loading("Checking server heartbeat...");
-                                try {
-                                    const res = await testServerConnection();
-                                    toast.dismiss();
-                                    if (res.success) {
-                                        toast.success("Connection Healthy! Server is reaching DB.");
-                                        console.log("Server Stats:", res.data);
-                                    } else {
-                                        toast.error("Server reached, but DB is down: " + res.error);
-                                    }
-                                } catch (e) {
-                                    toast.dismiss();
-                                    toast.error("Fatal Connection Error. See Browser Console.");
-                                    console.error("Heartbeat Error:", e);
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-black/[0.04] text-center">
+                    <button
+                        type="button"
+                        onClick={async () => {
+                            toast.loading("Checking server heartbeat...");
+                            try {
+                                const res = await testServerConnection();
+                                toast.dismiss();
+                                if (res.success) {
+                                    toast.success("Connection Healthy! Server is reaching DB.");
+                                    console.log("Server Stats:", res.data);
+                                } else {
+                                    toast.error("Server reached, but DB is down: " + res.error);
                                 }
-                            }}
-                            className="text-[9px] font-bold text-slate-300 hover:text-emerald-500 uppercase tracking-widest transition-all"
-                        >
-                            Diagnostic: Test Server Connection
-                        </button>
-                    </div>
+                            } catch (e) {
+                                toast.dismiss();
+                                toast.error("Fatal Connection Error. See Browser Console.");
+                                console.error("Heartbeat Error:", e);
+                            }
+                        }}
+                        className="text-[9px] font-bold text-slate-300 hover:text-emerald-500 uppercase tracking-widest transition-all"
+                    >
+                        Diagnostic: Test Server Connection
+                    </button>
+                </div>
 
                 <p className="text-center mt-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
                     <ShieldCheckIcon size={14} className="text-emerald-500/50" /> End-to-End Encryption Enabled

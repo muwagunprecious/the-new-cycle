@@ -96,6 +96,19 @@ const Footer = () => {
                         <p className="text-[13px] font-normal leading-relaxed opacity-80">
                             Gocycle powers Africa’s circular economy through the e-waste marketplace.
                         </p>
+
+                        {/* Membership Badge */}
+                        <div className="pt-4">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60">Official Member of</p>
+                            <div className="bg-white p-4 rounded-2xl inline-block border border-white/[0.05] shadow-xl shadow-black/20 group hover:border-emerald-500/30 transition-all">
+                                <img 
+                                    src="/images/ran-logo.png" 
+                                    alt="Recyclers Association of Nigeria" 
+                                    className="h-10 w-auto object-contain transition-transform group-hover:scale-105" 
+                                />
+                            </div>
+                        </div>
+
                         <div className="space-y-3">
                             <div className="text-[10px] font-bold uppercase tracking-[0.3em] flex items-center gap-3 text-slate-500">
                                 <span className="text-emerald-500 opacity-80">🌍</span> Dayspring esatate, surulere Nigeria

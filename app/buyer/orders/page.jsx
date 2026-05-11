@@ -1,6 +1,20 @@
 'use client'
 import { useState, useEffect } from "react"
-import { Package as PackageIcon, Search as SearchIcon, ArrowRight as ArrowRightIcon, Calendar as CalendarIcon, Wallet as WalletIcon, ShieldCheck as ShieldCheckIcon, AlertCircle as AlertCircleIcon } from "lucide-react"
+import { 
+    Package as PackageIcon, 
+    Search as SearchIcon, 
+    ArrowRight as ArrowRightIcon, 
+    Calendar as CalendarIcon, 
+    Wallet as WalletIcon, 
+    ShieldCheck as ShieldCheckIcon, 
+    AlertCircle as AlertCircleIcon,
+    CheckCircle as CheckCircleIcon,
+    MapPin as MapPinIcon,
+    MessageSquare as MessageSquareIcon,
+    X as XIcon, 
+    Check as CheckIcon, 
+    Clock as ClockIcon 
+} from "lucide-react"
 import Loading from "@/components/Loading"
 import { useRouter } from "next/navigation"
 import { useSelector, useDispatch } from "react-redux"
@@ -8,7 +22,7 @@ import { showLoader } from "@/lib/features/ui/uiSlice"
 import { getUserOrders, respondToReschedule, verifyOrderCollection, requestReschedule } from "@/backend-actions/actions/order"
 import ScheduleCalendar from "@/components/ScheduleCalendar"
 import toast from "react-hot-toast"
-import { X as XIcon, Check as CheckIcon, Clock as ClockIcon } from "lucide-react"
+import BottomActionSheet from "@/components/BottomActionSheet"
 
 export default function BuyerOrders() {
     const router = useRouter()
@@ -22,6 +36,12 @@ export default function BuyerOrders() {
     const [rescheduleLoading, setRescheduleLoading] = useState(false)
     const [verifyToken, setVerifyToken] = useState('')
     const [verifying, setVerifying] = useState(false)
+    const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false)
+    const [showRescheduleForm, setShowRescheduleForm] = useState(false)
+    const [rescheduleDate, setRescheduleDate] = useState('')
+    const [rescheduleReason, setRescheduleReason] = useState('')
+    const [isRescheduling, setIsRescheduling] = useState(false)
+    const [isResponding, setIsResponding] = useState(false)
 
     useEffect(() => {
         if (user?.id) {
@@ -150,12 +170,19 @@ export default function BuyerOrders() {
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Code</span>
-                                        <div className="text-2xl font-black text-[#05DF72] tracking-[0.2em] bg-[#05DF72]/5 px-4 py-2 rounded-xl border border-[#05DF72]/10 mt-1">
-                                            {order.verificationCode}
-                                        </div>
-                                        <span className="text-[10px] text-slate-400 mt-1 font-bold">Give this to seller during pickup</span>
+                                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                                        <button 
+                                            onClick={() => { setSelectedOrder(order); setShowRescheduleForm(true); setIsVerifyModalOpen(true); }}
+                                            className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all flex items-center gap-2"
+                                        >
+                                            <CalendarIcon size={14} /> Reschedule
+                                        </button>
+                                        <button 
+                                            onClick={() => { setSelectedOrder(order); setShowRescheduleForm(false); setIsVerifyModalOpen(true); }}
+                                            className="px-6 py-3 bg-[#05DF72] text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-all shadow-lg shadow-[#05DF72]/20 flex items-center gap-2"
+                                        >
+                                            <CheckCircleIcon size={14} /> Verify Pickup
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -205,9 +232,8 @@ export default function BuyerOrders() {
                             {/* Details & Action */}
                             <div className="flex items-center justify-between md:justify-end gap-10 md:w-1/3">
                                 <div className="text-right hidden sm:block">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Method</p>
                                     <p className="text-xs font-black text-slate-900">
-                                        {order.paymentMethod || 'Online'} • {order.deliveryType || 'Pickup'}
+                                        Pickup only
                                     </p>
                                 </div>
 
@@ -242,12 +268,19 @@ export default function BuyerOrders() {
                                         <p className="text-[10px] text-slate-400">You proposed: {order.proposedDate}</p>
                                     </div>
                                 ) : ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid ? (
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Code</span>
-                                        <div className="text-xl font-black text-[#05DF72] tracking-widest bg-[#05DF72]/5 px-3 py-1.5 rounded-lg border border-[#05DF72]/10 mt-1">
-                                            {order.verificationCode}
-                                        </div>
-                                        <span className="text-[10px] text-slate-400 mt-1">For seller verification</span>
+                                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                                        <button 
+                                            onClick={() => { setSelectedOrder(order); setShowRescheduleForm(true); setIsVerifyModalOpen(true); }}
+                                            className="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-lg font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all flex items-center gap-2"
+                                        >
+                                            <CalendarIcon size={12} /> Reschedule
+                                        </button>
+                                        <button 
+                                            onClick={() => { setSelectedOrder(order); setShowRescheduleForm(false); setIsVerifyModalOpen(true); }}
+                                            className="px-4 py-2.5 bg-[#05DF72] text-white rounded-lg font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-all shadow-md shadow-[#05DF72]/10 flex items-center gap-2"
+                                        >
+                                            <CheckCircleIcon size={12} /> Verify
+                                        </button>
                                     </div>
                                 ) : (
                                     <button
@@ -291,7 +324,101 @@ export default function BuyerOrders() {
                 </div>
                 <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-[#05DF72]/10 rounded-full blur-[100px] -ml-20"></div>
             </div>
-            {/* Reschedule Modal (Buyer Proposing Alternate) */}
+
+            <BottomActionSheet 
+                isOpen={isVerifyModalOpen} 
+                onClose={() => setIsVerifyModalOpen(false)} 
+                title="Pickup Coordination" 
+                subtitle={selectedOrder?.id ? `Order #${selectedOrder.id}` : 'Manage Order'}
+            >
+                <div className="space-y-8">
+                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
+                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Seller Contact Details</h4>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <div className="size-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm"><MapPinIcon size={20} /></div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Pickup Address</p>
+                                    <p className="text-sm font-black text-slate-700 leading-tight">{selectedOrder?.store?.address || 'Address not available'}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="size-10 bg-white rounded-xl flex items-center justify-center text-[#05DF72] shadow-sm"><MessageSquareIcon size={20} /></div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Contact Seller</p>
+                                    <p className="text-sm font-black text-slate-700">{selectedOrder?.store?.contact || 'Phone not available'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {!showRescheduleForm ? (
+                        <div className="pt-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest">Verify Pickup Completion</h4>
+                            </div>
+                            <p className="text-xs text-slate-500 font-medium mb-6">Enter the 6-digit verification code provided by the seller to release the funds.</p>
+                            
+                            <form onSubmit={(e) => handleVerifyCollection(e, selectedOrder?.id)} className="flex flex-col gap-4">
+                                <div className="bg-slate-100 p-6 rounded-[2rem] border border-slate-200 flex items-center justify-center">
+                                    <input
+                                        type="text"
+                                        maxLength={6}
+                                        placeholder="000000"
+                                        className="bg-transparent border-none text-center font-black tracking-[1em] text-4xl focus:ring-0 outline-none uppercase placeholder:text-slate-300 w-full"
+                                        value={verifyToken}
+                                        onChange={(e) => setVerifyToken(e.target.value.replace(/[^0-9]/g, ''))}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={verifying || verifyToken.length < 6}
+                                    className="w-full py-5 bg-[#05DF72] text-white rounded-[2rem] font-black uppercase text-sm tracking-widest hover:bg-[#04c764] transition-all shadow-xl shadow-[#05DF72]/20 flex items-center justify-center gap-3"
+                                >
+                                    {verifying ? (
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <>Confirm Collection <CheckIcon size={20} /></>
+                                    )}
+                                </button>
+                            </form>
+
+                            <button 
+                                onClick={() => setShowRescheduleForm(true)}
+                                className="w-full mt-8 py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3"
+                            >
+                                <CalendarIcon size={20} /> Need to Reschedule Pickup?
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="pt-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest">Request Reschedule</h4>
+                                <button 
+                                    onClick={() => setShowRescheduleForm(false)}
+                                    className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:underline"
+                                >
+                                    Back to Verify
+                                </button>
+                            </div>
+                            <div className="p-2">
+                                <ScheduleCalendar onSelect={(dateInfo) => {
+                                    handleBuyerReschedule(selectedOrder.id, dateInfo.date)
+                                }} />
+                                
+                                {rescheduleLoading && (
+                                    <div className="flex flex-col items-center gap-3 mt-4">
+                                        <div className="w-10 h-10 border-4 border-[#05DF72] border-t-transparent rounded-full animate-spin"></div>
+                                        <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Sending Proposal...</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </BottomActionSheet>
+
+            {/* Reschedule Modal (Buyer Proposing Alternate) - Keeping the old one for other contexts if needed, but the ActionSheet covers it now */}
             {
                 isRescheduleModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">

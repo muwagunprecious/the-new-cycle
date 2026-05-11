@@ -69,21 +69,7 @@ const Navbar = () => {
                     <span className="text-[8px] font-black uppercase tracking-[0.2em] text-emerald-600 ml-0.5">Africa’s e-waste market place</span>
                 </Link>
 
-                {/* Desktop Menu */}
-                <div className="hidden lg:flex items-center gap-8">
-                    <button onClick={() => handleNavigation('/shop', 'Entering Marketplace...')} className="text-[13px] font-bold text-slate-600 hover:text-emerald-600 transition-colors relative group py-2">
-                        Marketplace
-                        <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
-                    </button>
-                    <button onClick={() => handleNavigation('/about')} className="text-[13px] font-bold text-slate-600 hover:text-emerald-600 transition-colors relative group py-2">
-                        About Us
-                        <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
-                    </button>
-                    <button onClick={() => handleNavigation('/blog')} className="text-[13px] font-bold text-slate-600 hover:text-emerald-600 transition-colors relative group py-2">
-                        Blogs
-                        <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
-                    </button>
-                </div>
+                {/* Desktop Menu - Removed as per user request (moved to mobile only) */}
 
                 {/* Search Bar */}
                 <form onSubmit={handleSearch} className="hidden xl:flex flex-1 max-w-sm relative group items-center">
