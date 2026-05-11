@@ -17,16 +17,36 @@ export async function verifyIsBattery(images) {
     }
 
     try {
-        // We only check the first 2 images to save tokens/time
-        const imagesToCheck = images.slice(0, 2);
+        // We check up to 3 images for better accuracy with stacks
+        const imagesToCheck = images.slice(0, 3);
         
         const content = [
             {
                 type: "text",
-                text: `CRITICAL TASK: Verify if the primary object in these images is a recycling-grade battery (Car battery, Inverter/UPS battery, Solar battery, Deep cycle, or Lead-acid). 
-                Reject consumer electronics (Phones, Laptops, Remote controls) and household AA/AAA batteries. 
-                Answer ONLY in JSON format: { "isBattery": boolean, "confidence": number (0-1), "reason": "string explanation" }. 
-                If the image is not a battery or contains prohibited items, set isBattery: false.`
+                text: `CRITICAL TASK: Verify if these images contain recycling-grade batteries.
+                
+                ACCEPTABLE ITEMS:
+                - Lead-acid car/truck batteries (Wet, AGM, Gel)
+                - Inverter or UPS batteries
+                - Solar/Deep cycle storage batteries
+                - Industrial batteries
+                
+                IMPORTANT GUIDELINES:
+                - MULTIPLE BATTERIES: It is common for users to photograph stacks of batteries or multiple batteries together. This IS acceptable.
+                - BACKGROUND: Batteries are often photographed in industrial, outdoor, or "informal" settings (e.g., near vehicles, in scrapyards, on the ground). This IS acceptable as long as the batteries are the subject.
+                - CONDITION: Recyclable batteries are often dirty, dusty, or have minor external wear. This IS acceptable.
+                
+                REJECT:
+                - Consumer electronics (Phones, Laptops, Remote controls)
+                - Household AA/AAA/9V batteries
+                - Random objects that are NOT batteries
+                
+                OUTPUT FORMAT (JSON ONLY):
+                { 
+                  "isBattery": boolean, 
+                  "confidence": number (0-1), 
+                  "reason": "short explanation of what was detected" 
+                }`
             }
         ];
 
@@ -47,7 +67,7 @@ export async function verifyIsBattery(images) {
                 "Authorization": `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                model: "llama-3.2-11b-vision-preview",
                 messages: [
                     {
                         role: "user",
