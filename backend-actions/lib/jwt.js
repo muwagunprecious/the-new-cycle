@@ -2,16 +2,16 @@ import jwt from "jsonwebtoken";
 
 const SECRET = process.env.JWT_SECRET;
 
-if (!SECRET) {
-    throw new Error("JWT_SECRET environment variable is required but not set");
-}
-
 /**
  * Sign a new access token
  * @param {object} payload - userId and role
  * @param {string} expiresIn - Token expiry (e.g., '1h', '1d')
  */
 export function signToken(payload, expiresIn = "1h") {
+    if (!SECRET) {
+        console.warn("JWT_SECRET is not set. Token signing skipped.");
+        return null;
+    }
     return jwt.sign(payload, SECRET, { expiresIn });
 }
 
@@ -21,6 +21,7 @@ export function signToken(payload, expiresIn = "1h") {
  * @returns {object|null} - Decoded payload or null
  */
 export function verifyToken(token) {
+    if (!SECRET || !token) return null;
     try {
         return jwt.verify(token, SECRET);
     } catch (error) {
