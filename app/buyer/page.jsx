@@ -143,13 +143,14 @@ export default function BuyerDashboard() {
     if (loading) return <Loading />
 
     const metrics = [
-        { label: 'Total Orders', value: orders.length, icon: PackageIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
-        { label: 'Pending Pickups', value: orders.filter(o => ['AWAITING_PICKUP', 'PAID', 'ORDER_PLACED', 'APPROVED'].includes(o.status)).length, icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
-        { label: 'Completed', value: orders.filter(o => o.status === 'COMPLETED').length, icon: CheckCircleIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Total Spent', value: '₦' + orders.reduce((sum, o) => sum + (o.total || 0), 0).toLocaleString(), icon: CreditCardIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { label: 'Total Orders', value: orders.filter(Boolean).length, icon: PackageIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
+        { label: 'Pending Pickups', value: orders.filter(o => o?.status && ['AWAITING_PICKUP', 'PAID', 'ORDER_PLACED', 'APPROVED'].includes(o.status)).length, icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { label: 'Completed', value: orders.filter(o => o?.status === 'COMPLETED').length, icon: CheckCircleIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Total Spent', value: '₦' + orders.reduce((sum, o) => sum + (o?.total || 0), 0).toLocaleString(), icon: CreditCardIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
     ]
 
     const resolveStatusBadge = (order) => {
+        if (!order) return { bg: 'bg-slate-100 text-slate-500', label: 'Unknown' }
         if (!order.isPaid) return { bg: 'bg-orange-100 text-orange-700 font-black', label: 'Payment Pending' }
         switch (order.status) {
             case 'AWAITING_PICKUP':
@@ -162,7 +163,7 @@ export default function BuyerDashboard() {
             case 'COMPLETED':
                 return { bg: 'bg-[#05DF72]/10 text-[#05DF72]', label: 'Completed' }
             default:
-                return { bg: 'bg-slate-100 text-slate-500', label: order.status }
+                return { bg: 'bg-slate-100 text-slate-500', label: order.status || 'Processing' }
         }
     }
 
@@ -204,14 +205,14 @@ export default function BuyerDashboard() {
                     </Link>
                 </div>
 
-                {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid) && (
+                {orders.some(order => order?.status && ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid) && (
                     <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10">
                         <div className="flex items-center gap-2 mb-6">
                             <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full animate-pulse">Action Required</span>
                             <h2 className="text-2xl font-black text-slate-900">Verify Pickup</h2>
                         </div>
                         <div className="grid gap-4">
-                            {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status) && o.isPaid).map(order => (
+                            {orders.filter(o => o?.status && ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status) && o.isPaid).map(order => (
                                 <div key={order.id} className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-amber-100 flex flex-col gap-8 transition-all hover:shadow-md">
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                         <div className="flex items-center gap-4">
@@ -339,7 +340,7 @@ export default function BuyerDashboard() {
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {orders.map((order) => {
+                            {orders.filter(Boolean).map((order) => {
                                 const badge = resolveStatusBadge(order)
                                 return (
                                     <div key={order.id} className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
