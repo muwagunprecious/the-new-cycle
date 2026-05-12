@@ -1,11 +1,11 @@
 import nodemailer from 'nodemailer'
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'mail.gocycle.ng',
+    host: process.env.SMTP_HOST || 'mail.gocycle.africa',
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: process.env.SMTP_SECURE === 'true', // Use false for 587 (STARTTLS)
     auth: {
-        user: process.env.SMTP_USER || 'admin@gocycle.ng',
+        user: process.env.SMTP_USER || 'admin@gocycle.africa',
         pass: process.env.SMTP_PASS,
     },
     tls: {
@@ -21,7 +21,7 @@ import worker from './worker'
 async function _sendEmailInternal({ to, subject, html, text }) {
     console.log(`[Email] Attempting to send to ${to}... Subject: ${subject}`);
     const mailOptions = {
-        from: process.env.EMAIL_FROM || 'admin@gocycle.ng',
+        from: process.env.EMAIL_FROM || 'admin@gocycle.africa',
         to,
         subject,
         html,
