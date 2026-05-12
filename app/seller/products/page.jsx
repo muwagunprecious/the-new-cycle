@@ -883,17 +883,6 @@ export default function SellerProducts() {
                                         </select>
                                     </div>
 
-                                    <div className="space-y-2 flex flex-col justify-end pb-1">
-                                        <button
-                                            type="button"
-                                            onClick={useRegisteredAddress}
-                                            className="w-full py-4 px-6 bg-[#05DF72]/10 border border-[#05DF72]/20 text-[#05DF72] rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-[#05DF72]/20 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <MapPinIcon size={16} />
-                                            Use Registered Address
-                                        </button>
-                                    </div>
-
                                     <div className="space-y-2 md:col-span-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Full Pickup Address *</label>
                                         <input
@@ -903,6 +892,14 @@ export default function SellerProducts() {
                                             required
                                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={useRegisteredAddress}
+                                            className="text-[10px] font-black text-[#05DF72] uppercase tracking-widest flex items-center gap-2 hover:underline transition-all mt-1"
+                                        >
+                                            <MapPinIcon size={12} />
+                                            Use Registered Address
+                                        </button>
                                     </div>
                                 </div>
                             </div>
