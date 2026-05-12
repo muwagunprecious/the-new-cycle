@@ -404,10 +404,18 @@ export default function BuyerDashboard() {
                                                                                     <span class="text-slate-400 italic">Pickup: ${order.store?.address || 'See Manage Pickup'}</span>
                                                                                 </div>
                                                                             </div>
-                                                                            <div class="bg-[#05DF72]/5 rounded-2xl p-6 border border-[#05DF72]/20 text-center mb-8">
-                                                                                <p class="text-[10px] font-black text-[#05DF72] uppercase mb-2">Verification Code</p>
-                                                                                <p class="text-4xl font-black text-slate-900 tracking-widest">${order.verificationCode || '------'}</p>
-                                                                                <p class="text-[10px] text-slate-400 font-bold mt-4">Show this code to the seller during pickup</p>
+                                                                            <div class="bg-slate-50 rounded-2xl p-8 border border-slate-100 mb-8">
+                                                                                <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Pickup Location & Seller Details</p>
+                                                                                <div class="flex flex-col gap-4">
+                                                                                    <div>
+                                                                                        <p class="text-[10px] font-bold text-[#05DF72] uppercase">Store Name</p>
+                                                                                        <p class="font-bold text-slate-900">${order.store?.name || 'Authorized Go-Cycle Partner'}</p>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p class="text-[10px] font-bold text-[#05DF72] uppercase">Pickup Address</p>
+                                                                                        <p class="font-bold text-slate-900">${order.store?.address || 'See Manage Pickup for details'}</p>
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
                                                                             <div class="text-center pt-8 border-t border-slate-50">
                                                                                 <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Secured by Flutterwave</p>
