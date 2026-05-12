@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken";
 
-const SECRET = process.env.JWT_SECRET || "gocycle_secure_session_secret_2026_rbac_hardened";
+const SECRET = process.env.JWT_SECRET;
+
+if (!SECRET) {
+    throw new Error("JWT_SECRET environment variable is required but not set");
+}
 
 /**
  * Sign a new access token

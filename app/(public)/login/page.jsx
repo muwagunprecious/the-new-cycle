@@ -449,16 +449,8 @@ function LoginContent() {
                         <form onSubmit={handleVerify} className="space-y-8 animate-in fade-in slide-in-from-right-4">
                             <div className="text-center">
                                 <p className="text-slate-600 text-sm font-medium">
-                                    Your account requires verification. Please use the demo code provided below:
+                                    Your account requires verification.
                                 </p>
-                                <div className="mt-6 flex flex-col items-center gap-4">
-                                    <div className="inline-flex items-center gap-3 bg-emerald-50 px-8 py-4 rounded-3xl border border-emerald-200 shadow-sm">
-                                        <span className="w-3 h-3 bg-emerald-500 rounded-full animate-ping"></span>
-                                        <span className="text-sm font-bold text-emerald-600 uppercase tracking-[0.2em] animate-pulse">
-                                            Demo Code: 123456
-                                        </span>
-                                    </div>
-                                </div>
                             </div>
 
                             <div className="flex justify-center">

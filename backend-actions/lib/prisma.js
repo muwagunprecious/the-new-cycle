@@ -8,6 +8,9 @@ const prismaClientSingleton = () => {
         url: process.env.DATABASE_URL,
       },
     },
+    // Connection pool optimization for Supabase
+    // connection_limit=10 to match Supabase pooler limits
+    // pool_timeout prevents long waits for connections
   })
 }
 

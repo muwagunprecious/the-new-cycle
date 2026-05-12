@@ -271,7 +271,7 @@ export async function releasePayout(orderId) {
     try {
         const order = await prisma.order.findUnique({
             where: { id: orderId },
-            include: { store: true }
+            include: { store: { include: { user: true } } }
         })
 
         if (!order) return ApiResponse.error("Order not found", 404)

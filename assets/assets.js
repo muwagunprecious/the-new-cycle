@@ -28,6 +28,7 @@ export const assets = {
     product_img7, product_img8, product_img9, product_img10, product_img11, product_img12,
 }
 
+
 export const categories = ["Car Battery", "Inverter Battery", "Heavy Duty Battery"];
 
 export const lagosLGAs = [
@@ -37,166 +38,52 @@ export const lagosLGAs = [
     "Oshodi-Isolo", "Ojo", "Ibeju-Lekki"
 ];
 
-export const dummyRatingsData = []
-
-export const dummyStoreData = {
-    id: "store_1",
-    userId: "user_1",
-    name: "EcoVolt Solutions",
-    description: "EcoVolt Solutions is a leading vendor of sustainable energy storage. We specialize in refurbishing and recycling batteries to promote a circular economy in Lagos.",
-    username: "ecovolt",
-    address: "12 Yaba street, Glory Land Estate, Lagos",
-    status: "approved",
-    isActive: true,
-    logo: happy_store,
-    email: "contact@ecovolt.com",
-    contact: "09023323399",
-    createdAt: "2025-09-04T09:04:16.189Z",
-    updatedAt: "2025-09-04T09:04:44.273Z",
-    user: {
-        id: "seller_demo",
-        name: "Adebayo Kola",
-        email: "adebayo@ecovolt.com",
-        image: gs_logo,
-    }
-}
-
 export const productDummyData = [];
-
+export const dummyRatingsData = [];
+export const dummyStoreData = {};
 export const ourSpecsData = [
     { title: "Eco-Friendly", description: "Every purchase supports battery recycling and reduces landfill waste.", icon: RecycleIcon, accent: '#05DF72' },
     { title: "Fast Pickup", description: "Schedule a collection in minutes. We handle the logistics.", icon: TruckIcon, accent: '#FF8904' },
     { title: "Verified Sellers", description: "All vendors are vetted for quality and environmental standards.", icon: ShieldCheckIcon, accent: '#A684FF' }
-]
-
-export const addressDummyData = {
-    id: "addr_1",
-    userId: "buyer_demo",
-    name: "Demo Buyer",
-    email: "buyer@gocycle.com",
-    street: "12 Admiralty Way",
-    city: "Lekki Phase 1",
-    state: "Lagos",
-    zip: "101233",
-    country: "Nigeria",
-    phone: "08091234567",
-    createdAt: 'Sat Jul 19 2025 14:51:25 GMT+0530 (India Standard Time)',
-}
-
-export const couponDummyData = []
-
-export const dummyUserData = {
-    id: "buyer_demo",
-    name: "Demo Buyer",
-    email: "buyer@gocycle.com",
-    image: profile_pic1,
-    role: "USER",
-    cart: {}
-}
-
-export const orderDummyData = []
-
-export const storesDummyData = [
-    {
-        id: "store_1",
-        userId: "seller_demo",
-        name: "EcoVolt Solutions",
-        description: "Specializing in used and scrap batteries.",
-        username: "ecovolt",
-        address: "12 Yaba street, Glory Land Estate, Lagos",
-        status: "approved",
-        isActive: true,
-        logo: happy_store,
-        email: "adebayo@ecovolt.com",
-        contact: "09023323399",
-        createdAt: "2025-08-22T08:22:16.189Z",
-        updatedAt: "2025-08-22T08:22:44.273Z",
-        user: { name: 'Adebayo Kola', email: 'adebayo@ecovolt.com' },
-    }
-]
-
-export const dummyUsers = [
-    {
-        id: "super_admin_demo",
-        name: "Architect Super Admin",
-        email: "architect@gocycle.com",
-        password: "superadmin123",
-        whatsapp: "+234 700 000 0000",
-        role: "SUPER_ADMIN",
-        status: "active",
-        isEmailVerified: true,
-        isPhoneVerified: true,
-        verificationStatus: "verified",
-        image: profile_pic3
-    },
-    {
-        id: "admin_demo",
-        name: "Admin Superuser",
-        email: "admin@gocycle.com",
-        password: "admin123",
-        whatsapp: "+234 900 000 0001",
-        role: "ADMIN",
-        status: "active",
-        isEmailVerified: true,
-        isPhoneVerified: true,
-        verificationStatus: "verified",
-        image: profile_pic1
-    },
-    {
-        id: "buyer_demo",
-        name: "Demo Buyer",
-        email: "buyer@gocycle.com",
-        password: "buyer123",
-        whatsapp: "+234 809 123 4567",
-        role: "USER",
-        status: "active",
-        lga: "Eti-Osa",
-        isEmailVerified: true,
-        isPhoneVerified: true,
-        accountStatus: "approved",
-        verificationStatus: "verified",
-        verificationMethod: "NIN",
-        image: profile_pic1
-    },
-    {
-        id: "seller_demo",
-        name: "Adebayo Kola",
-        email: "adebayo@ecovolt.com",
-        password: "seller123",
-        whatsapp: "09023323399",
-        role: "SELLER",
-        status: "active",
-        businessName: "EcoVolt Solutions",
-        lga: "Ikeja",
-        isEmailVerified: true,
-        isPhoneVerified: true,
-        verificationStatus: "verified",
-        image: profile_pic2
-    }
 ];
 
+export const dummyUserData = {};
+export const orderDummyData = [];
+export const storesDummyData = [];
+export const dummyUsers = [];
 export const dummyNotifications = [];
-
 export const dummyScheduleData = [];
-
 export const dummyAdminDashboardData = {
-    "orders": 0,
-    "stores": 1,
-    "products": 0,
-    "revenue": 0,
-    "pickedOrders": 0,
-    "unpackedOrders": 0,
-    "adminCommission": 0,
-    "allOrders": [],
-    "users": dummyUsers
-}
-
+  "orders": 0,
+  "stores": 0,
+  "products": 0,
+  "revenue": 0,
+  "pickedOrders": 0,
+  "unpackedOrders": 0,
+  "adminCommission": 0,
+  "allOrders": [],
+  "users": []
+};
 export const dummyStoreDashboardData = {
-    "ratings": [],
-    "totalOrders": 0,
-    "totalEarnings": 0,
-    "totalProducts": 0,
-    "pendingPickups": 0
-}
+  "ratings": [],
+  "totalOrders": 0,
+  "totalEarnings": 0,
+  "totalProducts": 0,
+  "pendingPickups": 0
+};
+
+export const addressDummyData = {
+  id: "addr_1",
+  userId: "buyer_demo",
+  name: "Demo Buyer",
+  email: "buyer@gocycle.com",
+  street: "12 Admiralty Way",
+  city: "Lekki Phase 1",
+  state: "Lagos",
+  zip: "101233",
+  country: "Nigeria",
+  phone: "08091234567",
+  createdAt: 'Sat Jul 19 2025 14:51:25 GMT+0530 (India Standard Time)',
+};
 
 

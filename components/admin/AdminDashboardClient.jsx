@@ -68,7 +68,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         if (activeTab === 'users' && users.length === 0 && !fetchingData.users) {
             fetchUsers()
         }
-        if (activeTab === 'orders' && orders.length === 0 && !fetchingData.orders) {
+        if ((activeTab === 'orders' || activeTab === 'payouts') && orders.length === 0 && !fetchingData.orders) {
             fetchOrders()
         }
         if (activeTab === 'payouts' && payoutHistory.length === 0 && !fetchingData.payouts) {
@@ -507,7 +507,14 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                 <div key={order.id} className="p-6 flex items-center justify-between">
                                     <div>
                                         <p className="font-bold text-slate-900">{order.product?.name || 'Battery Order'}</p>
-                                        <p className="text-sm text-slate-500">Seller: {order.store?.name || 'Seller'}</p>
+                                        <p className="text-sm text-slate-500 font-bold">Seller: {order.store?.name || 'Seller'}</p>
+                                        {order.store?.accountNumber && (
+                                            <div className="mt-1 p-2 bg-slate-50 rounded-lg border border-slate-100 text-[10px]">
+                                                <p className="font-black text-slate-400 uppercase tracking-widest">Bank Details</p>
+                                                <p className="text-slate-900 font-bold">{order.store.bankName} | {order.store.accountName}</p>
+                                                <p className="text-slate-900 font-black font-mono mt-0.5">{order.store.accountNumber}</p>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="text-right mr-4">

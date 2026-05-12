@@ -5,7 +5,7 @@ import NewPurchaseModal from './NewPurchaseModal'
 import toast from 'react-hot-toast'
 import { markNotificationAsRead } from '@/backend-actions/actions/notification'
 
-const POLL_INTERVAL_MS = 20_000 // Poll every 20 seconds
+const POLL_INTERVAL_MS = 10_000 // Poll every 10 seconds
 
 export default function RealTimeNotifications() {
     const { user } = useSelector(state => state.auth)
@@ -15,7 +15,7 @@ export default function RealTimeNotifications() {
     const intervalRef = useRef(null)
 
     const pollForNotifications = useCallback(async () => {
-        if (!user?.id || user.role !== 'SELLER') return
+        if (!user?.id) return
 
         try {
             if (document.visibilityState !== 'visible') return
@@ -34,10 +34,11 @@ export default function RealTimeNotifications() {
             for (const n of incoming) {
                 processedIds.current.add(n.id)
                 
-                if (n.message.includes('BUYER:') && n.message.includes('ORDER:')) {
+                if (n.type === 'ORDER' && n.message.includes('BUYER:') && n.message.includes('ORDER:')) {
                     const fields = parseNotificationMessage(n.message)
                     newPopups.push({
                         id: n.id,
+                        type: 'ORDER',
                         orderId: fields.ORDER || n.id,
                         buyerName: fields.BUYER || 'A buyer',
                         buyerPhone: fields.PHONE || 'N/A',
@@ -53,13 +54,13 @@ export default function RealTimeNotifications() {
                         duration: 6000,
                         icon: '🛍️',
                     })
-                } else if (n.title.toLowerCase().includes('reschedule') || n.message.toLowerCase().includes('reschedule')) {
+                } else if (n.type === 'RESCHEDULE' || n.title.toLowerCase().includes('reschedule')) {
                     // Show reschedule popup
                     newPopups.push({
                         id: n.id,
-                        orderId: n.message.match(/GCY-[A-Z0-9]+/)?.[0] || n.id,
-                        buyerName: n.message.split(' ')[0] || 'Buyer',
                         type: 'RESCHEDULE',
+                        orderId: n.message.match(/GCY-[A-Z0-9]+/)?.[0] || n.id,
+                        buyerName: n.message.split(' ')[0] || 'User',
                         rawMessage: n.message,
                         title: n.title
                     })
@@ -79,17 +80,17 @@ export default function RealTimeNotifications() {
         } catch (err) {
             console.error("Polling error:", err)
         }
-    }, [user?.id, user?.role])
+    }, [user?.id])
 
     useEffect(() => {
-        if (!user?.id || user.role !== 'SELLER') {
+        if (!user?.id) {
             clearInterval(intervalRef.current)
             return
         }
         pollForNotifications()
         intervalRef.current = setInterval(pollForNotifications, POLL_INTERVAL_MS)
         return () => clearInterval(intervalRef.current)
-    }, [user?.id, user?.role, pollForNotifications])
+    }, [user?.id, pollForNotifications])
 
     useEffect(() => {
         if (!activeNotification && queue.length > 0) {
@@ -97,6 +98,10 @@ export default function RealTimeNotifications() {
             setQueue(prev => prev.slice(1))
         }
     }, [queue, activeNotification])
+
+    const handleHide = () => {
+        setActiveNotification(null)
+    }
 
     const handleDismiss = async () => {
         if (activeNotification?.id) {
@@ -111,7 +116,9 @@ export default function RealTimeNotifications() {
         <NewPurchaseModal
             key={activeNotification.id}
             notification={activeNotification}
-            onClose={handleDismiss}
+            userRole={user?.role}
+            onClose={handleHide}
+            onDismiss={handleDismiss}
         />
     )
 }

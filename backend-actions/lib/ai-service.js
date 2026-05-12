@@ -60,35 +60,56 @@ export async function verifyIsBattery(images) {
             });
         }
 
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "llama-3.2-11b-vision-preview",
-                messages: [
-                    {
-                        role: "user",
-                        content: content
-                    }
-                ],
-                response_format: { type: "json_object" },
-                max_tokens: 300
-            })
-        });
+        const models = ["meta-llama/llama-4-scout-17b-16e-instruct", "llama-3.2-11b-vision-preview"];
+        let lastError = null;
 
-        const data = await response.json();
-        
-        if (data.error) {
-            logToFile("GROQ_SERVICE_ERROR", data.error);
-            return { isBattery: false, confidence: 0, reason: `AI service error: ${data.error.message || 'Unknown error'}` };
+        for (const modelId of models) {
+            try {
+                console.log(`[AI_SERVICE] Attempting verification with model: ${modelId}`);
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: modelId,
+                        messages: [
+                            {
+                                role: "user",
+                                content: content
+                            }
+                        ],
+                        response_format: { type: "json_object" },
+                        max_tokens: 300
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.warn(`[AI_SERVICE] Model ${modelId} failed:`, data.error.message);
+                    lastError = data.error.message;
+                    continue; // Try next model
+                }
+
+                const result = JSON.parse(data.choices[0].message.content);
+                logToFile("GROQ_VERIFICATION_RESULT", result);
+                return result;
+            } catch (err) {
+                console.error(`[AI_SERVICE] Exception with model ${modelId}:`, err.message);
+                lastError = err.message;
+                continue;
+            }
         }
 
-        const result = JSON.parse(data.choices[0].message.content);
-        logToFile("GROQ_VERIFICATION_RESULT", result);
-        return result;
+        // If we reach here, all models failed
+        logToFile("GROQ_SERVICE_ALL_MODELS_FAILED", lastError);
+        return { 
+            isBattery: true, 
+            confidence: 0, 
+            reason: `AI service error (All models failed): ${lastError}. Proceeding with caution.` 
+        };
 
     } catch (error) {
         logToFile("GROQ_SERVICE_EXCEPTION", error.message);

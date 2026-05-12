@@ -57,6 +57,7 @@ export default function BuyerDashboard() {
 
     const executePickupVerification = async (e, orderId) => {
         e.preventDefault()
+        console.log("[CLIENT] Verifying Pickup. OrderID:", orderId, "Token:", verifyToken)
         if (!verifyToken || verifyToken.length < 6) {
             toast.error("Please enter the 6-digit verification code")
             return
@@ -68,7 +69,8 @@ export default function BuyerDashboard() {
 
         if (res.success) {
             toast.success("Pickup confirmed!")
-            setOrders(orders.map(o => o.id === orderId ? res.order : o))
+            const updatedOrder = res.data || res.order
+            setOrders(orders.map(o => o.id === orderId ? updatedOrder : o))
             setVerifyToken('')
             setSelectedOrder(null)
             setIsActionSheetOpen(false)
@@ -207,6 +209,23 @@ export default function BuyerDashboard() {
                                             </div>
                                         </div>
                                     </div>
+
+                                    {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'SELLER' && (
+                                        <div className="bg-amber-50 border-y border-amber-100 -mx-8 px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                            <div className="flex items-center gap-3">
+                                                <CalendarIcon size={18} className="text-amber-600 shrink-0" />
+                                                <p className="text-xs font-bold text-amber-900">
+                                                    Seller proposed a new pickup date: <span className="font-black underline">{new Date(order.proposedDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</span>
+                                                </p>
+                                            </div>
+                                            <button 
+                                                onClick={() => { setSelectedOrder(order); setIsActionSheetOpen(true); }}
+                                                className="px-6 py-2 bg-amber-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20 whitespace-nowrap"
+                                            >
+                                                Review & Respond
+                                            </button>
+                                        </div>
+                                    )}
 
                                     <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-slate-50 items-end">
                                         <div className="space-y-5">

@@ -13,7 +13,8 @@ import {
     MessageSquare as MessageSquareIcon,
     X as XIcon, 
     Check as CheckIcon, 
-    Clock as ClockIcon 
+    Clock as ClockIcon,
+    Store
 } from "lucide-react"
 import Loading from "@/components/Loading"
 import { useRouter } from "next/navigation"
@@ -64,7 +65,7 @@ export default function BuyerOrders() {
         const res = await respondToReschedule(orderId, action, alternateDate, 'BUYER')
         if (res.success) {
             setOrders(orders.map(o => o.id === orderId ? res.order : o))
-            toast.success(action === 'ACCEPT' ? "Date accepted!" : "New date proposed!")
+            toast.success(action === 'ACCEPT' ? "Pickup date confirmed!" : (action === 'REJECT' ? "Reschedule declined" : "Counter-proposal sent!"))
             setIsRescheduleModalOpen(false)
             setSelectedOrder(null)
         } else {
@@ -89,6 +90,7 @@ export default function BuyerOrders() {
 
     const handleVerifyCollection = async (e, orderId) => {
         e.preventDefault()
+        console.log("[CLIENT] Verifying Collection. OrderID:", orderId, "Token:", verifyToken)
         if (!verifyToken || verifyToken.length < 6) {
             toast.error("Please enter a valid 6-digit code")
             return
@@ -100,7 +102,8 @@ export default function BuyerOrders() {
 
         if (res.success) {
             toast.success("Pickup confirmed! Release of funds initiated.")
-            setOrders(orders.map(o => o.id === selectedOrder.id ? res.order : o))
+            const updatedOrder = res.data || res.order
+            setOrders(orders.map(o => o.id === orderId ? updatedOrder : o))
             setIsVerifyModalOpen(false)
             setVerifyToken('')
             setSelectedOrder(null)
@@ -242,12 +245,27 @@ export default function BuyerOrders() {
                                         <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1 flex items-center gap-1">
                                             <ClockIcon size={12} /> Seller proposed: {order.proposedDate}
                                         </p>
+                                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center gap-3 mb-2">
+                                            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-400">
+                                                <Store size={14} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-900">{order.store?.name}</p>
+                                                <p className="text-[9px] font-bold text-slate-400">{order.store?.contact || 'No contact provided'}</p>
+                                            </div>
+                                        </div>
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleRescheduleAction(order.id, 'ACCEPT')}
                                                 className="px-4 py-2 bg-[#05DF72] text-white font-bold text-[10px] rounded-lg hover:shadow-lg transition-all flex items-center gap-1"
                                             >
                                                 <CheckIcon size={12} /> Accept
+                                            </button>
+                                            <button
+                                                onClick={() => handleRescheduleAction(order.id, 'REJECT')}
+                                                className="px-4 py-2 bg-red-50 text-red-600 border border-red-100 font-bold text-[10px] rounded-lg hover:bg-red-100 transition-all flex items-center gap-1"
+                                            >
+                                                <XIcon size={12} /> Reject
                                             </button>
                                             <button
                                                 onClick={() => {

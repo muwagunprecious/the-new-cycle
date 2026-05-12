@@ -8,10 +8,9 @@ import { useDispatch, useSelector } from "react-redux"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import Button from "@/components/Button"
 import ScheduleCalendar from "@/components/ScheduleCalendar"
-import { createProduct, getSellerProducts, deleteProduct as deleteProductAction, verifyProductImages } from "@/backend-actions/actions/product"
+import { createProduct, updateProduct, getSellerProducts, deleteProduct as deleteProductAction, verifyProductImages } from "@/backend-actions/actions/product"
 import { getUserStoreStatus } from "@/backend-actions/actions/auth"
 import { updateStoreBankDetails, updateStoreAddress } from "@/backend-actions/actions/seller"
-import { CONSTANTS } from "@/lib/mockService"
 import { getPricingConfig } from "@/backend-actions/actions/settings"
 import { DEFAULT_BATTERY_PRICES, BATTERY_SIZE_OPTIONS, BATTERY_TYPES } from "@/lib/pricing"
 import { addWatermark } from "@/lib/image-utils"
@@ -69,6 +68,7 @@ export default function SellerProducts() {
         accountNumber: '',
         accountName: ''
     })
+    const [editingProductId, setEditingProductId] = useState(null)
 
     const lookupAccountName = async (accNum, bankCode) => {
         if (accNum.length !== 10 || !bankCode) return
@@ -410,6 +410,33 @@ export default function SellerProducts() {
         }
     }
 
+    const handleEditProduct = (product) => {
+        // Find battery type from BATTERY_TYPE_MAPPING or defaults
+        // Since product.type is a code (e.g. 'CAR_TRUCK_WET'), we might need to map it back or just use the name
+        // However, the form uses BATTERY_TYPES array.
+        
+        const addressParts = (product.pickupAddress || "").split(' | ')
+        const cleanAddress = addressParts[0] || ""
+        const cleanLga = addressParts[1] || ""
+
+        setFormData({
+            batteryType: product.batteryType || BATTERY_TYPES[0],
+            brand: product.brand || '',
+            amps: product.amps?.toString() || '',
+            unitsAvailable: product.quantity || 1,
+            price: product.price?.toString() || '',
+            isManualPrice: true,
+            lga: cleanLga,
+            address: cleanAddress,
+            collectionDates: product.collectionDates || [],
+            comments: product.description || '',
+            images: product.images || []
+        })
+        setSelectedDates(product.collectionDates || [])
+        setEditingProductId(product.id)
+        setIsUploadModalOpen(true)
+    }
+
     const doPublish = async () => {
         // Check image size (Total base64 characters)
         const totalImageSize = formData.images.reduce((acc, img) => acc + img.length, 0)
@@ -419,32 +446,49 @@ export default function SellerProducts() {
         }
 
         setIsLoading(true)
-        dispatch(showLoader("Submitting listing..."))
+        dispatch(showLoader(editingProductId ? "Updating listing..." : "Submitting listing..."))
 
         // Add a timeout warning after 10 seconds
         const timeoutId = setTimeout(() => {
-            toast("Still submitting... hang tight! Large images might take a moment.", {
+            toast("Still working... hang tight!", {
                 icon: '⏳',
                 duration: 5000
             })
         }, 10000)
 
         try {
-            console.log("CLIENT: Starting product publication...")
-            const result = await createProduct({
-                name: `Scrap ${formData.batteryType} (${formData.amps}Ah) - ${formData.lga}`,
-                batteryType: formData.batteryType,
-                brand: formData.brand || null,
-                amps: formData.amps,
-                condition: 'SCRAP', // Always SCRAP
-                unitsAvailable: parseInt(formData.unitsAvailable),
-                price: parseInt(formData.price),
-                lga: formData.lga,
-                address: formData.address,
-                collectionDates: selectedDates.sort(),
-                comments: formData.comments,
-                images: formData.images.length > 0 ? formData.images : ['/placeholder-battery.jpg'],
-            }, user.id)
+            let result;
+            if (editingProductId) {
+                result = await updateProduct(editingProductId, {
+                    name: `Scrap ${formData.batteryType} (${formData.amps}Ah) - ${formData.lga}`,
+                    batteryType: formData.batteryType,
+                    brand: formData.brand || null,
+                    amps: formData.amps,
+                    condition: 'SCRAP',
+                    unitsAvailable: parseInt(formData.unitsAvailable),
+                    price: parseInt(formData.price),
+                    lga: formData.lga,
+                    address: formData.address,
+                    collectionDates: selectedDates.sort(),
+                    comments: formData.comments,
+                    images: formData.images,
+                }, user.id)
+            } else {
+                result = await createProduct({
+                    name: `Scrap ${formData.batteryType} (${formData.amps}Ah) - ${formData.lga}`,
+                    batteryType: formData.batteryType,
+                    brand: formData.brand || null,
+                    amps: formData.amps,
+                    condition: 'SCRAP',
+                    unitsAvailable: parseInt(formData.unitsAvailable),
+                    price: parseInt(formData.price),
+                    lga: formData.lga,
+                    address: formData.address,
+                    collectionDates: selectedDates.sort(),
+                    comments: formData.comments,
+                    images: formData.images.length > 0 ? formData.images : ['/placeholder-battery.jpg'],
+                }, user.id)
+            }
 
             clearTimeout(timeoutId)
             dispatch(hideLoader())
@@ -452,11 +496,13 @@ export default function SellerProducts() {
 
             if (result.success) {
                 toast.success(
-                    "Listing submitted successfully! The product is pending approval from the admin before it can be listed.",
-                    { duration: 10000 }
+                    editingProductId 
+                        ? "Listing updated! It is now pending re-approval."
+                        : "Listing submitted! Pending approval.",
+                    { duration: 5000 }
                 )
                 setIsUploadModalOpen(false)
-                // Refresh products
+                setEditingProductId(null)
                 loadProducts()
 
                 // Reset form
@@ -475,14 +521,13 @@ export default function SellerProducts() {
                 })
                 setSelectedDates([])
             } else {
-                toast.error(result.error || "Publication failed")
+                toast.error(result.error || "Operation failed")
             }
         } catch (error) {
             clearTimeout(timeoutId)
             dispatch(hideLoader())
             setIsLoading(false)
-            console.error("CLIENT: Publication Exception:", error)
-            toast.error("Failed to submit listing: Network or Server Error")
+            toast.error("An error occurred. Please try again.")
         }
     }
 
@@ -634,7 +679,10 @@ export default function SellerProducts() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
-                                                    <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500 transition-colors">
+                                                    <button 
+                                                        onClick={() => handleEditProduct(product)}
+                                                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500 transition-colors"
+                                                    >
                                                         <Edit3Icon size={18} />
                                                     </button>
                                                     <button onClick={() => deleteProduct(product.id)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-rose-500 transition-colors">
@@ -666,8 +714,28 @@ export default function SellerProducts() {
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
                     <div className="bg-white rounded-[2rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-100 animate-in fade-in zoom-in duration-300">
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
-                            <h2 className="text-xl font-bold text-slate-900">List New <span className="text-[#05DF72]">Battery</span></h2>
-                            <button onClick={() => setIsUploadModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400">
+                            <h2 className="text-xl font-bold text-slate-900">{editingProductId ? 'Edit' : 'List New'} <span className="text-[#05DF72]">Battery</span></h2>
+                            <button 
+                                onClick={() => {
+                                    setIsUploadModalOpen(false)
+                                    setEditingProductId(null)
+                                    setFormData({
+                                        batteryType: BATTERY_TYPES[0],
+                                        brand: '',
+                                        amps: '',
+                                        unitsAvailable: 1,
+                                        price: '',
+                                        isManualPrice: false,
+                                        lga: '',
+                                        address: '',
+                                        collectionDates: [],
+                                        comments: '',
+                                        images: []
+                                    })
+                                    setSelectedDates([])
+                                }} 
+                                className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400"
+                            >
                                 <XIcon size={24} />
                             </button>
                         </div>
@@ -689,7 +757,7 @@ export default function SellerProducts() {
                                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
                                             required
                                         >
-                                            {CONSTANTS.BATTERY_TYPES.map(type => (
+                                            {BATTERY_TYPES.map(type => (
                                                 <option key={type} value={type}>{type}</option>
                                             ))}
                                         </select>
@@ -937,11 +1005,11 @@ export default function SellerProducts() {
                                 <Button
                                     type="submit"
                                     loading={isLoading}
-                                    loadingText="Submitting..."
+                                    loadingText={editingProductId ? "Updating..." : "Submitting..."}
                                     className="flex-1"
                                     disabled={!acceptedTerms}
                                 >
-                                    Submit Listing
+                                    {editingProductId ? 'Update Listing' : 'Submit Listing'}
                                 </Button>
                             </div>
                         </form>

@@ -88,7 +88,7 @@ export default function SellerOrders() {
         const res = await respondToReschedule(orderId, action, alternateDate, 'SELLER')
         if (res.success) {
             setOrders(orders.map(o => o.id === orderId ? res.order : o))
-            toast.success(action === 'ACCEPT' ? "Pickup date confirmed!" : "Counter-proposal sent!")
+            toast.success(action === 'ACCEPT' ? "Pickup date confirmed!" : (action === 'REJECT' ? "Reschedule declined" : "Counter-proposal sent!"))
             setIsRescheduleModalOpen(false)
             setSelectedOrder(null)
         } else {
@@ -216,18 +216,52 @@ export default function SellerOrders() {
 
                                 <div className="flex items-center gap-3 w-full md:w-auto">
                                     {order.status !== 'COMPLETED' && order.status !== 'PICKED_UP' && (
-                                        <button 
-                                            onClick={() => {
-                                                setSelectedOrder(order);
-                                                setIsActionSheetOpen(true);
-                                            }}
-                                            className="flex-1 md:flex-none px-8 py-4 bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/10"
-                                        >
-                                            <CalendarIcon size={16} /> Manage Pickup
+                                        <div className="flex flex-col gap-3 w-full md:w-auto">
                                             {order.collectionStatus === 'RESCHEDULE_REQUESTED' && (
-                                                <span className="w-2 h-2 rounded-full bg-[#05DF72] animate-pulse" />
+                                                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 space-y-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest flex items-center gap-2">
+                                                            <ClockIcon size={12} /> {order.proposedBy === 'BUYER' ? 'Buyer Requested' : 'You Requested'}
+                                                        </p>
+                                                        <span className="text-[10px] font-black text-amber-900">{order.proposedDate}</span>
+                                                    </div>
+                                                    
+                                                    {order.proposedBy === 'BUYER' && (
+                                                        <div className="flex gap-2">
+                                                            <button 
+                                                                onClick={() => handleSellerRescheduleAction(order.id, 'ACCEPT')} 
+                                                                className="flex-1 bg-[#05DF72] text-slate-900 font-black text-[10px] uppercase tracking-widest py-2.5 rounded-lg hover:bg-[#04c764] transition-all"
+                                                            >
+                                                                Accept
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleSellerRescheduleAction(order.id, 'REJECT')} 
+                                                                className="flex-1 bg-red-50 text-red-600 border border-red-100 font-black text-[10px] uppercase tracking-widest py-2.5 rounded-lg hover:bg-red-100 transition-all"
+                                                            >
+                                                                Reject
+                                                            </button>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex items-center gap-2 pt-2 border-t border-amber-100">
+                                                        <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center text-slate-400">
+                                                            <User size={12} />
+                                                        </div>
+                                                        <p className="text-[9px] font-bold text-slate-500">{order.user?.name} • {order.user?.phone || 'No phone'}</p>
+                                                    </div>
+                                                </div>
                                             )}
-                                        </button>
+
+                                            <button 
+                                                onClick={() => {
+                                                    setSelectedOrder(order);
+                                                    setIsActionSheetOpen(true);
+                                                }}
+                                                className="px-8 py-4 bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/10"
+                                            >
+                                                <CalendarIcon size={16} /> Manage Pickup
+                                            </button>
+                                        </div>
                                     )}
 
                                     {order.status === 'PICKED_UP' && (
@@ -345,6 +379,7 @@ export default function SellerOrders() {
                                 {selectedOrder.proposedBy === 'BUYER' ? (
                                     <div className="flex gap-2">
                                         <button onClick={() => { handleSellerRescheduleAction(selectedOrder.id, 'ACCEPT'); setIsActionSheetOpen(false); }} className="flex-1 bg-[#05DF72] text-slate-900 font-black text-[10px] uppercase tracking-widest py-4 rounded-xl hover:bg-[#04c764] transition-all">Accept</button>
+                                        <button onClick={() => { handleSellerRescheduleAction(selectedOrder.id, 'REJECT'); setIsActionSheetOpen(false); }} className="flex-1 bg-red-50 text-red-600 border border-red-100 font-black text-[10px] uppercase tracking-widest py-4 rounded-xl">Reject</button>
                                         <button onClick={() => { setIsActionSheetOpen(false); setIsRescheduleModalOpen(true); }} className="flex-1 bg-white border border-slate-200 text-slate-900 font-black text-[10px] uppercase tracking-widest py-4 rounded-xl">Counter</button>
                                     </div>
                                 ) : (

@@ -5,7 +5,7 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { requestReschedule } from '@/backend-actions/actions/order'
 
-export default function NewPurchaseModal({ notification, onClose }) {
+export default function NewPurchaseModal({ notification, onClose, onDismiss, userRole }) {
     const [copied, setCopied] = useState(false)
     const [isRescheduling, setIsRescheduling] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -15,6 +15,9 @@ export default function NewPurchaseModal({ notification, onClose }) {
     })
 
     if (!notification) return null
+
+    const isSeller = userRole === 'SELLER'
+    const isBuyer = userRole === 'USER'
 
     const handleCopy = () => {
         navigator.clipboard.writeText(notification.verificationCode)
@@ -30,10 +33,11 @@ export default function NewPurchaseModal({ notification, onClose }) {
         }
         setIsSubmitting(true)
         try {
-            const res = await requestReschedule(notification.orderId, rescheduleData.date, 'SELLER', rescheduleData.message)
+            const roleForAction = isSeller ? 'SELLER' : 'BUYER'
+            const res = await requestReschedule(notification.orderId, rescheduleData.date, roleForAction, rescheduleData.message)
             if (res.success) {
-                toast.success("Reschedule request sent to buyer")
-                onClose()
+                toast.success("Reschedule request sent")
+                onDismiss() // Acted on, so dismiss permanently
             } else {
                 toast.error(res.message || "Failed to reschedule")
             }
@@ -60,6 +64,7 @@ export default function NewPurchaseModal({ notification, onClose }) {
                         <div className="absolute top-6 right-6">
                             <button 
                                 onClick={onClose}
+                                title="Close (Remind me later)"
                                 className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition-all"
                             >
                                 <X size={20} />
@@ -71,10 +76,10 @@ export default function NewPurchaseModal({ notification, onClose }) {
                             </div>
                             <div>
                                 <h3 className="text-white text-2xl font-black leading-none">
-                                    {isRescheduleType ? "Reschedule Request" : (isRescheduling ? "Reschedule Pickup" : "New Purchase!")}
+                                    {isRescheduleType ? "Reschedule Request" : (isRescheduling ? "Reschedule Pickup" : (isSeller ? "New Purchase!" : "Payment Confirmed!"))}
                                 </h3>
                                 <p className="text-white/80 font-bold text-xs mt-2 uppercase tracking-widest">
-                                    {isRescheduleType ? "Review Proposal" : (isRescheduling ? "Propose New Date" : "Immediate Confirmation")}
+                                    {isRescheduleType ? "Review Proposal" : (isRescheduling ? "Propose New Date" : (isSeller ? "Immediate Confirmation" : "Order Processing"))}
                                 </p>
                             </div>
                         </div>
@@ -91,12 +96,18 @@ export default function NewPurchaseModal({ notification, onClose }) {
                                 <div className="flex gap-3">
                                     <button 
                                         onClick={() => {
-                                            window.location.href = `/seller/orders?id=${notification.orderId}`
-                                            onClose()
+                                            window.location.href = isSeller ? `/seller?id=${notification.orderId}` : `/buyer/orders?id=${notification.orderId}`
+                                            onDismiss()
                                         }}
                                         className="flex-1 bg-slate-900 text-white font-black text-xs uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all"
                                     >
-                                        View Order & Respond <ArrowRight size={16} />
+                                        View Details & Respond <ArrowRight size={16} />
+                                    </button>
+                                    <button 
+                                        onClick={onDismiss}
+                                        className="px-8 bg-white border border-slate-100 text-slate-400 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all"
+                                    >
+                                        Dismiss
                                     </button>
                                 </div>
                             </div>
@@ -170,20 +181,28 @@ export default function NewPurchaseModal({ notification, onClose }) {
 
                                 {/* Actions */}
                                 <div className="flex gap-3 pt-2">
-                                    <button 
-                                        onClick={() => setIsRescheduling(true)}
-                                        className="flex-1 bg-slate-900 text-white font-black text-xs uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20"
-                                    >
-                                        Reschedule Date <ArrowRight size={16} />
-                                    </button>
+                                    {isSeller && (
+                                        <button 
+                                            onClick={() => setIsRescheduling(true)}
+                                            className="flex-1 bg-slate-900 text-white font-black text-xs uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20"
+                                        >
+                                            Reschedule Date <ArrowRight size={16} />
+                                        </button>
+                                    )}
                                     <button 
                                         onClick={() => {
-                                            window.location.href = `/seller/orders?id=${notification.orderId}`
-                                            onClose()
+                                            window.location.href = isSeller ? `/seller?id=${notification.orderId}` : `/buyer/orders?id=${notification.orderId}`
+                                            onDismiss()
                                         }}
-                                        className="px-6 bg-white border border-slate-100 text-slate-900 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all"
+                                        className={`flex-1 bg-white border border-slate-100 text-slate-900 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all ${!isSeller ? 'py-5' : ''}`}
                                     >
-                                        View Details
+                                        {isSeller ? 'View Details' : 'View My Orders'}
+                                    </button>
+                                    <button 
+                                        onClick={onDismiss}
+                                        className="px-8 bg-slate-50 text-slate-400 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-all"
+                                    >
+                                        Dismiss
                                     </button>
                                 </div>
                             </>

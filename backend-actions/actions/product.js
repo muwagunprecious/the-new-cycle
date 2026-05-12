@@ -1,4 +1,5 @@
 'use server'
+// Force rebuild 1
 
 import { ApiResponse, handleDbError } from "@/backend-actions/lib/api-response"
 import { mapProductToFrontend, logger } from "@/backend-actions/lib/api-utils"
@@ -187,6 +188,61 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
     }
 }
 
+export async function updateProduct(productId, data, userId) {
+    logger.info("Updating product", { productId, userId, productName: data.name })
+    try {
+        if (!userId) return ApiResponse.unauthorized("Authentication required")
+        
+        const store = await withRetry(() => prisma.store.findUnique({ where: { userId } }))
+        if (!store) return ApiResponse.error("Store not found", 404)
+
+        const product = await prisma.product.findUnique({ where: { id: productId } })
+        if (!product || product.storeId !== store.id) {
+            return ApiResponse.error("Product not found or unauthorized", 404)
+        }
+
+        const price = parseFloat(data.price)
+        const units = parseInt(data.unitsAvailable) || 0
+        const amps = parseInt(data.amps) || 0
+
+        if (isNaN(price) || price <= 0) return ApiResponse.error("Invalid price", 400)
+        
+        const collectionDateStart = data.collectionDates?.length ? new Date(data.collectionDates[0]) : new Date()
+        const collectionDateEnd = data.collectionDates?.length ? new Date(data.collectionDates[data.collectionDates.length - 1]) : new Date()
+
+        const updatedProduct = await prisma.product.update({
+            where: { id: productId },
+            data: {
+                name: data.name,
+                description: data.comments || "",
+                price: price,
+                mrp: price * 1.2,
+                images: data.images || [],
+                type: BATTERY_TYPE_MAPPING[data.batteryType] || 'CAR_TRUCK_WET',
+                brand: data.brand || "",
+                amps: amps,
+                pickupAddress: `${data.address}${data.lga ? ` | ${data.lga}` : ''}`,
+                collectionDateStart,
+                collectionDateEnd,
+                collectionDates: data.collectionDates,
+                quantity: units,
+                status: 'pending', // Always reset to pending for re-approval
+                inStock: units > 0
+            }
+        })
+
+        revalidatePath('/seller/products')
+        revalidatePath('/')
+        revalidatePath('/shop')
+        revalidatePath(`/product/${productId}`)
+
+        return ApiResponse.success(updatedProduct, "Listing updated successfully. It is now pending re-approval.")
+    } catch (error) {
+        logger.error("Update Product Error", error)
+        return handleDbError(error, "updateProduct")
+    }
+}
+
 export async function deleteProduct(productId, userId) {
     try {
         if (!userId) return ApiResponse.unauthorized()
@@ -217,10 +273,23 @@ import { supabase } from "@/backend-actions/lib/supabase"
 export async function getAllProducts() {
     try {
         // Attempt to fetch from the separate backend first (for speed and decoupled hosting)
+        // Use Promise.race with timeout to prevent slow fallback blocking
+        const STANDALONE_TIMEOUT = 5000; // 5 seconds max
+        
         try {
-            const apiRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
-                next: { revalidate: 60 } // Cache for 1 minute
+            const apiPromise = fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
+                next: { revalidate: 60 }, // Cache for 1 minute
+                signal: AbortSignal.timeout(STANDALONE_TIMEOUT)
             });
+            
+            // Race against timeout
+            const apiRes = await Promise.race([
+                apiPromise,
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Standalone backend timeout')), STANDALONE_TIMEOUT)
+                )
+            ]);
+            
             if (apiRes.ok) {
                 const result = await apiRes.json();
                 if (result.success) {
@@ -232,37 +301,26 @@ export async function getAllProducts() {
             console.warn("[BRIDGE] Standalone backend unreachable, falling back to internal DB", apiErr.message);
         }
 
-        // Fallback to internal Prisma logic (Original logic)
+        // Fallback to internal Prisma logic with optimized query
         const prismaProducts = await prisma.product.findMany({
             where: { status: 'approved', inStock: true, store: { status: 'approved', isActive: true } },
             select: {
-                id: true,
-                name: true,
-                price: true,
-                mrp: true,
-                images: true,
-                category: true,
-                type: true,
-                brand: true,
-                amps: true,
-                condition: true,
-                status: true,
-                inStock: true,
-                collectionDates: true,
-                collectionDateStart: true,
-                collectionDateEnd: true,
+                id: true, name: true, price: true, mrp: true, images: true,
+                category: true, type: true, brand: true, amps: true, condition: true,
+                status: true, inStock: true, collectionDates: true,
+                collectionDateStart: true, collectionDateEnd: true,
                 store: { select: { name: true, address: true, isVerified: true, status: true, isActive: true, userId: true } }
             },
             orderBy: { createdAt: 'desc' },
             take: 20
-        })
+        });
 
         const formatted = prismaProducts.map(mapProductToFrontend);
-        return ApiResponse.success({ products: formatted, data: formatted })
+        return ApiResponse.success({ products: formatted, data: formatted });
 
     } catch (error) {
-        console.error("[CRITICAL] getAllProducts failed:", error.message)
-        return ApiResponse.success({ products: [], data: [] })
+        console.error("[CRITICAL] getAllProducts failed:", error.message);
+        return ApiResponse.success({ products: [], data: [] });
     }
 }
 
@@ -421,10 +479,7 @@ export async function adminDeleteProduct(productId, adminId) {
         if (!adminId) return ApiResponse.unauthorized("Admin ID required")
         const admin = await prisma.user.findUnique({ where: { id: adminId } })
         if (!admin || admin.role !== 'ADMIN') {
-            // Check for demo admin
-            if (adminId !== "admin_demo") {
-                return ApiResponse.unauthorized("Only admins can delete products")
-            }
+            return ApiResponse.unauthorized("Only admins can delete products")
         }
 
         await prisma.product.delete({ where: { id: productId } })
@@ -444,9 +499,7 @@ export async function adminApproveProduct(productId, adminId) {
         if (!adminId) return ApiResponse.unauthorized("Admin ID required")
         const admin = await prisma.user.findUnique({ where: { id: adminId } })
         if (!admin || admin.role !== 'ADMIN') {
-            if (adminId !== "admin_demo") {
-                return ApiResponse.unauthorized("Only admins can approve products")
-            }
+            return ApiResponse.unauthorized("Only admins can approve products")
         }
 
         const product = await prisma.product.update({
@@ -493,9 +546,7 @@ export async function adminRejectProduct(productId, reason, adminId) {
         if (!adminId) return ApiResponse.unauthorized("Admin ID required")
         const admin = await prisma.user.findUnique({ where: { id: adminId } })
         if (!admin || admin.role !== 'ADMIN') {
-            if (adminId !== "admin_demo") {
-                return ApiResponse.unauthorized("Only admins can reject products")
-            }
+            return ApiResponse.unauthorized("Only admins can reject products")
         }
 
         const product = await prisma.product.update({

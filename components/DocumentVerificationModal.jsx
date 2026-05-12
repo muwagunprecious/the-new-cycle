@@ -240,11 +240,6 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                             <p className="text-[10px] text-slate-400 font-medium">
                                 Name mismatch protection enabled. Registered name: <span className="text-slate-900 font-black">{user.name}</span>
                             </p>
-                            {!ninVerified && (
-                                <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-2">
-                                    <ZapIcon size={10} /> Test NIN: 70123456789
-                                </p>
-                            )}
                         </div>
                     </div>
 
@@ -286,14 +281,7 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                                     {verifyingCAC ? <LoaderIcon className="animate-spin" size={14} /> : 'Verify Business'}
                                 </button>
                             )}
-                            {!cacVerified && (
-                                <div className="mt-3 px-2 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-500">
-                                    <ZapIcon size={10} className="text-amber-500" />
-                                    <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">
-                                        Test RC: RC0000000
-                                    </p>
-                                </div>
-                            )}
+
                         </div>
 
                         {cacVerified && (

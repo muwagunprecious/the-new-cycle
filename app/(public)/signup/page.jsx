@@ -326,55 +326,77 @@ function SignupContent() {
         }
     }
 
-    const handleAutoLogin = async () => {
-        setIsLoading(true)
-        dispatch(showLoader("Signing you in..."))
+const handleAutoLogin = async () => {
+    setIsLoading(true)
+    dispatch(showLoader("Signing you in..."))
 
-        try {
-            const loginResult = await loginUser(formData.whatsapp, formData.password)
+    try {
+        // Use the user data we already have from registration instead of calling loginUser again
+        // This avoids 2FA issues and email verification loops
+        const { createSessionFromUser } = await import("@/backend-actions/actions/auth")
+        const loginResult = await createSessionFromUser(formData)
 
-            if (loginResult.success) {
-                dispatch(setCredentials(loginResult.user))
-                dispatch(hideLoader())
-                toast.success(`Welcome to GoCycle, ${formData.name}!`)
+        // Always hide loader first — no matter what the result is
+        dispatch(hideLoader())
+        setIsLoading(false)
 
-                // REBUILD RULE: Deterministic explicit mapping only
-                const userRole = (loginResult.user.role || '').toUpperCase()
-
-                console.log(`[AUTH SYSTEM] Auto-Login Redirection Decision`, {
-                    userId: loginResult.user.id,
-                    role: userRole,
-                    target: redirect || 'INTERNAL_MAP'
-                })
-
-                if (redirect) {
-                    router.push(redirect)
-                } else {
-                    const ROLE_ROUTES = {
-                        'SUPER_ADMIN': '/admin',
-                        'ADMIN': '/admin',
-                        'SELLER': '/seller',
-                        'USER': '/buyer'
-                    }
-
-                    const destination = ROLE_ROUTES[userRole]
-
-                    if (destination) {
-                        router.push(destination)
-                    } else {
-                        console.error(`[SECURITY FAILURE] Unknown role after signup: ${userRole}`)
-                        toast.error("Account security violation")
-                        router.push('/login')
-                    }
-                }
-            }
-        } catch (error) {
-            dispatch(hideLoader())
-            setIsLoading(false)
-            toast.error(error.message)
+        if (!loginResult?.success) {
+            // Login failed (shouldn't happen with fresh registration, but handle anyway)
+            const errMsg = loginResult?.error || loginResult?.message || "Login failed. Please log in manually."
+            toast.error(errMsg)
             router.push('/login')
+            return
         }
+
+        // Handle 2FA requirement for admin accounts (shouldn't happen for new sellers/buyers)
+        if (loginResult.requires2FA) {
+            toast.success("Account created! Please check your email for a 2FA code.")
+            router.push('/login')
+            return
+        }
+
+        if (!loginResult.user) {
+            toast.error("Could not retrieve your account. Please log in manually.")
+            router.push('/login')
+            return
+        }
+
+        dispatch(setCredentials(loginResult.user))
+        toast.success(`Welcome to GoCycle, ${formData.name || loginResult.user.name}!`)
+
+        const userRole = (loginResult.user.role || '').toUpperCase()
+        console.log(`[AUTH SYSTEM] Auto-Login Redirection Decision`, {
+            userId: loginResult.user.id,
+            role: userRole,
+            target: redirect || 'INTERNAL_MAP'
+        })
+
+        if (redirect) {
+            router.push(redirect)
+        } else {
+            const ROLE_ROUTES = {
+                'SUPER_ADMIN': '/admin',
+                'ADMIN': '/admin',
+                'SELLER': '/seller',
+                'USER': '/buyer'
+            }
+            const destination = ROLE_ROUTES[userRole]
+            if (destination) {
+                router.push(destination)
+            } else {
+                console.error(`[SECURITY FAILURE] Unknown role after signup: ${userRole}`)
+                toast.error("Account configuration error. Please contact support.")
+                router.push('/login')
+            }
+        }
+    } catch (error) {
+        dispatch(hideLoader())
+        setIsLoading(false)
+        console.error("[AUTO-LOGIN ERROR]", error)
+        toast.error("Auto sign-in failed. Please log in manually.")
+        router.push('/login')
     }
+}
 
     const [showPassword, setShowPassword] = useState(false)
 
@@ -779,19 +801,8 @@ function SignupContent() {
                                     <ShieldCheckIcon className="text-emerald-500" size={48} />
                                 </div>
                                 <p className="text-slate-600 text-lg font-medium max-w-xs mx-auto">
-                                    Enter the 6-digit security code sent to your device and email.
+                                    Enter the 6-digit security code sent to your device.
                                 </p>
-                                <div className="mt-6 flex flex-col items-center gap-4">
-                                    <div className="inline-flex items-center gap-3 bg-emerald-50 px-8 py-4 rounded-3xl border border-emerald-200 shadow-sm">
-                                        <span className="w-3 h-3 bg-emerald-500 rounded-full animate-ping"></span>
-                                        <span className="text-sm font-bold text-emerald-600 uppercase tracking-[0.2em] animate-pulse">
-                                            Demo Code: 123456
-                                        </span>
-                                    </div>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center max-w-[200px]">
-                                        Use this universal code for the demo environment
-                                    </p>
-                                </div>
                             </div>
 
                             <div className="flex justify-center">
@@ -874,10 +885,7 @@ function SignupContent() {
                                 </p>
                             </div>
 
-                            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100/50">
-                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em] mb-1">Demo Environment</p>
-                                <p className="text-lg font-bold text-slate-950 tracking-[0.3em]">123456</p>
-                            </div>
+
 
                             <div className="space-y-4">
                                 <input

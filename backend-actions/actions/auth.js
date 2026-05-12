@@ -366,7 +366,7 @@ export async function loginUser(identifier, password) {
         const headerList = await headers()
         const ip = headerList.get('x-forwarded-for') || 'unknown'
         const start = Date.now()
-        await rateLimit(`login_${ip}`, 5) 
+        await rateLimit(`login_${ip}`, 15) 
         const afterRateLimit = Date.now()
 
         const safeId = identifier?.trim().toLowerCase();
@@ -406,6 +406,10 @@ export async function loginUser(identifier, password) {
         }
 
         const { password: _, ...userWithoutPassword } = user
+        // Serialize Date objects for Redux compatibility
+        if (userWithoutPassword.createdAt) userWithoutPassword.createdAt = userWithoutPassword.createdAt.toISOString?.() || String(userWithoutPassword.createdAt);
+        if (userWithoutPassword.updatedAt) userWithoutPassword.updatedAt = userWithoutPassword.updatedAt.toISOString?.() || String(userWithoutPassword.updatedAt);
+        if (userWithoutPassword.verifiedAt) userWithoutPassword.verifiedAt = userWithoutPassword.verifiedAt.toISOString?.() || String(userWithoutPassword.verifiedAt);
         
         // SYSTEM EMERGENCY: Ensure the master admin accounts always have ADMIN privileges
         // This handles cases where the role might have been downgraded in DB (e.g. store approval)
@@ -507,6 +511,10 @@ export async function loginUser(identifier, password) {
         return ApiResponse.success({ user: userWithoutPassword, token }, "Login successful");
     } catch (error) {
         logger.error("Login Error", error)
+        // Rate limit errors should return a clean 429, not a generic 500
+        if (error?.message?.includes('Too many requests')) {
+            return ApiResponse.error("Too many login attempts. Please wait a moment and try again.", 429)
+        }
         return handleDbError(error, "loginUser")
     }
 }
@@ -804,5 +812,37 @@ export async function logoutUser() {
         return ApiResponse.success(null, "Logged out successfully");
     } catch (error) {
         return ApiResponse.error("Logout failed");
+    }
+}
+
+/**
+ * Create session from verified user object (avoids re-querying DB)
+ * Used immediately after registration when we already have the user data
+ */
+export async function createSessionFromUser(user) {
+    try {
+        // Remove sensitive data
+        const { password: _, verificationCode: __, ...userWithoutPassword } = user;
+        
+        // Generate JWT token
+        const { signToken } = await import("../lib/jwt");
+        const token = signToken({ userId: user.id, role: user.role }, "24h");
+        
+        // Set secure HttpOnly cookie
+        const cookieStore = await cookies();
+        const headerList = await headers();
+        cookieStore.set("gocycle_auth_token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production" && 
+                   !headerList.get('host')?.includes('localhost'),
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24, // 24 hours
+            path: "/"
+        });
+        
+        return ApiResponse.success({ user: userWithoutPassword, token }, "Login successful");
+    } catch (error) {
+        logger.error("Create Session Error", error);
+        return ApiResponse.error("Failed to create session");
     }
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Loading from "@/components/Loading"
 import { useSelector } from "react-redux"
 import toast from "react-hot-toast"
-import VerificationModal from "@/components/VerificationModal"
+import DocumentVerificationModal from "@/components/DocumentVerificationModal"
 import Button from "@/components/Button"
 import { getSellerOrders, updateOrderStatus } from "@/backend-actions/actions/order"
 import { getSellerProducts } from "@/backend-actions/actions/product"
@@ -334,13 +334,15 @@ export default function SellerOverview() {
                 </div>
             )}
 
-            {/* Verification Modal */}
-            <VerificationModal
-                isOpen={showVerificationModal}
-                onClose={() => setShowVerificationModal(false)}
-                userRole="SELLER"
-                onVerificationComplete={handleVerificationComplete}
-            />
+            {showVerificationModal && (
+                <DocumentVerificationModal
+                    user={user}
+                    onComplete={() => {
+                        setShowVerificationModal(false)
+                        // Trigger a refresh or handle completion logic if needed
+                    }}
+                />
+            )}
         </div>
     )
 }

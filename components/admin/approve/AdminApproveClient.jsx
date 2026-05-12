@@ -1,5 +1,4 @@
 'use client'
-import { storesDummyData } from "@/assets/assets"
 import StoreInfo from "@/components/admin/StoreInfo"
 import { getPendingSellers, approveSeller, rejectSeller } from "@/backend-actions/actions/admin"
 import Loading from "@/components/Loading"

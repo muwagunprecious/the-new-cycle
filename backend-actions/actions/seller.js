@@ -1,4 +1,5 @@
 'use server'
+// Force rebuild 1
 
 import { ApiResponse } from "@/backend-actions/lib/api-response"
 import { logger } from "@/backend-actions/lib/api-utils"
@@ -40,24 +41,6 @@ export async function getStoreDetails(userId) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        if (userId === "seller_demo") {
-            return ApiResponse.success({
-                id: "demo_store",
-                name: "Adebayo Kola's Store",
-                username: "adebayo_demo",
-                description: "Battery Vendor",
-                address: "10 Industrial Way, Ikeja, Lagos",
-                email: "adebayo@ecovolt.com",
-                contact: "+234 800-000-0001",
-                logo: "",
-                status: "approved",
-                isActive: true,
-                userId: "seller_demo",
-                bankName: "Guaranty Trust Bank",
-                accountNumber: "0123456789",
-                accountName: "Adebayo Kola"
-            })
-        }
 
         const store = await prisma.store.findUnique({ where: { userId } })
         if (!store) return ApiResponse.error("Store not found", 404)
@@ -76,32 +59,6 @@ export async function getSellerDashboardSummary(userId) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        if (userId === "seller_demo") {
-            return ApiResponse.success({
-                totalProducts: 12,
-                totalEarnings: 850000,
-                pendingPickups: 3,
-                completedOrdersCount: 45,
-                pendingPayouts: 120000,
-                recentOrders: [
-                    {
-                        id: "ORD-DEMO-001",
-                        status: "PENDING",
-                        total: 45000,
-                        createdAt: new Date().toISOString(),
-                        orderItems: [{ product: { name: "Isuzu 12V 100AH Battery" } }]
-                    },
-                    {
-                        id: "ORD-DEMO-002",
-                        status: "COMPLETED",
-                        total: 35000,
-                        createdAt: new Date(Date.now() - 86400000).toISOString(),
-                        orderItems: [{ product: { name: "Luminous 12V 200AH Gel" } }]
-                    }
-                ],
-                storeStatus: 'approved'
-            })
-        }
 
         const store = await prisma.store.findUnique({
             where: { userId },
@@ -205,27 +162,6 @@ export async function getSellerPayoutHistory(userId, page = 1, limit = 50) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        if (userId === "seller_demo") {
-            const mockPayouts = [
-                {
-                    id: "PAY-DEMO-001",
-                    updatedAt: new Date().toISOString(),
-                    payoutAmount: 45000,
-                    orderItems: [{ product: { name: "Isuzu 12V 100AH Battery" } }]
-                },
-                {
-                    id: "PAY-DEMO-002",
-                    updatedAt: new Date(Date.now() - 172800000).toISOString(),
-                    payoutAmount: 35000,
-                    orderItems: [{ product: { name: "Luminous 12V 200AH Gel" } }]
-                }
-            ]
-            return ApiResponse.success({
-                orders: mockPayouts,
-                data: mockPayouts,
-                pagination: { page: 1, limit: 50, total: 2, totalPages: 1 }
-            })
-        }
 
         const store = await prisma.store.findUnique({ where: { userId } })
         if (!store) return ApiResponse.error("Store not found", 404)

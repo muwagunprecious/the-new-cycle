@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { getQoreIdToken, optimizedFetch } from "@/backend-actions/lib/http-client";
 
 export async function POST(req) {
     try {
         const body = await req.json();
         const { nin, firstname, lastname } = body;
-        
-        console.log("NIN Request Body:", JSON.stringify(body));
-
-        const logPath = path.join(process.cwd(), "tmp", "qoreid-debug.log");
-        console.log("Saving debug log to:", logPath);
 
         if (!nin || nin.length !== 11) {
             return NextResponse.json(
@@ -19,45 +13,11 @@ export async function POST(req) {
             );
         }
 
-        // Test Mode Bypass
-        if (nin === "70123456789") {
-            return NextResponse.json({
-                success: true,
-                firstname: firstname || "TEST",
-                lastname: lastname || "USER",
-                matchStatus: "EXACT_MATCH"
-            });
-        }
 
-        // QoreID "NIN (With NIN)" service
-        const BASE_URL = "https://api.qoreid.com";
 
-        // Helper to get token
-        const getQoreIDToken = async () => {
-            const clientId = process.env.QOREID_CLIENT_ID;
-            const secretKey = process.env.QOREID_SECRET_KEY;
-
-            if (!clientId || !secretKey) {
-                console.error("Missing QoreID credentials in .env");
-                throw new Error("Missing QoreID credentials in server environment");
-            }
-
-            console.log("Fetching QoreID token for client:", clientId.substring(0, 5) + "...");
-            
-            const tokenRes = await fetch(`${BASE_URL}/token`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ clientId, secret: secretKey }),
-                // Add a reasonable timeout
-                signal: AbortSignal.timeout(10000) 
-            });
-            const tokenData = await tokenRes.json();
-            if (!tokenRes.ok) throw new Error(tokenData.message || "Token failed");
-            return tokenData.accessToken;
-        };
-
-        const API_KEY = await getQoreIDToken();
-        const endpoint = `${BASE_URL}/v1/ng/identities/nin/${nin}`;
+        // Get cached QoreID token (avoids re-authentication delay on every request)
+        const API_KEY = await getQoreIdToken();
+        const endpoint = `https://api.qoreid.com/v1/ng/identities/nin/${nin}`;
 
         // Send provided names for matching
         const payload = {
@@ -65,23 +25,17 @@ export async function POST(req) {
             lastname: lastname.trim()
         };
 
-        const response = await fetch(endpoint, {
+        // Use optimized fetch with connection pooling and timeout
+        const response = await optimizedFetch(endpoint, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${API_KEY}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(payload),
-        });
+        }, 15000);
 
         const data = await response.json();
-        
-        // DEBUG: Write full response to file
-        try {
-            fs.appendFileSync(logPath, `\n\n--- ${new Date().toISOString()} ---\n` + JSON.stringify(data, null, 2));
-        } catch (e) {
-            console.error("Failed to write log file:", e);
-        }
 
         if (!response.ok) {
             return NextResponse.json(
@@ -90,7 +44,7 @@ export async function POST(req) {
             );
         }
 
-        // 4. Force name matching (Lookup mode is disabled)
+        // Name matching validation
         if (!firstname || !lastname) {
             return NextResponse.json(
                 { success: false, message: "First name and last name are required for NIN verification." },
@@ -117,7 +71,7 @@ export async function POST(req) {
         // Verification Mode: Match names
         const matchStatus = data.summary?.nin_check?.status;
         const isMatch = matchStatus === "EXACT_MATCH" || matchStatus === "TRANSPOSED_MATCH";
-        
+
         if (isMatch) {
             return NextResponse.json({
                 success: true,
@@ -129,7 +83,7 @@ export async function POST(req) {
             return NextResponse.json({
                 success: false,
                 message: `Identity mismatch: The names provided do not match the NIN records.`,
-                debug: { // Add debug info to help troubleshoot
+                debug: {
                     matchStatus,
                     fetchedFirst,
                     fetchedLast
@@ -139,10 +93,10 @@ export async function POST(req) {
     } catch (error) {
         console.error("QoreID Route Error:", error);
         return NextResponse.json(
-            { 
-                success: false, 
+            {
+                success: false,
                 message: "Internal server error during verification.",
-                debug: { error: error.message, stack: error.stack?.split('\n')[0] }
+                debug: { error: error.message }
             },
             { status: 500 }
         );

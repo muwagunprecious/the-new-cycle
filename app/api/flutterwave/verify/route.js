@@ -71,6 +71,30 @@ export async function POST(request) {
 
         console.log("SERVER: Verification SUCCESS for Order:", order.id)
         
+        // 5. Notifications (Side Effects)
+        try {
+            const { createNotification } = await import('@/backend-actions/actions/notification')
+            
+            // Notify Buyer
+            await createNotification(
+                order.userId,
+                "Payment Successful!",
+                `Your payment for ${order.id} has been confirmed. Please proceed to the collection point on your scheduled date.`,
+                "ORDER"
+            )
+
+            // Notify Seller with popup trigger format
+            const sellerMsg = `BUYER:${order.user?.name || 'A Buyer'}|PHONE:${order.user?.phone || 'N/A'}|AMOUNT:${order.total}|CODE:${order.verificationCode || 'DEMO'}|DATE:${order.collectionDate || 'TBD'}|ORDER:${order.id}|QTY:1|PROD:Battery Product`;
+            await createNotification(
+                order.store?.userId,
+                "New Paid Order!",
+                sellerMsg,
+                "ORDER"
+            )
+        } catch (notifyErr) {
+            console.error("SERVER: Notification fail in Verify:", notifyErr.message)
+        }
+        
         return NextResponse.json({
             success: true,
             message: 'Payment verified',

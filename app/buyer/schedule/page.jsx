@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Calendar as CalendarIcon, MapPin as MapPinIcon, ShieldCheck as ShieldCheckIcon, AlertCircle as AlertCircleIcon, CheckCircle as CheckCircleIcon, MessageSquare as MessageSquareIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ScheduleCalendar from '@/components/ScheduleCalendar'
-import { dummyScheduleData } from '@/assets/assets'
 import { useDispatch } from 'react-redux'
 import { showLoader, hideLoader } from '@/lib/features/ui/uiSlice'
 import { getUserOrders } from '@/backend-actions/actions/order'
@@ -127,7 +126,7 @@ function ScheduleContent() {
                     <div className="lg:col-span-2 space-y-6">
                         <ScheduleCalendar
                             onSelect={setSelectedSlot}
-                            blockedDates={dummyScheduleData}
+                            blockedDates={[]}
                         />
                     </div>
 
