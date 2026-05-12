@@ -51,11 +51,6 @@ async function getTermiiConfig() {
  * Can handle both system-generated codes and Termii-generated tokens.
  */
 async function sendOTP(to, messageOrCode = null) {
-    // Check for bypass flag
-    if (process.env.SKIP_TERMII === "true") {
-        console.log(`[MOCK SMS] Skipping Termii for ${to}. Manual bypass active.`);
-        return { success: true, pinId: "mock_pin_id", data: { message: "Mocked success" } };
-    }
 
     const { apiKey, baseUrl, senderId } = await getTermiiConfig();
 
@@ -239,10 +234,6 @@ async function verifyOTP(pinId, pin) {
  * General SMS sending (non-OTP messages)
  */
 async function sendSMS(to, message) {
-    if (process.env.SKIP_TERMII === "true") {
-        console.log(`[MOCK SMS] Skipping Termii Message to ${to}: ${message}`);
-        return { success: true, data: { message: "Mocked success" } };
-    }
 
     const { apiKey, baseUrl } = await getTermiiConfig();
 

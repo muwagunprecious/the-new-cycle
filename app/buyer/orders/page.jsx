@@ -28,7 +28,7 @@ import BottomActionSheet from "@/components/BottomActionSheet"
 export default function BuyerOrders() {
     const router = useRouter()
     const dispatch = useDispatch()
-    const { user } = useSelector(state => state.auth)
+    const { user, isHydrated } = useSelector(state => state.auth)
     const [loading, setLoading] = useState(true)
     const [orders, setOrders] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
@@ -45,17 +45,23 @@ export default function BuyerOrders() {
     const [isResponding, setIsResponding] = useState(false)
 
     useEffect(() => {
-        if (user?.id) {
-            fetchOrders()
-        } else {
-            setLoading(false)
+        if (isHydrated) {
+            if (user?.id) {
+                fetchOrders()
+            } else {
+                setLoading(false)
+            }
         }
-    }, [user])
+    }, [user?.id, isHydrated])
 
     const fetchOrders = async () => {
+        console.log(`[OrdersPage] Fetching orders for user: ${user?.id}`);
         const res = await getUserOrders(user.id)
         if (res.success) {
-            setOrders(res.data)
+            console.log(`[OrdersPage] Found ${res.data?.length} orders`);
+            setOrders(res.data || [])
+        } else {
+            console.error("[OrdersPage] Fetch Error:", res.error);
         }
         setLoading(false)
     }
@@ -153,7 +159,7 @@ export default function BuyerOrders() {
             </div>
 
             {/* Action Required Section */}
-            {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid) && (
+            {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status)) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-6">

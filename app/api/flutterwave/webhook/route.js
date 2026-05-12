@@ -45,8 +45,60 @@ export async function POST(request) {
                         verificationCode: verificationCode,
                         verificationStatus: 'PENDING'
                     },
-                    include: { user: true, store: true }
+                    include: { user: true, store: true, orderItems: { include: { product: true } } }
                 })
+
+                // Send Receipt Email to Buyer
+                if (updatedOrder.user?.email) {
+                    try {
+                        const { buyerReceiptEmail, sendEmail } = await import("@/backend-actions/lib/email")
+                        const emailContent = buyerReceiptEmail({
+                            name: updatedOrder.user.name,
+                            orderId: updatedOrder.id,
+                            total: updatedOrder.total,
+                            items: updatedOrder.orderItems.map(i => ({ 
+                                name: i.product?.name || 'Battery', 
+                                price: i.price, 
+                                quantity: i.quantity 
+                            }))
+                        })
+                        await sendEmail({ to: updatedOrder.user.email, ...emailContent })
+                    } catch (e) {
+                        console.warn("SERVER: Buyer receipt email failed", e.message)
+                    }
+                }
+
+                // Send Verification Email to Seller
+                if (updatedOrder.store?.email) {
+                    try {
+                        const { sellerOrderNotificationEmail, sendEmail } = await import("@/backend-actions/lib/email")
+                        const emailContent = sellerOrderNotificationEmail({
+                            sellerName: updatedOrder.store.name,
+                            buyerName: updatedOrder.user?.name || 'Customer',
+                            orderId: updatedOrder.id,
+                            productName: updatedOrder.orderItems?.[0]?.product?.name || 'Battery Product',
+                            verificationCode: verificationCode
+                        })
+                        await sendEmail({ to: updatedOrder.store.email, ...emailContent })
+                    } catch (e) {
+                        console.warn("SERVER: Seller verification email failed", e.message)
+                    }
+                }
+
+                // Send SMS to Seller
+                if (updatedOrder.store?.contact) {
+                    try {
+                        const { sendVerificationSMS } = await import("@/backend-actions/lib/sms")
+                        await sendVerificationSMS(
+                            updatedOrder.store.contact, 
+                            updatedOrder.user?.name || 'Customer', 
+                            verificationCode,
+                            updatedOrder.id
+                        )
+                    } catch (e) {
+                        console.warn("SERVER: Seller SMS failed", e.message)
+                    }
+                }
 
                 // Trigger real-time notification to seller
                 if (updatedOrder.store?.userId) {

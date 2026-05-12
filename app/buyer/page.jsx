@@ -15,7 +15,8 @@ import { getNotifications } from "@/backend-actions/actions/notification"
 
 export default function BuyerDashboard() {
     const dispatch = useDispatch()
-    const { user } = useSelector(state => state.auth)
+    const { user, isHydrated } = useSelector(state => state.auth)
+    const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
     const [orders, setOrders] = useState([])
     const [verifyToken, setVerifyToken] = useState('')
@@ -30,17 +31,34 @@ export default function BuyerDashboard() {
     const [showRescheduleForm, setShowRescheduleForm] = useState(false)
 
     useEffect(() => {
-        const load = async () => {
-            if (user?.id) {
-                const [ordersRes, notifyRes, profileRes] = await Promise.all([
-                    getUserOrders(user.id),
-                    getNotifications(user.id),
-                    getUserProfile(user.id)
-                ])
-                if (ordersRes.success) setOrders(ordersRes.data)
-                if (notifyRes.success) setNotifications(notifyRes.data)
+        const load = async (targetId) => {
+            const idToUse = targetId || user?.id;
+            if (!idToUse) {
+                if (isHydrated) setLoading(false);
+                return;
+            }
 
+            console.log(`[Dashboard] Deep Sync: Loading data for ${idToUse}`);
+            try {
+                const [ordersRes, notifyRes, profileRes] = await Promise.all([
+                    getUserOrders(idToUse),
+                    getNotifications(idToUse),
+                    getUserProfile(idToUse)
+                ])
+
+                if (ordersRes.success) {
+                    console.log(`[DEBUG] Received ${ordersRes.data?.length} orders from server:`, ordersRes.data);
+                    setOrders(ordersRes.data || [])
+                } else {
+                    console.error("[DEBUG] Failed to fetch orders:", ordersRes.error);
+                }
+                
                 if (profileRes.success && profileRes.data) {
+                    // Critical: If the fetched profile has an ID but our Redux doesn't, sync it!
+                    if (profileRes.data.id && profileRes.data.id !== user.id) {
+                         console.log("[Dashboard] Syncing user ID from profile:", profileRes.data.id);
+                    }
+                    setProfile(profileRes.data);
                     const serialized = { ...profileRes.data }
                     for (const key of Object.keys(serialized)) {
                         if (serialized[key] instanceof Date) {
@@ -49,11 +67,17 @@ export default function BuyerDashboard() {
                     }
                     dispatch(updateProfile(serialized))
                 }
+            } catch (err) {
+                console.error("[Dashboard] Load Error:", err);
+            } finally {
+                setLoading(false)
             }
-            setLoading(false)
         }
-        load()
-    }, [user?.id, dispatch])
+
+        if (isHydrated) {
+            load(user?.id)
+        }
+    }, [user?.id, isHydrated, dispatch])
 
     const executePickupVerification = async (e, orderId) => {
         e.preventDefault()
@@ -122,7 +146,7 @@ export default function BuyerDashboard() {
         { label: 'Total Orders', value: orders.length, icon: PackageIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
         { label: 'Pending Pickups', value: orders.filter(o => ['AWAITING_PICKUP', 'PAID', 'ORDER_PLACED', 'APPROVED'].includes(o.status)).length, icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
         { label: 'Completed', value: orders.filter(o => o.status === 'COMPLETED').length, icon: CheckCircleIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Total Spent', value: '₦' + orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0).toLocaleString(), icon: CreditCardIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { label: 'Total Spent', value: '₦' + orders.reduce((sum, o) => sum + (o.total || 0), 0).toLocaleString(), icon: CreditCardIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
     ]
 
     const resolveStatusBadge = (order) => {
@@ -149,7 +173,7 @@ export default function BuyerDashboard() {
     const isRejected = user?.accountStatus === 'rejected'
 
     return (
-        <div className="relative space-y-12 min-h-[80vh]">
+        <div key={user?.id || 'guest'} className="relative space-y-12 min-h-[80vh]">
             {isRejected && (
                 <div className="fixed inset-0 z-50 bg-red-50/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
                     <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl max-w-xl border border-red-100">
@@ -297,7 +321,21 @@ export default function BuyerDashboard() {
                             <PackageIcon className="mx-auto text-slate-300 mb-4" size={64} />
                             <h3 className="text-lg font-bold text-slate-900">No Orders Yet</h3>
                             <p className="text-slate-500 mt-2">Start shopping to see your orders here.</p>
-                            <Link href="/shop" className="inline-block mt-6 btn-primary">Browse Batteries</Link>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+                                <Link href="/shop" className="px-8 py-3 bg-[#05DF72] text-white rounded-xl font-bold hover:bg-[#04c764] transition-all">Browse Batteries</Link>
+                                <button 
+                                    onClick={async () => {
+                                        const { logoutUser } = await import("@/backend-actions/actions/auth")
+                                        await logoutUser();
+                                        localStorage.removeItem('gocycle_session');
+                                        localStorage.clear();
+                                        window.location.reload();
+                                    }}
+                                    className="px-8 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm"
+                                >
+                                    Refresh Session
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -314,7 +352,7 @@ export default function BuyerDashboard() {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-xl font-black text-slate-900">₦{(order.totalAmount || 0).toLocaleString()}</p>
+                                                <p className="text-xl font-black text-slate-900">₦{(order.total || 0).toLocaleString()}</p>
                                                 <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${badge.bg}`}>{badge.label}</span>
                                             </div>
                                         </div>
@@ -326,9 +364,63 @@ export default function BuyerDashboard() {
                                                     <p className="text-sm font-bold text-slate-700">{order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBD'}</p>
                                                 </div>
                                             </div>
-                                            <div className="mt-4">
-                                                <button onClick={() => { setSelectedOrder(order); setIsActionSheetOpen(true); }} className="w-full sm:w-auto px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10">
+                                            <div className="mt-4 flex flex-wrap gap-3">
+                                                <button onClick={() => { setSelectedOrder(order); setIsActionSheetOpen(true); }} className="px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10">
                                                     <CalendarIcon size={14} /> Manage Pickup
+                                                </button>
+                                                <button 
+                                                    onClick={() => {
+                                                        const win = window.open('', '_blank');
+                                                        win.document.write(`
+                                                            <html>
+                                                                <head>
+                                                                    <title>Receipt - ${order.id}</title>
+                                                                    <script src="https://cdn.tailwindcss.com"></script>
+                                                                </head>
+                                                                <body class="bg-slate-100 p-8">
+                                                                    <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden font-sans">
+                                                                        <div class="bg-slate-900 p-8 text-center text-white">
+                                                                            <h1 class="text-3xl font-black mb-2">Go-Cycle Receipt</h1>
+                                                                            <p class="text-slate-400 uppercase tracking-widest text-xs font-bold">Official Transaction Record</p>
+                                                                        </div>
+                                                                        <div class="p-12">
+                                                                            <div class="flex justify-between items-start mb-12">
+                                                                                <div>
+                                                                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Customer</p>
+                                                                                    <p class="text-xl font-bold text-slate-900">${user?.name || 'Customer'}</p>
+                                                                                </div>
+                                                                                <div class="text-right">
+                                                                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Order Date</p>
+                                                                                    <p class="font-bold text-slate-900">${new Date(order.createdAt).toLocaleDateString()}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="border-y border-slate-100 py-8 mb-8">
+                                                                                <div class="flex justify-between mb-4">
+                                                                                    <span class="font-bold text-slate-600">${order.orderItems?.[0]?.product?.name || 'Battery Product'}</span>
+                                                                                    <span class="font-black text-slate-900">₦${(order.total || 0).toLocaleString()}</span>
+                                                                                </div>
+                                                                                <div class="flex justify-between text-sm">
+                                                                                    <span class="text-slate-400 italic">Pickup: ${order.store?.address || 'See Manage Pickup'}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="bg-[#05DF72]/5 rounded-2xl p-6 border border-[#05DF72]/20 text-center mb-8">
+                                                                                <p class="text-[10px] font-black text-[#05DF72] uppercase mb-2">Verification Code</p>
+                                                                                <p class="text-4xl font-black text-slate-900 tracking-widest">${order.verificationCode || '------'}</p>
+                                                                                <p class="text-[10px] text-slate-400 font-bold mt-4">Show this code to the seller during pickup</p>
+                                                                            </div>
+                                                                            <div class="text-center pt-8 border-t border-slate-50">
+                                                                                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Secured by Flutterwave</p>
+                                                                                <button onclick="window.print()" class="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest">Print Receipt</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </body>
+                                                            </html>
+                                                        `);
+                                                    }}
+                                                    className="px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <CheckCircleIcon size={14} /> View Receipt
                                                 </button>
                                             </div>
                                         </div>

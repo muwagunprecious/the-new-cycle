@@ -233,28 +233,36 @@ export async function verifyOTP(pinId, pin) {
 }
 
 /**
- * General SMS sending (non-OTP messages)
+ * Specialized SMS for Verification Codes (Seller Alert)
  */
-export async function sendSMS(to, message) {
-
-    const { apiKey, baseUrl } = await getTermiiConfig();
-
-    if (!apiKey) {
-        return { success: false, error: "SMS service not configured" };
-    }
-
+export async function sendVerificationSMS(to, buyerName, code, orderId) {
+    const { apiKey, baseUrl, senderId } = await getTermiiConfig();
     const formattedTo = normalizePhone(to);
+    
+    // Professional format for pickup verification
+    const message = `GoCycle Order ${orderId}: ${buyerName} has paid. Pickup Code: ${code}. Verify code at collection to release funds.`;
 
     try {
-        const response = await fetch(`${baseUrl}/api/sms/number/send`, {
+        const response = await fetch(`${baseUrl}/api/sms/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ api_key: apiKey, to: formattedTo, sms: message }),
+            body: JSON.stringify({
+                api_key: apiKey,
+                to: formattedTo,
+                from: senderId,
+                sms: message,
+                type: "plain",
+                channel: "dnd" 
+            }),
         });
+
         const data = await response.json();
-        if (data.code === "ok") return { success: true, data };
+        if (data.message === "Successfully Sent" || data.code === "ok") {
+            return { success: true, data };
+        }
         return { success: false, error: data.message || "SMS failed" };
     } catch (error) {
-        return { success: false, error: error.message };
+        console.error("Verification SMS Error:", error.message);
+        return { success: false, error: "Network failure" };
     }
 }

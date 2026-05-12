@@ -50,12 +50,20 @@ export default function BuyerLayout({ children }) {
         { name: 'Profile Settings', href: '/buyer/profile', icon: UserIcon },
     ]
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         dispatch(showLoader("Signing you out..."))
-        setTimeout(() => {
+        try {
+            // Import the server action dynamically to avoid bundle issues if needed, 
+            // but standard import is better.
+            const { logoutUser } = await import("@/backend-actions/actions/auth")
+            await logoutUser()
             dispatch(logout())
             router.push('/')
-        }, 800)
+        } catch (err) {
+            console.error("Logout failed", err)
+            dispatch(logout())
+            router.push('/')
+        }
     }
 
     const handleNavigation = (href, message) => {

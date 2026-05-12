@@ -349,8 +349,7 @@ export async function verifyPhoneStandalone(phone, code) {
 
         if (!user) return ApiResponse.error("Verification session not found.", 404)
 
-        // In demo mode or if bypass is needed, check 123456. Otherwise check real code.
-        if (code === "123456" || user.verificationCode === code) {
+        if (user.verificationCode === code) {
             // Keep it unverified in DB until registration is complete, 
             // or we can mark it as verified here. Registration will check phone existence.
             return ApiResponse.success({ verified: true }, "Phone number verified successfully!")

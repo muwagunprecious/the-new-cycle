@@ -2,12 +2,15 @@ import nodemailer from 'nodemailer'
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'mail.gocycle.ng',
-    port: parseInt(process.env.SMTP_PORT || '465'),
-    secure: true, // SSL
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true', // Use false for 587 (STARTTLS)
     auth: {
         user: process.env.SMTP_USER || 'admin@gocycle.ng',
         pass: process.env.SMTP_PASS,
     },
+    tls: {
+        rejectUnauthorized: false // Helps with some shared hosting certificates
+    }
 })
 
 import worker from './worker'
@@ -46,7 +49,7 @@ export async function sendEmail(options) {
 
 // ─── Email Templates ───────────────────────────────────────────────────────────
 
-export function orderConfirmationEmail({ buyerName, orderId, productName, amount, collectionDate }) {
+export function orderConfirmationEmail({ buyerName, orderId, productName, amount, collectionDate, sellerName, sellerPhone, sellerAddress }) {
     return {
         subject: `Order Confirmed – #${orderId}`,
         html: `
@@ -64,12 +67,23 @@ export function orderConfirmationEmail({ buyerName, orderId, productName, amount
                     <p style="margin:8px 0 0;font-size:13px;color:#1e293b;line-height:1.5;">When you arrive at the pickup location, <strong>ask the seller for the verification code</strong>. You will need to enter this code in your dashboard to confirm receipt of your battery.</p>
                 </div>
 
+                <div style="background:#f8fafc;border-radius:10px;padding:20px;margin:20px 0;">
+                    <p style="margin:0 0 12px;font-size:11px;color:#64748b;font-weight:black;text-transform:uppercase;letter-spacing:1px;">Seller & Pickup Details</p>
+                    <p style="margin:4px 0;font-size:14px;color:#0f172a;"><strong>Seller:</strong> ${sellerName || 'Verified Seller'}</p>
+                    <p style="margin:4px 0;font-size:14px;color:#0f172a;"><strong>Phone:</strong> ${sellerPhone || 'N/A'}</p>
+                    <p style="margin:4px 0;font-size:14px;color:#0f172a;"><strong>Address:</strong> ${sellerAddress || 'See dashboard for details'}</p>
+                    <p style="margin:12px 0 4px;font-size:14px;color:#0f172a;"><strong>Collection Date:</strong> ${collectionDate}</p>
+                </div>
+
+                <div style="background:#fefce8;border:1px solid #fef08a;border-radius:10px;padding:16px;margin:20px 0;">
+                    <p style="margin:0;font-size:13px;color:#854d0e;"><strong>Need to change the date?</strong> You can reschedule your pickup date by going to your <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://the-new-cycle-m8zx.vercel.app'}/buyer" style="color:#854d0e;font-weight:bold;text-decoration:underline;">Dashboard</a> and clicking the <strong>Manage Pickup</strong> button.</p>
+                </div>
+
                 <div style="background:#f8fafc;border-radius:10px;padding:16px;margin:20px 0;">
-                    <p style="margin:0 0 8px;font-size:13px;color:#64748b;">ORDER DETAILS</p>
+                    <p style="margin:0 0 8px;font-size:13px;color:#64748b;">ORDER SUMMARY</p>
                     <p style="margin:4px 0;"><strong>Order ID:</strong> #${orderId}</p>
                     <p style="margin:4px 0;"><strong>Product:</strong> ${productName}</p>
                     <p style="margin:4px 0;"><strong>Amount:</strong> ₦${Number(amount).toLocaleString()}</p>
-                    <p style="margin:4px 0;"><strong>Collection Date:</strong> ${collectionDate}</p>
                 </div>
                 <p style="color:#475569;font-size:14px;">The seller will provide you with the secret code only after they have handed over the items to you.</p>
             </div>

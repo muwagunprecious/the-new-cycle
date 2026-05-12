@@ -13,6 +13,16 @@ export async function POST(req) {
             );
         }
 
+        // Test Mode Bypass
+        if (nin === "70123456789") {
+            return NextResponse.json({
+                success: true,
+                firstname: firstname || "TEST",
+                lastname: lastname || "USER",
+                matchStatus: "EXACT_MATCH"
+            });
+        }
+
 
 
         // Get cached QoreID token (avoids re-authentication delay on every request)

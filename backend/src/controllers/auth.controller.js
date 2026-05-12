@@ -130,11 +130,6 @@ exports.loginUser = async (req, res) => {
         const { identifier, password } = req.body;
         const safeId = identifier?.trim().toLowerCase();
         
-        // Static demos
-        if (safeId === 'admin@gocycle.com' && password === 'admin123') {
-            return res.status(200).json({ success: true, user: { id: "admin_demo", name: "Admin Superuser", email: "admin@gocycle.com", role: "ADMIN", status: "active" } });
-        }
-
         const normalizedIdentifier = identifier.includes('@') ? identifier : normalizePhone(identifier);
         const user = await prisma.user.findFirst({
             where: {
@@ -184,7 +179,7 @@ exports.verifyOTP = async (req, res) => {
 
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        if (user.verificationCode !== code && code !== "123456") {
+        if (user.verificationCode !== code) {
             return res.status(400).json({ success: false, message: "Invalid verification code" });
         }
 

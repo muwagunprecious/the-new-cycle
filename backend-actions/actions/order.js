@@ -13,6 +13,7 @@ export async function createOrder(orderData) {
     try {
         const { buyerId, sellerId, productId, quantity, totalAmount, collectionDate, subtotal, buyerFee, paymentSenderName, paymentMethod = 'MANUAL_TRANSFER' } = orderData
 
+        logger.info("Creating order", { buyerId, productId, quantity, totalAmount })
         if (!buyerId || !productId || quantity <= 0) {
             return ApiResponse.error("Invalid order data", 400)
         }
@@ -113,55 +114,58 @@ export async function createOrder(orderData) {
             throw dbError;
         }
 
-        // NON-BLOCKING SIDE EFFECTS: Enqueue all notifications and emails
-        import('../lib/worker').then(m => {
-            const worker = m.default;
-            worker.enqueue(`ORDER_SIDE_EFFECTS_${orderId}`, async () => {
-                // 1. In-app notifications — include rich data for the popup
-                try {
-                    const product = await prisma.product.findUnique({ where: { id: productId }, select: { name: true } });
-                    const productName = product?.name || "Battery Product";
-                    const sellerMsg = `BUYER:${buyer.name}|PHONE:${buyer.phone || 'N/A'}|AMOUNT:${totalAmount}|CODE:${verificationCode}|DATE:${collectionDate || 'TBD'}|ORDER:${transactionId}|QTY:${quantity}|PROD:${productName}`;
-                    await createNotification(store.userId, "New Purchase Request", sellerMsg, "ORDER");
-                    const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
-                    await Promise.all(admins.map(admin => createNotification(admin.id, "New Platform Sale", `Order #${transactionId} placed. Total: ₦${totalAmount.toLocaleString()}`, "ORDER")));
-                } catch (e) { logger.warn("Order background notifications failed", e); }
+        // 1. Fetch common data for notifications/emails
+        const productInfo = await prisma.product.findUnique({ where: { id: productId }, select: { name: true } });
+        const productName = productInfo?.name || "Battery Product";
+        const sellerUser = await prisma.user.findUnique({ where: { id: store.userId } });
 
-                // 2. Socket/Backend Notification
-                try {
-                    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
-                    await fetch(`${backendUrl}/api/orders/${orderId}/notify-seller`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sellerId: store.userId, buyerName: buyer.name, productName: "Battery Product", amount: totalAmount, collectionDate: collectionDate || 'Pending', verificationCode: verificationCode }),
+        // 2. In-app notifications — include rich data for the popup
+        try {
+            const sellerMsg = `BUYER:${buyer.name}|PHONE:${buyer.phone || 'N/A'}|AMOUNT:${totalAmount}|CODE:${verificationCode}|DATE:${collectionDate || 'TBD'}|ORDER:${transactionId}|QTY:${quantity}|PROD:${productName}`;
+            await createNotification(store.userId, "New Purchase Request", sellerMsg, "ORDER");
+            
+            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
+            await Promise.all(admins.map(admin => createNotification(admin.id, "New Platform Sale", `Order #${transactionId} placed. Total: ₦${totalAmount.toLocaleString()}`, "ORDER")));
+        } catch (e) { 
+            logger.warn("Order notifications failed", e); 
+        }
+
+        // 3. Emails — buyer always gets confirmation; seller always gets alert
+        try {
+            // Buyer email
+            if (buyer.email) {
+                if (paymentMethod === 'MANUAL_TRANSFER') {
+                    await sendEmail({
+                        to: buyer.email,
+                        subject: "[Go-Cycle] Order Received - Payment Verification Pending",
+                        html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;"><h1 style="color:#05DF72;font-size:22px;">Order Received</h1><p>Hello ${buyer.name},</p><p>We have received your order. Transaction ID: <b>${transactionId}</b>. Our team will verify your bank transfer within 24-48 hours.</p></div>`
                     });
-                } catch (e) { logger.warn("Socket notification failed", e); }
-
-                // 3. Emails — buyer always gets confirmation; seller always gets alert
-                const seller = await prisma.user.findUnique({ where: { id: store.userId } });
-
-                // Buyer email
-                if (buyer.email) {
-                    if (paymentMethod === 'MANUAL_TRANSFER') {
-                        await sendEmail({
-                            to: buyer.email,
-                            subject: "[Go-Cycle] Order Received - Payment Verification Pending",
-                            html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;"><h1 style="color:#05DF72;font-size:22px;">Order Received</h1><p>Hello ${buyer.name},</p><p>We have received your order. Transaction ID: <b>${transactionId}</b>. Our team will verify your bank transfer within 24-48 hours.</p></div>`
-                        });
-                    } else {
-                        const emailTemplate = orderConfirmationEmail({ buyerName: buyer.name, orderId: transactionId, productName: "Battery", amount: totalAmount, collectionDate: collectionDate || 'TBD', token: collectionToken });
-                        await sendEmail({ to: buyer.email, ...emailTemplate });
-                    }
+                } else {
+                    const emailTemplate = orderConfirmationEmail({ 
+                        buyerName: buyer.name, 
+                        orderId: transactionId, 
+                        productName: productName, 
+                        amount: totalAmount, 
+                        collectionDate: collectionDate || 'TBD', 
+                        token: collectionToken,
+                        sellerName: sellerUser?.name,
+                        sellerPhone: sellerUser?.phone,
+                        sellerAddress: store.address
+                    });
+                    await sendEmail({ to: buyer.email, ...emailTemplate });
                 }
+            }
 
-                // Seller email — fires for BOTH payment methods
-                if (seller?.email) {
-                    const sellerEmailTemplate = sellerNewOrderEmail({ sellerName: seller.name, orderId: transactionId, productName: "Battery", amount: totalAmount, quantity, collectionDate: collectionDate || 'TBD', token: collectionToken, buyerName: buyer.name });
-                    await sendEmail({ to: seller.email, ...sellerEmailTemplate });
-                }
-            });
-        });
+            // Seller email
+            if (sellerUser?.email) {
+                const sellerEmailTemplate = sellerNewOrderEmail({ sellerName: sellerUser.name, orderId: transactionId, productName: "Battery", amount: totalAmount, quantity, collectionDate: collectionDate || 'TBD', token: collectionToken, buyerName: buyer.name });
+                await sendEmail({ to: sellerUser.email, ...sellerEmailTemplate });
+            }
+        } catch (e) {
+            logger.warn("Order emails failed", e);
+        }
 
+        revalidatePath('/buyer')
         revalidatePath('/buyer/orders')
         revalidatePath('/seller/orders')
         revalidatePath('/admin/orders')
@@ -175,24 +179,46 @@ export async function createOrder(orderData) {
 }
 
 export async function getUserOrders(userId) {
+    // Deep Diagnostics: Log total orders in DB
+    const [totalCount, userCount] = await Promise.all([
+        prisma.order.count(),
+        prisma.order.count({ where: { userId } })
+    ]);
+    
+    logger.info(`[DIAGNOSTIC] Total Orders in DB: ${totalCount}, Orders for User ${userId}: ${userCount}`);
+    
     try {
-        if (!userId) return ApiResponse.unauthorized()
+        if (!userId) {
+            logger.warn("getUserOrders called without userId")
+            return ApiResponse.unauthorized()
+        }
 
-
-        const orders = await prisma.order.findMany({
-            where: { userId },
-            include: {
-                store: { select: { id: true, name: true, address: true, contact: true, userId: true } },
-                orderItems: {
-                    include: {
-                        product: {
-                            select: { id: true, name: true, lga: true, price: true }
-                        }
+        // Hard Sync: Use a transaction to ensure we read the latest committed data
+        const orders = await prisma.$transaction(async (tx) => {
+            return await tx.order.findMany({
+                where: {
+                    userId,
+                    isPaid: true,
+                    status: {
+                        in: ['PAID', 'APPROVED', 'PROCESSING', 'SHIPPED', 'PICKED_UP', 'DELIVERED', 'COMPLETED', 'ORDER_PLACED']
                     }
+                },
+                include: {
+                    orderItems: {
+                        include: {
+                            product: true
+                        }
+                    },
+                    store: true
+                },
+                orderBy: {
+                    createdAt: 'desc'
                 }
-            },
-            orderBy: { createdAt: 'desc' }
-        })
+            });
+        }, {
+            isolationLevel: 'Serializable' // Highest consistency
+        });
+        logger.info(`Found ${orders.length} orders for user ${userId}`)
 
         // Sanitize sensitive tokens
         const sanitizedOrders = orders.map(({ collectionToken, ...safeOrder }) => safeOrder)

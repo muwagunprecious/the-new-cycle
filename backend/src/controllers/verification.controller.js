@@ -15,19 +15,12 @@ exports.verifyUserNIN = async (req, res) => {
         let isVerified = false;
         let result = null;
 
-        // TEST MODE BYPASS for NIN
-        if (nin === '70123456789') {
-            logger.info('TEST MODE: Bypassing QoreID for NIN', { userId });
-            isVerified = true;
-            result = { status: 'success', summary: { status: 'VERIFIED', description: 'Test Mode Bypass' } };
-        } else {
-            result = await verifyNIN(nin, userData);
-            isVerified = result.status === 'success' ||
-                result.status?.status === 'verified' ||
-                result.status?.state === 'complete' ||
-                result.summary?.status === 'VERIFIED' ||
-                result.summary?.nin_check?.status === 'EXACT_MATCH';
-        }
+        const result = await verifyNIN(nin, userData);
+        isVerified = result.status === 'success' ||
+            result.status?.status === 'verified' ||
+            result.status?.state === 'complete' ||
+            result.summary?.status === 'VERIFIED' ||
+            result.summary?.nin_check?.status === 'EXACT_MATCH';
 
         if (isVerified) {
             await prisma.user.update({
@@ -62,39 +55,6 @@ exports.verifyUserCAC = async (req, res) => {
 
         const user = await prisma.user.findUnique({ where: { id: userId } });
 
-        // TEST MODE BYPASS for CAC
-        if (rcNumber === 'RC0000000') {
-            logger.info('TEST MODE: Bypassing QoreID for CAC', { userId });
-            
-            const businessName = "GO-CYCLE TEST CORP";
-            const businessType = "PRIVATE LIMITED COMPANY";
-            const isDirectorVerified = true;
-
-            const store = await prisma.store.findUnique({ where: { userId } });
-            if (store) {
-                await prisma.store.update({
-                    where: { id: store.id },
-                    data: { cac: rcNumber, status: 'approved', isVerified: true, isDirectorVerified: isDirectorVerified }
-                });
-            }
-
-            await prisma.user.update({
-                where: { id: userId },
-                data: {
-                    cacDocument: rcNumber,
-                    businessName: businessName,
-                    businessType: businessType,
-                    isDirectorVerified: isDirectorVerified,
-                    verifiedAt: new Date()
-                }
-            });
-
-            return res.status(200).json({
-                success: true,
-                message: "CAC verification successful (TEST MODE)",
-                data: { businessName, businessType, isDirectorVerified }
-            });
-        }
 
         const result = await verifyCAC(rcNumber);
         const isVerified = result.status === 'success' || 
