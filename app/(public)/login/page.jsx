@@ -39,31 +39,8 @@ function LoginContent() {
         'BUYER': '/buyer'
     }
 
-    // AUTO-REDIRECT: If already logged in, go to dashboard
-    useEffect(() => {
-        if (isHydrated && isLoggedIn && !isLoading) {
-            const userRole = (user?.role || '').toUpperCase()
-            let destination = redirect || ROLE_ROUTES[userRole]
-
-            // SECURITY: Ensure destination is a relative path to prevent open redirects
-            if (destination && (destination.startsWith('http') || destination.startsWith('//'))) {
-                console.warn(`[AUTH] Blocked potentially unsafe redirect: ${destination}`)
-                destination = ROLE_ROUTES[userRole]
-            }
-
-            if (destination && destination !== '/login') {
-                console.log(`[AUTH] Auto-redirecting to: ${destination}`)
-                
-                // Track redirection attempt
-                const redirectTimer = setTimeout(() => {
-                    console.log(`[AUTH] Triggering location replace to ${destination}`)
-                    window.location.replace(destination)
-                }, 100)
-
-                return () => clearTimeout(redirectTimer)
-            }
-        }
-    }, [isHydrated, isLoggedIn, isLoading, user?.role, redirect])
+    // REMOVED AUTO-REDIRECT to break infinite loops on production/Vercel
+    // Redirection now only happens explicitly after successful handleSubmit
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name === 'email' ? 'identifier' : e.target.name]: e.target.value })
