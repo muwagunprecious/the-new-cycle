@@ -14,38 +14,43 @@ export default function BuyerLayout({ children }) {
 
     // Auth Protection
     useEffect(() => {
-        console.log(`[AUTH CHECK] Path: ${pathname}, isLoggedIn: ${isLoggedIn}, isHydrated: ${isHydrated}, role: ${user?.role}`)
+        if (!isHydrated) return
 
-        if (!isHydrated) {
-            console.log(`[AUTH CHECK] Waiting for hydration...`)
+        // If Redux says we are logged in, but we don't have user data yet, 
+        // wait for the user object to be populated before making a decision.
+        if (isLoggedIn && !user?.id) {
+            console.log(`[AUTH CHECK] Logged in but waiting for user data...`)
             return
         }
-    
+
         if (!isLoggedIn) {
             console.warn(`[AUTH CHECK] User not logged in. Redirecting to /login`)
-            router.push('/login')
+            router.replace('/login') // Use replace to avoid history clutter
             return
         }
 
-        // REBUILD RULE: Deterministic explicit access control
         const userRole = (user?.role || '').toUpperCase()
+        console.log(`[AUTH CHECK] Verified user role: ${userRole}`)
+
         if (userRole !== 'USER' && userRole !== 'BUYER') {
             console.error(`[SECURITY] Unauthorized access attempt to Buyer Dashboard`, {
                 userId: user?.id,
                 role: userRole
             })
-            // Redirect to their correct dashboard
+            
             const ROLE_ROUTES = {
                 'SUPER_ADMIN': '/admin',
                 'ADMIN': '/admin',
                 'SELLER': '/seller'
             }
-            router.push(ROLE_ROUTES[userRole] || '/login')
+            const destination = ROLE_ROUTES[userRole] || '/login'
+            console.log(`[SECURITY] Redirecting to correct dashboard: ${destination}`)
+            router.replace(destination)
             return
         }
 
         setLoading(false)
-    }, [isLoggedIn, user?.role, isHydrated, router])
+    }, [isLoggedIn, user, isHydrated, router, pathname])
 
     const dispatch = useDispatch()
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)

@@ -19,16 +19,18 @@ const AdminLayout = ({ children }) => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        console.log(`[AUTH CHECK ADMIN] isLoggedIn: ${isLoggedIn}, isHydrated: ${isHydrated}, role: ${user?.role}`)
+        if (!isHydrated) return
 
-        if (!isHydrated) {
-            console.log(`[AUTH CHECK ADMIN] Waiting for hydration...`)
+        // If Redux says we are logged in, but we don't have user data yet, 
+        // wait for the user object to be populated before making a decision.
+        if (isLoggedIn && !user?.id) {
+            console.log(`[AUTH CHECK ADMIN] Logged in but waiting for user data...`)
             return
         }
 
         if (!isLoggedIn) {
             console.warn(`[AUTH CHECK ADMIN] User not logged in. Redirecting to /login`)
-            router.push('/login')
+            router.replace('/login')
             return
         }
 

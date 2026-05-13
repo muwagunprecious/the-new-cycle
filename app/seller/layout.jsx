@@ -18,18 +18,19 @@ export default function SellerLayout({ children }) {
     // Auth Protection
     useEffect(() => {
         const checkAuth = async () => {
-            console.log(`[AUTH CHECK] Path: ${pathname}, isLoggedIn: ${isLoggedIn}, isHydrated: ${isHydrated}, role: ${user?.role}`)
+            if (!isHydrated) return
 
-            // Wait for Redux state to rehydrate from localStorage
-            if (!isHydrated) {
-                console.log(`[AUTH CHECK] Waiting for hydration...`)
+            // If Redux says we are logged in, but we don't have user data yet, 
+            // wait for the user object to be populated before making a decision.
+            if (isLoggedIn && !user?.id) {
+                console.log(`[AUTH CHECK] Logged in but waiting for user data...`)
                 return
             }
     
             // Not logged in → redirect to login
             if (!isLoggedIn) {
                 console.warn(`[AUTH CHECK] User not logged in. Redirecting to /login`)
-                router.push('/login')
+                router.replace('/login')
                 return
             }
 
