@@ -15,6 +15,20 @@ function LoginContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const redirect = searchParams.get('redirect')
+
+    const [isLoading, setIsLoading] = useState(false)
+    const [step, setStep] = useState('LOGIN') // LOGIN | VERIFY | ADMIN_2FA
+    const [otp, setOtp] = useState('')
+    const [twoFACode, setTwoFACode] = useState('')
+    const [twoFAData, setTwoFAData] = useState(null) // { userId, email, user }
+    const [showPassword, setShowPassword] = useState(false)
+    const [formData, setFormData] = useState({
+        identifier: '',
+        password: '',
+        newPassword: '',
+        confirmPassword: ''
+    })
+
     const { user, isLoggedIn, isHydrated } = useSelector((state) => state.auth)
 
     const ROLE_ROUTES = {
@@ -50,20 +64,6 @@ function LoginContent() {
             }
         }
     }, [isHydrated, isLoggedIn, isLoading, user?.role, redirect])
-
-
-    const [isLoading, setIsLoading] = useState(false)
-    const [step, setStep] = useState('LOGIN') // LOGIN | VERIFY | ADMIN_2FA
-    const [otp, setOtp] = useState('')
-    const [twoFACode, setTwoFACode] = useState('')
-    const [twoFAData, setTwoFAData] = useState(null) // { userId, email, user }
-    const [showPassword, setShowPassword] = useState(false)
-    const [formData, setFormData] = useState({
-        identifier: '',
-        password: '',
-        newPassword: '',
-        confirmPassword: ''
-    })
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name === 'email' ? 'identifier' : e.target.name]: e.target.value })

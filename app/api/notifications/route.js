@@ -37,12 +37,25 @@ export async function GET(req) {
     try {
         const cookieStore = await cookies()
         const token = cookieStore.get('gocycle_auth_token')?.value
+        
+        // DIAGNOSTIC LOGGING: Track cookie transmission on Vercel
+        const allCookies = cookieStore.getAll().map(c => c.name)
+        console.log(`[Notifications API] Auth Check`, {
+            hasToken: !!token,
+            cookieNames: allCookies,
+            timestamp: new Date().toISOString()
+        })
+
         if (!token) {
             console.warn('[Notifications API] Auth Failed: Missing gocycle_auth_token cookie')
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
         const decoded = verifyToken(token)
+        if (!decoded) {
+            console.warn('[Notifications API] Auth Failed: Invalid or expired token')
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        }
         if (!decoded?.userId) {
             console.error('[Notifications API] Auth Failed: Token verification failed or userId missing from payload')
             return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 })
