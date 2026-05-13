@@ -58,8 +58,8 @@ export default function BuyerOrders() {
         console.log(`[OrdersPage] Fetching orders for user: ${user?.id}`);
         const res = await getUserOrders(user.id)
         if (res.success) {
-            console.log(`[OrdersPage] Found ${res.data?.length} orders`);
-            setOrders(res.data || [])
+            console.log(`[OrdersPage] Found ${res.data?.orders?.length || res.data?.length} orders`);
+            setOrders(res.data?.orders || res.data || [])
         } else {
             console.error("[OrdersPage] Fetch Error:", res.error);
         }
@@ -70,9 +70,11 @@ export default function BuyerOrders() {
         setRescheduleLoading(true)
         const res = await respondToReschedule(orderId, action, alternateDate, 'BUYER')
         if (res.success) {
-            setOrders(orders.map(o => o.id === orderId ? res.order : o))
+            const updatedOrder = res.data || res.order || res
+            setOrders(orders.map(o => o.id === orderId ? updatedOrder : o))
             toast.success(action === 'ACCEPT' ? "Pickup date confirmed!" : (action === 'REJECT' ? "Reschedule declined" : "Counter-proposal sent!"))
             setIsRescheduleModalOpen(false)
+            setIsVerifyModalOpen(false)
             setSelectedOrder(null)
         } else {
             toast.error(res.error || "Failed to respond")
@@ -84,9 +86,11 @@ export default function BuyerOrders() {
         setRescheduleLoading(true)
         const res = await requestReschedule(orderId, newDate, 'BUYER')
         if (res.success) {
-            setOrders(orders.map(o => o.id === orderId ? res.order : o))
+            const updatedOrder = res.data || res.order || res
+            setOrders(orders.map(o => o.id === orderId ? updatedOrder : o))
             toast.success("Reschedule request sent to seller!")
             setIsRescheduleModalOpen(false)
+            setIsVerifyModalOpen(false)
             setSelectedOrder(null)
         } else {
             toast.error(res.error || "Failed to request reschedule")
@@ -108,7 +112,7 @@ export default function BuyerOrders() {
 
         if (res.success) {
             toast.success("Pickup confirmed! Release of funds initiated.")
-            const updatedOrder = res.data || res.order
+            const updatedOrder = res.data || res.order || res
             setOrders(orders.map(o => o.id === orderId ? updatedOrder : o))
             setIsVerifyModalOpen(false)
             setVerifyToken('')

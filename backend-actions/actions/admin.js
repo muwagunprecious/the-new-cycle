@@ -3,7 +3,7 @@
 import { ApiResponse } from "@/backend-actions/lib/api-response"
 import { logger } from "@/backend-actions/lib/api-utils"
 import { sendEmail, sellerWalletCreditEmail, buyerVerifiedEmail, buyerRejectedEmail } from "@/backend-actions/lib/email"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, unstable_cache, revalidateTag } from "next/cache"
 import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 import bcrypt from "bcryptjs"
 import { generateId } from "@/backend-actions/lib/api-utils"
@@ -48,6 +48,7 @@ export async function approveSeller(storeId) {
         revalidatePath('/admin/approve')
         revalidatePath('/')
         revalidatePath('/shop')
+        revalidateTag('admin-stats')
         return ApiResponse.success(null, "Seller approved successfully")
     } catch (error) {
         logger.error("Approve Seller Error", error)
@@ -79,6 +80,7 @@ export async function rejectSeller(storeId, reason) {
 
         revalidatePath('/admin/approve')
         revalidatePath('/')
+        revalidateTag('admin-stats')
         return ApiResponse.success(null, "Seller application rejected")
     } catch (error) {
         logger.error("Reject Seller Error", error)
@@ -125,6 +127,7 @@ export async function updateSellerWallet(storeId, amount, type = 'CREDIT') {
 
         revalidatePath('/admin/sellers')
         revalidatePath('/seller')
+        revalidateTag('admin-stats')
         return ApiResponse.success({ newBalance }, "Wallet updated successfully")
     } catch (error) {
         logger.error("Update Seller Wallet Error", error)
@@ -136,85 +139,103 @@ export async function updateSellerWallet(storeId, amount, type = 'CREDIT') {
  * Performance-optimized aggregate summary for the admin dashboard.
  * Bypasses fetching all records by using Prisma aggregate/count functions.
  */
-export async function getAdminDashboardSummary() {
-    try {
-        const [
-            sellerCount,
-            productCount,
-            orderCount,
-            revenueData,
-            verifiedCount,
-            userCount,
-            pendingPayoutsData,
-            recentOrders,
-            pendingVerifications
-        ] = await withRetry(() => Promise.all([
-            prisma.user.count({ where: { role: 'SELLER' } }),
-            prisma.product.count(),
-            prisma.order.count(),
-            prisma.order.aggregate({
-                _sum: { total: true }
-            }),
-            prisma.user.count({ where: { accountStatus: 'approved' } }),
-            prisma.user.count(),
-            prisma.order.aggregate({
-                where: { status: 'COMPLETED', payoutStatus: 'pending' },
-                _sum: { 
-                    total: true,
-                    subtotal: true,
-                    buyerFee: true,
-                    sellerFee: true,
-                    payoutAmount: true
-                }
-            }),
-            prisma.order.findMany({
-                take: 5,
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    user: { select: { name: true } },
-                    store: { select: { name: true } }
-                }
-            }),
-            prisma.order.findMany({
-                where: { paymentStatus: 'pending' },
-                orderBy: { createdAt: 'desc' },
-                take: 10, // Limit to 10 for dashboard overview
-                select: {
-                    id: true,
-                    total: true,
-                    paymentSenderName: true,
-                    createdAt: true,
-                    user: { select: { name: true } },
-                    store: { select: { name: true } }
-                }
-            })
-        ]))
 
-        return ApiResponse.success({
-            products: productCount,
-            revenue: revenueData._sum.total || 0,
-            orders: orderCount,
-            stores: sellerCount,
-            pendingPayouts: pendingPayoutsData._sum.payoutAmount || 0,
-            pendingStats: {
-                subtotal: pendingPayoutsData._sum.subtotal || 0,
-                total: pendingPayoutsData._sum.total || 0,
-                sellerFee: pendingPayoutsData._sum.sellerFee || 0,
-                buyerFee: pendingPayoutsData._sum.buyerFee || 0,
-                payoutAmount: pendingPayoutsData._sum.payoutAmount || 0,
-                platformEarnings: (pendingPayoutsData._sum.buyerFee || 0) + (pendingPayoutsData._sum.sellerFee || 0)
-            },
-            verifiedUsers: verifiedCount,
-            unverifiedUsers: userCount - verifiedCount,
-            totalUsers: userCount,
-            recentOrders: recentOrders,
-            pendingVerifications: pendingVerifications || []
-        })
-    } catch (error) {
-        logger.error("Get Dashboard Summary Error", error)
-        return ApiResponse.error("Failed to fetch dashboard stats")
-    }
-}
+/**
+ * Performance-optimized aggregate summary for the admin dashboard.
+ * Uses Next.js unstable_cache to prevent heavy DB load on every refresh.
+ */
+export const getAdminDashboardSummary = async () => {
+    return unstable_cache(
+        async () => {
+            try {
+                logger.info("[CACHE_MISS] Calculating Admin Dashboard Summary...");
+                const [
+                    sellerCount,
+                    productCount,
+                    orderCount,
+                    revenueData,
+                    verifiedCount,
+                    userCount,
+                    pendingPayoutsData,
+                    recentOrders,
+                    pendingVerifications
+                ] = await withRetry(() => Promise.all([
+                    prisma.user.count({ where: { role: 'SELLER' } }),
+                    prisma.product.count(),
+                    prisma.order.count(),
+                    prisma.order.aggregate({
+                        _sum: { total: true }
+                    }),
+                    prisma.user.count({ where: { accountStatus: 'approved' } }),
+                    prisma.user.count(),
+                    prisma.order.aggregate({
+                        where: { status: 'COMPLETED', payoutStatus: 'pending' },
+                        _sum: { 
+                            total: true,
+                            subtotal: true,
+                            buyerFee: true,
+                            sellerFee: true,
+                            payoutAmount: true
+                        }
+                    }),
+                    prisma.order.findMany({
+                        take: 5,
+                        orderBy: { createdAt: 'desc' },
+                        select: {
+                            id: true,
+                            total: true,
+                            createdAt: true,
+                            user: { select: { name: true } },
+                            store: { select: { name: true } }
+                        }
+                    }),
+                    prisma.order.findMany({
+                        where: { paymentStatus: 'pending' },
+                        orderBy: { createdAt: 'desc' },
+                        take: 10,
+                        select: {
+                            id: true,
+                            total: true,
+                            paymentSenderName: true,
+                            createdAt: true,
+                            user: { select: { name: true } },
+                            store: { select: { name: true } }
+                        }
+                    })
+                ]))
+
+                const stats = {
+                    products: productCount,
+                    revenue: revenueData._sum.total || 0,
+                    orders: orderCount,
+                    stores: sellerCount,
+                    pendingPayouts: pendingPayoutsData._sum.payoutAmount || 0,
+                    pendingStats: {
+                        subtotal: pendingPayoutsData._sum.subtotal || 0,
+                        total: pendingPayoutsData._sum.total || 0,
+                        sellerFee: pendingPayoutsData._sum.sellerFee || 0,
+                        buyerFee: pendingPayoutsData._sum.buyerFee || 0,
+                        payoutAmount: pendingPayoutsData._sum.payoutAmount || 0,
+                        platformEarnings: (pendingPayoutsData._sum.buyerFee || 0) + (pendingPayoutsData._sum.sellerFee || 0)
+                    },
+                    verifiedUsers: verifiedCount,
+                    unverifiedUsers: userCount - verifiedCount,
+                    totalUsers: userCount,
+                    recentOrders: recentOrders,
+                    pendingVerifications: pendingVerifications || []
+                };
+
+                return ApiResponse.success(stats);
+            } catch (error) {
+                logger.error("Get Dashboard Summary Error", error)
+                return ApiResponse.error("Failed to fetch dashboard stats")
+            }
+        },
+        ['admin-dashboard-summary-v1'],
+        { revalidate: 300, tags: ['admin-stats'] }
+    )();
+};
+
 
 export async function getAllUsers(page = 1, limit = 50) {
     try {
@@ -328,6 +349,7 @@ export async function releasePayout(orderId) {
             )
         }
 
+        revalidateTag('admin-stats')
         return ApiResponse.success({ netPayout }, "Payout released successfully")
     } catch (error) {
         logger.error("Release Payout Error", error)
@@ -380,6 +402,7 @@ export async function approveBuyer(userId) {
 
         revalidatePath('/admin/verify-buyers')
         revalidatePath('/buyer')
+        revalidateTag('admin-stats')
         return ApiResponse.success(null, "Buyer verified successfully")
     } catch (error) {
         logger.error("Approve Buyer Error", error)
@@ -419,6 +442,7 @@ export async function rejectBuyer(userId, reason) {
         }
 
         revalidatePath('/admin/verify-buyers')
+        revalidateTag('admin-stats')
         return ApiResponse.success(null, "Buyer application rejected")
     } catch (error) {
         logger.error("Reject Buyer Error", error)
@@ -605,6 +629,7 @@ export async function verifyOrderPayment(orderId) {
         revalidatePath('/buyer/orders')
         revalidatePath('/seller/orders')
 
+        revalidateTag('admin-stats')
         return ApiResponse.success(null, "Order payment verified successfully")
     } catch (error) {
         logger.error("Verify Order Payment Error", error)

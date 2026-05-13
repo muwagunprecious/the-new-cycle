@@ -1,4 +1,4 @@
-import { BATTERY_TYPE_MAPPING, BATTERY_TYPES } from "@/lib/pricing";
+import { BATTERY_TYPE_MAPPING, BATTERY_TYPES } from "../../lib/pricing.js";
 
 /**
  * Map Prisma Product to frontend-friendly structure

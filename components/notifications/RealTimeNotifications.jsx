@@ -1,26 +1,39 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { usePathname } from 'next/navigation'
 import NewPurchaseModal from './NewPurchaseModal'
 import toast from 'react-hot-toast'
 import { markNotificationAsRead } from '@/backend-actions/actions/notification'
+import { logout } from '@/lib/features/auth/authSlice'
 
 const POLL_INTERVAL_MS = 10_000 // Poll every 10 seconds
 
 export default function RealTimeNotifications() {
     const { user } = useSelector(state => state.auth)
+    const dispatch = useDispatch()
+    const pathname = usePathname()
     const [activeNotification, setActiveNotification] = useState(null)
     const [queue, setQueue] = useState([])
     const processedIds = useRef(new Set())
     const intervalRef = useRef(null)
+    const isAuthPage = pathname === '/login' || pathname === '/signup'
 
     const pollForNotifications = useCallback(async () => {
         if (!user?.id) return
 
         try {
+            if (isAuthPage) return
             if (document.visibilityState !== 'visible') return
 
             const res = await fetch(`/api/notifications`, { cache: 'no-store' })
+            
+            if (res.status === 401) {
+                console.warn("[Notifications] Unauthorized (401). Stopping polling.")
+                clearInterval(intervalRef.current)
+                return
+            }
+
             if (!res.ok) return
 
             const data = await res.json()
@@ -83,14 +96,16 @@ export default function RealTimeNotifications() {
     }, [user?.id])
 
     useEffect(() => {
-        if (!user?.id) {
-            clearInterval(intervalRef.current)
+        if (!user?.id || isAuthPage) {
+            if (intervalRef.current) clearInterval(intervalRef.current)
             return
         }
         pollForNotifications()
         intervalRef.current = setInterval(pollForNotifications, POLL_INTERVAL_MS)
-        return () => clearInterval(intervalRef.current)
-    }, [user?.id, pollForNotifications])
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current)
+        }
+    }, [user?.id, pollForNotifications, isAuthPage])
 
     useEffect(() => {
         if (!activeNotification && queue.length > 0) {

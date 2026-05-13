@@ -3,8 +3,8 @@
 
 import { ApiResponse } from "@/backend-actions/lib/api-response"
 import { logger } from "@/backend-actions/lib/api-utils"
-import { revalidatePath } from "next/cache"
-import prisma from "@/backend-actions/lib/prisma"
+import { revalidatePath, unstable_cache } from "next/cache"
+import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 
 /**
  * Update store bank details for persistence
@@ -13,10 +13,10 @@ export async function updateStoreBankDetails(userId, bankDetails) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        const store = await prisma.store.findUnique({ where: { userId } })
+        const store = await withRetry(() => prisma.store.findUnique({ where: { userId } }))
         if (!store) return ApiResponse.error("Seller store not found", 404)
 
-        await prisma.store.update({
+        await withRetry(() => prisma.store.update({
             where: { id: store.id },
             data: {
                 bankName: bankDetails.bankName,
@@ -24,7 +24,7 @@ export async function updateStoreBankDetails(userId, bankDetails) {
                 accountName: bankDetails.accountName,
                 isVerified: true
             }
-        })
+        }))
 
         revalidatePath('/seller')
         return ApiResponse.success(null, "Bank details updated successfully")
@@ -42,7 +42,7 @@ export async function getStoreDetails(userId) {
         if (!userId) return ApiResponse.unauthorized()
 
 
-        const store = await prisma.store.findUnique({ where: { userId } })
+        const store = await withRetry(() => prisma.store.findUnique({ where: { userId } }))
         if (!store) return ApiResponse.error("Store not found", 404)
 
         return ApiResponse.success(store)
@@ -56,84 +56,89 @@ export async function getStoreDetails(userId) {
  * Fetch aggregated dashboard summary for a seller
  */
 export async function getSellerDashboardSummary(userId) {
-    try {
-        if (!userId) return ApiResponse.unauthorized()
+    if (!userId) return ApiResponse.unauthorized()
+    
+    return unstable_cache(
+        async () => {
+            try {
+                const store = await withRetry(() => prisma.store.findUnique({
+                    where: { userId },
+                    select: { id: true, status: true }
+                }))
+                if (!store) return ApiResponse.error("Store not found", 404)
 
-
-        const store = await prisma.store.findUnique({
-            where: { userId },
-            select: { id: true, status: true }
-        })
-        if (!store) return ApiResponse.error("Store not found", 404)
-
-        // Run all 3 queries in parallel
-        const [totalProducts, orders, recentOrders] = await Promise.all([
-            // 1. Total Products Count
-            prisma.product.count({
-                where: { storeId: store.id }
-            }),
-            // 2. Orders Stats
-            prisma.order.findMany({
-                where: { storeId: store.id },
-                select: {
-                    status: true,
-                    payoutStatus: true,
-                    payoutAmount: true,
-                    total: true
-                }
-            }),
-            // 3. Recent Orders (Latest 5)
-            prisma.order.findMany({
-                where: { storeId: store.id },
-                take: 5,
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    orderItems: {
+                // Run all 3 queries in parallel with retry protection
+                const [totalProducts, orders, recentOrders] = await withRetry(() => Promise.all([
+                    // 1. Total Products Count
+                    prisma.product.count({
+                        where: { storeId: store.id }
+                    }),
+                    // 2. Orders Stats
+                    prisma.order.findMany({
+                        where: { storeId: store.id },
+                        select: {
+                            status: true,
+                            payoutStatus: true,
+                            payoutAmount: true,
+                            total: true
+                        }
+                    }),
+                    // 3. Recent Orders (Latest 5)
+                    prisma.order.findMany({
+                        where: { storeId: store.id },
+                        take: 5,
+                        orderBy: { createdAt: 'desc' },
                         include: {
-                            product: {
-                                select: { name: true }
+                            orderItems: {
+                                include: {
+                                    product: {
+                                        select: { name: true }
+                                    }
+                                }
                             }
                         }
+                    })
+                ]))
+
+                const pendingPickupStatuses = ['ORDER_PLACED', 'PAID', 'APPROVED', 'PROCESSING']
+                const completionStatuses = ['COMPLETED', 'PICKED_UP']
+
+                const stats = orders.reduce((acc, order) => {
+                    if (pendingPickupStatuses.includes(order.status)) {
+                        acc.pendingPickups++
                     }
-                }
-            })
-        ])
+                    if (completionStatuses.includes(order.status)) {
+                        acc.completedOrdersCount++
+                        acc.totalEarnings += (order.payoutAmount || order.total || 0)
+                    }
+                    if (order.payoutStatus === 'pending') {
+                        acc.pendingPayouts += (order.payoutAmount || order.total || 0)
+                    }
+                    return acc
+                }, {
+                    pendingPickups: 0,
+                    completedOrdersCount: 0,
+                    totalEarnings: 0,
+                    pendingPayouts: 0
+                })
 
-        const pendingPickupStatuses = ['ORDER_PLACED', 'PAID', 'APPROVED', 'PROCESSING']
-        const completionStatuses = ['COMPLETED', 'PICKED_UP']
-
-        const stats = orders.reduce((acc, order) => {
-            if (pendingPickupStatuses.includes(order.status)) {
-                acc.pendingPickups++
+                return ApiResponse.success({
+                    totalProducts,
+                    totalEarnings: stats.totalEarnings,
+                    pendingPickups: stats.pendingPickups,
+                    completedOrdersCount: stats.completedOrdersCount,
+                    pendingPayouts: stats.pendingPayouts,
+                    recentOrders,
+                    storeStatus: store.status
+                })
+            } catch (error) {
+                logger.error("Get Seller Dashboard Summary Error", error)
+                return ApiResponse.error("Failed to fetch dashboard summary")
             }
-            if (completionStatuses.includes(order.status)) {
-                acc.completedOrdersCount++
-                acc.totalEarnings += (order.payoutAmount || order.total || 0)
-            }
-            if (order.payoutStatus === 'pending') {
-                acc.pendingPayouts += (order.payoutAmount || order.total || 0)
-            }
-            return acc
-        }, {
-            pendingPickups: 0,
-            completedOrdersCount: 0,
-            totalEarnings: 0,
-            pendingPayouts: 0
-        })
-
-        return ApiResponse.success({
-            totalProducts,
-            totalEarnings: stats.totalEarnings,
-            pendingPickups: stats.pendingPickups,
-            completedOrdersCount: stats.completedOrdersCount,
-            pendingPayouts: stats.pendingPayouts,
-            recentOrders,
-            storeStatus: store.status
-        })
-    } catch (error) {
-        logger.error("Get Seller Dashboard Summary Error", error)
-        return ApiResponse.error("Failed to fetch dashboard summary")
-    }
+        },
+        [`seller-summary-${userId}`],
+        { revalidate: 60, tags: [`seller-stats-${userId}`] }
+    )();
 }
 
 /**
@@ -143,13 +148,13 @@ export async function updateStoreAddress(userId, address) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        const store = await prisma.store.findUnique({ where: { userId } })
+        const store = await withRetry(() => prisma.store.findUnique({ where: { userId } }))
         if (!store) return ApiResponse.error("Store not found", 404)
 
-        await prisma.store.update({
+        await withRetry(() => prisma.store.update({
             where: { id: store.id },
             data: { address }
-        })
+        }))
 
         return ApiResponse.success(null, "Address saved permanently")
     } catch (error) {

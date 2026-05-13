@@ -87,7 +87,8 @@ export default function SellerOrders() {
         setRescheduleLoading(true)
         const res = await respondToReschedule(orderId, action, alternateDate, 'SELLER')
         if (res.success) {
-            setOrders(orders.map(o => o.id === orderId ? res.order : o))
+            const updatedOrder = res.data || res.order || res
+            setOrders(orders.map(o => o.id === orderId ? updatedOrder : o))
             toast.success(action === 'ACCEPT' ? "Pickup date confirmed!" : (action === 'REJECT' ? "Reschedule declined" : "Counter-proposal sent!"))
             setIsRescheduleModalOpen(false)
             setSelectedOrder(null)

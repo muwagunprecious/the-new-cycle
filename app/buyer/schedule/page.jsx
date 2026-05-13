@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Calendar as CalendarIcon, MapPin as MapPinIcon, ShieldCheck as ShieldCheckIcon, AlertCircle as AlertCircleIcon, CheckCircle as CheckCircleIcon, MessageSquare as MessageSquareIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ScheduleCalendar from '@/components/ScheduleCalendar'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { showLoader, hideLoader } from '@/lib/features/ui/uiSlice'
 import { getUserOrders } from '@/backend-actions/actions/order'
 
@@ -20,9 +20,11 @@ function ScheduleContent() {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const res = await getUserOrders()
+                // Get user ID from auth state
+                const { user } = useSelector(state => state.auth)
+                const res = await getUserOrders(user?.id)
                 if (res.success) {
-                    setOrders(res.orders)
+                    setOrders(res.data?.orders || res.data || [])
                 }
             } catch (err) {
                 console.error("Failed to fetch orders:", err)

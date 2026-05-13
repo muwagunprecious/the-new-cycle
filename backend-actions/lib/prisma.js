@@ -29,7 +29,7 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prismaGlobal = prisma
  * @param {number} retries - Number of retries
  * @param {number} timeoutMs - Timeout in milliseconds
  */
-export async function withRetry(fn, retries = 1, timeoutMs = 25000) {
+export async function withRetry(fn, retries = 1, timeoutMs = 10000) {
   const timeoutPromise = new Promise((_, reject) =>
     setTimeout(() => reject(new Error("Database operation timed out")), timeoutMs)
   );

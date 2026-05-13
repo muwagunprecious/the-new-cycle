@@ -180,6 +180,7 @@ model Product {
   @@index([category])
   @@index([status])
   @@index([type])
+  @@index([status, inStock, createdAt])
   @@map("Product")
 }
 
@@ -222,6 +223,9 @@ model Order {
   @@index([storeId])
   @@index([status])
   @@index([createdAt])
+  @@index([userId, status, createdAt])
+  @@index([payoutStatus])
+  @@index([paymentStatus])
 }
 
 model Notification {

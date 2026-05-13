@@ -21,7 +21,7 @@ export default function RescheduleModal({ isOpen, onClose, orderId, onReschedule
             const res = await requestReschedule(orderId, date, role, message)
             if (res.success) {
                 toast.success("Reschedule request sent")
-                onRescheduled(res.order || res.data)
+                onRescheduled(res.data || res.order || res)
                 onClose()
             } else {
                 toast.error(res.error || "Failed to reschedule")

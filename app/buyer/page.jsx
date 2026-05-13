@@ -46,12 +46,11 @@ export default function BuyerDashboard() {
                     getUserProfile(idToUse)
                 ])
 
-                if (ordersRes.success) {
-                    console.log(`[DEBUG] Received ${ordersRes.data?.length} orders from server:`, ordersRes.data);
-                    setOrders(ordersRes.data || [])
-                } else {
-                    console.error("[DEBUG] Failed to fetch orders:", ordersRes.error);
-                }
+                 if (ordersRes.success) {
+                     const ordersArray = ordersRes.data?.orders || ordersRes.data || [];
+                     console.log(`[DEBUG] Received ${ordersArray.length} orders from server:`, ordersArray);
+                     setOrders(ordersArray);
+                 }
                 
                 if (profileRes.success && profileRes.data) {
                     // Critical: If the fetched profile has an ID but our Redux doesn't, sync it!
@@ -414,6 +413,10 @@ export default function BuyerDashboard() {
                                                                                     <div>
                                                                                         <p class="text-[10px] font-bold text-[#05DF72] uppercase">Pickup Address</p>
                                                                                         <p class="font-bold text-slate-900">${order.store?.address || 'See Manage Pickup for details'}</p>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p class="text-[10px] font-bold text-[#05DF72] uppercase">Contact Number</p>
+                                                                                        <p class="font-bold text-slate-900">${order.store?.user?.phone || order.store?.contact || 'N/A'}</p>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>

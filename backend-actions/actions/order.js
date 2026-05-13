@@ -6,7 +6,7 @@ import { logger, generateTransactionId, generateOrderId } from "@/backend-action
 import { sendEmail, orderConfirmationEmail, buyerReceiptEmail, sellerNewOrderEmail } from "@/backend-actions/lib/email"
 import { createNotification } from "./notification"
 import { generatePaymentRef } from "@/backend-actions/lib/flutterwave"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import prisma from "@/backend-actions/lib/prisma"
 
 export async function createOrder(orderData) {
@@ -167,7 +167,7 @@ export async function createOrder(orderData) {
 
         revalidatePath('/buyer')
         revalidatePath('/buyer/orders')
-        revalidatePath('/seller/orders')
+        revalidatePath('/seller/orders'); revalidateTag(`seller-stats-${order.store.userId}`); revalidateTag(`buyer-stats-${order.userId}`)
         revalidatePath('/admin/orders')
         
         return ApiResponse.success({ ...order, paymentReference, collectionToken }, "Order placed successfully")
@@ -179,44 +179,41 @@ export async function createOrder(orderData) {
 }
 
 export async function getUserOrders(userId) {
-    // Deep Diagnostics: Log total orders in DB
-    const [totalCount, userCount] = await Promise.all([
-        prisma.order.count(),
-        prisma.order.count({ where: { userId } })
-    ]);
-    
-    logger.info(`[DIAGNOSTIC] Total Orders in DB: ${totalCount}, Orders for User ${userId}: ${userCount}`);
-    
     try {
         if (!userId) {
             logger.warn("getUserOrders called without userId")
             return ApiResponse.unauthorized()
         }
 
-        // Hard Sync: Use a transaction to ensure we read the latest committed data
-        const orders = await prisma.$transaction(async (tx) => {
-            return await tx.order.findMany({
-                where: {
-                    userId,
-                    isPaid: true,
-                    status: {
-                        in: ['PAID', 'APPROVED', 'PROCESSING', 'SHIPPED', 'PICKED_UP', 'DELIVERED', 'COMPLETED', 'ORDER_PLACED']
+        // Read orders for the user
+        const orders = await prisma.order.findMany({
+            where: {
+                userId,
+                isPaid: true,
+                status: {
+                    in: ['PAID', 'APPROVED', 'PROCESSING', 'SHIPPED', 'PICKED_UP', 'DELIVERED', 'COMPLETED', 'ORDER_PLACED']
+                }
+            },
+            include: {
+                orderItems: {
+                    include: {
+                        product: true
                     }
                 },
-                include: {
-                    orderItems: {
-                        include: {
-                            product: true
+                store: {
+                    include: {
+                        user: {
+                            select: {
+                                phone: true,
+                                name: true
+                            }
                         }
-                    },
-                    store: true
-                },
-                orderBy: {
-                    createdAt: 'desc'
+                    }
                 }
-            });
-        }, {
-            isolationLevel: 'Serializable' // Highest consistency
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
         });
         logger.info(`Found ${orders.length} orders for user ${userId}`)
 
@@ -295,7 +292,7 @@ export async function updateOrderStatus(orderId, status) {
             data: { status }
         })
 
-        revalidatePath('/seller/orders')
+        revalidatePath('/seller/orders'); revalidateTag(`seller-stats-${order.store.userId}`); revalidateTag(`buyer-stats-${order.userId}`)
         revalidatePath('/admin/orders')
         revalidatePath('/buyer/orders')
 
@@ -372,7 +369,7 @@ export async function verifyOrderCollection(orderId, token) {
             )
         }
 
-        revalidatePath('/seller/orders')
+        revalidatePath('/seller/orders'); revalidateTag(`seller-stats-${order.store.userId}`); revalidateTag(`buyer-stats-${order.userId}`)
         revalidatePath('/admin')
         revalidatePath('/admin/orders')
         revalidatePath('/buyer/orders')
@@ -495,7 +492,7 @@ export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER'
             }, 0)
         }
 
-        revalidatePath('/seller/orders')
+        revalidatePath('/seller/orders'); revalidateTag(`seller-stats-${order.store.userId}`); revalidateTag(`buyer-stats-${order.userId}`)
         revalidatePath('/buyer/orders')
 
         return ApiResponse.success(order, "Reschedule request sent")
@@ -621,7 +618,7 @@ export async function respondToReschedule(orderId, action, alternateDate = null,
             }
         }
 
-        revalidatePath('/seller/orders')
+        revalidatePath('/seller/orders'); revalidateTag(`seller-stats-${order.store.userId}`); revalidateTag(`buyer-stats-${order.userId}`)
         revalidatePath('/buyer/orders')
 
         return ApiResponse.success(updatedOrder, action === 'ACCEPT' ? "Date confirmed!" : (action === 'REJECT' ? "Reschedule declined" : "Counter-proposal sent"))

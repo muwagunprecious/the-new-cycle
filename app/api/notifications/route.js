@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/backend-actions/lib/prisma'
+import prisma, { withRetry } from '@/backend-actions/lib/prisma'
 import { verifyToken } from '@/backend-actions/lib/jwt'
 import { cookies } from 'next/headers'
 
@@ -38,11 +38,13 @@ export async function GET(req) {
         const cookieStore = await cookies()
         const token = cookieStore.get('gocycle_auth_token')?.value
         if (!token) {
+            console.warn('[Notifications API] Auth Failed: Missing gocycle_auth_token cookie')
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
         const decoded = verifyToken(token)
         if (!decoded?.userId) {
+            console.error('[Notifications API] Auth Failed: Token verification failed or userId missing from payload')
             return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 })
         }
 
@@ -62,11 +64,11 @@ export async function GET(req) {
             status: 'unread'
         }
 
-        const notifications = await prisma.notification.findMany({
+        const notifications = await withRetry(() => prisma.notification.findMany({
             where,
             orderBy: { createdAt: 'desc' },
             take: 10,
-        })
+        }))
 
         // Cache the result
         notificationCache.set(cacheKey, { data: notifications, timestamp: now });

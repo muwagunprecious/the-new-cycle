@@ -274,32 +274,39 @@ export async function getAllProducts() {
     try {
         // Attempt to fetch from the separate backend first (for speed and decoupled hosting)
         // Use Promise.race with timeout to prevent slow fallback blocking
-        const STANDALONE_TIMEOUT = 5000; // 5 seconds max
+        const STANDALONE_TIMEOUT = 500; // 0.5 seconds max
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const isLocalhost = apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1');
+        const isProduction = process.env.NODE_ENV === 'production';
         
         try {
-            const apiPromise = fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
-                next: { revalidate: 60 }, // Cache for 1 minute
-                signal: AbortSignal.timeout(STANDALONE_TIMEOUT)
-            });
-            
-            // Race against timeout
-            const apiRes = await Promise.race([
-                apiPromise,
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Standalone backend timeout')), STANDALONE_TIMEOUT)
-                )
-            ]);
-            
-            if (apiRes.ok) {
-                const result = await apiRes.json();
-                if (result.success) {
-                    console.log("[BRIDGE] Fetched products from standalone backend");
-                    return result;
+            // Skip standalone fetch in production if it points to localhost to avoid 5s wait
+            if (!(isProduction && isLocalhost)) {
+                const apiPromise = fetch(`${apiUrl}/products`, {
+                    next: { revalidate: 60 }, // Cache for 1 minute
+                    signal: AbortSignal.timeout(STANDALONE_TIMEOUT)
+                });
+                
+                // Race against timeout
+                const apiRes = await Promise.race([
+                    apiPromise,
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Standalone backend timeout')), STANDALONE_TIMEOUT)
+                    )
+                ]);
+                
+                if (apiRes.ok) {
+                    const result = await apiRes.json();
+                    if (result.success) {
+                        console.log("[BRIDGE] Fetched products from standalone backend");
+                        return result;
+                    }
                 }
             }
         } catch (apiErr) {
-            console.warn("[BRIDGE] Standalone backend unreachable, falling back to internal DB", apiErr.message);
+            // Silent fail for the bridge, we fallback to internal DB instantly
         }
+
 
         // Fallback to internal Prisma logic with optimized query
         const prismaProducts = await prisma.product.findMany({

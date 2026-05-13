@@ -9,11 +9,11 @@ const transporter = nodemailer.createTransport({
         pass: process.env.SMTP_PASS,
     },
     tls: {
-        rejectUnauthorized: false // Helps with some shared hosting certificates
+        rejectUnauthorized: false
     }
 })
 
-import worker from './worker'
+import worker from './worker.js'
 
 /**
  * Internal synchronous sender for the worker
@@ -191,9 +191,29 @@ export function welcomeEmail({ name }) {
 /**
  * Buyer Receipt — sent when their battery order is successfully collected/picked up
  */
-export function buyerReceiptEmail({ buyerName, orderId, productName, quantity, unitPrice, totalAmount, collectionDate, storeName }) {
+export function buyerReceiptEmail(data) {
+    const { 
+        buyerName, name, 
+        orderId, id,
+        productName, 
+        quantity, 
+        unitPrice, 
+        totalAmount, total, 
+        collectionDate, 
+        storeName,
+        items 
+    } = data
+    
+    const displayBuyerName = buyerName || name || 'Customer'
+    const displayTotal = totalAmount || total || 0
     const yr = new Date().getFullYear()
-    const shortId = orderId
+    const shortId = orderId || id
+    
+    // Handle multiple items if provided, otherwise fallback to single product
+    const itemsList = items && items.length > 0 ? items : [
+        { name: productName || 'Battery Product', quantity: quantity || 1, price: unitPrice || displayTotal }
+    ]
+
     return {
         subject: `Your Receipt – Go-Cycle Order #${shortId}`,
         html: `
@@ -215,7 +235,7 @@ export function buyerReceiptEmail({ buyerName, orderId, productName, quantity, u
 
             <!-- Body -->
             <div style="padding:28px;">
-                <p style="color:#475569;margin-top:0;">Hi <strong>${buyerName}</strong>, thank you for using Go-Cycle. Here is your official receipt for order <strong>#${shortId}</strong>.</p>
+                <p style="color:#475569;margin-top:0;">Hi <strong>${displayBuyerName}</strong>, thank you for using Go-Cycle. Here is your official receipt for order <strong>#${shortId}</strong>.</p>
 
                 <!-- Receipt Table -->
                 <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
@@ -228,17 +248,19 @@ export function buyerReceiptEmail({ buyerName, orderId, productName, quantity, u
                         </tr>
                     </thead>
                     <tbody>
+                        ${itemsList.map(item => `
                         <tr>
-                            <td style="padding:12px;color:#0f172a;">${productName}</td>
-                            <td style="padding:12px;text-align:center;color:#0f172a;">${quantity}</td>
-                            <td style="padding:12px;text-align:right;color:#0f172a;">₦${Number(unitPrice).toLocaleString()}</td>
-                            <td style="padding:12px;text-align:right;color:#0f172a;font-weight:600;">₦${Number(totalAmount).toLocaleString()}</td>
+                            <td style="padding:12px;color:#0f172a;">${item.name}</td>
+                            <td style="padding:12px;text-align:center;color:#0f172a;">${item.quantity}</td>
+                            <td style="padding:12px;text-align:right;color:#0f172a;">₦${Number(item.price).toLocaleString()}</td>
+                            <td style="padding:12px;text-align:right;color:#0f172a;font-weight:600;">₦${Number(item.price * item.quantity).toLocaleString()}</td>
                         </tr>
+                        `).join('')}
                     </tbody>
                     <tfoot>
                         <tr style="background:#f8fafc;">
                             <td colspan="3" style="padding:12px;font-weight:bold;color:#0f172a;border-top:2px solid #e5e7eb;">TOTAL PAID</td>
-                            <td style="padding:12px;text-align:right;font-size:16px;font-weight:bold;color:#05DF72;border-top:2px solid #e5e7eb;">₦${Number(totalAmount).toLocaleString()}</td>
+                            <td style="padding:12px;text-align:right;font-size:16px;font-weight:bold;color:#05DF72;border-top:2px solid #e5e7eb;">₦${Number(displayTotal).toLocaleString()}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -248,11 +270,13 @@ export function buyerReceiptEmail({ buyerName, orderId, productName, quantity, u
                     <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
                         <span>Order ID</span><strong style="color:#0f172a;">#${shortId}</strong>
                     </div>
+                    ${storeName ? `
                     <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
                         <span>Collected from</span><strong style="color:#0f172a;">${storeName}</strong>
                     </div>
+                    ` : ''}
                     <div style="display:flex;justify-content:space-between;">
-                        <span>Collection Date</span><strong style="color:#0f172a;">${collectionDate}</strong>
+                        <span>Collection Date</span><strong style="color:#0f172a;">${collectionDate || new Date().toLocaleDateString()}</strong>
                     </div>
                 </div>
 
@@ -605,6 +629,76 @@ export function rescheduleAcceptedEmail({ recipientName, confirmedDate, orderId 
             </div>
             <div style="background:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e5e7eb;">
                 <p style="color:#94a3b8;font-size:12px;margin:0;">© ${yr} Go-Cycle. All rights reserved.</p>
+            </div>
+        </div>`
+    }
+}
+
+/**
+ * Appointment Email — Official appointment letter for leadership roles
+ */
+export function appointmentEmail({ name, role, department, effectiveDate }) {
+    const yr = new Date().getFullYear()
+    return {
+        subject: `Official Appointment: ${role} – Go-Cycle Nigeria`,
+        html: `
+        <div style="font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;color:#1e293b;line-height:1.6;">
+            <!-- Premium Header -->
+            <div style="background:#0f172a;padding:40px 30px;text-align:center;">
+                <h1 style="color:#05DF72;margin:0;font-size:28px;letter-spacing:-1px;font-weight:800;">Go-Cycle</h1>
+                <p style="color:#94a3b8;margin:8px 0 0;font-size:13px;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Corporate Communications</p>
+            </div>
+
+            <!-- Content Body -->
+            <div style="padding:45px 40px;background:#ffffff;">
+                <div style="margin-bottom:30px;">
+                    <p style="color:#64748b;font-size:14px;margin:0;">Date: ${new Date().toLocaleDateString('en-NG', { dateStyle: 'long' })}</p>
+                    <p style="color:#64748b;font-size:14px;margin:4px 0 0;">Ref: GCY/HR/APPT/${yr}/001</p>
+                </div>
+
+                <h2 style="color:#0f172a;font-size:22px;margin-bottom:20px;font-weight:700;">Dear ${name},</h2>
+                
+                <p style="margin-bottom:20px;">Following a thorough review of your exceptional contributions and demonstrated expertise, it is with great pleasure that we officially appoint you as the <strong>${role}</strong> at Go-Cycle.</p>
+                
+                <p style="margin-bottom:20px;">In this pivotal leadership capacity, you will be superheading the <strong>${department}</strong>, where you will be responsible for defining our technological roadmap, driving innovation, and scaling our engineering infrastructure to meet the growing demands of the green energy marketplace in Nigeria.</p>
+
+                <!-- Role Details Box -->
+                <div style="background:#f8fafc;border-left:4px solid #05DF72;padding:25px;margin:30px 0;border-radius:0 12px 12px 0;">
+                    <h3 style="margin:0 0 15px;font-size:16px;color:#0f172a;text-transform:uppercase;letter-spacing:1px;">Appointment Overview</h3>
+                    <table style="width:100%;font-size:15px;border-collapse:collapse;">
+                        <tr>
+                            <td style="padding:8px 0;color:#64748b;width:140px;">Position:</td>
+                            <td style="padding:8px 0;color:#0f172a;font-weight:600;">${role}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px 0;color:#64748b;">Department:</td>
+                            <td style="padding:8px 0;color:#0f172a;font-weight:600;">${department}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px 0;color:#64748b;">Effective Date:</td>
+                            <td style="padding:8px 0;color:#0f172a;font-weight:600;">${effectiveDate}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <p style="margin-bottom:20px;">Your appointment comes at a critical juncture as we transition into a more robust, tech-first circular economy. We are confident that your leadership will be instrumental in positioning Go-Cycle as the gold standard for battery recycling and sustainable energy solutions across Africa.</p>
+                
+                <p style="margin-bottom:35px;">We look forward to the remarkable milestones we will achieve together under your technical stewardship.</p>
+
+                <!-- Sign-off -->
+                <div style="border-top:1px solid #f1f5f9;padding-top:30px;">
+                    <p style="margin:0;font-weight:700;color:#0f172a;">Executive Management Team</p>
+                    <p style="margin:4px 0 0;color:#64748b;font-size:14px;">Go-Cycle Nigeria</p>
+                </div>
+            </div>
+
+            <!-- Professional Footer -->
+            <div style="background:#f1f5f9;padding:25px;text-align:center;border-top:1px solid #e2e8f0;">
+                <p style="color:#94a3b8;font-size:12px;margin:0;line-height:1.8;">
+                    This is an official communication from Go-Cycle.<br/>
+                    &copy; ${yr} Go-Cycle. All rights reserved.<br/>
+                    Lagos, Nigeria.
+                </p>
             </div>
         </div>`
     }

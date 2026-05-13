@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { logger } from './api-utils';
+import { logger } from './api-utils.js';
 
 /**
  * BackgroundTaskWorker
