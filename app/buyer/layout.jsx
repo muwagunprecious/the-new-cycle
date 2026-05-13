@@ -22,10 +22,11 @@ export default function BuyerLayout({ children }) {
         }
 
         // REBUILD RULE: Deterministic explicit access control
-        if (user?.role !== 'USER') {
+        const userRole = (user?.role || '').toUpperCase()
+        if (userRole !== 'USER' && userRole !== 'BUYER') {
             console.error(`[SECURITY] Unauthorized access attempt to Buyer Dashboard`, {
                 userId: user?.id,
-                role: user?.role
+                role: userRole
             })
             // Redirect to their correct dashboard
             const ROLE_ROUTES = {
@@ -33,7 +34,7 @@ export default function BuyerLayout({ children }) {
                 'ADMIN': '/admin',
                 'SELLER': '/seller'
             }
-            router.push(ROLE_ROUTES[user?.role] || '/login')
+            router.push(ROLE_ROUTES[userRole] || '/login')
             return
         }
 

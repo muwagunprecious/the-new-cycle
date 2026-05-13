@@ -26,15 +26,16 @@ const AdminLayout = ({ children }) => {
             return
         }
 
+        const userRole = (user?.role || '').toUpperCase()
         const allowedAdminRoles = ['ADMIN', 'SUPER_ADMIN']
-        if (user && allowedAdminRoles.includes(user.role)) {
+        if (user && allowedAdminRoles.includes(userRole)) {
             setIsAdmin(true)
         } else {
             setIsAdmin(false)
             // SYSTEM RULE: Strict rejection of non-admin roles in admin dashboard
             console.error(`[SECURITY] Unauthorized access attempt to Admin Dashboard`, {
                 userId: user?.id,
-                role: user?.role
+                role: userRole
             })
         }
         setLoading(false)

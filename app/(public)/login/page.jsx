@@ -2,7 +2,7 @@
 import { useState, Suspense } from "react"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/lib/features/auth/authSlice"
-import { loginUser, verifyAdmin2FA, resendAdmin2FA, changePassword, verifyOTP } from "@/backend-actions/actions/auth"
+import { loginUser, logoutUser, verifyAdmin2FA, resendAdmin2FA, changePassword, verifyOTP } from "@/backend-actions/actions/auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShieldCheck as ShieldCheckIcon, Mail as MailIcon, Lock as LockIcon, Loader as LoaderIcon, Zap as ZapIcon, Eye as EyeIcon, EyeOff as EyeOffIcon } from "lucide-react"
 import Link from "next/link"
@@ -83,7 +83,8 @@ function LoginContent() {
                 'SUPER_ADMIN': '/admin',
                 'ADMIN': '/admin',
                 'SELLER': '/seller',
-                'USER': '/buyer'
+                'USER': '/buyer',
+                'BUYER': '/buyer'
             }
 
             // SYSTEM RULE: Explicit routing decision log
@@ -96,19 +97,25 @@ function LoginContent() {
             })
 
             try {
-                if (redirect) {
+                if (redirect && redirect !== '/login') {
+                    console.log(`[AUTH SYSTEM] Redirecting to param URL: ${redirect}`)
                     router.push(redirect)
                 } else {
                     const destination = ROLE_ROUTES[userRole]
                     
                     if (destination) {
+                        console.log(`[AUTH SYSTEM] Redirecting to role destination: ${destination}`)
                         router.push(destination)
                     } else {
                         // SECURITY FAILURE: Unknown role, force logout
-                        console.error(`[SECURITY FAILURE] Unknown role detected: ${userRole}`)
-                        toast.error("Account security violation: Unknown role")
+                        console.error(`[SECURITY FAILURE] Unknown role detected: "${userRole}"`)
+                        toast.error(`Account security violation: Unknown role "${userRole}"`)
                         // Immediate cleanup and redirect to login
-                        await logoutUser()
+                        try {
+                            await logoutUser()
+                        } catch (e) {
+                            console.error("Logout failed during security cleanup", e)
+                        }
                         dispatch(setCredentials(null))
                         localStorage.removeItem('gocycle_session')
                         router.push('/login')
@@ -157,7 +164,8 @@ function LoginContent() {
                         'SUPER_ADMIN': '/admin',
                         'ADMIN': '/admin',
                         'SELLER': '/seller',
-                        'USER': '/buyer'
+                        'USER': '/buyer',
+                        'BUYER': '/buyer'
                     }
 
                     const destination = ROLE_ROUTES[role]

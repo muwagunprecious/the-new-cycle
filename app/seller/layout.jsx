@@ -54,7 +54,9 @@ export default function SellerLayout({ children }) {
             }
 
             // Fallback role check
-            if (user?.role !== 'SELLER') {
+            const userRole = (user?.role || '').toUpperCase()
+            if (userRole !== 'SELLER') {
+                console.warn(`[AUTH] Non-seller role "${userRole}" attempted to access seller dashboard. Redirecting to store creation.`)
                 router.push('/create-store')
                 return
             }
