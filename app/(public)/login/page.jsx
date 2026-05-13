@@ -1,6 +1,6 @@
 'use client'
-import { useState, Suspense } from "react"
-import { useDispatch } from "react-redux"
+import { useState, Suspense, useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
 import { setCredentials, logout } from "@/lib/features/auth/authSlice"
 import { loginUser, logoutUser, verifyAdmin2FA, resendAdmin2FA, changePassword, verifyOTP } from "@/backend-actions/actions/auth"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -15,6 +15,42 @@ function LoginContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const redirect = searchParams.get('redirect')
+    const { user, isLoggedIn, isHydrated } = useSelector((state) => state.auth)
+
+    const ROLE_ROUTES = {
+        'SUPER_ADMIN': '/admin',
+        'ADMIN': '/admin',
+        'SELLER': '/seller',
+        'USER': '/buyer',
+        'BUYER': '/buyer'
+    }
+
+    // AUTO-REDIRECT: If already logged in, go to dashboard
+    useEffect(() => {
+        if (isHydrated && isLoggedIn && !isLoading) {
+            const userRole = (user?.role || '').toUpperCase()
+            let destination = redirect || ROLE_ROUTES[userRole]
+
+            // SECURITY: Ensure destination is a relative path to prevent open redirects
+            if (destination && (destination.startsWith('http') || destination.startsWith('//'))) {
+                console.warn(`[AUTH] Blocked potentially unsafe redirect: ${destination}`)
+                destination = ROLE_ROUTES[userRole]
+            }
+
+            if (destination && destination !== '/login') {
+                console.log(`[AUTH] Auto-redirecting to: ${destination}`)
+                
+                // Track redirection attempt
+                const redirectTimer = setTimeout(() => {
+                    console.log(`[AUTH] Triggering location replace to ${destination}`)
+                    window.location.replace(destination)
+                }, 100)
+
+                return () => clearTimeout(redirectTimer)
+            }
+        }
+    }, [isHydrated, isLoggedIn, isLoading, user?.role, redirect])
+
 
     const [isLoading, setIsLoading] = useState(false)
     const [step, setStep] = useState('LOGIN') // LOGIN | VERIFY | ADMIN_2FA
@@ -99,15 +135,28 @@ function LoginContent() {
             })
 
             try {
-                if (redirect && redirect !== '/login') {
-                    console.log(`[AUTH SYSTEM] Redirecting to param URL: ${redirect}`)
-                    router.push(redirect)
+                // Sanitize redirect param
+                const safeRedirect = (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) ? redirect : null
+
+                if (safeRedirect && safeRedirect !== '/login') {
+                    console.log(`[AUTH SYSTEM] Redirecting to param URL: ${safeRedirect}`)
+                    // Use both router and window.location as fallback
+                    router.push(safeRedirect)
+                    setTimeout(() => {
+                        if (window.location.pathname !== safeRedirect) {
+                            window.location.replace(safeRedirect)
+                        }
+                    }, 500)
                 } else {
                     const destination = ROLE_ROUTES[userRole]
-                    
                     if (destination) {
                         console.log(`[AUTH SYSTEM] Redirecting to role destination: ${destination}`)
                         router.push(destination)
+                        setTimeout(() => {
+                            if (!window.location.pathname.startsWith(destination)) {
+                                window.location.replace(destination)
+                            }
+                        }, 500)
                     } else {
                         // SECURITY FAILURE: Unknown role, force logout
                         console.error(`[SECURITY FAILURE] Unknown role detected: "${userRole}"`)
@@ -173,7 +222,7 @@ function LoginContent() {
                     const destination = ROLE_ROUTES[role]
 
                     if (destination) {
-                        router.push(destination)
+                        setTimeout(() => window.location.replace(destination), 100)
                     } else {
                         console.error(`[SECURITY FAILURE] Unknown role after verification: ${role}`)
                         toast.error("Account security violation")
@@ -219,7 +268,7 @@ function LoginContent() {
             dispatch(hideLoader())
             setIsLoading(false)
             toast.success("2FA verified! Welcome back, Admin.")
-            router.push('/admin')
+            setTimeout(() => window.location.replace('/admin'), 100)
         } catch (error) {
             dispatch(hideLoader())
             setIsLoading(false)
@@ -251,7 +300,7 @@ function LoginContent() {
                 dispatch(setCredentials(twoFAData.user))
                 dispatch(hideLoader())
                 setIsLoading(false)
-                router.push('/admin')
+                setTimeout(() => window.location.replace('/admin'), 100)
             } else {
                 throw new Error(res.error)
             }
@@ -296,7 +345,7 @@ function LoginContent() {
                             {step === 'LOGIN' ? 'Welcome Back' : step === 'ADMIN_2FA' ? 'Admin Verification' : step === 'CHANGE_PASSWORD' ? 'Update Password' : 'Security Check'}
                         </h1>
                         <p className="text-slate-500 font-medium text-sm">
-                            {step === 'LOGIN' ? 'Log in to your GoCycle account' : step === 'ADMIN_2FA' ? `Code sent to ${twoFAData?.email || 'your email'}` : step === 'CHANGE_PASSWORD' ? 'One-time security update required' : `Verifying ${formData.identifier}`}
+                            {isLoggedIn && !isLoading ? 'Authentication successful. Redirecting...' : step === 'LOGIN' ? 'Log in to your GoCycle account' : step === 'ADMIN_2FA' ? `Code sent to ${twoFAData?.email || 'your email'}` : step === 'CHANGE_PASSWORD' ? 'One-time security update required' : `Verifying ${formData.identifier}`}
                         </p>
                     </div>
 

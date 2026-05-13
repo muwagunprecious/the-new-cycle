@@ -19,9 +19,15 @@ const AdminLayout = ({ children }) => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        if (!isHydrated) return
+        console.log(`[AUTH CHECK ADMIN] isLoggedIn: ${isLoggedIn}, isHydrated: ${isHydrated}, role: ${user?.role}`)
+
+        if (!isHydrated) {
+            console.log(`[AUTH CHECK ADMIN] Waiting for hydration...`)
+            return
+        }
 
         if (!isLoggedIn) {
+            console.warn(`[AUTH CHECK ADMIN] User not logged in. Redirecting to /login`)
             router.push('/login')
             return
         }

@@ -14,9 +14,15 @@ export default function BuyerLayout({ children }) {
 
     // Auth Protection
     useEffect(() => {
-        if (!isHydrated) return
+        console.log(`[AUTH CHECK] Path: ${pathname}, isLoggedIn: ${isLoggedIn}, isHydrated: ${isHydrated}, role: ${user?.role}`)
 
+        if (!isHydrated) {
+            console.log(`[AUTH CHECK] Waiting for hydration...`)
+            return
+        }
+    
         if (!isLoggedIn) {
+            console.warn(`[AUTH CHECK] User not logged in. Redirecting to /login`)
             router.push('/login')
             return
         }
