@@ -49,12 +49,6 @@ function LoginContent() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setIsLoading(true)
-        
-        // Ensure Redux state is fully cleared before starting login
-        dispatch(logout())
-
-        // Clear any stale legacy localStorage state (safe — does not touch cookies)
-        localStorage.removeItem('gocycle_session')
 
         try {
             const result = await loginUser(formData.identifier, formData.password)
@@ -86,73 +80,29 @@ function LoginContent() {
                 return
             }
 
+            // Save session to localStorage BEFORE navigating
             dispatch(setCredentials(result.user))
             dispatch(hideLoader())
-            setIsLoading(false)
-            toast.success("Logged in successfully!")
 
             const user = result.user
             const userRole = (user.role || '').toUpperCase()
-            
-            const ROLE_ROUTES = {
-                'SUPER_ADMIN': '/admin',
-                'ADMIN': '/admin',
-                'SELLER': '/seller',
-                'USER': '/buyer',
-                'BUYER': '/buyer'
+
+            const safeRedirect = (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) ? redirect : null
+            const destination = safeRedirect || ROLE_ROUTES[userRole]
+
+            console.log(`[AUTH SYSTEM] Login success. Role: ${userRole}, Destination: ${destination}`)
+
+            if (!destination) {
+                setIsLoading(false)
+                toast.error(`Unknown account role: "${userRole}". Please contact support.`)
+                return
             }
 
-            // SYSTEM RULE: Explicit routing decision log
-            console.log(`[AUTH SYSTEM] Redirection Decision`, {
-                userId: user.id,
-                role: userRole,
-                email: user.email,
-                destination: redirect || ROLE_ROUTES[userRole] || 'NONE',
-                reason: redirect ? 'USER_REDIRECT_PARAM' : 'ROLE_BASED_MAPPING'
-            })
+            toast.success("Logged in successfully!")
 
-            try {
-                // Sanitize redirect param
-                const safeRedirect = (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) ? redirect : null
-
-                if (safeRedirect && safeRedirect !== '/login') {
-                    console.log(`[AUTH SYSTEM] Redirecting to param URL: ${safeRedirect}`)
-                    // Use both router and window.location as fallback
-                    router.push(safeRedirect)
-                    setTimeout(() => {
-                        if (window.location.pathname !== safeRedirect) {
-                            window.location.replace(safeRedirect)
-                        }
-                    }, 500)
-                } else {
-                    const destination = ROLE_ROUTES[userRole]
-                    if (destination) {
-                        console.log(`[AUTH SYSTEM] Redirecting to role destination: ${destination}`)
-                        router.push(destination)
-                        setTimeout(() => {
-                            if (!window.location.pathname.startsWith(destination)) {
-                                window.location.replace(destination)
-                            }
-                        }, 500)
-                    } else {
-                        // SECURITY FAILURE: Unknown role, force logout
-                        console.error(`[SECURITY FAILURE] Unknown role detected: "${userRole}"`)
-                        toast.error(`Account security violation: Unknown role "${userRole}"`)
-                        // Immediate cleanup and redirect to login
-                        try {
-                            await logoutUser()
-                        } catch (e) {
-                            console.error("Logout failed during security cleanup", e)
-                        }
-                        dispatch(setCredentials(null))
-                        localStorage.removeItem('gocycle_session')
-                        router.push('/login')
-                    }
-                }
-            } catch (redirError) {
-                console.error("[AUTH SYSTEM] Redirection Error:", redirError)
-                toast.error("Navigation failed. Please try manual reload.")
-            }
+            // Use client-side navigation only — no full page reload
+            // The session is already saved to localStorage by setCredentials above
+            router.push(destination)
 
         } catch (error) {
             dispatch(hideLoader())
