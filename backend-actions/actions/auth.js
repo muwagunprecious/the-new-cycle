@@ -254,12 +254,12 @@ export async function registerUser(userData) {
         // Send welcome & verification email if email is provided
         if (email) {
             const verificationTemplate = (await import("@/backend-actions/lib/email")).verificationCodeEmail({ name, code: otp })
-            sendEmail({ to: email, ...verificationTemplate }).catch(err =>
+            await sendEmail({ to: email, ...verificationTemplate }).catch(err =>
                 logger.warn("Verification email failed", err)
             )
 
             const welcomeTemplate = (await import("@/backend-actions/lib/email")).welcomeEmail({ name })
-            sendEmail({ to: email, ...welcomeTemplate }).catch(err =>
+            await sendEmail({ to: email, ...welcomeTemplate }).catch(err =>
                 logger.warn("Welcome email failed", err)
             )
         }
@@ -445,7 +445,7 @@ export async function loginUser(identifier, password) {
             // Send 2FA code via email (Non-blocking)
             if (user.email) {
                 const yr = new Date().getFullYear();
-                sendEmail({
+                await sendEmail({
                     to: user.email,
                     subject: `${twoFACode} – Go-Cycle Admin 2FA Code`,
                     html: `

@@ -387,11 +387,10 @@ export async function verifyOrderCollection(orderId, token) {
                 collectionDate: new Date().toLocaleDateString('en-NG', { dateStyle: 'long' }),
                 storeName: order.store?.name || 'Seller'
             })
-            setTimeout(() => {
-                sendEmail({ to: order.user.email, ...emailTemplate }).catch(err =>
-                    logger.warn("Buyer receipt email failed", err)
-                )
-            }, 0)
+            
+            await sendEmail({ to: order.user.email, ...emailTemplate }).catch(err =>
+                logger.warn("Buyer receipt email failed", err)
+            )
         }
 
         return ApiResponse.success(updatedOrder, "Pickup Confirmed. Funds are now in pending payout status for Admin approval.")
@@ -480,16 +479,14 @@ export async function requestReschedule(orderId, newDate, requestedBy = 'SELLER'
         
         if (emailTo) {
             const { rescheduleRequestEmail } = await import('@/backend-actions/lib/email')
-            setTimeout(() => {
-                sendEmail({
-                    to: emailTo, ...rescheduleRequestEmail({
-                        recipientName: emailName,
-                        proposedDate: newDate,
-                        proposedBy: requestedBy === 'SELLER' ? order.store.name : order.user.name,
-                        orderId: order.transactionId || order.id
-                    })
-                }).catch(err => logger.warn('Reschedule email failed', err))
-            }, 0)
+            await sendEmail({
+                to: emailTo, ...rescheduleRequestEmail({
+                    recipientName: emailName,
+                    proposedDate: newDate,
+                    proposedBy: requestedBy === 'SELLER' ? order.store.name : order.user.name,
+                    orderId: order.transactionId || order.id
+                })
+            }).catch(err => logger.warn('Reschedule email failed', err))
         }
 
         revalidatePath('/seller/orders'); revalidateTag(`seller-stats-${order.store.userId}`); revalidateTag(`buyer-stats-${order.userId}`)
@@ -594,27 +591,23 @@ export async function respondToReschedule(orderId, action, alternateDate = null,
         if (emailTo) {
             if (action === 'ACCEPT') {
                 const { rescheduleAcceptedEmail } = await import('@/backend-actions/lib/email')
-                setTimeout(() => {
-                    sendEmail({
-                        to: emailTo, ...rescheduleAcceptedEmail({
-                            recipientName: emailName,
-                            confirmedDate: order.proposedDate,
-                            orderId: order.transactionId || order.id
-                        })
-                    }).catch(err => logger.warn('Reschedule accepted email failed', err))
-                }, 0)
+                await sendEmail({
+                    to: emailTo, ...rescheduleAcceptedEmail({
+                        recipientName: emailName,
+                        confirmedDate: order.proposedDate,
+                        orderId: order.transactionId || order.id
+                    })
+                }).catch(err => logger.warn('Reschedule accepted email failed', err))
             } else {
                 const { rescheduleRequestEmail } = await import('@/backend-actions/lib/email')
-                setTimeout(() => {
-                    sendEmail({
-                        to: emailTo, ...rescheduleRequestEmail({
-                            recipientName: emailName,
-                            proposedDate: alternateDate,
-                            proposedBy: respondedBy === 'BUYER' ? order.user.name : order.store.name,
-                            orderId: order.transactionId || order.id
-                        })
-                    }).catch(err => logger.warn('Reschedule counter email failed', err))
-                }, 0)
+                await sendEmail({
+                    to: emailTo, ...rescheduleRequestEmail({
+                        recipientName: emailName,
+                        proposedDate: alternateDate,
+                        proposedBy: respondedBy === 'BUYER' ? order.user.name : order.store.name,
+                        orderId: order.transactionId || order.id
+                    })
+                }).catch(err => logger.warn('Reschedule counter email failed', err))
             }
         }
 

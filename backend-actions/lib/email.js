@@ -1,11 +1,14 @@
 import nodemailer from 'nodemailer'
 
+const port = parseInt(process.env.SMTP_PORT || '465')
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'mail.gocycle.africa',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true', // Use false for 587 (STARTTLS)
+    host: process.env.SMTP_HOST || 'mail.gocycle.ng',
+    port: port,
+    secure: process.env.SMTP_SECURE !== undefined 
+        ? process.env.SMTP_SECURE === 'true' 
+        : port === 465, // Use true for 465, false for 587
     auth: {
-        user: process.env.SMTP_USER || 'admin@gocycle.africa',
+        user: process.env.SMTP_USER || 'admin@gocycle.ng',
         pass: process.env.SMTP_PASS,
     },
     tls: {
@@ -21,7 +24,7 @@ import worker from './worker.js'
 async function _sendEmailInternal({ to, subject, html, text }) {
     console.log(`[Email] Attempting to send to ${to}... Subject: ${subject}`);
     const mailOptions = {
-        from: process.env.EMAIL_FROM || 'admin@gocycle.africa',
+        from: process.env.EMAIL_FROM || '"Go-Cycle" <admin@gocycle.ng>',
         to,
         subject,
         html,
@@ -42,9 +45,10 @@ async function _sendEmailInternal({ to, subject, html, text }) {
  * Send a transactional email (Non-blocking by default)
  */
 export async function sendEmail(options) {
-    // Return immediately and let the worker handle it
-    worker.enqueue(`EMAIL_TO_${options.to}`, () => _sendEmailInternal(options));
-    return { success: true, status: 'enqueued' };
+    // SYSTEM FIX: On Vercel/Serverless, we MUST await the email sending 
+    // because background processes (worker.js) are killed immediately after response.
+    console.log(`[Email] Sending transactional email to ${options.to}...`);
+    return await _sendEmailInternal(options);
 }
 
 // ─── Email Templates ───────────────────────────────────────────────────────────

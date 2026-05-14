@@ -80,17 +80,25 @@ function LoginContent() {
                 return
             }
 
+            // ─── Resolve User and Data Consistency ───
+            const userData = result.user || result.data?.user;
+            
+            if (!userData) {
+                console.error("[AUTH SYSTEM] Login returned success but no user data found", result);
+                setIsLoading(false);
+                toast.error("Account data sync failed. Please try again.");
+                return;
+            }
+
             // Save session to localStorage BEFORE navigating
-            dispatch(setCredentials(result.user))
+            dispatch(setCredentials(userData))
             dispatch(hideLoader())
 
-            const user = result.user
-            const userRole = (user.role || '').toUpperCase()
-
+            const userRole = (userData.role || '').toUpperCase()
             const safeRedirect = (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) ? redirect : null
             const destination = safeRedirect || ROLE_ROUTES[userRole]
 
-            console.log(`[AUTH SYSTEM] Login success. Role: ${userRole}, Destination: ${destination}`)
+            console.log(`[AUTH SYSTEM] Login SUCCESS. Role: ${userRole}, Destination: ${destination}, UserID: ${userData.id}`)
 
             if (!destination) {
                 setIsLoading(false)

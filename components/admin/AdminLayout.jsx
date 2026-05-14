@@ -29,16 +29,18 @@ const AdminLayout = ({ children }) => {
         }
 
         if (!isLoggedIn) {
-            console.warn(`[AUTH CHECK ADMIN] User not logged in. Redirecting to /login`)
+            console.warn(`[AUTH CHECK ADMIN] User not logged in (isHydrated: ${isHydrated}). Redirecting to /login. LocalStorage check: ${typeof window !== 'undefined' ? !!localStorage.getItem('gocycle_session') : 'N/A'}`)
             router.replace('/login')
             return
         }
 
         const userRole = (user?.role || '').toUpperCase()
+        console.log(`[AUTH CHECK ADMIN] User is logged in. Role: ${userRole}, ID: ${user?.id}`)
         const allowedAdminRoles = ['ADMIN', 'SUPER_ADMIN']
         if (user && allowedAdminRoles.includes(userRole)) {
             setIsAdmin(true)
         } else {
+            console.error(`[SECURITY] Role mismatch in AdminLayout. Role found: ${userRole}`)
             setIsAdmin(false)
             // SYSTEM RULE: Strict rejection of non-admin roles in admin dashboard
             console.error(`[SECURITY] Unauthorized access attempt to Admin Dashboard`, {

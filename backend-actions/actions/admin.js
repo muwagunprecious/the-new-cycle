@@ -344,7 +344,7 @@ export async function releasePayout(orderId) {
                 orderId,
                 creditType: 'PAYOUT'
             })
-            sendEmail({ to: order.store.user.email, ...emailTemplate }).catch(err =>
+            await sendEmail({ to: order.store.user.email, ...emailTemplate }).catch(err =>
                 logger.warn("Seller credit email failed", err)
             )
         }
@@ -434,7 +434,7 @@ export async function rejectBuyer(userId, reason) {
                 name: updatedUser.name,
                 reason: reason || "Your verification documents did not meet our requirements."
             })
-            sendEmail({
+            await sendEmail({
                 to: updatedUser.email,
                 subject,
                 html

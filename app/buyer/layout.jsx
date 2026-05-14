@@ -24,7 +24,7 @@ export default function BuyerLayout({ children }) {
         }
 
         if (!isLoggedIn) {
-            console.warn(`[AUTH CHECK] User not logged in. Redirecting to /login`)
+            console.warn(`[AUTH CHECK] User not logged in (isHydrated: ${isHydrated}). Redirecting to /login. LocalStorage: ${typeof window !== 'undefined' ? !!localStorage.getItem('gocycle_session') : 'N/A'}`)
             router.replace('/login') // Use replace to avoid history clutter
             return
         }

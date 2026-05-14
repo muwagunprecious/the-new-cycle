@@ -72,8 +72,8 @@ export async function createProduct(data, userId) {
         
         logToFile(`SERVER: DB create successful for: ${product.id}`);
 
-        // BACKGROUND TASK: AI Verification & Admin Notification
-        worker.enqueue(`AI_VERIFY_${product.id}`, async () => {
+        // ─── AI Verification & Admin Notification (Awaited for Vercel) ───
+        try {
             const aiResult = await verifyIsBattery(data.images || []);
             
             if (!aiResult.isBattery) {
@@ -87,27 +87,25 @@ export async function createProduct(data, userId) {
                 logToFile(`PRODUCT_AUTO_REJECTED: ${data.name}`, aiResult);
             }
 
-            // Notify Admins in background
-            try {
-                const { createNotification } = await import('./notification');
-                const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
-                
-                const notificationMsg = !aiResult.isBattery 
-                    ? `AUTO-REJECTED: ${store.name} tried listing a non-battery item: ${data.name}`
-                    : `${store.name} has listed a new product: ${data.name}. Approval required.`;
+            // Notify Admins
+            const { createNotification } = await import('./notification');
+            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+            
+            const notificationMsg = !aiResult.isBattery 
+                ? `AUTO-REJECTED: ${store.name} tried listing a non-battery item: ${data.name}`
+                : `${store.name} has listed a new product: ${data.name}. Approval required.`;
 
-                for (const admin of admins) {
-                    await createNotification(
-                        admin.id,
-                        !aiResult.isBattery ? "Auto-Rejection Alert" : "New Product Listing",
-                        notificationMsg,
-                        "SYSTEM"
-                    );
-                }
-            } catch (notifyError) {
-                console.warn("Failed to notify admins in worker", notifyError);
+            for (const admin of admins) {
+                await createNotification(
+                    admin.id,
+                    !aiResult.isBattery ? "Auto-Rejection Alert" : "New Product Listing",
+                    notificationMsg,
+                    "SYSTEM"
+                );
             }
-        });
+        } catch (taskError) {
+            console.warn("Background task for product creation failed", taskError);
+        }
 
         revalidatePath('/seller/products')
         revalidatePath('/')
@@ -519,23 +517,20 @@ export async function adminApproveProduct(productId, adminId) {
             }
         })
 
-        // Offload side effects to worker
-        import('../lib/worker').then(m => {
-            const worker = m.default;
-            worker.enqueue(`ADMIN_APPROVE_PRODUCT_${productId}`, async () => {
-                if (product.store?.user?.email) {
-                    const { subject, html } = productApprovedEmail({
-                        sellerName: product.store.name,
-                        productName: product.name
-                    })
-                    await sendEmail({ to: product.store.user.email, subject, html }).catch(err => logger.warn("Approval email failed", err))
-                }
-                try {
-                    const { createNotification } = await import('./notification')
-                    await createNotification(product.store.userId, "Listing Approved! 🎉", `Your product "${product.name}" has been approved and is now live.`, "SYSTEM")
-                } catch (e) {}
-            });
-        });
+        // ─── Notify Seller & In-App (Awaited for Vercel) ───
+        try {
+            if (product.store?.user?.email) {
+                const { subject, html } = productApprovedEmail({
+                    sellerName: product.store.name,
+                    productName: product.name
+                })
+                await sendEmail({ to: product.store.user.email, subject, html }).catch(err => logger.warn("Approval email failed", err))
+            }
+            const { createNotification } = await import('./notification')
+            await createNotification(product.store.userId, "Listing Approved! 🎉", `Your product "${product.name}" has been approved and is now live.`, "SYSTEM")
+        } catch (e) {
+            console.warn("Side effects for product approval failed", e);
+        }
 
         revalidatePath('/admin/products')
         revalidatePath('/seller/products')
@@ -566,24 +561,21 @@ export async function adminRejectProduct(productId, reason, adminId) {
             }
         })
 
-        // Offload side effects to worker
-        import('../lib/worker').then(m => {
-            const worker = m.default;
-            worker.enqueue(`ADMIN_REJECT_PRODUCT_${productId}`, async () => {
-                if (product.store?.user?.email) {
-                    const { subject, html } = productRejectedEmail({
-                        sellerName: product.store.name,
-                        productName: product.name,
-                        reason: reason || "Listing does not meet guidelines."
-                    })
-                    await sendEmail({ to: product.store.user.email, subject, html }).catch(err => logger.warn("Rejection email failed", err))
-                }
-                try {
-                    const { createNotification } = await import('./notification')
-                    await createNotification(product.store.userId, "Listing Rejected", `Your product "${product.name}" was not approved. Reason: ${reason || "Does not meet guidelines."}`, "SYSTEM")
-                } catch (e) {}
-            });
-        });
+        // ─── Notify Seller & In-App (Awaited for Vercel) ───
+        try {
+            if (product.store?.user?.email) {
+                const { subject, html } = productRejectedEmail({
+                    sellerName: product.store.name,
+                    productName: product.name,
+                    reason: reason || "Listing does not meet guidelines."
+                })
+                await sendEmail({ to: product.store.user.email, subject, html }).catch(err => logger.warn("Rejection email failed", err))
+            }
+            const { createNotification } = await import('./notification')
+            await createNotification(product.store.userId, "Listing Rejected", `Your product "${product.name}" was not approved. Reason: ${reason || "Does not meet guidelines."}`, "SYSTEM")
+        } catch (e) {
+            console.warn("Side effects for product rejection failed", e);
+        }
 
         revalidatePath('/admin/products')
         revalidatePath('/seller/products')
