@@ -1,234 +1,159 @@
 'use client'
-
-import Link from "next/link";
-import { BatteryCharging, Leaf as LeafIcon, Mail as MailIcon, Phone as PhoneIcon, MapPin as MapPinIcon, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter as TwitterIcon, Linkedin as LinkedinIcon, ArrowUpRight as ArrowUpRightIcon, Loader2 as Loader2Icon } from "lucide-react";
-import { useState } from "react";
-import toast from "react-hot-toast";
-import { subscribeNewsletter } from "@/backend-actions/actions/newsletter";
-import { getPartners } from "@/backend-actions/actions/partners";
-import { useEffect } from "react";
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { BatteryCharging, Mail, Twitter, Linkedin, Facebook, ArrowUpRight, Phone, Loader2, MapPin, Globe } from 'lucide-react'
+import toast from "react-hot-toast"
+import { subscribeNewsletter } from "@/backend-actions/actions/newsletter"
+import { getPartners } from "@/backend-actions/actions/partners"
 
 const Footer = () => {
-
-    const [email, setEmail] = useState("");
-    const [isSubscribing, setIsSubscribing] = useState(false);
-
-    const handleSubscribe = async (e) => {
-        e.preventDefault();
-        if (!email) return toast.error("Please enter your email address.");
-
-        setIsSubscribing(true);
-        try {
-            const res = await subscribeNewsletter(email);
-            if (res.success) {
-                toast.success(res.message);
-                setEmail(""); // clear input space
-            } else {
-                toast.error(res.message || "Failed to subscribe.");
-            }
-        } catch (error) {
-            toast.error("Something went wrong. Please try again.");
-        } finally {
-            setIsSubscribing(false);
-        }
-    };
-
-    const [partners, setPartners] = useState([]);
-    const [isLoadingPartners, setIsLoadingPartners] = useState(true);
+    const currentYear = new Date().getFullYear()
+    const [email, setEmail] = useState("")
+    const [isSubscribing, setIsSubscribing] = useState(false)
+    const [partners, setPartners] = useState([])
 
     useEffect(() => {
         const fetchPartners = async () => {
             try {
-                const res = await getPartners();
-                if (res.success) {
-                    setPartners(res.data);
-                }
+                const res = await getPartners()
+                if (res.success) setPartners(res.data)
             } catch (error) {
-                console.error("Failed to fetch partners:", error);
-            } finally {
-                setIsLoadingPartners(false);
+                console.error("Failed to fetch partners:", error)
             }
-        };
-        fetchPartners();
-    }, []);
-    const platformLinks = [
-        { text: "Marketplace", path: '/marketplace' },
-        { text: "Trade Process", path: '/trade-process' },
-        { text: "Terms & Conditions", path: '/terms' },
-        { text: "Sell4meByGocycle", path: '/sell4me' },
-        { text: "Blog", path: '/blog' },
-        { text: "FAQ", path: '/faq' },
-    ];
+        }
+        fetchPartners()
+    }, [])
 
-    const companyLinks = [
-        { text: "About Gocycle", path: '/about' },
-        { text: "Sustainability Impact", path: '/sustainability' },
-        { text: "Responsible sourced material Policy", path: '/sourcing-policy' },
-    ];
-
-    const socialIcons = [
-        { icon: FacebookIcon, link: "https://facebook.com/usegocycle" },
-        { icon: InstagramIcon, link: "https://instagram.com/usegocycle" },
-        { icon: TwitterIcon, link: "https://twitter.com/usegocycle" },
-        { icon: LinkedinIcon, link: "https://linkedin.com/company/usegocycle" },
-    ]
+    const handleSubscribe = async (e) => {
+        e.preventDefault()
+        if (!email) return toast.error("Please enter your email.")
+        setIsSubscribing(true)
+        try {
+            const res = await subscribeNewsletter(email)
+            if (res.success) {
+                toast.success(res.message)
+                setEmail("")
+            } else {
+                toast.error(res.message || "Subscription failed.")
+            }
+        } catch (error) {
+            toast.error("Something went wrong.")
+        } finally {
+            setIsSubscribing(false)
+        }
+    }
 
     return (
-        <footer className="bg-slate-950 pt-32 pb-16 mt-32 relative overflow-hidden text-slate-400 border-t border-white/[0.08]">
-            {/* Background Texture Detail */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/[0.03] rounded-full blur-[100px] -mr-60 -mt-60"></div>
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/[0.02] rounded-full blur-[80px] -ml-40 -mb-40"></div>
+        <footer className="relative bg-slate-950 border-t border-white/5 pt-32 pb-12 overflow-hidden">
+            {/* Visual Accents */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#00D166]/[0.03] rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#00D166]/[0.02] rounded-full blur-[100px] pointer-events-none"></div>
 
-            <div className="max-w-[1200px] mx-auto px-6 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-16 mb-24">
-
-                    {/* 1. Brand Section */}
-                    <div className="space-y-8 pr-6">
-                        <div className="flex items-center gap-3 group cursor-pointer">
-                            <div className="bg-emerald-500 p-2.5 rounded-xl shadow-lg shadow-emerald-500/10 transition-transform group-hover:scale-105">
-                                <BatteryCharging className="text-white fill-white" size={18} />
+            <div className="max-container relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 mb-24">
+                    
+                    {/* Brand & Mission */}
+                    <div className="lg:col-span-5 space-y-12">
+                        <Link href="/" className="flex items-center gap-3 group">
+                            <div className="bg-[#00D166] p-2.5 rounded-2xl shadow-lg shadow-[#00D166]/20 transition-transform group-hover:scale-110 duration-500">
+                                <BatteryCharging className="text-white" size={24} />
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-xl font-bold text-white tracking-tighter leading-none">Go<span className="text-emerald-500">Cycle</span></span>
-                                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-slate-500 mt-1 leading-none">Africa’s e-waste market place</span>
-                            </div>
-                        </div>
-                        <p className="text-[13px] font-normal leading-relaxed opacity-80">
+                            <span className="text-2xl font-black tracking-tighter text-white">Go<span className="text-[#00D166]">Cycle</span></span>
+                        </Link>
+                        
+                        <p className="text-lg text-slate-400 font-medium leading-relaxed max-w-md">
                             Gocycle powers Africa’s circular economy through the e-waste marketplace.
                         </p>
 
-                        {/* Membership Badge */}
-                        <div className="pt-4">
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60">Official Member of</p>
-                            <div className="bg-white p-4 rounded-2xl inline-block border border-white/[0.05] shadow-xl shadow-black/20 group hover:border-emerald-500/30 transition-all">
-                                <img 
-                                    src="/images/ran-logo.png" 
-                                    alt="Recyclers Association of Nigeria" 
-                                    className="h-10 w-auto object-contain transition-transform group-hover:scale-105" 
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="text-[10px] font-bold uppercase tracking-[0.3em] flex items-center gap-3 text-slate-500">
-                                <span className="text-emerald-500 opacity-80">🌍</span> Dayspring esatate, surulere Nigeria
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 2. Platform Links */}
-                    <div className="lg:border-l lg:border-white/[0.08] lg:pl-12 space-y-10">
-                        <h3 className="text-[10px] font-bold text-white uppercase tracking-[0.4em]">Platform</h3>
-                        <ul className="space-y-4">
-                            {platformLinks.map((link, i) => (
-                                <li key={i}>
-                                    <Link href={link.path} className="hover:text-emerald-400 text-[13px] font-medium transition-all duration-300 flex items-center gap-2 group">
-                                        {link.text}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {/* 3. Company Links */}
-                    <div className="lg:border-l lg:border-white/[0.08] lg:pl-12 space-y-10">
-                        <h3 className="text-[10px] font-bold text-white uppercase tracking-[0.4em]">Company</h3>
-                        <ul className="space-y-4">
-                            {companyLinks.map((link, i) => (
-                                <li key={i}>
-                                    <Link href={link.path} className="hover:text-emerald-400 text-[13px] font-medium transition-all duration-300 flex items-center gap-2 group">
-                                        {link.text}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {/* 4. Contact & Socials */}
-                    <div className="lg:border-l lg:border-white/[0.08] lg:pl-12 space-y-10">
-                        <h3 className="text-[10px] font-bold text-white uppercase tracking-[0.4em]">Contact</h3>
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-4 text-[13px] font-medium group cursor-pointer text-slate-400">
-                                <div className="w-8 h-8 rounded-lg bg-white/[0.03] flex items-center justify-center border border-white/[0.05] group-hover:bg-emerald-500/10 transition-colors">
-                                    <PhoneIcon size={14} className="text-slate-500 group-hover:text-emerald-400" />
+                        <div className="flex flex-col gap-6">
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-black text-[#00D166] uppercase tracking-[0.3em]">Official Member of</p>
+                                <div className="text-sm font-bold text-slate-200">
+                                    Recyclers Association of Nigeria
                                 </div>
-                                <span className="group-hover:text-white transition-colors">+234 704-728-3000</span>
                             </div>
-                            <div className="flex items-center gap-4 text-[13px] font-medium group cursor-pointer text-slate-400">
-                                <div className="w-8 h-8 rounded-lg bg-white/[0.03] flex items-center justify-center border border-white/[0.05] group-hover:bg-emerald-500/10 transition-colors">
-                                    <MailIcon size={14} className="text-slate-500 group-hover:text-emerald-400" />
+                            
+                            <div className="space-y-4 pt-4 border-t border-white/5">
+                                <div className="flex items-center gap-3 text-sm font-bold text-slate-200">
+                                    <span className="text-lg">🌍</span> Dayspring estate, surulere Nigeria
                                 </div>
-                                <span className="group-hover:text-white transition-colors lowercase">Hello@Gocyce.Africa</span>
+                                <div className="flex items-center gap-3 text-sm font-bold text-slate-200">
+                                    <Phone size={16} className="text-[#00D166]" /> +234 704-728-3000
+                                </div>
+                                <div className="flex items-center gap-3 text-sm font-bold text-slate-200">
+                                    <Mail size={16} className="text-[#00D166]" /> Hello@Gocyce.Africa
+                                </div>
                             </div>
                         </div>
+
                         <div className="flex items-center gap-4 pt-4">
-                            {socialIcons.map((item, i) => (
-                                <Link
-                                    href={item.link}
-                                    key={i}
-                                    className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-slate-500 hover:text-white hover:bg-emerald-500 hover:border-emerald-500 transition-all duration-300 group"
-                                >
-                                    <item.icon size={16} className="group-hover:scale-110 transition-transform" />
-                                </Link>
+                            {[Twitter, Linkedin, Facebook].map((Icon, i) => (
+                                <a key={i} href="#" className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-slate-400 hover:bg-[#00D166] hover:text-white hover:shadow-lg hover:shadow-[#00D166]/20 transition-all duration-500">
+                                    <Icon size={20} />
+                                </a>
                             ))}
                         </div>
                     </div>
 
-                    {/* 5. Newsletter */}
-                    <div className="lg:border-l lg:border-white/[0.08] lg:pl-12 space-y-10">
-                        <h3 className="text-[10px] font-bold text-white uppercase tracking-[0.4em]">Newsletter</h3>
-                        <div className="space-y-5">
-                            <p className="text-[12px] font-medium leading-relaxed opacity-60">
-                                Stay updated on circular economy trends and marketplace insights.
-                            </p>
-                            <form onSubmit={handleSubscribe} className='flex bg-white/[0.03] text-[12px] p-1.5 rounded-xl w-full border border-white/[0.08] focus-within:border-emerald-500/40 transition-all'>
-                                <input 
-                                    className='flex-1 bg-transparent pl-3 outline-none text-white placeholder:text-slate-500 font-medium' 
-                                    type="email" 
-                                    placeholder='Email address' 
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    disabled={isSubscribing}
-                                    required
-                                />
-                                <button type="submit" disabled={isSubscribing} className='flex items-center justify-center gap-2 font-bold text-[9px] uppercase tracking-widest bg-emerald-600 text-white px-5 py-3 rounded-lg hover:bg-emerald-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed'>
-                                    {isSubscribing ? <Loader2Icon size={14} className="animate-spin" /> : "Subscribe"}
+                    {/* Navigation Columns */}
+                    <div className="lg:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-12">
+                        <div className="space-y-8">
+                            <h4 className="text-[10px] font-black text-[#00D166] uppercase tracking-[0.3em]">Platform</h4>
+                            <ul className="space-y-5">
+                                <li><Link href="/shop" className="text-slate-400 hover:text-white font-bold transition-colors flex items-center gap-2 group">Marketplace <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-all" /></Link></li>
+                                <li><Link href="/trade-process" className="text-slate-400 hover:text-white font-bold transition-colors">Trade Process</Link></li>
+                                <li><Link href="/terms" className="text-slate-400 hover:text-white font-bold transition-colors">Terms & Conditions</Link></li>
+                                <li><Link href="/sell4me" className="text-slate-400 hover:text-white font-bold transition-colors">Sell4meByGocycle</Link></li>
+                                <li><Link href="/blog" className="text-slate-400 hover:text-white font-bold transition-colors">Blog</Link></li>
+                                <li><Link href="/faq" className="text-slate-400 hover:text-white font-bold transition-colors">FAQ</Link></li>
+                            </ul>
+                        </div>
+
+                        <div className="space-y-8">
+                            <h4 className="text-[10px] font-black text-[#00D166] uppercase tracking-[0.3em]">Company</h4>
+                            <ul className="space-y-5">
+                                <li><Link href="/about" className="text-slate-400 hover:text-white font-bold transition-colors">About Gocycle</Link></li>
+                                <li><Link href="/sustainability" className="text-slate-400 hover:text-white font-bold transition-colors">Sustainability Impact</Link></li>
+                                <li><Link href="/sourcing-policy" className="text-slate-400 hover:text-white font-bold transition-colors leading-relaxed block pr-4">Responsible sourced material Policy</Link></li>
+                                <li><Link href="/contact" className="text-slate-400 hover:text-white font-bold transition-colors">Contact</Link></li>
+                            </ul>
+                        </div>
+
+                        <div className="space-y-8 col-span-2 md:col-span-1">
+                            <h4 className="text-[10px] font-black text-[#00D166] uppercase tracking-[0.3em]">Newsletter</h4>
+                            <p className="text-sm text-slate-400 font-medium leading-relaxed">Stay ahead with the latest circular economy trends.</p>
+                            <form onSubmit={handleSubscribe} className="relative group space-y-4">
+                                <div className="relative">
+                                    <input 
+                                        type="email" 
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="Enter email"
+                                        className="w-full bg-white/5 border border-white/10 rounded-[20px] py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[#00D166]/20 focus:border-[#00D166]/50 transition-all placeholder:text-slate-600"
+                                    />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#00D166] transition-colors" size={18} />
+                                </div>
+                                <button type="submit" disabled={isSubscribing} className="w-full btn-premium !py-4 flex items-center justify-center gap-2">
+                                    {isSubscribing ? <Loader2 size={16} className="animate-spin" /> : "Subscribe Now"}
                                 </button>
                             </form>
                         </div>
                     </div>
-
                 </div>
 
-                {/* Partners Section */}
+                {/* Strategic Partners */}
                 {partners.length > 0 && (
-                    <div className="py-16 border-t border-white/[0.08] mb-12">
-                        <div className="flex flex-col items-center space-y-10">
-                            <div className="flex flex-col items-center">
-                                <h3 className="text-[10px] font-bold text-white uppercase tracking-[0.4em] mb-3">Our Strategic Partners</h3>
-                                <div className="h-0.5 w-12 bg-emerald-500/50 rounded-full"></div>
-                            </div>
-                            <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-10 opacity-50 hover:opacity-100 transition-opacity duration-500">
+                    <div className="py-20 border-t border-white/5 mb-12">
+                        <div className="flex flex-col items-center space-y-12">
+                            <p className="text-[10px] font-black text-[#00D166] uppercase tracking-[0.4em]">Our Strategic Partners</p>
+                            <div className="flex flex-wrap items-center justify-center gap-16 md:gap-24 opacity-50 hover:opacity-100 transition-opacity duration-1000">
                                 {partners.map((partner) => (
-                                    <div key={partner.id} className="group flex flex-col items-center">
-                                        {partner.link ? (
-                                            <a 
-                                                href={partner.link} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="transition-transform duration-300 group-hover:scale-110 grayscale group-hover:grayscale-0"
-                                            >
-                                                <img src={partner.logo} alt={partner.name} className="h-8 md:h-10 w-auto object-contain" />
-                                            </a>
-                                        ) : (
-                                            <div className="transition-transform duration-300 group-hover:scale-110 grayscale group-hover:grayscale-0">
-                                                <img src={partner.logo} alt={partner.name} className="h-8 md:h-10 w-auto object-contain" />
-                                            </div>
-                                        )}
-                                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {partner.name}
-                                        </span>
-                                    </div>
+                                    <img 
+                                        key={partner.id} 
+                                        src={partner.logo} 
+                                        alt={partner.name} 
+                                        className="h-8 md:h-10 w-auto object-contain grayscale hover:grayscale-0 brightness-0 invert hover:brightness-100 hover:invert-0 transition-all duration-500 cursor-pointer" 
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -236,18 +161,19 @@ const Footer = () => {
                 )}
 
                 {/* Bottom Bar */}
-                <div className="pt-12 border-t border-white/[0.08] flex flex-col md:flex-row items-center justify-between gap-6">
-                    <p className="text-slate-500 font-bold text-[9px] uppercase tracking-[0.3em]">
-                        © 2026 GoCycle Limited. All Rights Reserved.
+                <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <p className="text-sm text-slate-500 font-medium">
+                        &copy; {currentYear} Go-cycle Africa. All rights reserved.
                     </p>
-                    <div className="flex items-center gap-8 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                        <Link href="#" className="hover:text-emerald-400 transition-colors">Privacy Policy</Link>
-                        <Link href="#" className="hover:text-emerald-400 transition-colors">Terms of Service</Link>
+                    <div className="flex items-center gap-10">
+                        <Link href="/privacy" className="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-colors">Privacy Policy</Link>
+                        <Link href="/terms" className="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-colors">Terms of Service</Link>
                     </div>
                 </div>
             </div>
         </footer>
-    );
-};
+    )
+}
 
-export default Footer;
+export default Footer
+

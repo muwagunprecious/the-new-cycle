@@ -1,68 +1,110 @@
+'use client'
 import React from 'react'
-import Title from './Title'
-import { Coins, ShieldCheck, Smartphone } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight } from 'lucide-react'
+import { assets } from '@/assets/assets'
 
 const OurSpecs = () => {
-
-    const specs = [
-        {
-            title: "Asset Liquidation",
-            highlight: "to Instant Capital",
-            description: "Transform hazardous, depreciating e-waste liabilities into immediate, transparent revenue.",
-            icon: Coins
-        },
-        {
-            title: "Secured marketplace",
-            highlight: "Fully Verified",
-            description: "All market participants are duly vetted and verified before onboarding for trade.",
-            icon: ShieldCheck
-        },
-        {
-            title: "Digital first approach",
-            highlight: "Anytime, Anywhere",
-            description: "Trade your e-waste digitally, anytime and anywhere via our digital marketplace.",
-            icon: Smartphone
-        }
-    ]
-
     return (
-        <section className='bg-white py-24'>
-            <div className='max-w-[1200px] mx-auto px-6'>
-                <div className="text-center mb-20 space-y-6">
-                    <div className='inline-flex items-center gap-3 bg-slate-50 border border-black/[0.04] text-emerald-600 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-[0.2em] shadow-sm mx-auto'>
-                        <div className='w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse'></div>
-                        Value Focused
-                    </div>
-                    <h2 className='text-4xl md:text-6xl font-bold text-slate-950 tracking-tighter uppercase leading-tight max-w-4xl mx-auto'>
-                        Why Choose Gocycle?
-                    </h2>
-                    <p className='text-slate-500 font-semibold uppercase tracking-tight text-lg max-w-2xl mx-auto opacity-70'>
-                        Revolutionizing E-waste trade & recycling in Africa.
-                    </p>
-                </div>
-
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10'>
-                    {specs.map((spec, index) => (
-                        <div className='group relative p-12 bg-white rounded-[24px] border border-black/[0.05] hover:border-emerald-500/20 hover:shadow-[0_15px_40px_rgba(0,0,0,0.03)] transition-all duration-300 flex flex-col items-center text-center space-y-8 overflow-hidden' key={index}>
-                            <div className='absolute inset-0 bg-emerald-500/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none'></div>
-
-                            <div className='w-16 h-16 rounded-2xl flex items-center justify-center bg-slate-50 text-emerald-600 border border-black/[0.03] group-hover:bg-emerald-500 group-hover:text-white group-hover:scale-105 transition-all duration-500'>
-                                <spec.icon size={28} strokeWidth={1.5} />
+        <section className='bg-white py-12 md:py-24 px-4 md:px-8'>
+            <div className='max-w-[1400px] mx-auto'>
+                <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                    
+                    {/* Card 1: Asset Liquidation (Primary Color - Green instead of Blue) */}
+                    <div className='relative bg-[#00D166] rounded-[32px] p-8 md:p-10 overflow-hidden flex flex-col justify-start min-h-[350px] lg:min-h-[400px] group'>
+                        <div className='relative z-20 max-w-[380px] space-y-5'>
+                            <div className='flex items-center gap-3'>
+                                <div className='w-2.5 h-2.5 rounded-full bg-white'></div>
+                                <span className='text-[12px] font-bold uppercase tracking-[0.15em] text-white'>
+                                    to Instant Capital
+                                </span>
                             </div>
+                            <h3 className='text-3xl md:text-4xl lg:text-[40px] font-medium text-white leading-[1.1] tracking-[-0.02em]'>
+                                Asset Liquidation
+                            </h3>
+                            <p className='text-white/90 text-lg leading-[1.6]'>
+                                Transform hazardous, depreciating e-waste liabilities into immediate, transparent revenue for your business.
+                            </p>
+                        </div>
 
-                            <div className='space-y-4 relative z-10 flex-1'>
-                                <h3 className='text-2xl font-bold text-slate-950 tracking-tight uppercase leading-none'>
-                                    {spec.title}
-                                </h3>
-                                <div className='text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full inline-block mb-2'>
-                                    {spec.highlight}
-                                </div>
-                                <p className='text-[14px] text-slate-500 font-normal leading-relaxed opacity-90'>
-                                    {spec.description}
-                                </p>
+                        {/* Floating Arrow Button (Bottom Right) */}
+                        <div className='absolute bottom-8 right-8 md:bottom-10 md:right-10 z-30'>
+                            <button className='w-12 h-12 bg-white rounded-[16px] flex items-center justify-center text-[#00D166] shadow-xl group-hover:scale-105 transition-transform duration-300'>
+                                <ArrowRight size={20} />
+                            </button>
+                        </div>
+
+                        {/* Decorative Image */}
+                        <div className='absolute bottom-0 right-0 w-[55%] h-[45%] md:w-[45%] md:h-[55%] z-10 translate-y-6 translate-x-6 group-hover:translate-y-4 group-hover:translate-x-4 transition-transform duration-700'>
+                            <div className='relative w-full h-full'>
+                                <Image src={assets.hero_product_img1} alt="Asset Liquidation" fill className='object-cover rounded-tl-[32px] shadow-2xl mix-blend-luminosity opacity-80' />
                             </div>
                         </div>
-                    ))}
+                    </div>
+
+                    {/* Card 2: Secured Marketplace (Light Grey) */}
+                    <div className='relative bg-[#F4F6F8] rounded-[32px] p-8 md:p-10 overflow-hidden flex flex-col justify-start min-h-[350px] lg:min-h-[400px] group'>
+                        <div className='relative z-20 max-w-[380px] space-y-5'>
+                            <div className='flex items-center gap-3'>
+                                <div className='w-2.5 h-2.5 rounded-full bg-[#00D166]'></div>
+                                <span className='text-[12px] font-bold uppercase tracking-[0.15em] text-[#00D166]'>
+                                    Fully Verified
+                                </span>
+                            </div>
+                            <h3 className='text-3xl md:text-4xl lg:text-[40px] font-medium text-slate-900 leading-[1.1] tracking-[-0.02em]'>
+                                Secured Marketplace
+                            </h3>
+                            <p className='text-slate-600 text-lg leading-[1.6]'>
+                                Every participant is strictly vetted and verified, ensuring a safe and compliant trading environment.
+                            </p>
+                        </div>
+
+                        {/* Floating Arrow Button (Bottom Right) */}
+                        <div className='absolute bottom-8 right-8 md:bottom-10 md:right-10 z-30'>
+                            <button className='w-12 h-12 bg-white rounded-[16px] flex items-center justify-center text-[#00D166] shadow-md border border-slate-100 group-hover:scale-105 transition-transform duration-300'>
+                                <ArrowRight size={20} />
+                            </button>
+                        </div>
+
+                        {/* Decorative Image */}
+                        <div className='absolute bottom-0 right-0 w-[55%] h-[45%] md:w-[45%] md:h-[55%] z-10 translate-y-6 translate-x-6 group-hover:translate-y-4 group-hover:translate-x-4 transition-transform duration-700'>
+                             <div className='relative w-full h-full'>
+                                <Image src={assets.product_img2} alt="Secured Marketplace" fill className='object-cover rounded-tl-[32px] shadow-2xl opacity-90 mix-blend-multiply' />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 3: Digital First (Full Width Green) */}
+                    <div className='relative bg-[#00D166] rounded-[32px] p-8 md:p-10 overflow-hidden flex flex-col lg:col-span-2 min-h-[300px] lg:min-h-[350px] group'>
+                        <div className='relative z-20 max-w-[500px] space-y-5'>
+                            <div className='flex items-center gap-3'>
+                                <div className='w-2.5 h-2.5 rounded-full bg-white'></div>
+                                <span className='text-[12px] font-bold uppercase tracking-[0.15em] text-white'>
+                                    Anytime, Anywhere
+                                </span>
+                            </div>
+                            <h3 className='text-3xl md:text-4xl lg:text-[40px] font-medium text-white leading-[1.1] tracking-[-0.02em]'>
+                                Digital First
+                            </h3>
+                            <p className='text-white/90 text-lg leading-[1.6]'>
+                                Manage your e-waste portfolio and execute trades digitally via our high-speed marketplace infrastructure.
+                            </p>
+                        </div>
+
+                        {/* Floating Arrow Button (Bottom Right) */}
+                        <div className='absolute bottom-8 right-8 md:bottom-10 md:right-10 z-30'>
+                            <button className='w-12 h-12 bg-white rounded-[16px] flex items-center justify-center text-[#00D166] shadow-xl group-hover:scale-105 transition-transform duration-300'>
+                                <ArrowRight size={20} />
+                            </button>
+                        </div>
+
+                        {/* Decorative Image */}
+                        <div className='absolute bottom-0 right-[15%] w-[45%] h-[55%] md:w-[35%] md:h-[65%] z-10 translate-y-8 group-hover:translate-y-6 transition-transform duration-700'>
+                            <div className='relative w-full h-full'>
+                                <Image src={assets.product_img3} alt="Digital First" fill className='object-cover rounded-t-[32px] shadow-2xl opacity-90 mix-blend-multiply' />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -70,3 +112,4 @@ const OurSpecs = () => {
 }
 
 export default OurSpecs
+

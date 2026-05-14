@@ -1,7 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft as ArrowLeftIcon, Calendar as CalendarIcon, User as UserIcon } from "lucide-react"
 import prisma from "@/backend-actions/lib/prisma"
 
 // Generate static params for existing blogs (optional optimization)
@@ -35,35 +34,23 @@ export default async function BlogReadingPage({ params }) {
     }
 
     return (
-        <article className="bg-white min-h-screen">
-            {/* Minimalist Header */}
-            <div className="bg-slate-50 border-b border-slate-100">
-                <div className="max-w-[800px] mx-auto px-6 pt-16 pb-12">
-                    <Link href="/blog" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-[#05DF72] uppercase tracking-widest transition-colors mb-10">
-                        <ArrowLeftIcon size={16} /> Back to Insights
-                    </Link>
-                    
-                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-[1.2] mb-8 break-words">
+        <article className="bg-[#F4F5F7] min-h-screen">
+            {/* Header: Blue background, rounded bottom, left-aligned text */}
+            <div className="bg-[#E5ECF6] pt-36 pb-24 rounded-b-[40px] mb-16">
+                <div className="max-container text-left">
+                    <h1 className="text-5xl md:text-[64px] font-bold text-slate-900 leading-[1.1] tracking-[-0.02em] mb-6 break-words max-w-5xl">
                         {blog.title}
                     </h1>
-
-                    <div className="flex flex-wrap items-center gap-6 text-sm text-slate-500 font-semibold">
-                        <div className="flex items-center gap-2">
-                            <CalendarIcon size={16} className="text-[#05DF72]" />
-                            {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                        </div>
-                        <div className="flex items-center gap-2 border-l border-slate-200 pl-6">
-                            <UserIcon size={16} className="text-[#05DF72]" />
-                            {blog.user?.name || "GoCycle Admin"}
-                        </div>
-                    </div>
+                    <p className="text-[18px] text-slate-600 font-semibold">
+                        Updated on {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </p>
                 </div>
             </div>
 
-            {/* Headline Image if exists */}
+            {/* Headline Image (if any, placed below header) */}
             {blog.headlineImage && (
-                <div className="w-full max-w-[1000px] mx-auto px-6 -mt-8 relative z-10">
-                    <div className="aspect-video w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-100 relative">
+                <div className="max-w-[1000px] mx-auto px-6 mb-16">
+                    <div className="aspect-[21/9] w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-xl">
                         <Image 
                             src={blog.headlineImage} 
                             alt={blog.title} 
@@ -74,12 +61,21 @@ export default async function BlogReadingPage({ params }) {
                 </div>
             )}
 
-            {/* Markdown / HTML Content rendered */}
-            <div className={`max-w-[800px] mx-auto px-6 ${blog.headlineImage ? 'pt-20' : 'pt-16'} pb-32`}>
-                <div 
-                    className="prose prose-lg prose-slate break-words prose-img:rounded-2xl prose-img:shadow-lg prose-headings:font-bold prose-a:text-[#05DF72] hover:prose-a:text-emerald-600 prose-p:leading-relaxed max-w-none"
-                    dangerouslySetInnerHTML={{ __html: blog.content }}
-                />
+            {/* Content Container: Full width, left-to-right aligned */}
+            <div className="max-container pb-32">
+                <div className="prose text-[22px] md:text-[28px] prose-slate break-words prose-img:rounded-2xl prose-img:shadow-lg prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-600 prose-a:underline hover:prose-a:text-blue-800 prose-p:leading-[1.9] prose-p:text-slate-900 prose-p:mb-14 max-w-none text-left font-medium">
+                    {blog.content.split('\n').map((line, index) => {
+                        if (!line.trim()) return null;
+                        
+                        // If this specific line contains HTML (like an inserted image or strong tags), render as HTML
+                        if (/<[a-z][\s\S]*>/i.test(line)) {
+                            return <div key={index} dangerouslySetInnerHTML={{ __html: line }} className="my-8" />;
+                        }
+                        
+                        // Otherwise, it's plain text — wrap in <p> so spacing and size apply correctly
+                        return <p key={index}>{line}</p>;
+                    })}
+                </div>
             </div>
         </article>
     )

@@ -1,26 +1,16 @@
 'use client'
-import { MapPin as MapPinIcon, ShieldCheck as ShieldCheckIcon, ChevronRight as ChevronRightIcon } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { MapPin as MapPinIcon, ShieldCheck as ShieldCheckIcon, ArrowRight, Zap } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
 const ProductCard = ({ product, onQuickBuy }) => {
-    const [selectedDate, setSelectedDate] = useState(null)
-    const [quantity, setQuantity] = useState(1)
-    const [isNavigating, setIsNavigating] = useState(false)
+    const router = useRouter()
     const { user } = useSelector(state => state.auth)
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
-
-    // Pre-select first date for 1-minute checkout
-    useEffect(() => {
-        if (product && product.collectionDates && product.collectionDates.length > 0) {
-            setSelectedDate(product.collectionDates[0])
-        }
-    }, [product])
-
-    const router = useRouter()
-    const currency = '₦'
+    const isSold = product.status === 'sold' || product.inStock === false
+    const [isNavigating, setIsNavigating] = useState(false)
 
     const getImageUrl = (image) => {
         if (!image) return '/placeholder-battery.jpg'
@@ -28,72 +18,69 @@ const ProductCard = ({ product, onQuickBuy }) => {
             if (image === '[object Object]') return '/placeholder-battery.jpg'
             return image
         }
-        if (typeof image === 'object' && image.src) return image.src
-        return '/placeholder-battery.jpg'
+        return image?.src || '/placeholder-battery.jpg'
     }
-
-    const isSold = product.status === 'sold' || product.inStock === false
 
     return (
         <div
             onClick={() => { if (!isSold) router.push(`/product/${product.id}`) }}
-            className={`premium-card group ${isSold ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
+            className={`premium-card group bg-white ${isSold ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
         >
-            {/* Same content as before, just fixing structure */}
-            <div className='relative h-48 sm:h-64 overflow-hidden bg-slate-50 flex items-center justify-center p-4 sm:p-8'>
-                <div className={`w-full h-full relative ${isSold ? 'grayscale italic' : ''}`}>
-                    <Image
-                        src={getImageUrl(product.images?.[0])}
-                        alt={product.name}
-                        fill
-                        className='object-contain group-hover:scale-110 transition-transform duration-700'
-                        onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
-                    />
-                </div>
-
-                {/* Condition Badge */}
-                <div className="absolute top-4 left-4 z-10 flex gap-2">
-                    <span className="bg-slate-900/80 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-white/10">
-                        {product.condition || 'SCRAP'}
-                    </span>
-                    {isSold && (
-                        <span className="bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-red-400/50 shadow-lg shadow-red-500/20 animate-pulse">
-                            BOUGHT / SOLD
+            {/* Image Container */}
+            <div className='relative aspect-[4/3] overflow-hidden bg-slate-50 flex items-center justify-center p-8'>
+                <Image
+                    src={getImageUrl(product.images?.[0])}
+                    alt={product.name}
+                    fill
+                    className={`object-contain transition-transform duration-700 ease-out ${!isSold && 'group-hover:scale-110'} ${isSold && 'grayscale contrast-75'}`}
+                />
+                
+                {/* Condition & Status Badges */}
+                <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                    <div className="glass-pill px-3 py-1.5 flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${isSold ? 'bg-slate-300' : 'bg-[#00D166] animate-pulse'}`}></div>
+                        <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">
+                            {isSold ? 'Out of Market' : product.condition || 'SCRAP'}
                         </span>
-                    )}
+                    </div>
                 </div>
 
-                {/* Seller LGA Overlay */}
-                <div className="absolute bottom-4 right-4 z-10 translate-y-10 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
-                    <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-slate-100 flex items-center gap-1.5">
-                        <MapPinIcon size={10} className="text-emerald-500" />
-                        <span className="text-[10px] font-bold text-slate-700">{product.lga || 'Lagos'}</span>
+                {/* Region Overlay */}
+                <div className="absolute top-4 right-4 z-10">
+                    <div className="bg-white/90 backdrop-blur-md px-2.5 py-1.5 rounded-full shadow-sm border border-black/[0.04] flex items-center gap-1.5">
+                        <MapPinIcon size={10} className="text-[#00D166]" />
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{product.lga || 'Lagos'}</span>
                     </div>
                 </div>
             </div>
 
-            <div className='p-4 sm:p-6'>
-                <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-emerald-100">
-                        {product.batteryType || 'BATTERY'}
-                    </span>
-                    {product.verified && !isSold && (
-                        <div className="flex items-center gap-1 text-[8px] font-black text-blue-500 uppercase tracking-widest">
-                            <ShieldCheckIcon size={10} /> Verified
-                        </div>
-                    )}
+            {/* Content Container */}
+            <div className='p-6 space-y-4'>
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                        <Zap size={12} className="text-[#00D166]" fill="currentColor" fillOpacity={0.2} />
+                        <span className="text-[9px] font-black text-[#00D166] uppercase tracking-[0.2em]">
+                            {product.batteryType || 'BATTERY'}
+                        </span>
+                        {product.verified && !isSold && (
+                            <div className="flex items-center gap-1 text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] ml-2">
+                                <ShieldCheckIcon size={10} /> Verified
+                            </div>
+                        )}
+                    </div>
+                    <h3 className={`text-base font-extrabold text-slate-950 transition-colors leading-tight line-clamp-1 ${!isSold && 'group-hover:text-[#00D166]'}`}>
+                        {product.name}
+                    </h3>
                 </div>
 
-                <h3 className={`text-sm sm:text-base font-bold text-slate-900 line-clamp-1 transition-colors ${isSold ? 'text-slate-400' : 'group-hover:text-emerald-600'}`}>{product.name}</h3>
-                <p className='text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 font-medium'>
-                    {isSold ? 'Status: Out of Market' : `Available: ${product.unitsAvailable || 1} units`}
-                </p>
-
-                <div className='flex flex-row items-center justify-between mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-50 gap-2'>
-                    <div className="flex flex-col min-w-0">
-                        <span className="text-[7px] sm:text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Price</span>
-                        <span className={`text-sm sm:text-xl font-black truncate ${isSold ? 'text-slate-300' : 'text-slate-900'}`}>{currency}{(product.price || 0).toLocaleString()}</span>
+                <div className='flex items-end justify-between pt-4 border-t border-slate-50'>
+                    <div className="space-y-1">
+                        <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">Market Price</span>
+                        <p className={`text-xl font-black ${isSold ? 'text-slate-300' : 'text-slate-950'}`}>
+                            <span className="text-[#00D166]">₦</span>{(product.price || 0).toLocaleString()}
+                        </p>
                     </div>
+                    
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -106,22 +93,16 @@ const ProductCard = ({ product, onQuickBuy }) => {
                                 router.push(`/product/${product.id}`);
                             }
                         }}
-                        disabled={isSold || isNavigating}
-                        className={`h-8 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1 sm:gap-2 shrink-0 ${
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 ${
                             isSold 
-                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
-                            : isAdmin
-                            ? 'bg-slate-50 text-slate-400 cursor-default border border-slate-100'
-                            : 'bg-slate-900 text-white hover:bg-emerald-500 shadow-lg shadow-slate-900/10'
+                            ? 'bg-slate-50 text-slate-200' 
+                            : 'bg-slate-50 text-slate-400 group-hover:bg-[#00D166] group-hover:text-white group-hover:shadow-lg group-hover:shadow-[#00D166]/20'
                         }`}
                     >
                         {isNavigating ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <div className="w-4 h-4 border-2 border-slate-200 border-t-slate-400 rounded-full animate-spin" />
                         ) : (
-                            <>
-                                {isSold ? 'Sold' : isAdmin ? 'Admin Mode' : 'Buy Now'}
-                                {!isSold && !isAdmin && <ChevronRightIcon size={12} className='sm:w-3.5 sm:h-3.5' />}
-                            </>
+                            <ArrowRight size={18} />
                         )}
                     </button>
                 </div>
@@ -131,3 +112,4 @@ const ProductCard = ({ product, onQuickBuy }) => {
 }
 
 export default ProductCard
+

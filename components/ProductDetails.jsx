@@ -52,8 +52,8 @@ const ProductDetails = ({ product }) => {
             return
         }
 
-        if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
-            toast.error("Administrators are not permitted to make purchases.")
+        if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'SELLER') {
+            toast.error(user?.role === 'SELLER' ? "Sellers cannot purchase batteries. Please use a buyer account." : "Administrators are not permitted to make purchases.")
             return
         }
 
@@ -215,10 +215,10 @@ const ProductDetails = ({ product }) => {
                         </div>
                     </div>
 
-                    {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || isAdminPreview) ? (
+                    {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'SELLER' || isAdminPreview) ? (
                         <div className="w-full py-4 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] text-sm sm:text-lg bg-slate-100 text-slate-400 font-bold text-center flex items-center justify-center border border-slate-200 shadow-inner">
                             <ShieldCheckIcon size={20} className="mr-2 opacity-50" />
-                            ADMIN PREVIEW MODE - PURCHASE DISABLED
+                            {user?.role === 'SELLER' ? 'SELLERS CANNOT PURCHASE BATTERIES' : 'ADMIN PREVIEW MODE - PURCHASE DISABLED'}
                         </div>
                     ) : (
                         <Button

@@ -23,7 +23,7 @@ export async function verifyIsBattery(images) {
         const content = [
             {
                 type: "text",
-                text: `CRITICAL TASK: Verify if these images contain recycling-grade batteries.
+                text: `CRITICAL TASK: You are an expert battery appraiser. Verify if these images contain recycling-grade batteries.
                 
                 ACCEPTABLE ITEMS:
                 - Lead-acid car/truck batteries (Wet, AGM, Gel)
@@ -31,15 +31,20 @@ export async function verifyIsBattery(images) {
                 - Solar/Deep cycle storage batteries
                 - Industrial batteries
                 
-                IMPORTANT GUIDELINES:
-                - MULTIPLE BATTERIES: It is common for users to photograph stacks of batteries or multiple batteries together. This IS acceptable.
-                - BACKGROUND: Batteries are often photographed in industrial, outdoor, or "informal" settings (e.g., near vehicles, in scrapyards, on the ground). This IS acceptable as long as the batteries are the subject.
-                - CONDITION: Recyclable batteries are often dirty, dusty, or have minor external wear. This IS acceptable.
+                VISUAL CHARACTERISTICS TO ACCEPT:
+                - Black, white, translucent, or ANY color rectangular plastic casings (they look like heavy plastic boxes).
+                - Lead metal terminals, posts, or caps on the top surface.
+                - Paper or plastic labels indicating voltage/capacity (e.g., "12V", "38AH", "150AH", "MF", "POWER STAR", "RUNALL").
                 
-                REJECT:
-                - Consumer electronics (Phones, Laptops, Remote controls)
-                - Household AA/AAA/9V batteries
-                - Random objects that are NOT batteries
+                CRITICAL GUIDELINES (DO NOT REJECT IF THESE ARE TRUE):
+                - STACKS/MULTIPLE BATTERIES: Users frequently photograph stacks of batteries resting on top of each other. This is perfectly acceptable.
+                - OUTDOOR/INFORMAL SETTINGS: Batteries are almost always photographed outside on dirt, gravel, concrete, or in scrapyards, often with vehicles (like yellow buses or cars) or people in the background. THIS IS THE EXPECTED NORM. Do not reject because of the background.
+                - DIRT & WEAR: These are scrap batteries. They will be dirty, dusty, scuffed, or have peeling stickers. This is expected.
+                
+                REJECT ONLY:
+                - Small consumer electronics (Phones, Laptops, Remote controls)
+                - Tiny household batteries (AA, AAA, 9V button cells)
+                - Images completely devoid of any battery-like rectangular boxes.
                 
                 OUTPUT FORMAT (JSON ONLY):
                 { 
@@ -60,7 +65,7 @@ export async function verifyIsBattery(images) {
             });
         }
 
-        const models = ["meta-llama/llama-4-scout-17b-16e-instruct", "llama-3.2-11b-vision-preview"];
+        const models = ["llama-3.2-90b-vision-preview", "llama-3.2-11b-vision-preview"];
         let lastError = null;
 
         for (const modelId of models) {
@@ -94,6 +99,7 @@ export async function verifyIsBattery(images) {
                 }
 
                 const result = JSON.parse(data.choices[0].message.content);
+                if (!result.reason) result.reason = "No specific reason provided by AI.";
                 logToFile("GROQ_VERIFICATION_RESULT", result);
                 return result;
             } catch (err) {

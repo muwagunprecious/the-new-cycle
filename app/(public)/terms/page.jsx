@@ -79,32 +79,33 @@ const TermsPage = () => {
     ]
 
     return (
-        <div className="bg-slate-950 min-h-screen text-slate-300 pb-24 font-medium">
-            <section className="relative py-32 px-6 lg:px-10 overflow-hidden">
-                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] -mr-40 -mt-20"></div>
-                <div className="max-w-7xl mx-auto relative z-10 space-y-6">
-                    <div className="flex items-center gap-4 text-emerald-500">
-                        <FileText size={24} />
-                        <h3 className="font-black text-[10px] uppercase tracking-[0.4em]">Governance</h3>
+        <div className="bg-white min-h-screen pt-24 pb-32">
+            <section className="relative py-24 px-4 md:px-8 max-w-[1400px] mx-auto border-b border-slate-100">
+                <div className="max-w-4xl space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#00D166]"></div>
+                        <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-[#00D166]">
+                            Governance
+                        </span>
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase leading-[0.9]">
-                        Merchant Service <br /><span className="text-emerald-500">Agreement</span>
+                    <h1 className="text-5xl md:text-7xl font-medium text-slate-900 tracking-[-0.02em] leading-[1.1]">
+                        Merchant Service <br /><span className="text-[#00D166]">Agreement</span>
                     </h1>
-                    <p className="text-sm font-black text-slate-500 uppercase tracking-widest pt-4">
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest pt-4">
                         Version 2.0 | Effective March 2026
                     </p>
                 </div>
             </section>
 
-            <section className="px-6 lg:px-10">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
+            <section className="py-24 px-4 md:px-8 max-w-[1400px] mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
                     {/* Sidebar Nav */}
-                    <div className="lg:col-span-3 lg:sticky lg:top-24 h-fit space-y-2 max-lg:hidden">
+                    <div className="lg:col-span-3 lg:sticky lg:top-32 h-fit space-y-2 max-lg:hidden">
                         {sections.map(section => (
                             <a
                                 key={section.id}
                                 href={`#${section.id}`}
-                                className="block px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-transparent hover:border-emerald-500/20 hover:bg-white/5 transition-all text-slate-500 hover:text-emerald-400"
+                                className="block px-6 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-widest border border-transparent hover:bg-[#F4F6F8] transition-all text-slate-500 hover:text-[#00D166]"
                             >
                                 {section.title.split('.')[0]} Section
                             </a>
@@ -113,34 +114,34 @@ const TermsPage = () => {
 
                     {/* Content */}
                     <div className="lg:col-span-9 space-y-20">
-                        <div className="prose prose-invert max-w-none">
-                            <p className="text-lg leading-relaxed text-slate-400 italic">
+                        <div className="max-w-3xl">
+                            <p className="text-xl leading-relaxed text-slate-600 font-medium italic">
                                 This Merchant Service Agreement (the "Agreement") is a legally binding contract between Gocycle Limited ("Gocycle"), a company providing a digital marketplace for the circular economy, and the Merchant (the "User," "Seller," or "Buyer") who registers an account on the Gocycle Platform.
                             </p>
                         </div>
 
                         {sections.map((section) => (
-                            <div key={section.id} id={section.id} className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                            <div key={section.id} id={section.id} className="space-y-8 pt-8 border-t border-slate-100">
                                 <div className="flex items-center gap-6">
-                                    <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-emerald-500 border border-white/10 shrink-0">
-                                        <section.icon size={24} />
+                                    <div className="w-14 h-14 bg-[#F4F6F8] rounded-2xl flex items-center justify-center text-[#00D166] shrink-0 border border-slate-100">
+                                        <section.icon size={28} />
                                     </div>
-                                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">{section.title}</h2>
+                                    <h2 className="text-3xl font-medium text-slate-900 tracking-[-0.01em]">{section.title}</h2>
                                 </div>
 
-                                <div className="pl-18 space-y-6">
+                                <div className="pl-0 md:pl-20 space-y-8">
                                     {section.content && (
-                                        <p className="text-slate-400 leading-relaxed text-lg">
+                                        <p className="text-slate-600 leading-relaxed text-lg font-medium">
                                             {section.content}
                                         </p>
                                     )}
 
                                     {section.subsections && section.subsections.map((sub, i) => (
-                                        <div key={i} className="space-y-4">
-                                            <h3 className="text-emerald-500 font-black text-xs uppercase tracking-widest">
+                                        <div key={i} className="space-y-3 bg-[#F4F6F8] p-8 rounded-[32px]">
+                                            <h3 className="text-[#00D166] font-bold text-sm uppercase tracking-widest">
                                                 {sub.title}
                                             </h3>
-                                            <p className="text-slate-400 leading-relaxed">
+                                            <p className="text-slate-600 leading-relaxed font-medium">
                                                 {sub.text}
                                             </p>
                                         </div>
@@ -149,12 +150,12 @@ const TermsPage = () => {
                             </div>
                         ))}
 
-                        <div className="bg-emerald-500/10 border border-emerald-500/20 p-12 rounded-[2.5rem] space-y-6">
-                            <div className="flex items-center gap-4 text-emerald-500">
-                                <AlertTriangle size={24} />
-                                <h3 className="font-black uppercase tracking-widest text-sm">Anti-Circumvention</h3>
+                        <div className="bg-[#00D166] p-10 md:p-16 rounded-[40px] space-y-6 shadow-lg mt-12">
+                            <div className="flex items-center gap-4 text-white">
+                                <AlertTriangle size={28} />
+                                <h3 className="font-bold uppercase tracking-widest text-lg">Anti-Circumvention</h3>
                             </div>
-                            <p className="text-slate-300 leading-relaxed">
+                            <p className="text-white/90 leading-relaxed text-xl font-medium">
                                 Any Merchant found using the platform to identify trading partners and subsequently completing the transaction "offline" to avoid service fees will face immediate permanent suspension and may be liable for liquidated damages.
                             </p>
                         </div>

@@ -441,8 +441,8 @@ const handleAutoLogin = async () => {
                                             onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
                                         >
                                             <option value="" disabled>-- Select Role --</option>
-                                            <option value="BUYER">Joining as Buyer</option>
-                                            <option value="SELLER">Joining as Seller</option>
+                                            <option value="BUYER">Buyer</option>
+                                            <option value="SELLER">Seller</option>
                                         </select>
                                         <ChevronDownIcon className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none" size={20} />
                                     </div>

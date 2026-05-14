@@ -1,6 +1,8 @@
 'use client'
-import { Battery as BatteryIcon, CircleDollarSign as CircleDollarSignIcon, Package as PackageIcon, Clock as ClockIcon, Phone as PhoneIcon, ShieldCheck as ShieldCheckIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Wallet as WalletIcon, Copy as CopyIcon } from "lucide-react"
+import { Battery as BatteryIcon, CircleDollarSign as CircleDollarSignIcon, Package as PackageIcon, Clock as ClockIcon, Phone as PhoneIcon, ShieldCheck as ShieldCheckIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Wallet as WalletIcon, Copy as CopyIcon, Home as HomeIcon, Settings as SettingsIcon } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import Loading from "@/components/Loading"
 import { useSelector } from "react-redux"
 import toast from "react-hot-toast"
@@ -11,6 +13,7 @@ import { getSellerProducts } from "@/backend-actions/actions/product"
 import { getStoreDetails, updateStoreBankDetails, getSellerDashboardSummary, getSellerPayoutHistory } from "@/backend-actions/actions/seller"
 
 export default function SellerOverview() {
+    const router = useRouter()
     const { user } = useSelector(state => state.auth)
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState({ 
@@ -150,6 +153,34 @@ export default function SellerOverview() {
 
                 <div className="flex-1 max-w-md">
                 </div>
+            </div>
+
+            {/* Mobile Quick Navigation */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:hidden mb-8">
+                <Link href="/seller" className="flex flex-col items-center gap-3 p-5 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 hover:border-[#05DF72]/30 transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500">
+                        <HomeIcon size={24} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 text-center">Overview</span>
+                </Link>
+                <Link href="/seller/products" className="flex flex-col items-center gap-3 p-5 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 hover:border-[#05DF72]/30 transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-[#05DF72]/10 flex items-center justify-center text-[#05DF72]">
+                        <BatteryIcon size={24} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 text-center">List Battery</span>
+                </Link>
+                <Link href="/seller/orders" className="flex flex-col items-center gap-3 p-5 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 hover:border-[#05DF72]/30 transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-500">
+                        <PackageIcon size={24} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 text-center">Orders</span>
+                </Link>
+                <Link href="/seller/settings" className="flex flex-col items-center gap-3 p-5 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 hover:border-[#05DF72]/30 transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500">
+                        <SettingsIcon size={24} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 text-center">Settings</span>
+                </Link>
             </div>
 
             {/* Stats Grid */}

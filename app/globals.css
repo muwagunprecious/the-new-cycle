@@ -1,88 +1,152 @@
 @import "tailwindcss";
 
 @theme {
-    --color-primary: #05DF72;
-    --color-primary-dark: #04b35c;
-    --color-primary-light: #dcfce7;
-    --color-slate-900: #0f172a;
-    --color-slate-800: #1e293b;
-    --color-slate-500: #64748b;
-    --color-slate-400: #94a3b8;
-    --color-bg-soft: #f8fafc;
+    /* Eco-Tech Premium Green Palette */
+    --color-primary: #00D166;
+    --color-primary-dark: #00A350;
+    --color-primary-soft: #DCFCE7;
+    --color-accent: #10B981;
+    
+    /* Neutral / Surface Palette */
+    --color-slate-950: #020617;
+    --color-slate-900: #0F172A;
+    --color-slate-800: #1E293B;
+    --color-slate-500: #64748B;
+    --color-slate-400: #94A3B8;
+    --color-bg-soft: #F8FAFC;
 
-    --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
-    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    /* Spacing & Layout Tokens */
+    --shadow-premium: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 10px 20px -5px rgba(0, 0, 0, 0.04);
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.02);
+    --shadow-glass: 0 8px 32px 0 rgba(0, 209, 102, 0.04);
+    
+    /* Radius Tokens */
+    --radius-2xl: 24px;
+    --radius-3xl: 40px;
 }
 
 @layer components {
     .max-container {
-        @apply max-w-[1200px] mx-auto px-6;
+        @apply max-w-[1400px] mx-auto px-6 md:px-12;
     }
 
+    /* Glassmorphism System */
     .glass {
-        @apply bg-white/70 backdrop-blur-md border border-black/[0.06] shadow-premium;
+        @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-premium;
     }
 
     .glass-dark {
-        @apply bg-slate-900/80 backdrop-blur-lg border border-white/10 shadow-glass;
+        @apply bg-slate-950/80 backdrop-blur-2xl border border-white/10 shadow-glass;
     }
 
+    .glass-pill {
+        @apply bg-white/80 backdrop-blur-lg border border-black/[0.04] shadow-premium rounded-full;
+    }
+
+    /* Premium Buttons */
     .btn-premium {
-        @apply bg-[#05DF72] text-white px-8 py-4 rounded-xl font-bold transition-all duration-200 ease-in-out hover:bg-[#04b35c] hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-3 shadow-lg shadow-[#05DF72]/20 uppercase tracking-widest text-[10px];
+        @apply bg-[#00D166] text-white px-10 py-5 rounded-full font-bold transition-all duration-300 ease-out hover:bg-[#00A350] hover:-translate-y-1 hover:shadow-xl hover:shadow-[#00D166]/20 active:scale-95 flex items-center justify-center gap-3 tracking-tight text-sm;
     }
 
     .btn-secondary {
-        @apply bg-white text-slate-950 px-8 py-4 rounded-xl font-bold transition-all duration-200 ease-in-out border border-black/[0.08] hover:bg-slate-50 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest;
+        @apply bg-white/50 backdrop-blur-sm text-slate-900 px-10 py-5 rounded-full font-bold transition-all duration-300 ease-out border border-black/[0.08] hover:bg-white hover:-translate-y-1 hover:shadow-lg active:scale-95 flex items-center justify-center gap-3 text-sm tracking-tight;
     }
 
+    .btn-ghost {
+        @apply px-6 py-3 rounded-full font-semibold text-slate-600 hover:text-[#00D166] hover:bg-[#00D166]/5 transition-all duration-200 text-sm;
+    }
+
+    /* Card System */
     .premium-card {
-        @apply bg-white border border-black/[0.06] rounded-[20px] overflow-hidden transition-all duration-300 ease-in-out hover:shadow-premium hover:-translate-y-1;
+        @apply bg-white border border-black/[0.04] rounded-[32px] overflow-hidden transition-all duration-500 ease-out hover:shadow-premium hover:-translate-y-2;
     }
 
     .section-card {
-        @apply bg-white border border-black/[0.06] rounded-[24px] shadow-soft p-8 md:p-12 mb-8;
+        @apply bg-[#F8FAFC] border border-black/[0.02] rounded-[48px] p-10 md:p-20 mb-12;
+    }
+
+    /* Typography Hierarchy */
+    .text-display {
+        @apply font-black tracking-[-0.04em] text-slate-950 leading-[1] text-4xl md:text-8xl;
     }
 
     .text-heading {
-        @apply font-bold tracking-tighter text-slate-950 uppercase;
+        @apply font-extrabold tracking-[-0.03em] text-slate-950 leading-[1.1] text-3xl md:text-5xl;
     }
 
     .text-subheading {
-        @apply font-semibold tracking-tight text-slate-500 uppercase;
+        @apply font-bold tracking-tight text-[#00D166] uppercase text-xs md:text-sm mb-4;
     }
 
     .text-body {
-        @apply font-normal leading-[1.6] text-slate-600 tracking-wide;
+        @apply font-medium leading-[1.7] text-slate-500 text-base md:text-lg;
     }
 }
 
 @layer base {
     * {
-        @apply transition-colors duration-200 ease-in-out;
-    }
-
-    button {
-        cursor: pointer;
+        @apply transition-colors duration-300 ease-in-out;
     }
 
     body {
-        @apply text-slate-800 bg-white antialiased selection:bg-emerald-100 selection:text-emerald-900;
+        @apply text-slate-800 bg-white antialiased selection:bg-[#00D166]/20 selection:text-[#00A350] scroll-smooth;
     }
 
     h1 {
-        @apply text-slate-950 font-black tracking-tighter uppercase leading-[1.1] text-3xl md:text-6xl;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        color: #020617;
+        line-height: 1;
     }
-
     h2 {
-        @apply text-slate-950 font-bold tracking-tighter uppercase leading-[1.2] text-xl md:text-4xl;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: #020617;
+        line-height: 1.1;
+    }
+    h3 { @apply font-bold tracking-tight text-slate-950 text-xl md:text-2xl; }
+
+    /* Scroll animations */
+    .reveal {
+        @apply opacity-0 translate-y-8 transition-all duration-1000 ease-out;
     }
 
-    h3 {
-        @apply text-slate-950 font-bold tracking-tight uppercase leading-[1.2] text-lg md:text-2xl;
+    .reveal.active {
+        @apply opacity-100 translate-y-0;
     }
 }
 
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
+
+/* Gradient Utilities */
+.bg-gradient-eco {
+    background: radial-gradient(circle at top left, rgba(0, 209, 102, 0.05), transparent),
+                radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.03), transparent);
+}
+
+.text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-slate-950 to-slate-600;
+}
+
+/* Float Animation for Floating Cards */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+}
+
+@keyframes float-delayed {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+    animation: float-delayed 5s ease-in-out infinite;
+    animation-delay: 1.5s;
+}
+

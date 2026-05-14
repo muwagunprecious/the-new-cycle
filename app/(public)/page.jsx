@@ -14,21 +14,10 @@ export default async function Home() {
     return (
         <div className="bg-white">
             <HeroSlider />
-            
-            {/* Quick Categories Ribbon (Optional but fits Jumia style) */}
-            <div className="max-w-7xl mx-auto px-6 mb-12">
-               <CategoriesMarquee />
-            </div>
-
-            {/* Marketplace Grid Direct Follow Up */}
-            <div className="bg-slate-50 border-t border-slate-100 py-10">
-                <LatestProducts initialProducts={initialProducts} />
-            </div>
-            
-            <div className="space-y-24 py-16">
-                <MarketplaceOverview />
-                <OurSpecs />
-            </div>
+            <CategoriesMarquee />
+            <LatestProducts initialProducts={initialProducts} />
+            <MarketplaceOverview />
+            <OurSpecs />
         </div>
     );
 }

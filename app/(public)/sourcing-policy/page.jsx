@@ -4,30 +4,34 @@ import { ShieldAlert, Fingerprint, Eye, ClipboardCheck, Scale, History } from 'l
 
 const SourcingPolicyPage = () => {
     return (
-        <div className="bg-slate-950 min-h-screen text-slate-300">
+        <div className="bg-white min-h-screen pt-24 pb-32">
             {/* Header */}
-            <section className="relative py-24 px-6 lg:px-10 overflow-hidden bg-white/5 border-b border-white/10">
-                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] -mr-40 -mt-20"></div>
-                <div className="max-w-7xl mx-auto relative z-10 space-y-6">
-                    <h3 className="text-emerald-500 font-black text-[10px] uppercase tracking-[0.4em]">Governance & Ethics</h3>
-                    <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">
-                        Responsible Sourcing <br /><span className="text-emerald-500">& Material Stewardship</span>
+            <section className="relative py-24 px-4 md:px-8 max-w-[1400px] mx-auto border-b border-slate-100">
+                <div className="max-w-4xl space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#00D166]"></div>
+                        <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-[#00D166]">
+                            Governance & Ethics
+                        </span>
+                    </div>
+                    <h1 className="text-5xl md:text-7xl font-medium text-slate-900 tracking-[-0.02em] leading-[1.1]">
+                        Responsible Sourcing <br /><span className="text-[#00D166]">& Material Stewardship</span>
                     </h1>
-                    <p className="text-sm font-black text-slate-500 uppercase tracking-widest pt-4">
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest pt-4">
                         Version: 2026.1
                     </p>
                 </div>
             </section>
 
             {/* Mission Section */}
-            <section className="py-24 px-6 lg:px-10 border-b border-white/5">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                    <div className="space-y-8">
-                        <h2 className="text-3xl font-black text-white tracking-tight uppercase">1. Mission Statement</h2>
-                        <p className="text-xl leading-relaxed font-medium text-slate-400">
+            <section className="py-16 px-4 md:px-8 max-w-[1400px] mx-auto border-b border-slate-100">
+                <div className="max-w-4xl space-y-8">
+                    <h2 className="text-3xl font-medium text-slate-900 tracking-[-0.01em]">1. Mission Statement</h2>
+                    <div className="space-y-6 text-xl leading-relaxed text-slate-600">
+                        <p>
                             Gocycle is committed to powering Africa’s circular economy by ensuring that the recovery of e-waste and end-of-life batteries contributes to environmental restoration and social equity.
                         </p>
-                        <p className="text-lg leading-relaxed text-slate-500">
+                        <p>
                             We mitigate the risks of "informal leakage," child labor, and environmental contamination by enforcing rigorous standards for every participant in our marketplace.
                         </p>
                     </div>
@@ -35,38 +39,44 @@ const SourcingPolicyPage = () => {
             </section>
 
             {/* Core Pillars */}
-            <section className="py-32 px-6 lg:px-10 bg-white/2">
+            <section className="py-24 px-4 md:px-8 max-w-[1400px] mx-auto bg-slate-50/50 rounded-[40px] mt-12">
                 <div className="max-w-7xl mx-auto">
-                    <h2 className="text-2xl font-black text-white tracking-tight uppercase mb-16 px-4">2. Core Governance Principles</h2>
+                    <h2 className="text-4xl font-medium text-slate-900 tracking-[-0.02em] mb-16">2. Core Governance Principles</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {/* Env Integrity */}
-                        <div className="bg-slate-900 border border-white/10 p-10 rounded-[3rem] space-y-6 hover:border-emerald-500/30 transition-all">
-                            <div className="text-emerald-500"><Scale size={28} /></div>
-                            <h3 className="text-xl font-black text-white uppercase tracking-tight">Environmental Integrity</h3>
-                            <ul className="space-y-4 text-sm text-slate-400 font-medium">
-                                <li className="flex items-start gap-2">• All Buyers must be well trained in hazardous waste management.</li>
-                                <li className="flex items-start gap-2">• Prohibition of "open-burning" or acid-dumping.</li>
+                        <div className="bg-white border border-slate-100 p-10 rounded-[32px] space-y-6 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="w-14 h-14 bg-[#F4F6F8] rounded-2xl flex items-center justify-center text-[#00D166]">
+                                <Scale size={28} />
+                            </div>
+                            <h3 className="text-2xl font-medium text-slate-900 tracking-[-0.01em]">Environmental Integrity</h3>
+                            <ul className="space-y-4 text-slate-600 font-medium">
+                                <li className="flex items-start gap-3"><span className="text-[#00D166]">•</span> All Buyers must be well trained in hazardous waste management.</li>
+                                <li className="flex items-start gap-3"><span className="text-[#00D166]">•</span> Prohibition of "open-burning" or acid-dumping.</li>
                             </ul>
                         </div>
 
                         {/* Ethical Supply Chain */}
-                        <div className="bg-slate-900 border border-white/10 p-10 rounded-[3rem] space-y-6 hover:border-emerald-500/30 transition-all">
-                            <div className="text-emerald-500"><ShieldAlert size={28} /></div>
-                            <h3 className="text-xl font-black text-white uppercase tracking-tight">Ethical Supply Chain</h3>
-                            <ul className="space-y-4 text-sm text-slate-400 font-medium">
-                                <li className="flex items-start gap-2">• Zero-tolerance policy for child labor.</li>
-                                <li className="flex items-start gap-2">• Cobalt, Lithium, and Lead tracked through formal channels.</li>
+                        <div className="bg-white border border-slate-100 p-10 rounded-[32px] space-y-6 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="w-14 h-14 bg-[#F4F6F8] rounded-2xl flex items-center justify-center text-[#00D166]">
+                                <ShieldAlert size={28} />
+                            </div>
+                            <h3 className="text-2xl font-medium text-slate-900 tracking-[-0.01em]">Ethical Supply Chain</h3>
+                            <ul className="space-y-4 text-slate-600 font-medium">
+                                <li className="flex items-start gap-3"><span className="text-[#00D166]">•</span> Zero-tolerance policy for child labor.</li>
+                                <li className="flex items-start gap-3"><span className="text-[#00D166]">•</span> Cobalt, Lithium, and Lead tracked through formal channels.</li>
                             </ul>
                         </div>
 
                         {/* Traceability */}
-                        <div className="bg-slate-900 border border-white/10 p-10 rounded-[3rem] space-y-6 hover:border-emerald-500/30 transition-all">
-                            <div className="text-emerald-500"><Fingerprint size={28} /></div>
-                            <h3 className="text-xl font-black text-white uppercase tracking-tight">Traceability</h3>
-                            <ul className="space-y-4 text-sm text-slate-400 font-medium">
-                                <li className="flex items-start gap-2">• Origin (GPS) and final destination captured for every trade.</li>
-                                <li className="flex items-start gap-2">• "Downstream Transparency" for all sellers.</li>
+                        <div className="bg-white border border-slate-100 p-10 rounded-[32px] space-y-6 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="w-14 h-14 bg-[#F4F6F8] rounded-2xl flex items-center justify-center text-[#00D166]">
+                                <Fingerprint size={28} />
+                            </div>
+                            <h3 className="text-2xl font-medium text-slate-900 tracking-[-0.01em]">Traceability</h3>
+                            <ul className="space-y-4 text-slate-600 font-medium">
+                                <li className="flex items-start gap-3"><span className="text-[#00D166]">•</span> Origin (GPS) and final destination captured for every trade.</li>
+                                <li className="flex items-start gap-3"><span className="text-[#00D166]">•</span> "Downstream Transparency" for all sellers.</li>
                             </ul>
                         </div>
                     </div>
@@ -74,47 +84,49 @@ const SourcingPolicyPage = () => {
             </section>
 
             {/* Operational Controls */}
-            <section className="py-24 px-6 lg:px-10">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <section className="py-24 px-4 md:px-8 max-w-[1400px] mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
                     <div className="space-y-12">
                         <div className="space-y-6">
-                            <h2 className="text-3xl font-black text-white tracking-tight uppercase">3. Operational Controls</h2>
-                            <p className="text-slate-400 leading-relaxed italic">To enforce this policy, Gocycle integrates the following into its product DNA:</p>
+                            <h2 className="text-4xl font-medium text-slate-900 tracking-[-0.02em]">3. Operational Controls</h2>
+                            <p className="text-slate-500 text-lg leading-relaxed italic">To enforce this policy, Gocycle integrates the following into its product DNA:</p>
                         </div>
 
                         <div className="space-y-8">
-                            <div className="flex gap-6">
-                                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 border border-white/10 shrink-0">
-                                    <ClipboardCheck size={24} />
+                            <div className="flex gap-6 items-start">
+                                <div className="w-14 h-14 bg-[#F4F6F8] rounded-2xl flex items-center justify-center text-[#00D166] border border-slate-100 shrink-0">
+                                    <ClipboardCheck size={28} />
                                 </div>
-                                <div className="space-y-2">
-                                    <h4 className="font-black text-white uppercase tracking-wide">The "Grey-List" Protocol</h4>
-                                    <p className="text-sm text-slate-400 leading-relaxed">Merchants suspected of sourcing materials from protected ecological zones are immediately suspended.</p>
+                                <div className="space-y-2 mt-1">
+                                    <h4 className="text-xl font-medium text-slate-900">The "Grey-List" Protocol</h4>
+                                    <p className="text-slate-600 leading-relaxed font-medium">Merchants suspected of sourcing materials from protected ecological zones are immediately suspended.</p>
                                 </div>
                             </div>
-                            <div className="flex gap-6">
-                                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 border border-white/10 shrink-0">
-                                    <Fingerprint size={24} />
+                            <div className="flex gap-6 items-start">
+                                <div className="w-14 h-14 bg-[#F4F6F8] rounded-2xl flex items-center justify-center text-[#00D166] border border-slate-100 shrink-0">
+                                    <Fingerprint size={28} />
                                 </div>
-                                <div className="space-y-2">
-                                    <h4 className="font-black text-white uppercase tracking-wide">Tokenized Transfer</h4>
-                                    <p className="text-sm text-slate-400 leading-relaxed">Physical handover of material is only valid via the Gocycle Secure Token.</p>
+                                <div className="space-y-2 mt-1">
+                                    <h4 className="text-xl font-medium text-slate-900">Tokenized Transfer</h4>
+                                    <p className="text-slate-600 leading-relaxed font-medium">Physical handover of material is only valid via the Gocycle Secure Token.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white/5 p-12 rounded-[3rem] border border-white/10 space-y-8">
-                        <h2 className="text-3xl font-black text-white tracking-tight uppercase leading-none">4. Impact Reporting</h2>
-                        <div className="grid grid-cols-1 gap-6">
+                    <div className="bg-[#00D166] p-10 md:p-16 rounded-[40px] space-y-10 shadow-lg">
+                        <h2 className="text-4xl font-medium text-white tracking-[-0.02em]">4. Impact Reporting</h2>
+                        <div className="space-y-6">
                             {[
                                 "Material Mass Balance: Lead, Lithium, and Plastic diverted.",
                                 "GHG Offset: CO2e emissions avoided vs virgin mining.",
                                 "Compliance Rate: environmental licensing audit results."
                             ].map((report, i) => (
-                                <div key={i} className="flex items-center gap-4 text-emerald-100 font-bold uppercase tracking-widest text-xs">
-                                    <History className="text-emerald-500" size={16} />
-                                    {report}
+                                <div key={i} className="flex items-center gap-4 text-white font-bold tracking-wide">
+                                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shrink-0">
+                                        <History size={18} />
+                                    </div>
+                                    <span className="leading-snug">{report}</span>
                                 </div>
                             ))}
                         </div>

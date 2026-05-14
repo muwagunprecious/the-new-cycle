@@ -2,106 +2,78 @@
 import React from 'react'
 import Image from 'next/image'
 import { assets } from '@/assets/assets'
-import { ArrowRight, Globe, ShieldCheck, Zap } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 const MarketplaceOverview = () => {
     const router = useRouter()
 
     return (
-        <section className='bg-white py-24'>
-            <div className='max-w-[1200px] mx-auto px-6'>
-                <div className='bg-white border border-black/[0.06] rounded-[24px] p-8 md:p-16 lg:p-24 shadow-[0_10px_40px_rgba(0,0,0,0.02)] relative overflow-hidden group'>
+        <section id="marketplace-overview" className='bg-slate-950 py-24 md:py-32 px-4 md:px-8'>
+            {/* The Main "Card" Container matching the screenshot */}
+            <div className='max-w-[1400px] mx-auto bg-[#F4F6F8] rounded-[40px] md:rounded-[60px] p-8 md:p-16 lg:p-24 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center overflow-hidden relative'>
+                
+                {/* Left Side: Text & CTA */}
+                <div className='flex flex-col items-start space-y-12 z-10'>
+                    
+                    {/* Top Dot & Label */}
+                    <div className='flex items-center gap-3'>
+                        <div className='w-3 h-3 rounded-full bg-[#00D166]'></div>
+                        <span className='text-[13px] font-bold uppercase tracking-[0.15em] text-[#00D166]'>
+                            Marketplace Platform
+                        </span>
+                    </div>
 
-                    {/* Subtle Background Detail */}
-                    <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-emerald-500/[0.02] rounded-full blur-[80px] -ml-40 pointer-events-none"></div>
+                    {/* Main Headline */}
+                    <h2 className='text-4xl md:text-5xl lg:text-[56px] font-medium text-slate-900 leading-[1.1] tracking-[-0.02em]'>
+                        A Specialized <span className='text-[#00D166]'>Trade Ecosystem.</span>
+                    </h2>
 
-                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10'>
+                    {/* Content / Features */}
+                    <div className='space-y-8 text-slate-600'>
+                        <p className='text-xl leading-relaxed'>
+                            Go-cycle Marketplace is the digital bridge connecting verified e-waste sellers with licensed material recovery specialists across Africa.
+                        </p>
 
-                        {/* Visual Side */}
-                        <div className='relative'>
-                            <div className='relative bg-slate-50 rounded-2xl p-3 border border-black/[0.04] overflow-hidden shadow-sm'>
-                                <div className='relative rounded-xl overflow-hidden border border-black/[0.05]'>
-                                    <Image
-                                        src={assets.hero_product_img1}
-                                        alt="Marketplace Screenshot"
-                                        className='w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-700 ease-out'
-                                    />
-                                </div>
-
-                                {/* Floating Badge */}
-                                <div className='absolute bottom-6 right-6 bg-white p-4 rounded-xl shadow-xl border border-black/[0.05] flex items-center gap-3 animate-float'>
-                                    <div className='w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600'>
-                                        <Zap size={20} fill="currentColor" fillOpacity={0.2} />
-                                    </div>
-                                    <div className='space-y-1'>
-                                        <p className='text-[8px] font-bold uppercase tracking-[0.2em] text-emerald-600'>AI Insights</p>
-                                        <p className='text-sm font-bold text-slate-900 leading-none'>Market-Ready</p>
-                                    </div>
-                                </div>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4'>
+                            <div>
+                                <h4 className='text-lg font-bold text-slate-900 mb-2'>Continental Reach</h4>
+                                <p className='leading-relaxed'>Enabling seamless e-waste material recovery across key African borders.</p>
                             </div>
-                        </div>
-
-                        {/* Text Side */}
-                        <div className='space-y-10'>
-                            <div className='space-y-5'>
-                                <div className='inline-flex items-center gap-2 text-emerald-600 font-bold text-[10px] uppercase tracking-[0.3em]'>
-                                    <div className='w-6 h-[1.5px] bg-emerald-500/40'></div>
-                                    Infrastructure
-                                </div>
-                                <div className='space-y-3'>
-                                    <h2 className='text-4xl md:text-5xl font-bold text-slate-950 leading-tight uppercase tracking-tighter'>
-                                        Gocycle Marketplace
-                                    </h2>
-                                    <p className='text-lg md:text-xl font-semibold text-slate-400 uppercase tracking-tight'>
-                                        Secure digital e-waste trade
-                                    </p>
-                                </div>
+                            <div>
+                                <h4 className='text-lg font-bold text-slate-900 mb-2'>Verified Only</h4>
+                                <p className='leading-relaxed'>Stringent vetting for all recyclers, collectors, and corporate participants.</p>
                             </div>
-
-                            <div className='space-y-6 text-slate-600 leading-relaxed font-normal text-lg opacity-90'>
-                                <p>
-                                    The Gocycle Marketplace is a digital trading platform that connects verified sellers of end-of-life batteries and electronic waste with collectors, licensed recyclers and material recovery companies.
-                                </p>
-                                <p>
-                                    The platform ensures transparent pricing, secure escrow payments, verified market participants, and compliant recycling, enabling a trusted circular economy for e-waste across Africa.
-                                </p>
-                            </div>
-
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-2'>
-                                <div className='flex items-start gap-4 p-4 rounded-xl bg-slate-50/50 border border-black/[0.03] hover:border-emerald-500/20 transition-all group/item'>
-                                    <div className='w-11 h-11 bg-white rounded-lg flex-shrink-0 flex items-center justify-center text-emerald-600 shadow-sm border border-black/[0.02]'>
-                                        <Globe size={20} />
-                                    </div>
-                                    <div className='space-y-1.5'>
-                                        <h4 className='font-bold text-slate-900 uppercase text-[10px] tracking-widest'>Across Africa</h4>
-                                        <p className='text-[11px] text-slate-500 font-medium leading-relaxed'>Sustainable material recovery bridge.</p>
-                                    </div>
-                                </div>
-
-                                <div className='flex items-start gap-4 p-4 rounded-xl bg-slate-50/50 border border-black/[0.03] hover:border-emerald-500/20 transition-all group/item'>
-                                    <div className='w-11 h-11 bg-white rounded-lg flex-shrink-0 flex items-center justify-center text-emerald-600 shadow-sm border border-black/[0.02]'>
-                                        <ShieldCheck size={20} />
-                                    </div>
-                                    <div className='space-y-1.5'>
-                                        <h4 className='font-bold text-slate-900 uppercase text-[10px] tracking-widest'>Licensed Only</h4>
-                                        <p className='text-[11px] text-slate-500 font-medium leading-relaxed'>Verified specialists & collectors.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => router.push('/marketplace')}
-                                className='group inline-flex items-center gap-3 px-10 py-4 bg-slate-900 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all duration-300 shadow-xl shadow-slate-900/10'
-                            >
-                                Explore Marketplace <ArrowRight size={16} className='group-hover:translate-x-1 transition-transform' />
-                            </button>
                         </div>
                     </div>
+
+                    {/* Wide CTA Button (matching screenshot) */}
+                    <button
+                        onClick={() => router.push('/marketplace')}
+                        className='bg-[#00D166] hover:bg-[#00B859] text-white rounded-2xl w-full max-w-[480px] py-6 px-8 flex justify-between items-center text-xl font-bold transition-all duration-300 shadow-xl shadow-[#00D166]/20 group'
+                    >
+                        <span>Explore Marketplace</span>
+                        <ArrowRight size={24} className='group-hover:translate-x-2 transition-transform duration-300' />
+                    </button>
                 </div>
+
+                {/* Right Side: Image */}
+                <div className='relative w-full aspect-square md:aspect-[4/3] lg:aspect-square z-10'>
+                    <div className='absolute inset-0 flex items-center justify-center mix-blend-multiply opacity-90 hover:opacity-100 transition-opacity duration-500'>
+                        <Image
+                            src={assets.hero_product_img1}
+                            alt="Go-cycle Marketplace Ecosystem"
+                            fill
+                            className='object-contain scale-110 drop-shadow-2xl'
+                            priority
+                        />
+                    </div>
+                </div>
+
             </div>
         </section>
     )
 }
 
 export default MarketplaceOverview
+

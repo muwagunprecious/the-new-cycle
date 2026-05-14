@@ -1,139 +1,93 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Moon, Sun } from 'lucide-react'
+import { ArrowRight, Zap, ShieldCheck } from 'lucide-react'
 
-const slides = [
-    {
-        id: 1,
-        badge: 'Explore the marketplace',
-        title: 'AI powered e-waste market place',
-        description: 'One Battery at a time!',
-        primaryButton: 'Sell Battery',
-        primaryLink: '/signup?role=SELLER',
-        image: '/slider/powerline-battery.png',
-        darkBg: 'bg-slate-950',
-        lightBg: 'bg-[#f8f9fa]'
-    },
-    {
-        id: 2,
-        badge: 'Explore the marketplace',
-        title: 'E-Waste is Not Waste, It’s Value!',
-        description: 'Turning Old Batteries into New Opportunities',
-        primaryButton: 'Sell Battery',
-        primaryLink: '/signup?role=SELLER',
-        image: '/slider/dyvinity-battery.png',
-        darkBg: 'bg-black',
-        lightBg: 'bg-[#f4f6f8]'
-    }
-]
-
-const HeroSlider = () => {
-    const [currentSlide, setCurrentSlide] = useState(0)
-    const [isDark, setIsDark] = useState(true)
+const Hero = () => {
     const router = useRouter()
 
-    // Auto-glide effect
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1))
-        }, 6000) // Slide every 6 seconds
-        return () => clearInterval(timer)
-    }, [])
-
     return (
-        <div className={`pt-[100px] mb-8 transition-colors duration-500 ${isDark ? 'bg-slate-950' : 'bg-[#f4f6f8]'}`}>
-            {/* Toggle Button */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 flex justify-end">
-                <button 
-                    onClick={() => setIsDark(!isDark)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all shadow-sm border ${
-                        isDark 
-                        ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                >
-                    {isDark ? <Sun size={14} /> : <Moon size={14} />}
-                    {isDark ? 'Light Mode' : 'Dark Mode'}
-                </button>
+        <section className="relative min-h-screen bg-slate-950 overflow-hidden">
+            
+            {/* Background Image — Right Side (Circunomics Style) */}
+            <div className="absolute inset-0">
+                {/* Dark overlay for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent z-10"></div>
+                
+                {/* The hero image — positioned to the right */}
+                <div className="absolute top-0 right-0 w-full lg:w-[60%] h-full">
+                    <Image
+                        src="/slider/hero-premium.png"
+                        alt="Battery Technology Infrastructure"
+                        fill
+                        className="object-cover object-center"
+                        priority
+                    />
+                    {/* Additional gradient blend into the dark side */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/20 to-transparent"></div>
+                </div>
+
+                {/* Subtle green ambient glow */}
+                <div className="absolute bottom-[-20%] left-[10%] w-[500px] h-[500px] bg-[#00D166]/[0.04] rounded-full blur-[150px] pointer-events-none z-10"></div>
             </div>
 
-            <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 pt-2 pb-10 overflow-hidden h-[500px] md:h-[450px]">
-                {/* Slider Container */}
-                <div className={`relative w-full h-full rounded-2xl overflow-hidden shadow-sm border transition-colors duration-500 flex ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                    {slides.map((slide, index) => (
-                        <div
-                            key={slide.id}
-                            className={`absolute inset-0 w-full h-full p-8 md:p-14 flex flex-col-reverse md:flex-row items-center justify-between transition-all duration-1000 ease-in-out ${isDark ? slide.darkBg : slide.lightBg} ${
-                            index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                        }`}
-                    >
-                        {/* Text Side */}
-                        <div className="w-full md:w-1/2 flex flex-col space-y-6 z-20">
-                            {slide.badge && (
-                                <span className="text-emerald-500 font-bold text-sm md:text-base tracking-wide">
-                                    {slide.badge}
-                                </span>
-                            )}
-                            <h1 className={`text-3xl md:text-4xl lg:text-5xl font-black leading-tight transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                {slide.title}
-                            </h1>
-                            <p className={`text-sm md:text-base font-medium max-w-md hidden sm:block transition-colors duration-500 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
-                                {slide.description}
-                            </p>
-                            
-                            <div className="flex items-center gap-4 pt-2">
-                                <button
-                                    onClick={() => router.push(slide.primaryLink)}
-                                    className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition-all shadow-md active:scale-95"
-                                >
-                                    {slide.primaryButton}
-                                </button>
-                                {slide.secondaryButton && (
-                                    <button
-                                        onClick={() => router.push(slide.secondaryLink)}
-                                        className={`flex items-center gap-2 px-4 py-3 font-bold transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'}`}
-                                    >
-                                        {slide.secondaryButton} <ArrowRight size={16} />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+            {/* Content */}
+            <div className="max-container relative z-20 pt-40 md:pt-48 pb-20 md:pb-32 min-h-screen flex flex-col justify-between">
+                
+                {/* Trust Badge Row — top */}
+                <div className="flex items-center gap-3 mb-8 md:mb-0">
+                    <span className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em]">Trusted by:</span>
+                    <div className="flex items-center gap-2 bg-white/[0.06] border border-white/[0.08] rounded-full px-4 py-2">
+                        <Zap size={14} className="text-[#00D166]" fill="currentColor" />
+                        <span className="text-[11px] font-bold text-white/70 tracking-wide">Recyclers Association of Nigeria</span>
+                    </div>
+                </div>
 
-                        {/* Image Side */}
-                        <div className="w-full md:w-1/2 h-72 md:h-full relative flex items-center justify-center mb-6 md:mb-0">
-                            <Image
-                                src={slide.image}
-                                alt={slide.title}
-                                fill
-                                className="object-contain drop-shadow-xl"
-                                sizes="(max-width: 768px) 100vw, 50vw"
-                                priority={index === 0}
-                            />
+                {/* Main Content Grid */}
+                <div className="flex-1 flex flex-col justify-center max-w-3xl">
+                    
+                    {/* Large Headline — Circunomics style: very large, light weight */}
+                    <h1 className="text-[clamp(2.5rem,6vw,5.5rem)] font-light text-white leading-[1.05] tracking-[-0.02em] mb-10">
+                        Your e-waste{' '}
+                        <br className="hidden md:block" />
+                        marketplace to{' '}
+                        <span className="text-[#00D166]">buy</span>
+                        <br className="hidden md:block" />
+                        and <span className="text-[#00D166]">sell</span> batteries
+                    </h1>
+
+                    {/* Subtitle */}
+                    <p className="text-lg md:text-xl text-white/50 font-normal leading-relaxed max-w-xl mb-12">
+                        GoCycle is Africa's B2B battery marketplace where companies can list or request batteries in minutes and connect with verified sellers and buyers in just a few clicks.
+                    </p>
+                </div>
+
+                {/* Bottom Row — CTA Button (positioned bottom-right like Circunomics) */}
+                <div className="flex items-end justify-between">
+                    {/* Left: subtle trust indicators */}
+                    <div className="hidden md:flex items-center gap-8">
+                        <div className="flex items-center gap-2 text-white/30">
+                            <ShieldCheck size={16} className="text-[#00D166]/60" />
+                            <span className="text-[11px] font-semibold uppercase tracking-widest">Verified Sellers</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-white/30">
+                            <Zap size={16} className="text-[#00D166]/60" />
+                            <span className="text-[11px] font-semibold uppercase tracking-widest">Instant Matching</span>
                         </div>
                     </div>
-                ))}
-            </div>
 
-            {/* Pagination Dots */}
-            <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 flex gap-3 z-30">
-                {slides.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => setCurrentSlide(index)}
-                        className={`transition-all duration-300 rounded-full ${
-                            index === currentSlide 
-                            ? 'w-6 h-2 bg-emerald-500' 
-                            : 'w-2 h-2 bg-slate-300 hover:bg-slate-400'
-                        }`}
-                        aria-label={`Go to slide ${index + 1}`}
-                    />
-                ))}
+                    {/* Right: Primary CTA */}
+                    <button 
+                        onClick={() => router.push('/signup')}
+                        className="group flex items-center gap-3 bg-[#00D166] text-white px-10 py-5 rounded-full text-[15px] font-semibold hover:bg-[#00A350] transition-all duration-300 hover:shadow-2xl hover:shadow-[#00D166]/20 hover:-translate-y-0.5"
+                    >
+                        Sign Up <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                </div>
             </div>
-            </div>
-        </div>
+        </section>
     )
 }
 
-export default HeroSlider
+export default Hero

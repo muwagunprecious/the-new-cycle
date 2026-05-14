@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import { Plus, Minus, Search } from 'lucide-react'
+import { Plus, Minus, Search, MessageSquare } from 'lucide-react'
 
 const FAQPage = () => {
     const [openIndex, setOpenIndex] = useState(null)
@@ -59,62 +59,73 @@ const FAQPage = () => {
     )
 
     return (
-        <div className="bg-slate-950 min-h-screen text-slate-300 pb-24">
-            <section className="relative py-32 px-6 lg:px-10 overflow-hidden text-center">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[120px] -mt-40"></div>
-                <div className="max-w-4xl mx-auto relative z-10 space-y-6">
-                    <h3 className="text-emerald-500 font-black text-[10px] uppercase tracking-[0.4em]">Help Center</h3>
-                    <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase leading-none">
-                        Frequently Asked <br /><span className="text-emerald-500">Questions</span>
+        <div className="bg-white min-h-screen pt-24 pb-32">
+            <section className="relative py-24 px-4 md:px-8 max-w-[1400px] mx-auto text-center flex flex-col items-center">
+                <div className="max-w-4xl space-y-8 flex flex-col items-center">
+                    <div className="flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#00D166]"></div>
+                        <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-[#00D166]">
+                            Help Center
+                        </span>
+                    </div>
+                    <h1 className="text-5xl md:text-7xl font-medium text-slate-900 tracking-[-0.02em] leading-[1.1]">
+                        Frequently Asked <br /><span className="text-[#00D166]">Questions</span>
                     </h1>
 
-                    <div className="max-w-md mx-auto relative mt-12">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                    <div className="max-w-xl w-full relative mt-12 group">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#00D166] transition-colors" size={20} />
                         <input
                             type="text"
                             placeholder="Search questions..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm font-medium focus:ring-2 focus:ring-emerald-500/50 transition-all outline-none"
+                            className="w-full bg-[#F4F6F8] border border-slate-200 rounded-[24px] py-5 pl-14 pr-6 text-base font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-[#00D166]/10 focus:border-[#00D166]/40 transition-all outline-none shadow-sm placeholder:text-slate-400"
                         />
                     </div>
                 </div>
             </section>
 
-            <section className="px-6 lg:px-10">
-                <div className="max-w-3xl mx-auto space-y-4">
+            <section className="px-4 md:px-8 max-w-[1000px] mx-auto">
+                <div className="space-y-4">
                     {filteredFaqs.length > 0 ? (
                         filteredFaqs.map((faq, idx) => (
-                            <div key={idx} className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden transition-all duration-300">
+                            <div key={idx} className="bg-white border border-slate-200 shadow-sm rounded-[24px] overflow-hidden transition-all duration-300 hover:border-slate-300">
                                 <button
                                     onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
-                                    className="w-full px-8 py-8 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+                                    className="w-full px-6 md:px-10 py-8 flex items-center justify-between text-left transition-colors"
                                 >
-                                    <span className="text-lg font-black text-white uppercase tracking-tight">{faq.q}</span>
-                                    {openIndex === idx ? <Minus className="text-emerald-500" /> : <Plus className="text-slate-500" />}
+                                    <span className="text-xl md:text-2xl font-medium text-slate-900 pr-8 leading-snug tracking-tight">{faq.q}</span>
+                                    <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors ${openIndex === idx ? 'bg-[#00D166] text-white' : 'bg-[#F4F6F8] text-slate-400'}`}>
+                                        {openIndex === idx ? <Minus size={18} /> : <Plus size={18} />}
+                                    </div>
                                 </button>
-                                <div className={`px-8 transition-all duration-300 ease-in-out ${openIndex === idx ? 'max-h-96 pb-8 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                    <p className="text-slate-400 font-medium leading-relaxed">
+                                <div className={`px-6 md:px-10 transition-all duration-300 ease-in-out ${openIndex === idx ? 'max-h-96 pb-10 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                    <p className="text-slate-600 text-lg leading-relaxed font-medium">
                                         {faq.a}
                                     </p>
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-20 bg-white/5 rounded-[2rem] border border-white/10">
-                            <p className="text-slate-500 font-bold">No questions found matching "{searchQuery}"</p>
+                        <div className="text-center py-24 bg-[#F4F6F8] rounded-[32px] border border-dashed border-slate-300">
+                            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">No questions found matching "{searchQuery}"</p>
                         </div>
                     )}
                 </div>
             </section>
 
-            <section className="mt-32 px-6 lg:px-10">
-                <div className="max-w-7xl mx-auto bg-emerald-600 rounded-[3rem] p-12 md:p-20 flex flex-col items-center text-center space-y-8">
-                    <h2 className="text-4xl font-black text-white tracking-tighter uppercase">Still have questions?</h2>
-                    <p className="text-emerald-50 font-medium max-w-xl">
-                        Our support team is here to help you navigate the e-waste marketplace. Connect with us for personalized guidance.
-                    </p>
-                    <button className="px-10 py-5 bg-white text-emerald-600 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-emerald-50 transition-all shadow-xl active:scale-95">
+            <section className="mt-24 px-4 md:px-8 max-w-[1400px] mx-auto">
+                <div className="bg-[#00D166] rounded-[40px] p-10 md:p-20 flex flex-col items-center text-center space-y-10 relative overflow-hidden">
+                    <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm mb-2">
+                        <MessageSquare size={32} />
+                    </div>
+                    <div className="space-y-4">
+                        <h2 className="text-4xl md:text-5xl font-medium text-white tracking-[-0.02em]">Still have questions?</h2>
+                        <p className="text-xl text-white/90 leading-relaxed max-w-2xl mx-auto">
+                            Our support team is here to help you navigate the e-waste marketplace. Connect with us for personalized guidance.
+                        </p>
+                    </div>
+                    <button className="bg-white text-[#00D166] px-10 py-5 rounded-[20px] text-sm font-bold uppercase tracking-widest shadow-xl hover:scale-105 transition-transform active:scale-95">
                         Contact Support
                     </button>
                 </div>
