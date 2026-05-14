@@ -599,7 +599,10 @@ export async function getUserStoreStatus(userId) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        const store = await prisma.store.findUnique({ where: { userId } })
+        const store = await prisma.store.findUnique({ 
+            where: { userId },
+            include: { user: true }
+        })
         if (!store) return ApiResponse.success({ exists: false })
 
         return ApiResponse.success({
@@ -609,7 +612,7 @@ export async function getUserStoreStatus(userId) {
             bankName: store.bankName || null,
             accountNumber: store.accountNumber || null,
             accountName: store.accountName || null,
-            lga: store.lga || null,
+            lga: store.lga || store.user?.lga || null,
             address: store.address || null
         })
     } catch (error) {
