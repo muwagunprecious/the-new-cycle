@@ -100,9 +100,9 @@ function LoginContent() {
 
             toast.success("Logged in successfully!")
 
-            // Use client-side navigation only — no full page reload
+            // Use window.location.href to guarantee navigation and a fresh state load
             // The session is already saved to localStorage by setCredentials above
-            router.push(destination)
+            window.location.href = destination
 
         } catch (error) {
             dispatch(hideLoader())
