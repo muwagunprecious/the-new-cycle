@@ -234,14 +234,16 @@ export default function SellerProducts() {
                         isActive: res.isActive,
                         bankName: res.bankName,
                         accountNumber: res.accountNumber,
-                        accountName: res.accountName
+                        accountName: res.accountName,
+                        lga: res.lga,
+                        address: res.address
                     })
                     // Pre-fill location from store info
-                    if (res.data) {
+                    if (res.lga || res.address) {
                         setFormData(prev => ({
                             ...prev,
-                            lga: res.data.lga || prev.lga,
-                            address: res.data.address || prev.address,
+                            lga: res.lga || prev.lga,
+                            address: res.address || prev.address,
                         }))
                     }
                 }
