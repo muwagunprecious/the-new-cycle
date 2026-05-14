@@ -58,6 +58,7 @@ export default function SellerProducts() {
     const [storeInfo, setStoreInfo] = useState({ status: null, isActive: false })
     const [acceptedTerms, setAcceptedTerms] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
+    const [addressMode, setAddressMode] = useState('registered') // 'registered' or 'new'
     const [saveAccount, setSaveAccount] = useState(true)
     const [bankLookupLoading, setBankLookupLoading] = useState(false)
     // Dynamic pricing — loaded from admin settings, falls back to defaults
@@ -113,9 +114,11 @@ export default function SellerProducts() {
                 lga: storeInfo.lga,
                 address: storeInfo.address
             }))
+            setAddressMode('registered')
             toast.success("Profile address applied")
         } else {
             toast.error("No address found in your profile. Please enter one below.")
+            setAddressMode('new')
         }
     }
 
@@ -867,39 +870,65 @@ export default function SellerProducts() {
                                     Location & Pickup Address
                                 </h3>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2 flex flex-col items-start gap-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Local Government Area *</label>
-                                        <select
-                                            value={formData.lga}
-                                            onChange={e => setFormData({ ...formData, lga: e.target.value })}
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                            required
-                                        >
-                                            <option value="">Select LGA</option>
-                                            {lagosLGAs.map(lga => (
-                                                <option key={lga} value={lga}>{lga}</option>
-                                            ))}
-                                        </select>
+                                <div className="space-y-4">
+                                    <div className="flex flex-col sm:flex-row gap-4 mb-2">
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <input
+                                                type="radio"
+                                                name="addressMode"
+                                                checked={addressMode === 'registered'}
+                                                onChange={() => useRegisteredAddress()}
+                                                className="w-4 h-4 text-[#05DF72] focus:ring-[#05DF72] border-slate-300"
+                                            />
+                                            <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Use Registered Address</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <input
+                                                type="radio"
+                                                name="addressMode"
+                                                checked={addressMode === 'new'}
+                                                onChange={() => {
+                                                    setAddressMode('new')
+                                                    setFormData(prev => ({ ...prev, lga: '', address: '' }))
+                                                }}
+                                                className="w-4 h-4 text-[#05DF72] focus:ring-[#05DF72] border-slate-300"
+                                            />
+                                            <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Enter New Address</span>
+                                        </label>
                                     </div>
 
-                                    <div className="space-y-2 md:col-span-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Full Pickup Address *</label>
-                                        <input
-                                            value={formData.address}
-                                            onChange={e => setFormData({ ...formData, address: e.target.value })}
-                                            placeholder="e.g. 12 Admiralty Way, Lekki Phase 1"
-                                            required
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={useRegisteredAddress}
-                                            className="text-[10px] font-black text-[#05DF72] uppercase tracking-widest flex items-center gap-2 hover:underline transition-all mt-1"
-                                        >
-                                            <MapPinIcon size={12} />
-                                            Use Registered Address
-                                        </button>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2 flex flex-col items-start gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Local Government Area *</label>
+                                            <select
+                                                value={formData.lga}
+                                                onChange={e => {
+                                                    setFormData({ ...formData, lga: e.target.value })
+                                                    if (addressMode === 'registered') setAddressMode('new')
+                                                }}
+                                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                                required
+                                            >
+                                                <option value="">Select LGA</option>
+                                                {lagosLGAs.map(lga => (
+                                                    <option key={lga} value={lga}>{lga}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-2 md:col-span-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Full Pickup Address *</label>
+                                            <input
+                                                value={formData.address}
+                                                onChange={e => {
+                                                    setFormData({ ...formData, address: e.target.value })
+                                                    if (addressMode === 'registered') setAddressMode('new')
+                                                }}
+                                                placeholder="e.g. 12 Admiralty Way, Lekki Phase 1"
+                                                required
+                                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
