@@ -6,7 +6,7 @@ export default function DashboardsShowcase() {
         <section className="py-24 max-container space-y-16 overflow-hidden">
             
             {/* Seller Card */}
-            <div className="group/card bg-[#F4FBF7] hover:bg-[#00D166] transition-colors duration-700 rounded-[2.5rem] md:rounded-[3rem] p-10 md:p-16 relative overflow-hidden flex flex-col md:flex-row items-center gap-12 shadow-sm border border-[#00D166]/10 hover:shadow-2xl hover:shadow-[#00D166]/20">
+            <div className="group/card bg-[#F4FBF7] hover:bg-[#00D166] transition-colors duration-700 rounded-[2.5rem] md:rounded-[3rem] px-8 py-12 md:p-16 relative overflow-hidden flex flex-col-reverse md:flex-row items-center gap-12 shadow-sm border border-[#00D166]/10 hover:shadow-2xl hover:shadow-[#00D166]/20">
                 
                 {/* Content Left */}
                 <div className="flex-1 space-y-8 z-10 md:max-w-2xl">
@@ -34,7 +34,7 @@ export default function DashboardsShowcase() {
                 </div>
 
                 {/* Image Right */}
-                <div className="flex-1 w-full relative h-[300px] md:h-[500px] mt-10 md:mt-0 pointer-events-none">
+                <div className="flex-1 w-full relative h-[250px] md:h-[500px] pointer-events-none">
                     <img 
                         src="/images/seller-dashboard-mockup.png" 
                         alt="Go-cycle Seller Dashboard" 
@@ -44,7 +44,7 @@ export default function DashboardsShowcase() {
             </div>
 
             {/* Buyer Card */}
-            <div className="group/card bg-[#F4FBF7] hover:bg-[#00D166] transition-colors duration-700 rounded-[2.5rem] md:rounded-[3rem] p-10 md:p-16 relative overflow-hidden flex flex-col md:flex-row items-center gap-12 shadow-sm border border-[#00D166]/10 hover:shadow-2xl hover:shadow-[#00D166]/20">
+            <div className="group/card bg-[#F4FBF7] hover:bg-[#00D166] transition-colors duration-700 rounded-[2.5rem] md:rounded-[3rem] px-8 py-12 md:p-16 relative overflow-hidden flex flex-col-reverse md:flex-row items-center gap-12 shadow-sm border border-[#00D166]/10 hover:shadow-2xl hover:shadow-[#00D166]/20">
                 
                 {/* Content Left */}
                 <div className="flex-1 space-y-8 z-10 md:max-w-2xl">
@@ -68,7 +68,7 @@ export default function DashboardsShowcase() {
                 </div>
 
                 {/* Image Right */}
-                <div className="flex-1 w-full relative h-[300px] md:h-[500px] mt-10 md:mt-0 pointer-events-none">
+                <div className="flex-1 w-full relative h-[250px] md:h-[500px] pointer-events-none">
                     <img 
                         src="/images/buyer-dashboard-mockup.png" 
                         alt="Go-cycle Buyer Dashboard" 
