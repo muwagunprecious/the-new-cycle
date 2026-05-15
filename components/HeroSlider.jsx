@@ -18,7 +18,7 @@ const Hero = () => {
                 {/* The hero image — positioned to the right */}
                 <div className="absolute top-0 right-0 w-full lg:w-[60%] h-full">
                     <Image
-                        src="/slider/hero-premium.png"
+                        src="/slider/hero-premium.jpg"
                         alt="Battery Technology Infrastructure"
                         fill
                         className="object-cover object-center"

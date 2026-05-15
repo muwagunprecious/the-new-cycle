@@ -59,12 +59,12 @@ const MarketplaceOverview = () => {
 
                 {/* Right Side: Image */}
                 <div className='relative w-full aspect-square md:aspect-[4/3] lg:aspect-square z-10'>
-                    <div className='absolute inset-0 flex items-center justify-center mix-blend-multiply opacity-90 hover:opacity-100 transition-opacity duration-500'>
+                    <div className='absolute inset-0 flex items-center justify-center transition-opacity duration-500'>
                         <Image
-                            src={assets.hero_product_img1}
+                            src="/images/marketplace-batteries.jpg"
                             alt="Go-cycle Marketplace Ecosystem"
                             fill
-                            className='object-contain scale-110 drop-shadow-2xl'
+                            className='object-cover rounded-3xl drop-shadow-2xl'
                             priority
                         />
                     </div>
