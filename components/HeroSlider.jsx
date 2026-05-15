@@ -47,19 +47,18 @@ const Hero = () => {
                 {/* Main Content Grid */}
                 <div className="flex-1 flex flex-col justify-center max-w-3xl">
                     
-                    {/* Large Headline — Circunomics style: very large, light weight */}
-                    <h1 className="text-[clamp(2.5rem,6vw,5.5rem)] font-light text-white leading-[1.05] tracking-[-0.02em] mb-10">
-                        Your e-waste{' '}
-                        <br className="hidden md:block" />
-                        marketplace to{' '}
-                        <span className="text-[#00D166]">buy</span>
-                        <br className="hidden md:block" />
-                        and <span className="text-[#00D166]">sell</span> batteries
+                    {/* Large Headline */}
+                    <h1 className="text-[clamp(2.5rem,5vw,4.5rem)] font-light text-white leading-[1.05] tracking-[-0.02em] mb-8">
+                        One stop marketplace{' '}
+                        <br className="hidden xl:block" />
+                        to trade with vetted <span className="text-[#00D166]">sellers</span>
+                        <br className="hidden xl:block" />
+                        and <span className="text-[#00D166]">buyers</span> of old batteries.
                     </h1>
 
                     {/* Subtitle */}
                     <p className="text-lg md:text-xl text-white/50 font-normal leading-relaxed max-w-xl mb-12">
-                        GoCycle is Africa's B2B battery marketplace where companies can list or request batteries in minutes and connect with verified sellers and buyers in just a few clicks.
+                        With smart price intelligence, AI enabled product verification, buyer matching and secure payments!
                     </p>
                 </div>
 
