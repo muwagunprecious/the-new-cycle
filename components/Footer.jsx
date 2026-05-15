@@ -87,8 +87,12 @@ const Footer = () => {
                         </div>
 
                         <div className="flex items-center gap-4 pt-4">
-                            {[Twitter, Linkedin, Facebook].map((Icon, i) => (
-                                <a key={i} href="#" className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-slate-400 hover:bg-[#00D166] hover:text-white hover:shadow-lg hover:shadow-[#00D166]/20 transition-all duration-500">
+                            {[
+                                { Icon: Twitter, url: 'https://x.com/usegocycle' },
+                                { Icon: Linkedin, url: 'https://linkedin.com/company/usegocycle' },
+                                { Icon: Facebook, url: 'https://facebook.com/usegocycle' }
+                            ].map(({ Icon, url }, i) => (
+                                <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-slate-400 hover:bg-[#00D166] hover:text-white hover:shadow-lg hover:shadow-[#00D166]/20 transition-all duration-500">
                                     <Icon size={20} />
                                 </a>
                             ))}
