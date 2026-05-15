@@ -77,25 +77,15 @@ const Navbar = () => {
                             ? 'bg-white/[0.08] backdrop-blur-md border-white/[0.12]' 
                             : 'bg-white/90 backdrop-blur-xl border-black/[0.06] shadow-lg'
                     }`}>
-                        <Link href="/marketplace" className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 ${
+                        <Link href="/shop" prefetch={true} className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 ${
                             isDark ? 'text-white/80 hover:bg-white/10 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                         }`}>
-                            Marketplace
+                            Market place
                         </Link>
-                        <Link href="/about" className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 ${
+                        <Link href="/price-check" prefetch={true} className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 ${
                             isDark ? 'text-white/80 hover:bg-white/10 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                         }`}>
-                            About
-                        </Link>
-                        <Link href="/blog" className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 ${
-                            isDark ? 'text-white/80 hover:bg-white/10 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
-                        }`}>
-                            Blog
-                        </Link>
-                        <Link href="/faq" className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 ${
-                            isDark ? 'text-white/80 hover:bg-white/10 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
-                        }`}>
-                            Resources
+                            Price check
                         </Link>
                     </div>
 
