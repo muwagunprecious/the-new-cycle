@@ -16,8 +16,8 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
 
-    // On non-home pages, always use dark/solid navbar style
-    const isDark = isHomePage && !scrolled
+    // On non-home pages, always use dark/solid navbar style, or if the mobile menu is open
+    const isDark = (isHomePage && !scrolled) || isMenuOpen
     
     const cartCount = useSelector(state => state.cart.total)
     const { user, isLoggedIn } = useSelector(state => state.auth)
@@ -29,6 +29,18 @@ const Navbar = () => {
         window.addEventListener('scroll', handleScroll)
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
+
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (isMenuOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [isMenuOpen])
 
     const handleNavigation = (href, message = "Loading...") => {
         setIsMenuOpen(false)
@@ -57,7 +69,7 @@ const Navbar = () => {
     }
 
     return (
-        <header className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${isDark ? 'py-5' : 'py-3 bg-white/80 backdrop-blur-xl shadow-sm'}`}>
+        <header className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${isMenuOpen ? 'py-5 bg-black' : isDark ? 'py-5' : 'py-3 bg-white/80 backdrop-blur-xl shadow-sm'}`}>
             <div className="max-container">
                 <nav className="flex items-center justify-between">
                     
@@ -145,19 +157,13 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Menu — Dark Fullscreen Overlay */}
-            <div className={`fixed inset-0 bg-slate-950 z-[90] lg:hidden transition-all duration-500 ease-in-out pt-28 px-6 ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}`}>
+            <div className={`fixed inset-0 bg-black z-[90] lg:hidden transition-all duration-500 ease-in-out pt-28 px-6 ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}`}>
                 <div className="flex flex-col gap-2">
-                    <Link href="/marketplace" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-white/[0.06] text-xl font-bold text-white">
-                        Marketplace <ChevronRight size={20} className="text-[#00D166]" />
+                    <Link href="/shop" prefetch={true} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-white/[0.06] text-xl font-bold text-white">
+                        Market place <ChevronRight size={20} className="text-[#00D166]" />
                     </Link>
-                    <Link href="/about" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-white/[0.06] text-xl font-bold text-white">
-                        About <ChevronRight size={20} className="text-[#00D166]" />
-                    </Link>
-                    <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-white/[0.06] text-xl font-bold text-white">
-                        Blog <ChevronRight size={20} className="text-[#00D166]" />
-                    </Link>
-                    <Link href="/faq" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-white/[0.06] text-xl font-bold text-white">
-                        Resources <ChevronRight size={20} className="text-[#00D166]" />
+                    <Link href="/price-check" prefetch={true} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-white/[0.06] text-xl font-bold text-white">
+                        Price check <ChevronRight size={20} className="text-[#00D166]" />
                     </Link>
                     
                     <div className="mt-10 flex flex-col gap-4">
@@ -172,6 +178,10 @@ const Navbar = () => {
                                 <button onClick={handleLogout} className="w-full py-4 rounded-full border border-white/10 text-rose-400 font-semibold hover:bg-white/5 transition-all">Sign Out</button>
                             </>
                         )}
+                        
+                        <button onClick={() => setIsMenuOpen(false)} className="w-full py-4 mt-2 rounded-full border border-white/20 text-white font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                            <X size={18} /> Cancel
+                        </button>
                     </div>
                 </div>
             </div>

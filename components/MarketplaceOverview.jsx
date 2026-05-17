@@ -14,7 +14,7 @@ const MarketplaceOverview = () => {
             <div className='max-w-[1400px] mx-auto bg-[#F4F6F8] rounded-[40px] md:rounded-[60px] p-8 md:p-16 lg:p-24 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center overflow-hidden relative'>
                 
                 {/* Left Side: Text & CTA */}
-                <div className='flex flex-col items-start space-y-12 z-10'>
+                <div className='flex flex-col items-start space-y-12 z-10 order-2 lg:order-1'>
                     
                     {/* Top Dot & Label */}
                     <div className='flex items-center gap-3'>
@@ -58,7 +58,7 @@ const MarketplaceOverview = () => {
                 </div>
 
                 {/* Right Side: Image */}
-                <div className='relative w-full aspect-square md:aspect-[4/3] lg:aspect-square z-10'>
+                <div className='relative w-full aspect-square md:aspect-[4/3] lg:aspect-square z-10 order-1 lg:order-2'>
                     <div className='absolute inset-0 flex items-center justify-center transition-opacity duration-500'>
                         <Image
                             src="/images/marketplace-batteries.jpg"
