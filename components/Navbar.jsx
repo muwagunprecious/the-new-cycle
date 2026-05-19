@@ -1,11 +1,13 @@
 'use client'
 import { ShoppingCart, BatteryCharging, LogOut as LogOutIcon, LayoutDashboard as LayoutDashboardIcon, Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/lib/features/auth/authSlice";
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice";
+import { assets } from "../assets/assets";
 
 const Navbar = () => {
     const router = useRouter();
@@ -75,12 +77,13 @@ const Navbar = () => {
                     
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-                        <div className="bg-[#00D166] p-1.5 rounded-xl transition-transform group-hover:scale-110 duration-500">
-                            <BatteryCharging className="text-white" size={18} />
-                        </div>
-                        <span className={`text-lg font-bold tracking-tight transition-colors duration-300 ${isDark ? 'text-white' : 'text-slate-950'}`}>
-                            go<span className="text-[#00D166]">cycle</span>
-                        </span>
+                        <Image 
+                            src={assets.gs_logo} 
+                            alt="GoCycle" 
+                            width={160} 
+                            height={48} 
+                            className="w-auto h-10 md:h-12 object-contain transition-transform group-hover:scale-105 duration-500"
+                        />
                     </Link>
 
                     {/* Center Navigation — Pill Container (like Circunomics) */}

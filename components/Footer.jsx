@@ -1,10 +1,12 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { BatteryCharging, Mail, Twitter, Linkedin, Facebook, ArrowUpRight, Phone, Loader2, MapPin, Globe } from 'lucide-react'
 import toast from "react-hot-toast"
 import { subscribeNewsletter } from "@/backend-actions/actions/newsletter"
 import { getPartners } from "@/backend-actions/actions/partners"
+import { assets } from "../assets/assets"
 
 const Footer = () => {
     const currentYear = new Date().getFullYear()
@@ -55,10 +57,15 @@ const Footer = () => {
                     {/* Brand & Mission */}
                     <div className="lg:col-span-5 space-y-12">
                         <Link href="/" className="flex items-center gap-3 group">
-                            <div className="bg-[#00D166] p-2.5 rounded-2xl shadow-lg shadow-[#00D166]/20 transition-transform group-hover:scale-110 duration-500">
-                                <BatteryCharging className="text-white" size={24} />
+                            <div className="bg-white p-2 rounded-2xl shadow-lg shadow-[#00D166]/10 transition-transform group-hover:scale-105 duration-500">
+                                <Image 
+                                    src={assets.gs_logo} 
+                                    alt="GoCycle" 
+                                    width={160} 
+                                    height={48} 
+                                    className="w-auto h-12 object-contain"
+                                />
                             </div>
-                            <span className="text-2xl font-black tracking-tighter text-white">Go<span className="text-[#00D166]">Cycle</span></span>
                         </Link>
                         
                         <p className="text-lg text-slate-400 font-medium leading-relaxed max-w-md">
