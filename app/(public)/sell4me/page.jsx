@@ -25,7 +25,7 @@ const Sell4MePage = () => {
                             Engineered for corporate organizations, telecom providers, and high-volume recyclers who prioritize operational efficiency and regulatory compliance over DIY trading.
                         </p>
                         <button
-                            onClick={() => router.push('/signup')}
+                            onClick={() => router.push('/contact')}
                             className="bg-[#00D166] text-white px-10 py-5 rounded-[20px] text-[14px] font-bold uppercase tracking-widest shadow-xl hover:bg-[#00B859] hover:-translate-y-1 transition-all flex items-center gap-3 w-fit"
                         >
                             Request Managed Service <ArrowRight size={20} />

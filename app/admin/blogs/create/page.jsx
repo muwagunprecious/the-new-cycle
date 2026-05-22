@@ -45,7 +45,7 @@ export default function CreateBlogPage() {
         const reader = new FileReader()
         reader.onloadend = () => {
             const base64 = reader.result
-            const imgHtml = `<br><img src="${base64}" alt="Article Image" style="max-width: 100%; border-radius: 12px; margin: 16px 0;" /><br>`
+            const imgHtml = `<br><img src="${base64}" alt="Article Image" class="article-image" /><br>`
             
             // Insert at current cursor position or append
             const textarea = contentRef.current

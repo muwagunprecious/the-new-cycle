@@ -172,6 +172,10 @@ const Footer = () => {
                 )}
 
                 {/* Bottom Bar */}
+                {/* Beta testing notice */}
+                <div className="text-center md:text-left text-sm text-slate-400 mb-4">
+                  This website is currently in <strong>beta testing</strong>. Any bugs should be reported <a href="/contact" className="underline hover:text-[#00D166]">here</a>.
+                </div>
                 <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
                     <p className="text-sm text-slate-500 font-medium">
                         &copy; {currentYear} Go-cycle Africa. All rights reserved.
