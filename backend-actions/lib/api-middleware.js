@@ -1,6 +1,6 @@
 import { ApiResponse } from "./api-response";
 import { logger } from "./api-utils";
-import prisma from "./prisma";
+import prisma from "@/backend-actions/lib/prisma";
 import { verifyToken } from "./jwt";
 
 import { cookies, headers } from "next/headers";

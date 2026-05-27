@@ -3,7 +3,7 @@
 
 import { ApiResponse, handleDbError } from "@/backend-actions/lib/api-response"
 import { mapProductToFrontend, logger } from "@/backend-actions/lib/api-utils"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 import { logToFile } from "@/backend-actions/lib/server-logger"
 import { verifyIsBattery } from "@/backend-actions/lib/ai-service"
@@ -20,7 +20,13 @@ export async function createProduct(data, userId) {
     try {
         const headerList = await headers()
         const ip = headerList.get('x-forwarded-for') || 'unknown'
-        await rateLimit(`create_product_${userId || ip}`, 10) // Limit product uploads
+                // Rate limiting – return a friendly error if limit exceeded
+        try {
+            await rateLimit(`create_product_${userId || ip}`, 10);
+        } catch (rlError) {
+            logger.warn("Rate limit exceeded", rlError);
+            return ApiResponse.error("Too many requests. Please try again later.", 429);
+        }
         console.log("SERVER: Received createProduct request", { userId, batteryType: data.batteryType, amps: data.amps })
         if (!userId) return ApiResponse.unauthorized("Authentication required")
         if (!data.collectionDates?.length) return ApiResponse.error("Please select at least one collection date", 400)
@@ -107,9 +113,16 @@ export async function createProduct(data, userId) {
             console.warn("Background task for product creation failed", taskError);
         }
 
-        revalidatePath('/seller/products')
-        revalidatePath('/')
-        revalidatePath('/shop')
+        try {
+            const { revalidateTag } = await import("next/cache");
+            revalidateTag('products')
+            revalidateTag(`seller-${store.id}`)
+            revalidatePath('/seller/products')
+            revalidatePath('/')
+            revalidatePath('/shop')
+        } catch (revalError) {
+            console.warn('Revalidate failed', revalError);
+        }
 
         return ApiResponse.success(product, "Product created successfully")
     } catch (error) {
@@ -133,51 +146,37 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
 
         const skip = (page - 1) * limit
 
+        // Directly fetch products and total count without caching to avoid exceeding cache size limits
         const [products, totalCount] = await Promise.all([
             prisma.product.findMany({
                 where: { storeId: store.id },
                 select: {
-                    id: true,
-                    name: true,
-                    description: true,
-                    mrp: true,
-                    price: true,
-                    category: true,
-                    type: true,
-                    brand: true,
-                    amps: true,
-                    condition: true,
-                    pickupAddress: true,
-                    collectionDateStart: true,
-                    collectionDateEnd: true,
-                    collectionDates: true,
-                    quantity: true,
-                    inStock: true,
-                    status: true,
-                    rejectionReason: true,
-                    storeId: true,
-                    createdAt: true,
-                    updatedAt: true,
+                    id: true, name: true, description: true, mrp: true, price: true,
+                    category: true, type: true, brand: true, amps: true, condition: true,
+                    pickupAddress: true, collectionDateStart: true, collectionDateEnd: true,
+                    collectionDates: true, quantity: true, inStock: true, status: true,
+                    rejectionReason: true, storeId: true, createdAt: true, updatedAt: true,
                     images: true
                 },
                 orderBy: { createdAt: 'desc' },
-                skip,
+                skip: skip,
                 take: limit
             }),
             prisma.product.count({ where: { storeId: store.id } })
-        ])
+        ]);
 
         logToFile(`GET_SELLER_PRODUCTS: Found ${products.length} products (Total: ${totalCount})`);
         const formatted = products.map(mapProductToFrontend);
 
         return ApiResponse.success({
-            products: formatted,
-            data: formatted,
-            pagination: {
-                page,
-                limit,
-                totalCount,
-                totalPages: Math.ceil(totalCount / limit)
+            data: {
+                products: formatted,
+                pagination: {
+                    page,
+                    limit,
+                    totalCount,
+                    totalPages: Math.ceil(totalCount / limit)
+                }
             }
         })
     } catch (error) {
@@ -229,6 +228,9 @@ export async function updateProduct(productId, data, userId) {
             }
         })
 
+        const { revalidateTag } = await import("next/cache");
+        revalidateTag('products')
+        revalidateTag(`seller-${store.id}`)
         revalidatePath('/seller/products')
         revalidatePath('/')
         revalidatePath('/shop')
@@ -255,6 +257,9 @@ export async function deleteProduct(productId, userId) {
 
         await prisma.product.delete({ where: { id: productId } })
 
+        const { revalidateTag } = await import("next/cache");
+        revalidateTag('products')
+        revalidateTag(`seller-${store.id}`)
         revalidatePath('/seller/products')
         revalidatePath('/')
         return ApiResponse.success(null, "Product deleted successfully")
@@ -295,10 +300,12 @@ export async function getAllProducts() {
                 
                 if (apiRes.ok) {
                     const result = await apiRes.json();
-                    if (result.success) {
+                    const bridgeProducts = result.products || result.data || [];
+                    if (result.success && bridgeProducts.length > 0) {
                         console.log("[BRIDGE] Fetched products from standalone backend");
                         return result;
                     }
+                    console.log("[BRIDGE] Standalone backend returned no products; falling back to Prisma");
                 }
             }
         } catch (apiErr) {
@@ -306,19 +313,21 @@ export async function getAllProducts() {
         }
 
 
-        // Fallback to internal Prisma logic with optimized query
-        const prismaProducts = await prisma.product.findMany({
+        // Fallback to internal Prisma logic. Keep this uncached so newly approved
+        // inventory appears in the marketplace immediately.
+        const prismaProducts = await withRetry(() => prisma.product.findMany({
             where: { status: 'approved', inStock: true, store: { status: 'approved', isActive: true } },
             select: {
-                id: true, name: true, price: true, mrp: true, images: true,
+                id: true, name: true, description: true, price: true, mrp: true, images: true,
                 category: true, type: true, brand: true, amps: true, condition: true,
+                pickupAddress: true, quantity: true, rejectionReason: true,
                 status: true, inStock: true, collectionDates: true,
                 collectionDateStart: true, collectionDateEnd: true,
                 store: { select: { name: true, address: true, isVerified: true, status: true, isActive: true, userId: true } }
             },
             orderBy: { createdAt: 'desc' },
             take: 20
-        });
+        }));
 
         const formatted = prismaProducts.map(mapProductToFrontend);
         return ApiResponse.success({ products: formatted, data: formatted });
@@ -333,16 +342,22 @@ export async function getProductById(productId) {
     try {
         console.log("SERVER: Fetching product by ID:", productId)
 
+        const getCachedProduct = unstable_cache(
+            async (id) => {
+                return prisma.product.findUnique({
+                    where: { id: id },
+                    include: {
+                        store: {
+                            select: { name: true, address: true, isVerified: true, logo: true, status: true }
+                        }
+                    }
+                })
+            },
+            [`product-${productId}`],
+            { tags: ['products', `product-${productId}`], revalidate: 60 }
+        );
 
-
-        const product = await prisma.product.findUnique({
-            where: { id: productId },
-            include: {
-                store: {
-                    select: { name: true, address: true, isVerified: true, logo: true, status: true }
-                }
-            }
-        })
+        const product = await getCachedProduct(productId);
 
         if (!product) {
             console.log("SERVER: Product NOT FOUND in database for ID:", productId)
@@ -361,42 +376,31 @@ export async function getProductById(productId) {
 export async function getAdminProducts(page = 1, limit = 50) {
     try {
         const skip = (page - 1) * limit
-        const [products, total] = await withRetry(() => Promise.all([
-            prisma.product.findMany({
-                skip,
-                take: limit,
-                select: {
-                    id: true,
-                    name: true,
-                    description: true,
-                    price: true,
-                    mrp: true,
-                    category: true,
-                    type: true,
-                    brand: true,
-                    amps: true,
-                    condition: true,
-                    status: true,
-                    inStock: true,
-                    createdAt: true,
-                    storeId: true,
-                    collectionDates: true,
-                    collectionDateStart: true,
-                    collectionDateEnd: true,
-                    store: {
+        const { unstable_cache } = await import("next/cache");
+
+        const getCachedAdminProducts = unstable_cache(
+            async (skipItems, limitItems) => {
+                return Promise.all([
+                    prisma.product.findMany({
+                        skip: skipItems,
+                        take: limitItems,
                         select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                            user: { select: { name: true, email: true } }
-                        }
-                    }
-                    // EXCLUDE heavy images field
-                },
-                orderBy: { createdAt: 'desc' }
-            }),
-            prisma.product.count()
-        ]))
+                            id: true, name: true, description: true, price: true, mrp: true,
+                            category: true, type: true, brand: true, amps: true, condition: true,
+                            status: true, inStock: true, createdAt: true, storeId: true,
+                            collectionDates: true, collectionDateStart: true, collectionDateEnd: true,
+                            store: { select: { id: true, name: true, email: true, user: { select: { name: true, email: true } } } }
+                        },
+                        orderBy: { createdAt: 'desc' }
+                    }),
+                    prisma.product.count()
+                ]);
+            },
+            [`admin-products-${page}-${limit}`],
+            { tags: ['products', 'admin-products'], revalidate: 60 }
+        );
+
+        const [products, total] = await getCachedAdminProducts(skip, limit);
 
         logToFile(`GET_ADMIN_PRODUCTS: Found ${products.length} products (Total: ${total})`);
         const formatted = products.map(mapProductToFrontend)
@@ -423,42 +427,32 @@ export async function getPendingAdminProducts(page = 1, limit = 50) {
         // But for a better demo, if the DB is empty, provide a few.
         
         const skip = (page - 1) * limit
-        const [products, total] = await withRetry(() => Promise.all([
-            prisma.product.findMany({
-                where: { status: 'pending' },
-                skip,
-                take: limit,
-                select: {
-                    id: true,
-                    name: true,
-                    description: true,
-                    price: true,
-                    mrp: true,
-                    category: true,
-                    type: true,
-                    brand: true,
-                    amps: true,
-                    condition: true,
-                    status: true,
-                    inStock: true,
-                    createdAt: true,
-                    storeId: true,
-                    collectionDates: true,
-                    collectionDateStart: true,
-                    collectionDateEnd: true,
-                    store: {
+        const { unstable_cache } = await import("next/cache");
+
+        const getCachedPendingProducts = unstable_cache(
+            async (skipItems, limitItems) => {
+                return Promise.all([
+                    prisma.product.findMany({
+                        where: { status: 'pending' },
+                        skip: skipItems,
+                        take: limitItems,
                         select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                            user: { select: { name: true, email: true } }
-                        }
-                    }
-                },
-                orderBy: { createdAt: 'desc' }
-            }),
-            prisma.product.count({ where: { status: 'pending' } })
-        ]))
+                            id: true, name: true, description: true, price: true, mrp: true,
+                            category: true, type: true, brand: true, amps: true, condition: true,
+                            status: true, inStock: true, createdAt: true, storeId: true,
+                            collectionDates: true, collectionDateStart: true, collectionDateEnd: true,
+                            store: { select: { id: true, name: true, email: true, user: { select: { name: true, email: true } } } }
+                        },
+                        orderBy: { createdAt: 'desc' }
+                    }),
+                    prisma.product.count({ where: { status: 'pending' } })
+                ]);
+            },
+            [`admin-pending-products-${page}-${limit}`],
+            { tags: ['products', 'admin-products'], revalidate: 60 }
+        );
+
+        const [products, total] = await getCachedPendingProducts(skip, limit);
 
         logToFile(`GET_PENDING_ADMIN_PRODUCTS: Found ${products.length} products (Total: ${total})`);
         const formatted = products.map(mapProductToFrontend)
@@ -483,14 +477,17 @@ export async function adminDeleteProduct(productId, adminId) {
     try {
         if (!adminId) return ApiResponse.unauthorized("Admin ID required")
         const admin = await prisma.user.findUnique({ where: { id: adminId } })
-        if (!admin || admin.role !== 'ADMIN') {
+        if (!admin || !['ADMIN', 'SUPER_ADMIN'].includes(admin.role)) {
             return ApiResponse.unauthorized("Only admins can delete products")
         }
 
         await prisma.product.delete({ where: { id: productId } })
         revalidatePath('/admin/products')
+        revalidatePath('/admin/pending-products')
         revalidatePath('/')
         revalidatePath('/shop')
+        revalidateTag('products')
+        revalidateTag('admin-products')
         return ApiResponse.success(null, "Product deleted by admin successfully")
     } catch (error) {
         logger.error("Admin Delete Product Error", error)
@@ -503,7 +500,7 @@ export async function adminApproveProduct(productId, adminId) {
     try {
         if (!adminId) return ApiResponse.unauthorized("Admin ID required")
         const admin = await prisma.user.findUnique({ where: { id: adminId } })
-        if (!admin || admin.role !== 'ADMIN') {
+        if (!admin || !['ADMIN', 'SUPER_ADMIN'].includes(admin.role)) {
             return ApiResponse.unauthorized("Only admins can approve products")
         }
 
@@ -533,9 +530,12 @@ export async function adminApproveProduct(productId, adminId) {
         }
 
         revalidatePath('/admin/products')
+        revalidatePath('/admin/pending-products')
         revalidatePath('/seller/products')
         revalidatePath('/')
         revalidatePath('/shop')
+        revalidateTag('products')
+        revalidateTag('admin-products')
         return ApiResponse.success(null, "Product approved successfully")
     } catch (error) {
         logger.error("Admin Approve Product Error", error)
@@ -547,7 +547,7 @@ export async function adminRejectProduct(productId, reason, adminId) {
     try {
         if (!adminId) return ApiResponse.unauthorized("Admin ID required")
         const admin = await prisma.user.findUnique({ where: { id: adminId } })
-        if (!admin || admin.role !== 'ADMIN') {
+        if (!admin || !['ADMIN', 'SUPER_ADMIN'].includes(admin.role)) {
             return ApiResponse.unauthorized("Only admins can reject products")
         }
 
@@ -578,9 +578,12 @@ export async function adminRejectProduct(productId, reason, adminId) {
         }
 
         revalidatePath('/admin/products')
+        revalidatePath('/admin/pending-products')
         revalidatePath('/seller/products')
         revalidatePath('/')
         revalidatePath('/shop')
+        revalidateTag('products')
+        revalidateTag('admin-products')
         return ApiResponse.success(null, "Product rejected")
     } catch (error) {
         logger.error("Admin Reject Product Error", error)

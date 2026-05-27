@@ -1,0 +1,1 @@
+-- Manual verification table already created manually

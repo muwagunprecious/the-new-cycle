@@ -77,11 +77,17 @@ export async function GET(req) {
             status: 'unread'
         }
 
-        const notifications = await withRetry(() => prisma.notification.findMany({
+        let notifications = [];
+        try {
+          notifications = await withRetry(() => prisma.notification.findMany({
             where,
             orderBy: { createdAt: 'desc' },
             take: 10,
-        }))
+          }));
+        } catch (dbError) {
+          console.error('[Notifications API] DB error:', dbError);
+          return NextResponse.json({ success: false, error: 'Service temporarily unavailable' }, { status: 503 });
+        }
 
         // Cache the result
         notificationCache.set(cacheKey, { data: notifications, timestamp: now });

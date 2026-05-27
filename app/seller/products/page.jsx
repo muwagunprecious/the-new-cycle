@@ -189,14 +189,15 @@ export default function SellerProducts() {
     const loadProducts = async (page = 1) => {
         if (!user) return
         if (page === 1) setIsLoading(true)
-        const result = await getSellerProducts(user.id, page, 20)
-        if (result.success) {
+        const result = await getSellerProducts(user.id, page, 20);
+        if (result.success && result.data) {
+            const { products, pagination } = result.data;
             if (page === 1) {
-                setProducts(result.products)
+                setProducts(products || []);
             } else {
-                setProducts(prev => [...prev, ...result.products])
+                setProducts(prev => [...prev, ...(products || [])]);
             }
-            setPagination(result.pagination)
+            setPagination(pagination);
         }
         setIsLoading(false)
     }
@@ -377,25 +378,7 @@ export default function SellerProducts() {
             return
         }
 
-        // AI SCAN PRE-SUBMISSION
-        if (formData.images.length > 0) {
-            dispatch(showLoader("AI is verifying your battery images..."))
-            try {
-                const aiCheck = await verifyProductImages(formData.images)
-                dispatch(hideLoader())
-                
-                if (aiCheck.success && !aiCheck.data.isBattery) {
-                    // Even if confidence is 0, if the AI says it's NOT a battery, we should be careful
-                    toast.error(`AI Alert: ${aiCheck.data.reason}`, { duration: 6000 })
-                    if (!confirm(`Our AI detects that these images might not be a battery. Reason: ${aiCheck.data.reason}. Are you sure you want to proceed?`)) {
-                        return
-                    }
-                }
-            } catch (err) {
-                dispatch(hideLoader())
-                console.error("AI Scan failed", err)
-            }
-        }
+
         if (formData.images.length < 2) {
             toast.error("Please upload at least 2 images of the battery")
             return
@@ -566,6 +549,7 @@ export default function SellerProducts() {
                     <p className="text-slate-500 mt-1">Manage your battery listings and stock levels.</p>
                 </div>
                 <button
+                    type="button"
                     disabled={storeInfo.status !== 'approved'}
                     onClick={() => setIsUploadModalOpen(true)}
                     className={`btn-primary ${storeInfo.status !== 'approved' ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
@@ -595,7 +579,7 @@ export default function SellerProducts() {
                     </div>
                 </div>
 
-                {products.length === 0 ? (
+                {products?.length === 0 ? (
                     <div className="p-12 text-center">
                         <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                             <BatteryIcon className="text-slate-400" size={32} />
@@ -722,23 +706,25 @@ export default function SellerProducts() {
                             <h2 className="text-xl font-bold text-slate-900">{editingProductId ? 'Edit' : 'List New'} <span className="text-[#05DF72]">Battery</span></h2>
                             <button 
                                 onClick={() => {
-                                    setIsUploadModalOpen(false)
-                                    setEditingProductId(null)
-                                    setFormData({
-                                        batteryType: BATTERY_TYPES[0],
-                                        brand: '',
-                                        amps: '',
-                                        unitsAvailable: 1,
-                                        price: '',
-                                        isManualPrice: false,
-                                        lga: '',
-                                        address: '',
-                                        collectionDates: [],
-                                        comments: '',
-                                        images: []
-                                    })
-                                    setSelectedDates([])
-                                }} 
+    setIsUploadModalOpen(false)
+    setEditingProductId(null)
+    setFormData({
+        batteryType: BATTERY_TYPES[0],
+        brand: '',
+        amps: '',
+        unitsAvailable: 1,
+        price: '',
+        isManualPrice: false,
+        lga: '',
+        address: '',
+        collectionDates: [],
+        comments: '',
+        images: []
+    })
+    setSelectedDates([])
+    setIsLoading(false)
+    dispatch(hideLoader())
+}}
                                 className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400"
                             >
                                 <XIcon size={24} />

@@ -28,24 +28,10 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     const [isLoading, setIsLoading] = useState(false)
     const [orderResult, setOrderResult] = useState(null)
     const [senderName, setSenderName] = useState('')
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('FLUTTERWAVE')
-    const [flwScriptLoaded, setFlwScriptLoaded] = useState(false)
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('MANUAL_TRANSFER')
+// Flutterwave script state removed
 
-    // Load Flutterwave inline script
-    useEffect(() => {
-        if (typeof window === 'undefined') return
-        if (document.getElementById('flutterwave-inline-script')) {
-            setFlwScriptLoaded(true)
-            return
-        }
-        const script = document.createElement('script')
-        script.id = 'flutterwave-inline-script'
-        script.src = 'https://checkout.flutterwave.com/v3.js'
-        script.async = true
-        script.onload = () => setFlwScriptLoaded(true)
-        script.onerror = () => console.error('[Flutterwave] Failed to load inline script')
-        document.head.appendChild(script)
-    }, [])
+// Removed Flutterwave script loading as payment method is manual only
 
     if (!isOpen) return null
 
@@ -371,12 +357,14 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
 
                             {/* Pay Button */}
                             <Button
-                                onClick={handleSelectPaymentMethod}
+                                onClick={() => {
+                                    setStep('PAYMENT_DETAILS')
+                                }}
                                 loading={isLoading}
                                 className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
                             >
                                 <ShieldCheckIcon size={18} className="mr-2" />
-                                Proceed to Payment ({currency}{totalAmount.toLocaleString()})
+                                Continue to Transfer Details
                             </Button>
 
                             <p className="text-[9px] text-slate-400 text-center font-bold uppercase tracking-[0.1em] opacity-60">
@@ -391,50 +379,6 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             <p className="text-xs text-slate-500 font-medium text-center">
                                 Select your preferred payment method for <span className="font-black text-slate-900">{currency}{totalAmount.toLocaleString()}</span>
                             </p>
-
-                            {/* Flutterwave Option */}
-                            <button
-                                onClick={() => setSelectedPaymentMethod('FLUTTERWAVE')}
-                                className={`w-full p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] text-left transition-all duration-300 border-2 relative overflow-hidden group ${
-                                    selectedPaymentMethod === 'FLUTTERWAVE'
-                                        ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 shadow-xl shadow-emerald-500/10'
-                                        : 'border-slate-100 bg-white/80 hover:border-emerald-200'
-                                }`}
-                            >
-                                <div className="flex items-start gap-4 relative z-10">
-                                    <div className={`p-3 rounded-2xl transition-all ${
-                                        selectedPaymentMethod === 'FLUTTERWAVE'
-                                            ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
-                                            : 'bg-slate-100'
-                                    }`}>
-                                        <CreditCardIcon size={20} className={selectedPaymentMethod === 'FLUTTERWAVE' ? 'text-white' : 'text-slate-400'} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-black text-slate-900 text-sm">Pay with Flutterwave</h3>
-                                            <span className="bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">Instant</span>
-                                        </div>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                            Card • Bank Transfer • USSD
-                                        </p>
-                                        <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
-                                            Pay instantly with your debit card, bank account, or USSD code. Payment is verified automatically.
-                                        </p>
-                                    </div>
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
-                                        selectedPaymentMethod === 'FLUTTERWAVE'
-                                            ? 'border-emerald-500 bg-emerald-500'
-                                            : 'border-slate-300'
-                                    }`}>
-                                        {selectedPaymentMethod === 'FLUTTERWAVE' && (
-                                            <CheckCircleIcon size={12} className="text-white" />
-                                        )}
-                                    </div>
-                                </div>
-                                {selectedPaymentMethod === 'FLUTTERWAVE' && (
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl"></div>
-                                )}
-                            </button>
 
                             {/* Manual Transfer Option */}
                             <button
@@ -480,18 +424,13 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             {/* Continue Button */}
                             <Button
                                 onClick={() => {
-                                    if (selectedPaymentMethod === 'FLUTTERWAVE') {
-                                        handleFlutterwavePayment()
-                                    } else {
-                                        setStep('PAYMENT_DETAILS')
-                                    }
+                                    setStep('PAYMENT_DETAILS')
                                 }}
                                 loading={isLoading}
-                                disabled={!flwScriptLoaded && selectedPaymentMethod === 'FLUTTERWAVE'}
                                 className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
                             >
                                 <ZapIcon size={18} className="mr-2" />
-                                {selectedPaymentMethod === 'FLUTTERWAVE' ? 'Pay Now' : 'Continue to Transfer Details'}
+                                Continue to Transfer Details
                             </Button>
 
                             <button

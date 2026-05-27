@@ -65,12 +65,16 @@ export async function verifyIsBattery(images) {
             });
         }
 
-        const models = ["llama-3.2-90b-vision-preview", "llama-3.2-11b-vision-preview"];
+        const models = ["llama-3.2-11b-vision-preview", "llama-3.2-90b-vision-preview"];
         let lastError = null;
 
         for (const modelId of models) {
             try {
                 console.log(`[AI_SERVICE] Attempting verification with model: ${modelId}`);
+                const abortController = new AbortController();
+                const timeoutId = setTimeout(() => abortController.abort(), 5000); // 5s timeout (Fast UX)
+                
+                
                 const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: {
@@ -87,8 +91,11 @@ export async function verifyIsBattery(images) {
                         ],
                         response_format: { type: "json_object" },
                         max_tokens: 300
-                    })
+                    }),
+                    signal: abortController.signal
                 });
+                
+                clearTimeout(timeoutId);
 
                 const data = await response.json();
                 

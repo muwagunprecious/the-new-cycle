@@ -2,10 +2,12 @@
 const nextConfig = {
     images: {
         remotePatterns: [
-            { protocol: 'https', hostname: 'images.unsplash.com' },
-            { protocol: 'https', hostname: 'qamfxfzxicraepxdncqd.supabase.co' }
+            { protocol: 'https', hostname: '**' }
         ]
     },
+    compress: true,
+    poweredByHeader: false,
+    turbopack: {},
     experimental: {
         serverActions: {
             bodySizeLimit: '50mb',

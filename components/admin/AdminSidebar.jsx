@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon, DollarSign as DollarSignIcon, FileText as FileTextIcon, UserPlus as UserPlusIcon, MapPin as MapPinIcon, Mail as MailIcon } from "lucide-react"
+import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon, DollarSign as DollarSignIcon, FileText as FileTextIcon, UserPlus as UserPlusIcon, MapPin as MapPinIcon, Mail as MailIcon, CheckCircle as CheckCircleIcon } from "lucide-react"
 import { useDispatch } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
 import { logout } from "@/lib/features/auth/authSlice"
@@ -30,6 +30,7 @@ const AdminSidebar = () => {
         { name: 'Contact Messages', href: '/admin/messages', icon: MailIcon },
         { name: 'Create Admin', href: '/admin/users?action=create-admin', icon: UserPlusIcon },
         { name: 'System Settings', href: '/admin/settings', icon: SettingsIcon },
+
     ]
 
     const handleLogout = () => {

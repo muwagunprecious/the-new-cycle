@@ -2,6 +2,7 @@ import { getAdminDashboardSummary, getAllUsers, getAdminPayoutHistory } from "@/
 import { getAllOrders } from "@/backend-actions/actions/order"
 import AdminDashboardClient from "@/components/admin/AdminDashboardClient"
 
+
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
@@ -9,11 +10,14 @@ export default async function AdminPage() {
     const summaryRes = await getAdminDashboardSummary()
 
     return (
-        <AdminDashboardClient 
-            initialSummary={summaryRes.success ? summaryRes.data : null}
-            initialUsers={null}
-            initialOrders={null}
-            initialPayouts={null}
-        />
-    )
+        <>
+            <AdminDashboardClient 
+                initialSummary={summaryRes.success ? summaryRes.data : null}
+                initialUsers={null}
+                initialOrders={null}
+                initialPayouts={null}
+            />
+
+        </>
+    );
 }

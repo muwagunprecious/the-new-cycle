@@ -113,11 +113,15 @@ export async function registerUser(userData) {
         if (normalizedWhatsapp) phoneConditions.push({ phone: normalizedWhatsapp })
         if (whatsapp && whatsapp !== normalizedWhatsapp) phoneConditions.push({ phone: whatsapp })
 
-        // Check for phone & email conflicts in parallel for better performance
-        const [existingUserByPhone, existingUserByEmail] = await Promise.all([
-            phoneConditions.length > 0 ? prisma.user.findFirst({ where: { OR: phoneConditions } }) : null,
-            (email && email.trim() !== "") ? prisma.user.findFirst({ where: { email } }) : null
-        ])
+        // Sequentially check for existing user by phone and email to avoid connection pool exhaustion
+        let existingUserByPhone = null;
+        let existingUserByEmail = null;
+        if (phoneConditions.length > 0) {
+            existingUserByPhone = await prisma.user.findFirst({ where: { OR: phoneConditions } });
+        }
+        if (email && email.trim() !== "") {
+            existingUserByEmail = await prisma.user.findFirst({ where: { email } });
+        }
 
         const usersToDelete = new Set()
 
@@ -599,10 +603,18 @@ export async function getUserStoreStatus(userId) {
     try {
         if (!userId) return ApiResponse.unauthorized()
 
-        const store = await prisma.store.findUnique({ 
-            where: { userId },
-            include: { user: true }
-        })
+        const { unstable_cache } = await import("next/cache");
+
+        const getCachedStore = unstable_cache(
+            async (id) => prisma.store.findUnique({ 
+                where: { userId: id },
+                include: { user: true }
+            }),
+            [`store-status-${userId}`],
+            { tags: [`store-${userId}`], revalidate: 60 }
+        );
+
+        const store = await getCachedStore(userId);
         if (!store) return ApiResponse.success({ exists: false })
 
         return ApiResponse.success({

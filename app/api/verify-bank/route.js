@@ -50,13 +50,15 @@ export async function POST(req) {
         }
 
         // Test Mode Bypass
-        if (accountNumber === "0000000000") {
+        // Test scenario for OPay mobile wallet (account 8144065785)
+        if (accountNumber === "8144065785" && bankCode === "100004") {
             return NextResponse.json({
                 success: true,
-                accountName: "TEST ACCOUNT (GoCycle)",
-                accountNumber: "0000000000"
+                accountName: "Test OPay Account",
+                accountNumber,
             });
         }
+            
 
         const BASE_URL = "https://api.qoreid.com";
 
@@ -135,26 +137,26 @@ export async function POST(req) {
                 data
             });
 
-            // Special handling for 500 errors which are common for certain banks on QoreID (especially OPay)
-            if (response.status === 500) {
-                let errorMsg = "The bank provider is currently unavailable. Please try again in a few minutes or use a different bank.";
-                
-                if (bankCode === "100004") { // OPay
-                    errorMsg = "OPay verification is currently experiencing downtime on the provider's end. Please double-check your account number or try a different bank.";
-                } else if (bankCode === "100033") { // Palmpay
-                    errorMsg = "Palmpay verification is currently experiencing regional downtime. Please try a different bank.";
-                } else if (bankCode === "50515") { // Moniepoint
-                    errorMsg = "Moniepoint MFB verification is currently experiencing downtime. Please try a different bank.";
+            // Utility to generate provider-specific error messages for mobile wallets
+            const getMobileBankErrorMessage = (bankCode) => {
+                switch (bankCode) {
+                    case "100004": // OPay
+                        return "OPay verification is currently experiencing downtime on the provider's end. Please double-check your account number or try a different bank.";
+                    case "100033": // Palmpay
+                        return "Palmpay verification is currently experiencing regional downtime. Please try a different bank.";
+                    case "50515": // Moniepoint
+                        return "Moniepoint MFB verification is currently experiencing downtime. Please try a different bank.";
+                    default:
+                        return "The bank provider is currently unavailable. Please try again in a few minutes or use a different bank.";
                 }
-
-                return NextResponse.json(
-                    {
-                        success: false,
-                        message: errorMsg,
-                        debug: { originalError: data.message || "Internal Provider Error" }
-                    },
-                    { status: 500 }
-                );
+            };
+            // Special handling for 500 errors which are common for certain banks on QoreID (especially mobile wallets)
+            if (response.status === 500) {
+                return NextResponse.json({
+                    success: false,
+                    downtime: true,
+                    message: "Bank is currently having a downtime. Please provide your full name for manual verification."
+                }, { status: 200 });
             }
 
             return NextResponse.json(

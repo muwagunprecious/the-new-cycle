@@ -7,7 +7,7 @@ import { sendEmail, orderConfirmationEmail, buyerReceiptEmail, sellerNewOrderEma
 import { createNotification } from "./notification"
 import { generatePaymentRef } from "@/backend-actions/lib/flutterwave"
 import { revalidatePath, revalidateTag } from "next/cache"
-import prisma from "@/backend-actions/lib/prisma"
+import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 
 export async function createOrder(orderData) {
     try {
@@ -52,8 +52,8 @@ export async function createOrder(orderData) {
             return ApiResponse.error("Your account is pending verification. Orders are restricted.", 403)
         }
 
-        if (buyer.role === 'ADMIN' || buyer.role === 'SUPER_ADMIN') {
-            return ApiResponse.error("Administrators are not permitted to make purchases.", 403)
+        if (buyer.role === 'ADMIN' || buyer.role === 'SUPER_ADMIN' || buyer.role === 'SELLER') {
+            return ApiResponse.error("Administrators and sellers are not permitted to make purchases.", 403)
         }
 
         // Calculate seller fee and net payout
@@ -68,7 +68,7 @@ export async function createOrder(orderData) {
         try {
             // Parallelize Order creation and Product update
             const [newOrder] = await Promise.all([
-                prisma.order.create({
+                withRetry(() => prisma.order.create({
                     data: {
                         id: orderId,
                         transactionId,
@@ -99,15 +99,16 @@ export async function createOrder(orderData) {
                         }
                     },
                     include: { user: true, store: true }
-                }),
-                prisma.product.update({ 
-                    where: { id: productId }, 
-                    data: { 
+                })),
+
+                withRetry(() => prisma.product.update({
+                    where: { id: productId },
+                    data: {
                         quantity: { decrement: quantity },
                         status: product.quantity - quantity === 0 ? 'sold' : 'approved'
-                    } 
-                })
-            ])
+                    }
+                }))
+            ]);
             order = newOrder;
         } catch (dbError) {
             logger.error("DB Error during order creation", dbError);
@@ -167,7 +168,11 @@ export async function createOrder(orderData) {
 
         revalidatePath('/buyer')
         revalidatePath('/buyer/orders')
+        revalidateTag('orders')
+        revalidateTag(`buyer-${buyerId}`)
+        revalidateTag(`seller-${store.id}`)
         revalidatePath('/seller/orders'); revalidateTag(`seller-stats-${order.store.userId}`); revalidateTag(`buyer-stats-${order.userId}`)
+        revalidateTag('admin-orders')
         revalidatePath('/admin/orders')
         
         return ApiResponse.success({ ...order, paymentReference, collectionToken }, "Order placed successfully")
@@ -185,36 +190,29 @@ export async function getUserOrders(userId) {
             return ApiResponse.unauthorized()
         }
 
-        // Read orders for the user
-        const orders = await prisma.order.findMany({
-            where: {
-                userId,
-                isPaid: true,
-                status: {
-                    in: ['PAID', 'APPROVED', 'PROCESSING', 'SHIPPED', 'PICKED_UP', 'DELIVERED', 'COMPLETED', 'ORDER_PLACED']
-                }
-            },
-            include: {
-                orderItems: {
-                    include: {
-                        product: true
-                    }
-                },
-                store: {
-                    include: {
-                        user: {
-                            select: {
-                                phone: true,
-                                name: true
-                            }
+        const { unstable_cache } = await import("next/cache");
+        const getCachedUserOrders = unstable_cache(
+            async (uid) => {
+                const orders = await withRetry(() => prisma.order.findMany({
+                    where: {
+                        userId: uid,
+                        isPaid: true,
+                        status: {
+                            in: ['PAID', 'APPROVED', 'PROCESSING', 'SHIPPED', 'PICKED_UP', 'DELIVERED', 'COMPLETED', 'ORDER_PLACED']
                         }
-                    }
-                }
+                    },
+                    include: {
+                        orderItems: { include: { product: true } },
+                        store: { include: { user: { select: { phone: true, name: true } } } }
+                    },
+                    orderBy: { createdAt: 'desc' }
+                }));;
             },
-            orderBy: {
-                createdAt: 'desc'
-            }
-        });
+            [`user-orders-${userId}`],
+            { tags: ['orders', `buyer-${userId}`], revalidate: 60 }
+        );
+
+        const orders = await getCachedUserOrders(userId);
         logger.info(`Found ${orders.length} orders for user ${userId}`)
 
         // Sanitize sensitive tokens
@@ -236,7 +234,7 @@ export async function getSellerOrders(userId, page = 1, limit = 50) {
         const skip = (page - 1) * limit
 
         const [orders, totalCount] = await Promise.all([
-            prisma.order.findMany({
+            withRetry(() => prisma.order.findMany({
                 where: { storeId: store.id },
                 include: {
                     user: { select: { id: true, name: true, email: true, image: true, phone: true } },
@@ -259,8 +257,8 @@ export async function getSellerOrders(userId, page = 1, limit = 50) {
                 orderBy: { createdAt: 'desc' },
                 skip,
                 take: limit
-            }),
-            prisma.order.count({ where: { storeId: store.id } })
+            })),
+            withRetry(() => prisma.order.count({ where: { storeId: store.id } }))
         ])
 
         return ApiResponse.success({
@@ -287,10 +285,11 @@ export async function updateOrderStatus(orderId, status) {
             return ApiResponse.error(`Invalid status: ${status}`, 400)
         }
 
-        const order = await prisma.order.update({
+        const order = await withRetry(() => prisma.order.update({
             where: { id: orderId },
-            data: { status }
-        })
+            data: { status },
+            include: { store: true }
+        }))
 
         revalidatePath('/seller/orders'); revalidateTag(`seller-stats-${order.store.userId}`); revalidateTag(`buyer-stats-${order.userId}`)
         revalidatePath('/admin/orders')
@@ -312,7 +311,7 @@ export async function verifyOrderCollection(orderId, token) {
     try {
         // Robust search: ID or TransactionID, Case-Insensitive
         console.log("[VERIFY_COLLECTION] Searching DB for:", cleanId)
-        let order = await prisma.order.findFirst({
+        let order = await withRetry(() => prisma.order.findFirst({
             where: {
                 OR: [
                     { id: { equals: cleanId, mode: 'insensitive' } },
@@ -324,13 +323,13 @@ export async function verifyOrderCollection(orderId, token) {
                 store: true,
                 orderItems: { include: { product: true } }
             }
-        })
+        }))
 
         if (!order) {
 
             console.error("[VERIFY_COLLECTION] ERROR: Order not found for ID:", cleanId)
             // Diagnostic: List some recent order IDs to see what we have
-            const recentOrders = await prisma.order.findMany({ take: 5, orderBy: { createdAt: 'desc' }, select: { id: true } })
+            const recentOrders = await withRetry(() => prisma.order.findMany({ take: 5, orderBy: { createdAt: 'desc' }, select: { id: true } }));
             console.log("[VERIFY_COLLECTION] Recent IDs in DB:", recentOrders.map(o => o.id))
             return ApiResponse.error("Order not found", 404)
         }
@@ -349,14 +348,14 @@ export async function verifyOrderCollection(orderId, token) {
             return ApiResponse.error(`Cannot verify collection for order in ${order.status} status`, 400)
         }
 
-        const updatedOrder = await prisma.order.update({
+        const updatedOrder = await withRetry(() => prisma.order.update({
             where: { id: order.id },
             data: {
                 status: 'COMPLETED',
                 collectionStatus: 'COLLECTED',
                 payoutStatus: 'pending'
             }
-        })
+        }))
 
         // Notify Admin of new payout request
         const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
@@ -403,20 +402,28 @@ export async function verifyOrderCollection(orderId, token) {
 export async function getAllOrders(page = 1, limit = 50) {
     try {
         const skip = (page - 1) * limit
-        const [orders, total] = await Promise.all([
-            prisma.order.findMany({
-                skip,
-                take: limit,
-                include: {
-                    user: { select: { name: true, email: true } },
-                    store: { select: { name: true, bankName: true, accountName: true, accountNumber: true } }
-                    // Only include necessary product details indirectly through orderItems if needed, 
-                    // or keep it simple for the list.
-                },
-                orderBy: { createdAt: 'desc' }
-            }),
-            prisma.order.count()
-        ])
+        const { unstable_cache } = await import("next/cache");
+
+        const getCachedAllOrders = unstable_cache(
+            async (skipItems, limitItems) => {
+                return Promise.all([
+                    prisma.order.findMany({
+                        skip: skipItems,
+                        take: limitItems,
+                        include: {
+                            user: { select: { name: true, email: true } },
+                            store: { select: { name: true, bankName: true, accountName: true, accountNumber: true } }
+                        },
+                        orderBy: { createdAt: 'desc' }
+                    }),
+                    prisma.order.count()
+                ]);
+            },
+            [`all-orders-${page}-${limit}`],
+            { tags: ['orders', 'admin-orders'], revalidate: 60 }
+        );
+
+        const [orders, total] = await getCachedAllOrders(skip, limit);
         return ApiResponse.success({
             orders,
             data: orders,

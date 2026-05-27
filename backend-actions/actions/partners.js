@@ -2,15 +2,26 @@
 
 import { ApiResponse, handleDbError } from "@/backend-actions/lib/api-response"
 import { logger } from "@/backend-actions/lib/api-utils"
-import prisma, { withRetry } from "@/backend-actions/lib/prisma"
+import { supabase, supabasePublic } from "@/lib/supabase";
+import { handleSupabase } from "@/lib/supabase-utils"
 import { revalidatePath } from "next/cache"
+import { cache } from "react"
+
+// Cache the database query to prevent duplicate requests across components
+const fetchPartnersCached = cache(async () => {
+    return handleSupabase(
+        supabasePublic
+            .from('partners')
+            .select('id, name, logo, link, "order", isActive, createdAt')
+            .eq('isActive', true)
+            .order('order', { ascending: true })
+            .limit(20)
+    )
+});
 
 export async function getPartners() {
     try {
-        const partners = await prisma.partner.findMany({
-            where: { isActive: true },
-            orderBy: { order: 'asc' }
-        });
+        const partners = await fetchPartnersCached();
         return ApiResponse.success(partners);
     } catch (error) {
         logger.error("Get Partners Error", error);
@@ -18,11 +29,19 @@ export async function getPartners() {
     }
 }
 
+const fetchAllPartnersAdminCached = cache(async () => {
+    return handleSupabase(
+        supabase
+            .from('partners')
+            .select('id, name, logo, link, "order", isActive, createdAt')
+            .order('createdAt', { ascending: false })
+            .limit(100)
+    )
+});
+
 export async function getAllPartnersAdmin() {
     try {
-        const partners = await prisma.partner.findMany({
-            orderBy: { createdAt: 'desc' }
-        });
+        const partners = await fetchAllPartnersAdminCached();
         return ApiResponse.success(partners);
     } catch (error) {
         logger.error("Get All Partners Admin Error", error);
@@ -36,15 +55,19 @@ export async function createPartner(data) {
             return ApiResponse.error("Name and logo are required", 400);
         }
 
-        const partner = await prisma.partner.create({
-            data: {
-                name: data.name,
-                logo: data.logo,
-                link: data.link || null,
-                order: parseInt(data.order) || 0,
-                isActive: data.isActive !== undefined ? data.isActive : true
-            }
-        });
+        const partner = await handleSupabase(
+            supabase
+                .from('partners')
+                .insert({
+                    name: data.name,
+                    logo: data.logo,
+                    link: data.link || null,
+                    order: parseInt(data.order) || 0,
+                    isActive: data.isActive !== undefined ? data.isActive : true
+                })
+                .select()
+                .single()
+        );
 
         revalidatePath('/');
         return ApiResponse.success(partner, "Partner added successfully");
@@ -56,16 +79,20 @@ export async function createPartner(data) {
 
 export async function updatePartner(id, data) {
     try {
-        const partner = await prisma.partner.update({
-            where: { id },
-            data: {
-                name: data.name,
-                logo: data.logo,
-                link: data.link,
-                order: parseInt(data.order),
-                isActive: data.isActive
-            }
-        });
+        const partner = await handleSupabase(
+            supabase
+                .from('partners')
+                .update({
+                    name: data.name,
+                    logo: data.logo,
+                    link: data.link,
+                    order: parseInt(data.order),
+                    isActive: data.isActive
+                })
+                .eq('id', id)
+                .select()
+                .single()
+        );
 
         revalidatePath('/');
         return ApiResponse.success(partner, "Partner updated successfully");
@@ -77,9 +104,12 @@ export async function updatePartner(id, data) {
 
 export async function deletePartner(id) {
     try {
-        await prisma.partner.delete({
-            where: { id }
-        });
+        await handleSupabase(
+            supabase
+                .from('partners')
+                .delete()
+                .eq('id', id)
+        );
 
         revalidatePath('/');
         return ApiResponse.success(null, "Partner deleted successfully");

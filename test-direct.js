@@ -2,18 +2,16 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient({
     datasources: {
         db: {
-            url: 'postgresql://postgres:IglooEstate2026%21@db.qamfxfzxicraepxdncqd.supabase.co:5432/postgres'
+            url: 'postgresql://postgres.qamfxfzxicraepxdncqd:IglooEstate2026%21@aws-0-eu-west-1.pooler.supabase.com:5432/postgres'
         }
     }
 });
 async function test() {
     try {
         await prisma.$connect();
-        console.log('Connected directly to db.*.supabase.co!');
+        console.log('Connected!');
         const users = await prisma.user.count();
         console.log('Users:', users);
-        const result = await prisma.$queryRaw`SELECT 1 as result`;
-        console.log('Query result:', result);
     } catch (e) {
         console.error('Error:', e);
     } finally {

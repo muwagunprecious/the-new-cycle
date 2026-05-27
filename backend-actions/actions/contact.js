@@ -1,6 +1,6 @@
 'use server'
 
-import prisma from "../lib/prisma"
+import prisma from '@/backend-actions/lib/prisma';
 
 export async function submitContactMessage(data) {
     try {
