@@ -12,7 +12,7 @@ export async function fetchMany<T>(
     limit?: number
   } = {}
 ): Promise<T[]> {
-  let query = supabase.from<T>(table).select(opts.columns ?? '*')
+  let query = supabase.from(table).select(opts.columns ?? '*')
 
   if (opts.where) {
     Object.entries(opts.where).forEach(([k, v]) => {
@@ -37,7 +37,7 @@ export async function fetchOne<T>(
   where: Record<string, any>,
   columns: string = '*'
 ): Promise<T | null> {
-  let query = supabase.from<T>(table).select(columns)
+  let query = supabase.from(table).select(columns)
   Object.entries(where).forEach(([k, v]) => {
     query = query.eq(k, v)
   })
@@ -50,7 +50,7 @@ export async function insertOne<T>(
   data: Record<string, any>,
   columns: string = '*'
 ): Promise<T> {
-  const query = supabase.from<T>(table).insert(data).select(columns).single()
+  const query = supabase.from(table).insert(data).select(columns).single()
   return handleSupabase<T>(query)
 }
 
@@ -61,7 +61,7 @@ export async function updateOne<T>(
   data: Record<string, any>,
   columns: string = '*'
 ): Promise<T> {
-  let query = supabase.from<T>(table).update(data)
+  let query = supabase.from(table).update(data)
   Object.entries(where).forEach(([k, v]) => {
     query = query.eq(k, v)
   })
