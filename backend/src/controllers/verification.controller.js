@@ -15,7 +15,7 @@ exports.verifyUserNIN = async (req, res) => {
         let isVerified = false;
         let result = null;
 
-        const result = await verifyNIN(nin, userData);
+        result = await verifyNIN(nin, userData);
         isVerified = result.status === 'success' ||
             result.status?.status === 'verified' ||
             result.status?.state === 'complete' ||
