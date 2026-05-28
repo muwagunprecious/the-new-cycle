@@ -3,7 +3,7 @@
  * Helper to handle Supabase responses uniformly.
  * Throws the error if present, otherwise returns the data.
  */
-export async function handleSupabase<T>(promise: PromiseLike<{ data: T | null; error: any }>) {
+export async function handleSupabase<T>(promise: PromiseLike<{ data: unknown; error: any }>) {
   const { data, error } = await promise
   if (error) throw error
   // Supabase can return `null` for empty results – callers can decide what to do.
