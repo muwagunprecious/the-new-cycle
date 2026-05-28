@@ -6,11 +6,11 @@ import { toggleUserStatus } from "@/lib/features/auth/authSlice"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import { useSearchParams } from "next/navigation"
-import { getAllUsers, banUser, approveBuyer, createAdminAccount } from "@/backend-actions/actions/admin"
+import { banUser, approveBuyer, createAdminAccount } from "@/backend-actions/actions/admin"
 import Loading from "@/components/Loading"
 import { ShieldCheck as ShieldCheckIcon, Search as SearchIcon, Mail as MailIcon, Phone as PhoneIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Check as CheckIcon } from "lucide-react"
 
-export default function AdminUsersClient({ initialUsers }) {
+export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
     const dispatch = useDispatch()
     const [dbUsers, setDbUsers] = useState(initialUsers || [])
     const [loading, setLoading] = useState(false)
@@ -83,7 +83,9 @@ export default function AdminUsersClient({ initialUsers }) {
 
         if (res.success) {
             toast.success("Admin account created successfully")
-            setDbUsers(prev => [res.data.user, ...prev])
+            if (!userFilters.role || res.data.user.role === userFilters.role) {
+                setDbUsers(prev => [res.data.user, ...prev])
+            }
             setIsAddAdminOpen(false)
             setAdminForm({ name: '', email: '', phone: '', password: '' })
         } else {
@@ -98,8 +100,8 @@ export default function AdminUsersClient({ initialUsers }) {
                     <div className="flex items-center gap-2 text-[#05DF72] mb-2 font-black uppercase tracking-widest text-[10px]">
                         <ShieldCheckIcon size={16} /> Platform Governance
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 leading-tight">User <span className="text-[#05DF72]">Database</span></h1>
-                    <p className="text-slate-400 font-bold text-sm mt-1">Control access and visibility across all platform roles.</p>
+                    <h1 className="text-4xl font-black text-slate-900 leading-tight">Buyer <span className="text-[#05DF72]">Database</span></h1>
+                    <p className="text-slate-400 font-bold text-sm mt-1">Review and manage buyer accounts only.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                     <div className="relative group w-full sm:w-auto">

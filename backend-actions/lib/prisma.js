@@ -42,13 +42,9 @@ if (process.env.NODE_ENV !== 'production' && !globalForPrisma.prismaShutdownHook
 
 export default prisma
 
-export async function withRetry(fn, retries = 1, timeoutMs = 10000) {
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Database operation timed out')), timeoutMs)
-  )
-
+export async function withRetry(fn, retries = 1) {
   try {
-    return await Promise.race([fn(), timeoutPromise])
+    return await fn()
   } catch (error) {
     const isConnectionError =
       error?.code === 'P1001' ||

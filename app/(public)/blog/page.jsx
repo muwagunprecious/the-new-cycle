@@ -3,7 +3,7 @@ import Image from "next/image"
 import { ArrowRight as ArrowRightIcon, FileText as FileTextIcon } from "lucide-react"
 import { getBlogs } from "@/backend-actions/actions/blog"
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 // Strip HTML tags and get plain text excerpt
 function getExcerpt(htmlContent, maxLength = 160) {

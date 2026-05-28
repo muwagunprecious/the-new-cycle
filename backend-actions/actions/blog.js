@@ -68,9 +68,10 @@ export async function createBlog(data, userId) {
 export async function getBlogs(page = 1, limit = 20) {
     try {
         const skip = (page - 1) * limit
+        const publishedWhere = { status: { equals: 'published', mode: 'insensitive' } }
         const [blogs, totalCount] = await Promise.all([
             prisma.blog.findMany({
-                where: { status: 'published' },
+                where: publishedWhere,
                 include: {
                     user: { select: { name: true, image: true, role: true } }
                 },
@@ -78,7 +79,7 @@ export async function getBlogs(page = 1, limit = 20) {
                 skip,
                 take: limit
             }),
-            prisma.blog.count({ where: { status: 'published' } })
+            prisma.blog.count({ where: publishedWhere })
         ])
 
         return ApiResponse.success({
@@ -98,8 +99,11 @@ export async function getBlogs(page = 1, limit = 20) {
 
 export async function getBlogBySlug(slug) {
     try {
-        const blog = await prisma.blog.findUnique({
-            where: { slug, status: 'published' },
+        const blog = await prisma.blog.findFirst({
+            where: {
+                slug,
+                status: { equals: 'published', mode: 'insensitive' }
+            },
             include: { user: { select: { name: true, image: true } } }
         })
 

@@ -22,11 +22,25 @@ const prisma = global.prisma || new PrismaClient({
  * Utility wrapper to retry a Prisma operation.
  * Useful for transient errors like connection timeouts or deadlocks.
  */
-export async function withRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, retries = 1, delay = 1000): Promise<T> {
   try {
     return await fn();
   } catch (err) {
-    if (retries <= 0) throw err;
+    const message = err instanceof Error ? err.message : "";
+    const code = typeof err === "object" && err && "code" in err ? (err as { code?: string }).code : "";
+    const isConnectionError =
+      code === "P1001" ||
+      code === "P1002" ||
+      code === "P1008" ||
+      code === "P2024" ||
+      message.includes("timed out") ||
+      message.includes("Can't reach database") ||
+      message.includes("connection") ||
+      message.includes("pool timeout") ||
+      message.includes("EMAXCONNSESSION") ||
+      message.includes("max clients reached");
+
+    if (retries <= 0 || !isConnectionError) throw err;
     await new Promise(res => setTimeout(res, delay));
     return withRetry(fn, retries - 1, delay * 2);
   }

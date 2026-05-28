@@ -1,4 +1,4 @@
-import gs_logo from "./gs_logo.jpg"
+import gs_logo from "./gocycle.png"
 import happy_store from "./happy_store.webp"
 import upload_area from "./upload_area.svg"
 import gocycle from "./gocycle.png"

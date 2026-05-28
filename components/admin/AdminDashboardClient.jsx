@@ -207,7 +207,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         { title: 'Total Listings', value: dashboardData.products, icon: ShoppingBasketIcon, color: 'text-orange-600', bg: 'bg-orange-50' },
         { title: 'Total Orders', value: dashboardData.orders, icon: TagsIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
         { title: 'Total Revenue', value: currency + dashboardData.revenue.toLocaleString(), icon: CircleDollarSignIcon, color: 'text-green-600', bg: 'bg-green-50' },
-        { title: 'Verified Users', value: dashboardData.verifiedUsers, icon: ShieldCheckIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
+        { title: 'Verified Buyers', value: dashboardData.verifiedUsers, icon: ShieldCheckIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
         { title: 'Pending Payouts', value: currency + dashboardData.pendingPayouts.toLocaleString(), icon: WalletIcon, color: 'text-rose-600', bg: 'bg-rose-50' },
     ]
 

@@ -152,8 +152,8 @@ export const getAdminDashboardSummary = async () => {
             productCount,
             orderCount,
             revenueData,
-            verifiedCount,
-            userCount,
+            verifiedBuyerCount,
+            buyerCount,
             pendingPayoutsData,
             recentOrders,
             pendingVerifications
@@ -164,8 +164,8 @@ export const getAdminDashboardSummary = async () => {
             prisma.order.aggregate({
                 _sum: { total: true }
             }),
-            prisma.user.count({ where: { accountStatus: 'approved' } }),
-            prisma.user.count(),
+            prisma.user.count({ where: { role: 'USER', accountStatus: 'approved' } }),
+            prisma.user.count({ where: { role: 'USER' } }),
             prisma.order.aggregate({
                 where: { status: 'COMPLETED', payoutStatus: 'pending' },
                 _sum: {
@@ -216,9 +216,9 @@ export const getAdminDashboardSummary = async () => {
                         payoutAmount: pendingPayoutsData._sum.payoutAmount || 0,
                         platformEarnings: (pendingPayoutsData._sum.buyerFee || 0) + (pendingPayoutsData._sum.sellerFee || 0)
                     },
-                    verifiedUsers: verifiedCount,
-                    unverifiedUsers: userCount - verifiedCount,
-                    totalUsers: userCount,
+                    verifiedUsers: verifiedBuyerCount,
+                    unverifiedUsers: buyerCount - verifiedBuyerCount,
+                    totalUsers: buyerCount,
                     recentOrders: recentOrders,
                     pendingVerifications: pendingVerifications || []
                 };
@@ -231,11 +231,16 @@ export const getAdminDashboardSummary = async () => {
 };
 
 
-export async function getAllUsers(page = 1, limit = 50) {
+export async function getAllUsers(page = 1, limit = 50, filters = {}) {
     try {
         const skip = (page - 1) * limit
+        const where = {}
+        if (filters.role) where.role = filters.role
+        if (filters.accountStatus) where.accountStatus = filters.accountStatus
+
         const [users, total] = await withRetry(() => prisma.$transaction([
             prisma.user.findMany({
+                where,
                 skip,
                 take: limit,
                 orderBy: { name: 'asc' },
@@ -249,7 +254,7 @@ export async function getAllUsers(page = 1, limit = 50) {
                     // Exclude heavy fields like 'image' if not needed in the list
                 }
             }),
-            prisma.user.count()
+            prisma.user.count({ where })
         ]))
 
         return ApiResponse.success({

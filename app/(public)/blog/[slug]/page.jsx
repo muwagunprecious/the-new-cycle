@@ -1,13 +1,14 @@
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { getBlogBySlug } from "@/backend-actions/actions/blog"
 import prisma from "@/backend-actions/lib/prisma"
 
 // Generate static params for existing blogs (optional optimization)
 export async function generateStaticParams() {
     try {
         const blogs = await prisma.blog.findMany({
-            where: { status: 'published' },
+            where: { status: { equals: 'published', mode: 'insensitive' } },
             select: { slug: true }
         })
         return blogs.map(blog => ({ slug: blog.slug }))
@@ -17,17 +18,13 @@ export async function generateStaticParams() {
     }
 }
 
-// Ensure the page gets dynamically regenerated or is dynamic
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function BlogReadingPage({ params }) {
     const { slug } = await params
     
-    // Fetch blog directly here since Server Components run perfectly for SEO & speed
-    const blog = await prisma.blog.findUnique({
-        where: { slug: slug, status: 'published' },
-        include: { user: { select: { name: true } } }
-    })
+    const res = await getBlogBySlug(slug)
+    const blog = res.success ? res.data : null
 
     if (!blog) {
         notFound()

@@ -15,10 +15,10 @@ const outfit = Outfit({
 
 export const metadata = {
     title: {
-        default: "GoCycle.ng | E-waste Digital Marketplace",
+        default: "GoCycle.ng | E-waste Digital marketplace",
         template: "%s | GoCycle.ng"
     },
-    description: "GoCycle.ng is Lagos' leading platform for battery recycling and sustainable energy solutions. We help individuals and businesses in Nigeria safely recycle used batteries while earning value. Join our circular economy movement in Lagos today.",
+    description: "GoCycle.ng is an e-waste digital marketplace connecting verified sellers and buyers for responsible circular economy trade across Nigeria.",
     keywords: ["battery recycling Lagos", "used battery disposal Nigeria", "recycle batteries Lagos", "GoCycle.ng", "e-waste recycling Lagos", "solar battery recycling Nigeria", "inverter battery recycling Lagos"],
     authors: [{ name: "GoCycle.ng Team" }],
     creator: "GoCycle.ng",
@@ -30,14 +30,14 @@ export const metadata = {
         type: "website",
         locale: "en_NG",
         url: "https://gocycle.ng",
-        title: "GoCycle.ng | E-waste Digital Marketplace",
-        description: "Join the revolution of battery recycling in Lagos, Nigeria. Safely recycle and trade verified batteries on GoCycle.ng.",
+        title: "GoCycle.ng | E-waste Digital marketplace",
+        description: "Trade e-waste through a verified digital marketplace built for responsible circular economy transactions.",
         siteName: "GoCycle.ng",
     },
     twitter: {
         card: "summary_large_image",
-        title: "GoCycle.ng | E-waste Digital Marketplace",
-        description: "Nigeria's #1 marketplace for sustainable battery recycling. Recycle your batteries in Lagos with GoCycle.ng.",
+        title: "GoCycle.ng | E-waste Digital marketplace",
+        description: "GoCycle.ng is an e-waste digital marketplace for verified sellers and buyers.",
         creator: "@GoCycleNG",
     },
     verification: {
@@ -51,7 +51,7 @@ export default function RootLayout({ children }) {
         "@type": "WebSite",
         "name": "GoCycle.ng",
         "url": "https://gocycle.ng",
-        "description": "Nigeria's #1 Battery Recycling Marketplace",
+        "description": "E-waste Digital marketplace",
         "potentialAction": {
             "@type": "SearchAction",
             "target": "https://gocycle.ng/shop?q={search_term_string}",

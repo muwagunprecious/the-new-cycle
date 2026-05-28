@@ -3,7 +3,7 @@
 import { ApiResponse, handleDbError } from "@/backend-actions/lib/api-response"
 import { generateId, logger, normalizePhone } from "@/backend-actions/lib/api-utils"
 import { sendEmail, welcomeEmail } from "@/backend-actions/lib/email"
-import prisma from "@/backend-actions/lib/prisma"
+import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 import bcrypt from "bcryptjs"
 import { sendOTP } from "../lib/sms"
 import { rateLimit } from "../lib/rate-limit"
@@ -378,7 +378,7 @@ export async function loginUser(identifier, password) {
 
         const normalizedIdentifier = identifier.includes('@') ? safeId : normalizePhone(identifier);
         
-        const user = await prisma.user.findFirst({
+        const user = await withRetry(() => prisma.user.findFirst({
             where: {
                 OR: [
                     { email: { equals: safeId, mode: 'insensitive' } }, 
@@ -386,7 +386,7 @@ export async function loginUser(identifier, password) {
                     { phone: safeId }
                 ]
             }
-        });
+        }), 1);
         const afterDb = Date.now()
 
         if (!user || !user.password) {

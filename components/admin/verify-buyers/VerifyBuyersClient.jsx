@@ -7,7 +7,7 @@ import Loading from "@/components/Loading"
 import Image from "next/image"
 
 export default function VerifyBuyersClient({ initialBuyers }) {
-    const [buyers, setBuyers] = useState(initialBuyers || [])
+    const [buyers, setBuyers] = useState((initialBuyers || []).filter(b => b.role === 'USER'))
     const [loading, setLoading] = useState(false)
     const [rejectionReason, setRejectionReason] = useState({})
 
@@ -15,7 +15,9 @@ export default function VerifyBuyersClient({ initialBuyers }) {
         setLoading(true)
         const result = await getPendingBuyers()
         if (result.success) {
-            setBuyers(result.data)
+            // Filter to ensure only buyers (role USER) are displayed
+            const filtered = result.data.filter(b => b.role === 'USER');
+            setBuyers(filtered);
         } else {
             toast.error(result.error)
         }

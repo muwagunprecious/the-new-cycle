@@ -49,11 +49,9 @@ const Hero = () => {
                     
                     {/* Large Headline */}
                     <h1 className="text-[clamp(2.5rem,5vw,4.5rem)] font-light text-white leading-[1.05] tracking-[-0.02em] mb-8">
-                        One stop marketplace{' '}
+                        E-waste Digital{' '}
                         <br className="hidden xl:block" />
-                        to trade with vetted <span className="text-[#00D166]">sellers</span>
-                        <br className="hidden xl:block" />
-                        and <span className="text-[#00D166]">buyers</span> of old batteries.
+                        <span className="text-[#00D166]">marketplace</span>
                     </h1>
 
                     {/* Subtitle */}
