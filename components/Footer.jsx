@@ -5,26 +5,13 @@ import Image from 'next/image'
 import { BatteryCharging, Mail, Twitter, Linkedin, Facebook, ArrowUpRight, Phone, Loader2, MapPin, Globe } from 'lucide-react'
 import toast from "react-hot-toast"
 import { subscribeNewsletter } from "@/backend-actions/actions/newsletter"
-import { getPartners } from "@/backend-actions/actions/partners"
 import { assets } from "../assets/assets"
 
 const Footer = () => {
     const currentYear = new Date().getFullYear()
     const [email, setEmail] = useState("")
     const [isSubscribing, setIsSubscribing] = useState(false)
-    const [partners, setPartners] = useState([])
-
-    useEffect(() => {
-        const fetchPartners = async () => {
-            try {
-                const res = await getPartners()
-                if (res.success) setPartners(res.data)
-            } catch (error) {
-                console.error("Failed to fetch partners:", error)
-            }
-        }
-        fetchPartners()
-    }, [])
+    const partners = []
 
     const handleSubscribe = async (e) => {
         e.preventDefault()

@@ -76,8 +76,9 @@ function ShopClientContent({ initialProducts = [] }) {
 
     // Use pure derived state (useMemo) instead of useEffect to filter, making it instantly responsive
     const filteredProducts = useMemo(() => {
-        // Use Redux state if populated, else fallback to initialProducts
-        let result = rawProducts?.length > 0 ? [...rawProducts] : [...initialProducts]
+        // The server result is the source of truth for marketplace inventory.
+        // Redux can be stale after admin approvals, so only use it as a last fallback.
+        let result = initialProducts?.length > 0 ? [...initialProducts] : [...(rawProducts || [])]
 
         if (search) {
             result = result.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))

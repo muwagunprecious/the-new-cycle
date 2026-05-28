@@ -3,7 +3,7 @@
 import { ApiResponse } from "@/backend-actions/lib/api-response"
 import { logger } from "@/backend-actions/lib/api-utils"
 import { sendEmail, sellerWalletCreditEmail, buyerVerifiedEmail, buyerRejectedEmail } from "@/backend-actions/lib/email"
-import { revalidatePath, unstable_cache, revalidateTag } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 import bcrypt from "bcryptjs"
 import { generateId } from "@/backend-actions/lib/api-utils"
@@ -145,64 +145,62 @@ export async function updateSellerWallet(storeId, amount, type = 'CREDIT') {
  * Uses Next.js unstable_cache to prevent heavy DB load on every refresh.
  */
 export const getAdminDashboardSummary = async () => {
-    return unstable_cache(
-        async () => {
-            try {
-                logger.info("[CACHE_MISS] Calculating Admin Dashboard Summary...");
-                const [
-                    sellerCount,
-                    productCount,
-                    orderCount,
-                    revenueData,
-                    verifiedCount,
-                    userCount,
-                    pendingPayoutsData,
-                    recentOrders,
-                    pendingVerifications
-                ] = await withRetry(() => Promise.all([
-                    prisma.user.count({ where: { role: 'SELLER' } }),
-                    prisma.product.count(),
-                    prisma.order.count(),
-                    prisma.order.aggregate({
-                        _sum: { total: true }
-                    }),
-                    prisma.user.count({ where: { accountStatus: 'approved' } }),
-                    prisma.user.count(),
-                    prisma.order.aggregate({
-                        where: { status: 'COMPLETED', payoutStatus: 'pending' },
-                        _sum: { 
-                            total: true,
-                            subtotal: true,
-                            buyerFee: true,
-                            sellerFee: true,
-                            payoutAmount: true
-                        }
-                    }),
-                    prisma.order.findMany({
-                        take: 5,
-                        orderBy: { createdAt: 'desc' },
-                        select: {
-                            id: true,
-                            total: true,
-                            createdAt: true,
-                            user: { select: { name: true } },
-                            store: { select: { name: true } }
-                        }
-                    }),
-                    prisma.order.findMany({
-                        where: { paymentStatus: 'pending' },
-                        orderBy: { createdAt: 'desc' },
-                        take: 10,
-                        select: {
-                            id: true,
-                            total: true,
-                            paymentSenderName: true,
-                            createdAt: true,
-                            user: { select: { name: true } },
-                            store: { select: { name: true } }
-                        }
-                    })
-                ]))
+    try {
+        logger.info("Calculating Admin Dashboard Summary...");
+        const [
+            sellerCount,
+            productCount,
+            orderCount,
+            revenueData,
+            verifiedCount,
+            userCount,
+            pendingPayoutsData,
+            recentOrders,
+            pendingVerifications
+        ] = await withRetry(() => prisma.$transaction([
+            prisma.user.count({ where: { role: 'SELLER' } }),
+            prisma.product.count(),
+            prisma.order.count(),
+            prisma.order.aggregate({
+                _sum: { total: true }
+            }),
+            prisma.user.count({ where: { accountStatus: 'approved' } }),
+            prisma.user.count(),
+            prisma.order.aggregate({
+                where: { status: 'COMPLETED', payoutStatus: 'pending' },
+                _sum: {
+                    total: true,
+                    subtotal: true,
+                    buyerFee: true,
+                    sellerFee: true,
+                    payoutAmount: true
+                }
+            }),
+            prisma.order.findMany({
+                take: 5,
+                orderBy: { createdAt: 'desc' },
+                select: {
+                    id: true,
+                    total: true,
+                    createdAt: true,
+                    user: { select: { name: true } },
+                    store: { select: { name: true } }
+                }
+            }),
+            prisma.order.findMany({
+                where: { paymentStatus: 'pending' },
+                orderBy: { createdAt: 'desc' },
+                take: 10,
+                select: {
+                    id: true,
+                    total: true,
+                    paymentSenderName: true,
+                    createdAt: true,
+                    user: { select: { name: true } },
+                    store: { select: { name: true } }
+                }
+            })
+        ]), 1, 20000)
 
                 const stats = {
                     products: productCount,
@@ -225,22 +223,18 @@ export const getAdminDashboardSummary = async () => {
                     pendingVerifications: pendingVerifications || []
                 };
 
-                return ApiResponse.success(stats);
-            } catch (error) {
-                logger.error("Get Dashboard Summary Error", error)
-                return ApiResponse.error("Failed to fetch dashboard stats")
-            }
-        },
-        ['admin-dashboard-summary-v1'],
-        { revalidate: 300, tags: ['admin-stats'] }
-    )();
+        return ApiResponse.success(stats);
+    } catch (error) {
+        logger.error("Get Dashboard Summary Error", error)
+        return ApiResponse.error("Failed to fetch dashboard stats")
+    }
 };
 
 
 export async function getAllUsers(page = 1, limit = 50) {
     try {
         const skip = (page - 1) * limit
-        const [users, total] = await withRetry(() => Promise.all([
+        const [users, total] = await withRetry(() => prisma.$transaction([
             prisma.user.findMany({
                 skip,
                 take: limit,

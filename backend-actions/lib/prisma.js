@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
+const globalForPrisma = globalThis
+
 const prismaClientSingleton = () => {
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
@@ -11,11 +13,32 @@ const prismaClientSingleton = () => {
   })
 }
 
-const globalForPrisma = globalThis
+const prisma = globalForPrisma.prisma ?? globalForPrisma.prismaGlobal ?? prismaClientSingleton()
 
-const prisma = globalForPrisma.prismaGlobal ?? prismaClientSingleton()
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma
+  globalForPrisma.prismaGlobal = prisma
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prismaGlobal = prisma
+if (process.env.NODE_ENV !== 'production' && !globalForPrisma.prismaShutdownHooksRegistered) {
+  globalForPrisma.prismaShutdownHooksRegistered = true
+  const disconnect = async () => {
+    try {
+      await prisma.$disconnect()
+    } catch (error) {
+      console.warn('[PRISMA] Disconnect failed during shutdown', error)
+    }
+  }
+  process.once('beforeExit', disconnect)
+  process.once('SIGINT', async () => {
+    await disconnect()
+    process.exit(0)
+  })
+  process.once('SIGTERM', async () => {
+    await disconnect()
+    process.exit(0)
+  })
+}
 
 export default prisma
 
@@ -35,9 +58,15 @@ export async function withRetry(fn, retries = 1, timeoutMs = 10000) {
       error?.message?.includes('timed out') ||
       error?.message?.includes("Can't reach database") ||
       error?.message?.includes('connection') ||
-      error?.message?.includes('pool timeout')
+      error?.message?.includes('pool timeout') ||
+      error?.message?.includes('EMAXCONNSESSION') ||
+      error?.message?.includes('max clients reached')
 
-    if (retries > 0 && isConnectionError) {
+    const poolIsExhausted =
+      error?.message?.includes('EMAXCONNSESSION') ||
+      error?.message?.includes('max clients reached')
+
+    if (retries > 0 && isConnectionError && !poolIsExhausted) {
       console.warn(`[PRISMA] Connection error or timeout, retrying... (${retries} left)`)
       try {
         await prisma.$connect()

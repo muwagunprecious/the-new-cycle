@@ -506,7 +506,7 @@ export async function adminApproveProduct(productId, adminId) {
 
         const product = await prisma.product.update({
             where: { id: productId },
-            data: { status: 'approved', rejectionReason: null },
+            data: { status: 'approved', rejectionReason: null, inStock: true },
             include: {
                 store: {
                     include: { user: true }
@@ -534,6 +534,7 @@ export async function adminApproveProduct(productId, adminId) {
         revalidatePath('/seller/products')
         revalidatePath('/')
         revalidatePath('/shop')
+        revalidatePath('/marketplace')
         revalidateTag('products')
         revalidateTag('admin-products')
         return ApiResponse.success(null, "Product approved successfully")
