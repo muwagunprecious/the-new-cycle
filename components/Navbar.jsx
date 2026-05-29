@@ -80,9 +80,9 @@ const Navbar = () => {
                         <Image 
                             src={assets.gs_logo} 
                             alt="GoCycle" 
-                            width={160} 
-                            height={48} 
-                            className="w-auto h-10 md:h-12 object-contain transition-transform group-hover:scale-105 duration-500"
+                            width={120} 
+                            height={32} 
+                            className="w-auto h-7 md:h-9 object-contain transition-transform group-hover:scale-105 duration-500"
                         />
                     </Link>
 
