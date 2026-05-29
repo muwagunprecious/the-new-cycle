@@ -71,13 +71,16 @@ export async function POST(request) {
                 // Send Verification Email to Seller
                 if (updatedOrder.store?.email) {
                     try {
-                        const { sellerOrderNotificationEmail, sendEmail } = await import("@/backend-actions/lib/email")
-                        const emailContent = sellerOrderNotificationEmail({
+                        const { sellerNewOrderEmail, sendEmail } = await import("@/backend-actions/lib/email")
+                        const emailContent = sellerNewOrderEmail({
                             sellerName: updatedOrder.store.name,
                             buyerName: updatedOrder.user?.name || 'Customer',
                             orderId: updatedOrder.id,
                             productName: updatedOrder.orderItems?.[0]?.product?.name || 'Battery Product',
-                            verificationCode: verificationCode
+                            amount: updatedOrder.total,
+                            quantity: updatedOrder.orderItems?.[0]?.quantity || 1,
+                            collectionDate: updatedOrder.collectionDate || 'TBD',
+                            token: verificationCode
                         })
                         await sendEmail({ to: updatedOrder.store.email, ...emailContent })
                     } catch (e) {

@@ -157,10 +157,10 @@ export async function createOrder(orderData) {
                 }
             }
 
-            // Seller email
+            // Seller email (Alert only, no code until payment verified)
             if (sellerUser?.email) {
-                const sellerEmailTemplate = sellerNewOrderEmail({ sellerName: sellerUser.name, orderId: transactionId, productName: "Battery", amount: totalAmount, quantity, collectionDate: collectionDate || 'TBD', token: collectionToken, buyerName: buyer.name });
-                await sendEmail({ to: sellerUser.email, ...sellerEmailTemplate });
+                // We no longer send the verification code here. 
+                // The seller gets the real 'sellerNewOrderEmail' with the code once payment is verified (in admin.js or webhook).
             }
         } catch (e) {
             logger.warn("Order emails failed", e);
