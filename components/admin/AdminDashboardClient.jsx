@@ -871,12 +871,11 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Identity Documents</p>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">NIN Document</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">NIN Number</p>
                                                 {selectedUserProfile.ninDocument ? (
-                                                    <a href={selectedUserProfile.ninDocument} target="_blank" rel="noreferrer"
-                                                        className="text-blue-600 font-bold text-sm hover:underline break-all">
-                                                        View NIN Doc ↗
-                                                    </a>
+                                                    <p className="text-slate-900 font-bold text-sm tracking-wide break-all">
+                                                        {selectedUserProfile.ninDocument}
+                                                    </p>
                                                 ) : (
                                                     <p className="text-slate-300 font-medium text-sm">Not provided</p>
                                                 )}
