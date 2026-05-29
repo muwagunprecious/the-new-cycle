@@ -637,7 +637,7 @@ export async function verifyOrderPayment(orderId) {
                 amount: order.total,
                 quantity: order.orderItems[0]?.quantity || 1,
                 collectionDate: order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
-                token: order.collectionToken,
+                token: order.verificationCode,
                 buyerName: order.user.name
             })
             mailer({ to: order.store.user.email, ...sellerTemplate }).catch(err => logger.warn("Seller notify email failed", err))
