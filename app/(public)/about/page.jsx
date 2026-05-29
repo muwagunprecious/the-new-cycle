@@ -61,7 +61,7 @@ const AboutPage = () => {
                         </span>
                     </div>
                     <h2 className="text-4xl md:text-5xl font-medium text-slate-900 tracking-[-0.02em] leading-[1.1]">
-                        A Synthesis of Scale & Innovation
+                        A Synthesis of Scale &amp; Innovation
                     </h2>
                     <p className="text-xl font-medium text-slate-600 leading-relaxed">
                         Combining deep-rooted expertise in digital infrastructure with a passion for environmental transformation.
@@ -70,48 +70,68 @@ const AboutPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Emmanuel Okoegwale */}
-                    <div className="bg-white border border-slate-100 shadow-sm rounded-[32px] p-8 md:p-12 space-y-8 flex flex-col justify-between">
-                        <div className="space-y-6">
-                            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-slate-50 shadow-sm mb-6 bg-slate-100">
-                                <Image src="/images/emmanuel-okoegwale.jpg" alt="Emmanuel Okoegwale" width={96} height={96} className="object-cover w-full h-full" />
-                            </div>
-                            <h3 className="text-3xl font-medium text-slate-900 leading-[1.1]">Emmanuel Okoegwale</h3>
-                            <p className="text-[#00D166] font-bold text-[12px] uppercase tracking-widest">Distribution Network Architect</p>
-                            <div className="space-y-6 text-slate-600 leading-relaxed">
-                                <p>With over two decades of experience at the intersection of Digital Finance and Distribution, Emmanuel is a master of building "last-mile" networks in complex markets.</p>
-                                <p>Having held leadership roles at Save the Children and MobileMoneyAfrica, his career has been defined by the creation of proprietary distribution systems that drive financial inclusion. At Gocycle, he applies the rigorous logic of fintech to the waste sector.</p>
+                    <div className="bg-white border border-slate-100 shadow-sm rounded-[32px] p-8 md:p-12 space-y-6 flex flex-col">
+                        {/* Large circular photo with gradient ring */}
+                        <div className="p-[4px] rounded-full w-fit"
+                            style={{ background: 'linear-gradient(135deg, #00D166 0%, #00a34e 50%, #007a38 100%)' }}>
+                            <div className="w-[160px] h-[160px] rounded-full overflow-hidden bg-slate-100 border-4 border-white">
+                                <Image
+                                    src="/images/emmanuel-okoegwale.jpg"
+                                    alt="Emmanuel Okoegwale"
+                                    width={160}
+                                    height={160}
+                                    className="object-cover w-full h-full"
+                                />
                             </div>
                         </div>
-                        <div className="pt-8 border-t border-slate-200 flex gap-4">
-                            <div className="w-12 h-12 rounded-[16px] bg-[#F4F6F8] flex items-center justify-center text-[#00D166] shadow-sm border border-slate-100">
-                                <Shield size={20} />
-                            </div>
-                            <div className="w-12 h-12 rounded-[16px] bg-[#F4F6F8] flex items-center justify-center text-[#00D166] shadow-sm border border-slate-100">
-                                <Users size={20} />
-                            </div>
+
+                        {/* Name & Title */}
+                        <div className="space-y-1 pt-2">
+                            <h3 className="text-[13px] font-black uppercase tracking-[0.12em] text-[#00D166]">
+                                Emmanuel Okoegwale
+                            </h3>
+                            <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest">
+                                Distribution Network Architect
+                            </p>
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-4 text-slate-600 leading-relaxed text-[15px]">
+                            <p>With over two decades of experience at the intersection of Digital Finance and Distribution, Emmanuel is a master of building &quot;last-mile&quot; networks in complex markets.</p>
+                            <p>Having held leadership roles at Save the Children and MobileMoneyAfrica, his career has been defined by the creation of proprietary distribution systems that drive financial inclusion. At Gocycle, he applies the rigorous logic of fintech to the waste sector.</p>
                         </div>
                     </div>
 
                     {/* Adenle Tuwase */}
-                    <div className="bg-white border border-slate-100 shadow-sm rounded-[32px] p-8 md:p-12 space-y-8 flex flex-col justify-between">
-                        <div className="space-y-6">
-                            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-slate-50 shadow-sm mb-6 bg-slate-100">
-                                <Image src="/images/adetunwase-adenle.jpg" alt="Adenle Tuwase" width={96} height={96} className="object-cover w-full h-full" />
-                            </div>
-                            <h3 className="text-3xl font-medium text-slate-900 leading-[1.1]">Adenle Tuwase</h3>
-                            <p className="text-[#00D166] font-bold text-[12px] uppercase tracking-widest">The E-waste Innovator</p>
-                            <div className="space-y-6 text-slate-600 leading-relaxed">
-                                <p>A visionary social entrepreneur and a 4× Guinness World Record Holder, Adenle represents the spirit of waste-to-value innovation.</p>
-                                <p>His career is a testament to the power of creative environmentalism and operational excellence. At Gocycle, Adenle spearheads the social and marketing drive required to divert hazardous materials from the environment.</p>
+                    <div className="bg-white border border-slate-100 shadow-sm rounded-[32px] p-8 md:p-12 space-y-6 flex flex-col">
+                        {/* Large circular photo with gradient ring */}
+                        <div className="p-[4px] rounded-full w-fit"
+                            style={{ background: 'linear-gradient(135deg, #00D166 0%, #00a34e 50%, #007a38 100%)' }}>
+                            <div className="w-[160px] h-[160px] rounded-full overflow-hidden bg-slate-100 border-4 border-white">
+                                <Image
+                                    src="/images/adetunwase-adenle.jpg"
+                                    alt="Adetunwase Adenle"
+                                    width={160}
+                                    height={160}
+                                    className="object-cover w-full h-full"
+                                />
                             </div>
                         </div>
-                        <div className="pt-8 border-t border-slate-200 flex gap-4">
-                            <div className="w-12 h-12 rounded-[16px] bg-[#F4F6F8] flex items-center justify-center text-[#00D166] shadow-sm border border-slate-100">
-                                <Award size={20} />
-                            </div>
-                            <div className="w-12 h-12 rounded-[16px] bg-[#F4F6F8] flex items-center justify-center text-[#00D166] shadow-sm border border-slate-100">
-                                <Leaf size={20} />
-                            </div>
+
+                        {/* Name & Title */}
+                        <div className="space-y-1 pt-2">
+                            <h3 className="text-[13px] font-black uppercase tracking-[0.12em] text-[#00D166]">
+                                Adetunwase Adenle
+                            </h3>
+                            <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest">
+                                The E-waste Innovator
+                            </p>
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-4 text-slate-600 leading-relaxed text-[15px]">
+                            <p>A visionary social entrepreneur and a 4× Guinness World Record Holder, Adenle represents the spirit of waste-to-value innovation.</p>
+                            <p>His career is a testament to the power of creative environmentalism and operational excellence. At Gocycle, Adenle spearheads the social and marketing drive required to divert hazardous materials from the environment.</p>
                         </div>
                     </div>
                 </div>
