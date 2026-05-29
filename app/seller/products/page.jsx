@@ -198,6 +198,9 @@ export default function SellerProducts() {
                 setProducts(prev => [...prev, ...(products || [])]);
             }
             setPagination(pagination);
+        } else {
+            console.error("Failed to load products:", result.error)
+            toast.error(result.error || "Failed to load products")
         }
         setIsLoading(false)
     }
