@@ -17,7 +17,6 @@ function ShopClientContent({ initialProducts = [] }) {
     const dispatch = useDispatch()
 
     const rawProducts = useSelector(state => state.product.list)
-    const [localBoughtIds, setLocalBoughtIds] = useState([])
     const [activeLga, setActiveLga] = useState('All')
     const [activeType, setActiveType] = useState('All')
     
@@ -27,13 +26,6 @@ function ShopClientContent({ initialProducts = [] }) {
             dispatch(setProduct(initialProducts))
         }
     }, [initialProducts, dispatch])
-
-    useEffect(() => {
-        try {
-            const bought = JSON.parse(localStorage.getItem('gocycle_bought_products') || '[]')
-            setLocalBoughtIds(bought)
-        } catch (e) {}
-    }, [])
 
     // Quick Buy State
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
@@ -92,8 +84,7 @@ function ShopClientContent({ initialProducts = [] }) {
 
         result = result.filter(p => 
             p.status !== 'sold' && 
-            p.inStock !== false && 
-            !localBoughtIds.includes(p.id)
+            p.inStock !== false
         )
 
         result.sort((a, b) => {
@@ -105,7 +96,7 @@ function ShopClientContent({ initialProducts = [] }) {
         });
 
         return result
-    }, [rawProducts, initialProducts, search, activeLga, activeType, localBoughtIds])
+    }, [rawProducts, initialProducts, search, activeLga, activeType])
 
     return (
         <div className="min-h-[70vh] bg-white pt-24 pb-32">

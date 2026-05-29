@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/Button"
-import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory } from "@/backend-actions/actions/admin"
+import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory, getUserProfile } from "@/backend-actions/actions/admin"
 import { getAllOrders } from "@/backend-actions/actions/order"
 import dynamic from 'next/dynamic'
 const AdminDiagnosticsPanel = dynamic(() => import('@/components/admin/AdminDiagnosticsPanel'), { ssr: false })
@@ -62,6 +62,30 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         orders: initialOrders?.pagination || { page: 1, totalPages: 1 },
         payouts: initialPayouts?.pagination || { page: 1, totalPages: 1 }
     })
+
+    const [selectedUserProfile, setSelectedUserProfile] = useState(null)
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+    const [profileLoading, setProfileLoading] = useState(false)
+
+    const handleViewProfile = async (userId) => {
+        setSelectedUserProfile(null)
+        setProfileLoading(true)
+        setIsProfileModalOpen(true)
+        try {
+            const res = await getUserProfile(userId)
+            if (res.success) {
+                setSelectedUserProfile(res.data)
+            } else {
+                toast.error(res.error || 'Failed to load profile')
+                setIsProfileModalOpen(false)
+            }
+        } catch {
+            toast.error('Failed to load profile')
+            setIsProfileModalOpen(false)
+        } finally {
+            setProfileLoading(false)
+        }
+    }
 
     // Fetch data when switching tabs if it hasn't been loaded yet
     useEffect(() => {
@@ -395,7 +419,11 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-2">
-                                                <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500">
+                                                <button 
+                                                    onClick={() => handleViewProfile(user.id)}
+                                                    className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500"
+                                                    title="View profile"
+                                                >
                                                     <EyeIcon size={16} />
                                                 </button>
                                                 {user.role !== 'ADMIN' && (
@@ -750,6 +778,209 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                         </div>
                     </div>
                     <AdminDiagnosticsPanel />
+                </div>
+            )}
+
+            {/* ───── User Profile Modal ───── */}
+            {isProfileModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)' }}
+                    onClick={(e) => { if (e.target === e.currentTarget) setIsProfileModalOpen(false) }}
+                >
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+                        {/* Modal Header */}
+                        <div className="px-7 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-[#05DF72]/10 flex items-center justify-center">
+                                    <EyeIcon size={18} className="text-[#05DF72]" />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-slate-900 text-base">User Profile</h3>
+                                    <p className="text-xs text-slate-400">Full details as submitted</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsProfileModalOpen(false)}
+                                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors text-lg font-bold"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="overflow-y-auto flex-1 p-7">
+                            {profileLoading ? (
+                                <div className="py-24 flex flex-col items-center justify-center gap-3">
+                                    <div className="w-10 h-10 border-4 border-[#05DF72]/30 border-t-[#05DF72] rounded-full animate-spin" />
+                                    <p className="text-sm text-slate-400 font-medium">Loading profile...</p>
+                                </div>
+                            ) : selectedUserProfile ? (
+                                <div className="space-y-6">
+                                    {/* Avatar + Basic Info */}
+                                    <div className="flex items-center gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div className="w-16 h-16 rounded-2xl bg-[#05DF72]/10 flex items-center justify-center text-2xl font-black text-[#05DF72] shrink-0">
+                                            {selectedUserProfile.name?.charAt(0)?.toUpperCase() || '?'}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-xl font-black text-slate-900 truncate">{selectedUserProfile.name}</h4>
+                                            <p className="text-sm text-slate-500 truncate">{selectedUserProfile.email}</p>
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+                                                    selectedUserProfile.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
+                                                    selectedUserProfile.role === 'SELLER' ? 'bg-blue-100 text-blue-700' :
+                                                    'bg-slate-100 text-slate-600'
+                                                }`}>{selectedUserProfile.role}</span>
+                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+                                                    selectedUserProfile.accountStatus === 'approved' ? 'bg-[#05DF72]/10 text-[#05DF72]' :
+                                                    selectedUserProfile.accountStatus === 'rejected' ? 'bg-red-100 text-red-600' :
+                                                    'bg-amber-100 text-amber-700'
+                                                }`}>{selectedUserProfile.accountStatus || 'pending'}</span>
+                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+                                                    selectedUserProfile.status === 'banned' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
+                                                }`}>{selectedUserProfile.status || 'active'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Contact Details */}
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Contact Details</p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Phone</p>
+                                                <p className="font-bold text-slate-800">{selectedUserProfile.phone || <span className="text-slate-300 font-medium">Not provided</span>}</p>
+                                            </div>
+                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Email Verified</p>
+                                                <p className={`font-bold ${selectedUserProfile.isEmailVerified ? 'text-[#05DF72]' : 'text-amber-500'}`}>
+                                                    {selectedUserProfile.isEmailVerified ? '✓ Verified' : '✗ Unverified'}
+                                                </p>
+                                            </div>
+                                            {selectedUserProfile.Address && selectedUserProfile.Address.length > 0 && (
+                                                <div className="col-span-2 bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Address</p>
+                                                    <p className="font-bold text-slate-800">{selectedUserProfile.Address[0]?.street}, {selectedUserProfile.Address[0]?.city}, {selectedUserProfile.Address[0]?.state}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Identity Documents */}
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Identity Documents</p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">NIN Document</p>
+                                                {selectedUserProfile.ninDocument ? (
+                                                    <a href={selectedUserProfile.ninDocument} target="_blank" rel="noreferrer"
+                                                        className="text-blue-600 font-bold text-sm hover:underline break-all">
+                                                        View NIN Doc ↗
+                                                    </a>
+                                                ) : (
+                                                    <p className="text-slate-300 font-medium text-sm">Not provided</p>
+                                                )}
+                                            </div>
+                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">CAC Document</p>
+                                                {selectedUserProfile.cacDocument ? (
+                                                    <a href={selectedUserProfile.cacDocument} target="_blank" rel="noreferrer"
+                                                        className="text-blue-600 font-bold text-sm hover:underline break-all">
+                                                        View CAC Doc ↗
+                                                    </a>
+                                                ) : (
+                                                    <p className="text-slate-300 font-medium text-sm">Not provided</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Store Details (Sellers only) */}
+                                    {selectedUserProfile.store && (
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Store Details</p>
+                                            <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100 space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                                                        <StoreIcon size={18} className="text-blue-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-black text-blue-900">{selectedUserProfile.store.name}</p>
+                                                        <p className="text-xs text-blue-500">@{selectedUserProfile.store.username}</p>
+                                                    </div>
+                                                    <span className={`ml-auto text-[10px] font-black px-3 py-1 rounded-full uppercase ${
+                                                        selectedUserProfile.store.status === 'approved' ? 'bg-[#05DF72]/10 text-[#05DF72]' :
+                                                        selectedUserProfile.store.status === 'rejected' ? 'bg-red-100 text-red-600' :
+                                                        'bg-amber-100 text-amber-700'
+                                                    }`}>{selectedUserProfile.store.status}</span>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-blue-100">
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-blue-400 uppercase mb-1">NIN (Store)</p>
+                                                        <p className="font-bold text-blue-900 text-sm">{selectedUserProfile.store.nin || <span className="text-blue-300 font-medium">N/A</span>}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-blue-400 uppercase mb-1">CAC Number</p>
+                                                        <p className="font-bold text-blue-900 text-sm">{selectedUserProfile.store.cac || <span className="text-blue-300 font-medium">N/A</span>}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-blue-400 uppercase mb-1">Bank Name</p>
+                                                        <p className="font-bold text-blue-900 text-sm">{selectedUserProfile.store.bankName || <span className="text-blue-300 font-medium">N/A</span>}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-blue-400 uppercase mb-1">Account Number</p>
+                                                        <p className="font-mono font-black text-blue-900 text-sm">{selectedUserProfile.store.accountNumber || <span className="text-blue-300 font-medium">N/A</span>}</p>
+                                                    </div>
+                                                    <div className="col-span-2">
+                                                        <p className="text-[10px] font-bold text-blue-400 uppercase mb-1">Account Name</p>
+                                                        <p className="font-bold text-blue-900 text-sm">{selectedUserProfile.store.accountName || <span className="text-blue-300 font-medium">N/A</span>}</p>
+                                                    </div>
+                                                    <div className="col-span-2">
+                                                        <p className="text-[10px] font-bold text-blue-400 uppercase mb-1">Address</p>
+                                                        <p className="font-medium text-blue-800 text-sm">{selectedUserProfile.store.address || <span className="text-blue-300">N/A</span>}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-blue-400 uppercase mb-1">Wallet Balance</p>
+                                                        <p className="font-black text-[#05DF72] text-sm">₦{(selectedUserProfile.store.walletBalance || 0).toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Timestamps */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Joined</p>
+                                            <p className="font-bold text-slate-800 text-sm">
+                                                {selectedUserProfile.createdAt ? new Date(selectedUserProfile.createdAt).toLocaleDateString('en-NG', { dateStyle: 'medium' }) : 'N/A'}
+                                            </p>
+                                        </div>
+                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Verified At</p>
+                                            <p className="font-bold text-slate-800 text-sm">
+                                                {selectedUserProfile.verifiedAt ? new Date(selectedUserProfile.verifiedAt).toLocaleDateString('en-NG', { dateStyle: 'medium' }) : 'Not verified'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="py-20 text-center text-slate-400">
+                                    <p className="font-bold">Could not load profile.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="px-7 py-4 border-t border-slate-100 shrink-0">
+                            <button
+                                onClick={() => setIsProfileModalOpen(false)}
+                                className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

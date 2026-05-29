@@ -273,6 +273,25 @@ export async function getAllUsers(page = 1, limit = 50, filters = {}) {
     }
 }
 
+export async function getUserProfile(userId) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                store: true,
+                Address: true,
+            }
+        })
+        if (!user) return ApiResponse.error("User not found", 404)
+        // Strip password before returning
+        const { password, ...safeUser } = user
+        return ApiResponse.success(safeUser)
+    } catch (error) {
+        logger.error("Get User Profile Error", error)
+        return ApiResponse.error("Failed to fetch user profile")
+    }
+}
+
 export async function banUser(userId, isBanned) {
     try {
         await prisma.user.update({

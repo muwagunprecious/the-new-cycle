@@ -275,46 +275,8 @@ import { supabase } from "@/backend-actions/lib/supabase"
 
 export async function getAllProducts() {
     try {
-        // Attempt to fetch from the separate backend first (for speed and decoupled hosting)
-        // Use Promise.race with timeout to prevent slow fallback blocking
-        const STANDALONE_TIMEOUT = 500; // 0.5 seconds max
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-        const isLocalhost = apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1');
-        const isProduction = process.env.NODE_ENV === 'production';
-        
-        try {
-            // Skip standalone fetch in production if it points to localhost to avoid 5s wait
-            if (!(isProduction && isLocalhost)) {
-                const apiPromise = fetch(`${apiUrl}/products`, {
-                    next: { revalidate: 60 }, // Cache for 1 minute
-                    signal: AbortSignal.timeout(STANDALONE_TIMEOUT)
-                });
-                
-                // Race against timeout
-                const apiRes = await Promise.race([
-                    apiPromise,
-                    new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('Standalone backend timeout')), STANDALONE_TIMEOUT)
-                    )
-                ]);
-                
-                if (apiRes.ok) {
-                    const result = await apiRes.json();
-                    const bridgeProducts = result.products || result.data || [];
-                    if (result.success && bridgeProducts.length > 0) {
-                        console.log("[BRIDGE] Fetched products from standalone backend");
-                        return result;
-                    }
-                    console.log("[BRIDGE] Standalone backend returned no products; falling back to Prisma");
-                }
-            }
-        } catch (apiErr) {
-            // Silent fail for the bridge, we fallback to internal DB instantly
-        }
-
-
-        // Fallback to internal Prisma logic. Keep this uncached so newly approved
-        // inventory appears in the marketplace immediately.
+        // Keep Prisma as the source of truth so newly approved inventory appears
+        // immediately on /shop and /marketplace.
         const prismaProducts = await withRetry(() => prisma.product.findMany({
             where: { status: 'approved', inStock: true, store: { status: 'approved', isActive: true } },
             select: {
