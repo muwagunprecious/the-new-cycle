@@ -316,8 +316,8 @@ export async function releasePayout(orderId) {
         if (!order) return ApiResponse.error("Order not found", 404)
         if (order.payoutStatus === 'released') return ApiResponse.error("Payout already released", 400)
 
-        const commission = order.total * 0.05
-        const netPayout = order.total - commission
+        const commission = order.sellerFee || (order.total * 0.05)
+        const netPayout = order.payoutAmount || (order.total - commission)
 
         await prisma.$transaction([
             prisma.order.update({
