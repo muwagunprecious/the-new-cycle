@@ -1,5 +1,6 @@
 'use client'
 import React from 'react'
+import Image from 'next/image'
 import { Leaf, Award, Target, Shield, Users, Mail, Phone, MapPin } from 'lucide-react'
 
 const AboutPage = () => {
@@ -71,6 +72,9 @@ const AboutPage = () => {
                     {/* Emmanuel Okoegwale */}
                     <div className="bg-white border border-slate-100 shadow-sm rounded-[32px] p-8 md:p-12 space-y-8 flex flex-col justify-between">
                         <div className="space-y-6">
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-slate-50 shadow-sm mb-6 bg-slate-100">
+                                <Image src="/images/emmanuel-okoegwale.jpg" alt="Emmanuel Okoegwale" width={96} height={96} className="object-cover w-full h-full" />
+                            </div>
                             <h3 className="text-3xl font-medium text-slate-900 leading-[1.1]">Emmanuel Okoegwale</h3>
                             <p className="text-[#00D166] font-bold text-[12px] uppercase tracking-widest">Distribution Network Architect</p>
                             <div className="space-y-6 text-slate-600 leading-relaxed">
@@ -91,6 +95,9 @@ const AboutPage = () => {
                     {/* Adenle Tuwase */}
                     <div className="bg-white border border-slate-100 shadow-sm rounded-[32px] p-8 md:p-12 space-y-8 flex flex-col justify-between">
                         <div className="space-y-6">
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-slate-50 shadow-sm mb-6 bg-slate-100">
+                                <Image src="/images/adetunwase-adenle.jpg" alt="Adenle Tuwase" width={96} height={96} className="object-cover w-full h-full" />
+                            </div>
                             <h3 className="text-3xl font-medium text-slate-900 leading-[1.1]">Adenle Tuwase</h3>
                             <p className="text-[#00D166] font-bold text-[12px] uppercase tracking-widest">The E-waste Innovator</p>
                             <div className="space-y-6 text-slate-600 leading-relaxed">
