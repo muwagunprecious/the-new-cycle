@@ -493,7 +493,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="font-mono text-sm font-bold text-[#05DF72]">{order.collectionToken || '-'}</span>
+                                            <span className="font-mono text-sm font-bold text-[#05DF72]">{order.verificationCode || '-'}</span>
                                         </td>
                                     </tr>
                                 ))}

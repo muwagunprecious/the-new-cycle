@@ -289,7 +289,7 @@ export default function OrderManagementClient({ initialOrders }) {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Collection Token</p>
-                                            <p className="font-mono text-2xl font-black text-[#05DF72]">{selectedOrder.collectionToken || '---'}</p>
+                                            <p className="font-mono text-2xl font-black text-[#05DF72]">{selectedOrder.verificationCode || '---'}</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Verification Status</p>
