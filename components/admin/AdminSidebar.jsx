@@ -19,6 +19,7 @@ const AdminSidebar = () => {
         { name: 'Dashboard', href: '/admin', icon: HomeIcon },
         { name: 'Visual Sitemap', href: '/admin/sitemap', icon: MapPinIcon },
         { name: 'Pending Sellers', href: '/admin/approve', icon: ShieldCheckIcon },
+        { name: 'Manual Verifications', href: '/admin/manual-verifications', icon: CheckCircleIcon },
         { name: 'Verified Sellers', href: '/admin/sellers', icon: StoreIcon },
         { name: 'Verified Buyers', href: '/admin/users', icon: UsersIcon },
         { name: 'Pending Products', href: '/admin/pending-products', icon: ShoppingBagIcon },
