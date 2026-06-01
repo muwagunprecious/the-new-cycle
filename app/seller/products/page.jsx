@@ -1,20 +1,100 @@
-'use client'
-import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
-import { Plus as PlusIcon, Search as SearchIcon, Edit3 as Edit3Icon, Trash as TrashIcon, Battery as BatteryIcon, Image as ImageIcon, X as XIcon, Calendar as CalendarIcon, MapPin as MapPinIcon, Box as BoxIcon, AlertCircle as AlertCircleIcon, CreditCard as CreditCardIcon, Loader as LoaderIcon, CheckCircle as CheckCircleIcon } from "lucide-react"
-import { lagosLGAs } from "@/assets/assets"
-import toast from "react-hot-toast"
-import { useDispatch, useSelector } from "react-redux"
-import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
-import Button from "@/components/Button"
-import ScheduleCalendar from "@/components/ScheduleCalendar"
-import { createProduct, updateProduct, getSellerProducts, deleteProduct as deleteProductAction, verifyProductImages } from "@/backend-actions/actions/product"
-import { getUserStoreStatus } from "@/backend-actions/actions/auth"
-import { updateStoreBankDetails, updateStoreAddress } from "@/backend-actions/actions/seller"
-import { getPricingConfig } from "@/backend-actions/actions/settings"
-import { DEFAULT_BATTERY_PRICES, BATTERY_SIZE_OPTIONS, BATTERY_TYPES } from "@/lib/pricing"
-import { addWatermark } from "@/lib/image-utils"
+"use client";
 
+/* Added performance enhancements */
+import { memo, useState, useEffect } from "react";
+import Image from "next/image";
+import { Plus as PlusIcon, Search as SearchIcon, Edit3 as Edit3Icon, Trash as TrashIcon, Battery as BatteryIcon, MapPin as MapPinIcon, X as XIcon, Calendar as CalendarIcon, Box as BoxIcon, AlertCircle as AlertCircleIcon, CreditCard as CreditCardIcon, Loader as LoaderIcon, CheckCircle as CheckCircleIcon, Image as ImageIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice";
+import Button from "@/components/Button";
+import ScheduleCalendar from "@/components/ScheduleCalendar";
+import { createProduct, updateProduct, getSellerProducts, deleteProduct as deleteProductAction, verifyProductImages } from "@/backend-actions/actions/product";
+import { getUserStoreStatus } from "@/backend-actions/actions/auth";
+import { updateStoreBankDetails, updateStoreAddress } from "@/backend-actions/actions/seller";
+import { getPricingConfig } from "@/backend-actions/actions/settings";
+import { DEFAULT_BATTERY_PRICES, BATTERY_SIZE_OPTIONS, BATTERY_TYPES } from "@/lib/pricing";
+import { addWatermark } from "@/lib/image-utils";
+import { lagosLGAs } from "@/assets/assets";
+
+
+
+// Simple skeleton row for loading state
+const SkeletonRow = () => (
+  <tr className="animate-pulse">
+    <td className="px-6 py-4"><div className="w-24 h-4 bg-slate-200 rounded" /></td>
+    <td className="px-6 py-4"><div className="w-16 h-4 bg-slate-200 rounded" /></td>
+    <td className="px-6 py-4"><div className="w-20 h-4 bg-slate-200 rounded" /></td>
+    <td className="px-6 py-4"><div className="w-12 h-4 bg-slate-200 rounded" /></td>
+    <td className="px-6 py-4"><div className="w-24 h-4 bg-slate-200 rounded" /></td>
+    <td className="px-6 py-4"><div className="w-16 h-4 bg-slate-200 rounded" /></td>
+  </tr>
+);
+
+/**
+ * Memoized Product Row to prevent unnecessary re-renders when product list updates.
+ */
+const ProductRow = memo(({ product, handleEditProduct, deleteProduct, getImageUrl }) => (
+  <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
+    <td className="px-6 py-4">
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
+          {getImageUrl(product.images?.[0]) ? (
+            <Image src={getImageUrl(product.images?.[0])} alt={product.name} width={45} height={45} className="w-full h-full object-cover" onError={(e) => { e.target.src = '/placeholder-battery.jpg' }} loading="lazy" />
+          ) : (
+            <BatteryIcon size={20} />
+          )}
+        </div>
+        <div className="flex flex-col">
+          <span className="font-bold text-slate-900">{product.name}</span>
+          <span className="text-xs text-slate-400">{product.batteryType} • {product.amps}Ah • {product.brand || 'No Brand'}</span>
+        </div>
+      </div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex items-center gap-2">
+        <MapPinIcon size={14} className="text-slate-400" />
+        <span className="text-sm text-slate-600">{product.lga}</span>
+      </div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex flex-col">
+        <span className="font-bold text-slate-900 text-sm">₦{product.price?.toLocaleString()}</span>
+        <span className="text-xs text-slate-400">{product.unitsAvailable} units</span>
+      </div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex flex-col items-start gap-1">
+        <span className={`status-badge ${product.status === 'approved' ? 'status-completed' : product.status === 'rejected' ? 'status-cancelled' : 'status-pending'}`}
+        >{product.status?.charAt(0).toUpperCase() + product.status?.slice(1)}</span>
+        {product.status === 'rejected' && product.rejectionReason && (
+          <p className="text-[10px] text-rose-500 mt-1 max-w-[150px] line-clamp-2" title={product.rejectionReason}>{product.rejectionReason}</p>
+        )}
+      </div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex flex-wrap gap-1">
+        {product.collectionDates?.slice(0, 2).map(date => (
+          <span key={date} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-full">{new Date(date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</span>
+        ))}
+        {product.collectionDates?.length > 2 && (
+          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full">+{product.collectionDates.length - 2}</span>
+        )}
+      </div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex items-center gap-2">
+        <button onClick={() => handleEditProduct(product)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500 transition-colors">
+          <Edit3Icon size={18} />
+        </button>
+        <button onClick={() => deleteProduct(product.id)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-rose-500 transition-colors">
+          <TrashIcon size={18} />
+        </button>
+      </div>
+    </td>
+  </tr>
+));
 
 const NIGERIAN_BANKS = {
     "Access Bank": "044",
@@ -61,6 +141,8 @@ export default function SellerProducts() {
     const [addressMode, setAddressMode] = useState('registered') // 'registered' or 'new'
     const [saveAccount, setSaveAccount] = useState(true)
     const [bankLookupLoading, setBankLookupLoading] = useState(false)
+    const [isDowntime, setIsDowntime] = useState(false)
+    const [downtimeMessage, setDowntimeMessage] = useState('')
     // Dynamic pricing — loaded from admin settings, falls back to defaults
     const [batteryPrices, setBatteryPrices] = useState(DEFAULT_BATTERY_PRICES)
     const [bankDetails, setBankDetails] = useState({
@@ -78,6 +160,8 @@ export default function SellerProducts() {
         if (accNum === "0000000000") {
             setBankDetails(prev => ({ ...prev, accountName: "TEST ACCOUNT (GoCycle)" }))
             toast.success("Test account verified successfully")
+            setIsDowntime(false)
+            setDowntimeMessage('')
             return
         }
 
@@ -97,11 +181,22 @@ export default function SellerProducts() {
             if (data.success) {
                 setBankDetails(prev => ({ ...prev, accountName: data.accountName }))
                 toast.success(`Account verified: ${data.accountName}`)
+                setIsDowntime(false)
+                setDowntimeMessage('')
             } else {
+                if (data.downtime || (data.message && data.message.toLowerCase().includes('downtime'))) {
+                    setIsDowntime(true)
+                    setDowntimeMessage(data.message || 'Bank is currently having a downtime. Please provide your full name for manual verification.')
+                } else {
+                    setIsDowntime(false)
+                    setDowntimeMessage('')
+                }
                 toast.error(data.message || 'Could not resolve account name')
             }
         } catch {
             toast.error('Failed to verify account')
+            setIsDowntime(false)
+            setDowntimeMessage('')
         } finally {
             setBankLookupLoading(false)
         }
@@ -532,6 +627,23 @@ export default function SellerProducts() {
             return
         }
 
+        // If it was a downtime manual submission, submit to manual-verification endpoint in background
+        if (isDowntime) {
+            try {
+                await fetch('/api/manual-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fullName: bankDetails.accountName,
+                        accountNumber: bankDetails.accountNumber,
+                        bankCode: bankDetails.bankCode
+                    })
+                });
+            } catch (e) {
+                console.error("Failed to submit manual verification log:", e);
+            }
+        }
+
         // Save bank details if checkbox is checked
         if (saveAccount && user?.id) {
             const res = await updateStoreBankDetails(user.id, bankDetails)
@@ -608,83 +720,25 @@ export default function SellerProducts() {
                                         <th className="px-6 py-4 font-semibold">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {products.map((product) => (
-                                        <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
-                                                        {getImageUrl(product.images?.[0]) ? (
-                                                            <img
-                                                                src={getImageUrl(product.images?.[0])}
-                                                                alt={product.name}
-                                                                className="w-full h-full object-cover"
-                                                                onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
-                                                            />
-                                                        ) : (
-                                                            <BatteryIcon size={20} />
-                                                        )}
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-900">{product.name}</span>
-                                                        <span className="text-xs text-slate-400">{product.batteryType} • {product.amps}Ah • {product.brand || 'No Brand'}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <MapPinIcon size={14} className="text-slate-400" />
-                                                    <span className="text-sm text-slate-600">{product.lga}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-slate-900 text-sm">₦{product.price?.toLocaleString()}</span>
-                                                    <span className="text-xs text-slate-400">{product.unitsAvailable} units</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col items-start gap-1">
-                                                    <span className={`status-badge ${product.status === 'approved' ? 'status-completed' : product.status === 'rejected' ? 'status-cancelled' : 'status-pending'}`}>
-                                                        {product.status?.charAt(0).toUpperCase() + product.status?.slice(1)}
-                                                    </span>
-                                                    {product.status === 'rejected' && product.rejectionReason && (
-                                                        <p className="text-[10px] text-rose-500 mt-1 max-w-[150px] line-clamp-2" title={product.rejectionReason}>
-                                                            {product.rejectionReason}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {product.collectionDates?.slice(0, 2).map(date => (
-                                                        <span key={date} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
-                                                            {new Date(date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}
-                                                        </span>
-                                                    ))}
-                                                    {product.collectionDates?.length > 2 && (
-                                                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full">
-                                                            +{product.collectionDates.length - 2}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <button 
-                                                        onClick={() => handleEditProduct(product)}
-                                                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500 transition-colors"
-                                                    >
-                                                        <Edit3Icon size={18} />
-                                                    </button>
-                                                    <button onClick={() => deleteProduct(product.id)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-rose-500 transition-colors">
-                                                        <TrashIcon size={18} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
+                                {/* Product Table Body */}
+                                {isLoading ? (
+                                    // Show 5 skeleton rows while loading
+                                    Array.from({ length: 5 }).map((_, idx) => (
+                                        <SkeletonRow key={idx} />
+                                    ))
+                                ) : (
+                                    <tbody className="divide-y divide-slate-100">
+                                        {products.map((product) => (
+                                            <ProductRow
+                                                key={product.id}
+                                                product={product}
+                                                handleEditProduct={handleEditProduct}
+                                                deleteProduct={deleteProduct}
+                                                getImageUrl={getImageUrl}
+                                            />
+                                        ))}
+                                    </tbody>
+                                )}
                             </table>
                         </div>
                         {pagination.page < pagination.totalPages && (
@@ -1053,6 +1107,8 @@ export default function SellerProducts() {
                                         const name = e.target.value
                                         const code = NIGERIAN_BANKS[name] || ''
                                         setBankDetails(prev => ({ ...prev, bankName: name, bankCode: code, accountName: '' }))
+                                        setIsDowntime(false)
+                                        setDowntimeMessage('')
                                         // Auto-lookup if 10-digit account already entered
                                         if (bankDetails.accountNumber.length === 10 && code) {
                                             lookupAccountName(bankDetails.accountNumber, code)
@@ -1076,6 +1132,8 @@ export default function SellerProducts() {
                                         onChange={e => {
                                             const val = e.target.value.replace(/\D/g, '')
                                             setBankDetails(prev => ({ ...prev, accountNumber: val, accountName: '' }))
+                                            setIsDowntime(false)
+                                            setDowntimeMessage('')
                                             if (val.length === 10 && bankDetails.bankCode) {
                                                 lookupAccountName(val, bankDetails.bankCode)
                                             }
@@ -1106,6 +1164,26 @@ export default function SellerProducts() {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Bank downtime manual verification full name input */}
+                            {isDowntime && (
+                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top duration-300">
+                                    <div className="flex items-start gap-2 text-amber-700 text-xs font-medium">
+                                        <AlertCircleIcon size={18} className="shrink-0 mt-0.5" />
+                                        <span>{downtimeMessage}</span>
+                                    </div>
+                                    <div className="space-y-1 pt-1">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-amber-600 block">Full Name (for manual verification)</label>
+                                        <input
+                                            type="text"
+                                            value={bankDetails.accountName}
+                                            onChange={e => setBankDetails(prev => ({ ...prev, accountName: e.target.value }))}
+                                            placeholder="Enter your full name"
+                                            className="w-full p-3 bg-white border border-amber-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/20 font-bold text-sm text-slate-900"
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <label className="flex items-start gap-3 cursor-pointer group pt-2">
                                 <input
