@@ -1097,7 +1097,7 @@ export default function SellerProducts() {
                             <p className="text-xs text-slate-400 mt-1">Enter your bank account to receive payment for this listing</p>
                         </div>
 
-                        <div className="p-6 space-y-4">
+                        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
                             {/* Bank Selection Dropdown */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Select Bank *</label>
