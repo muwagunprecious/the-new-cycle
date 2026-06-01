@@ -144,8 +144,8 @@ export async function POST(req) {
                         return "OPay verification is currently experiencing downtime on the provider's end. Please double-check your account number or try a different bank.";
                     case "100033": // Palmpay
                         return "Palmpay verification is currently experiencing regional downtime. Please try a different bank.";
-                    case "50515": // Moniepoint
-                        return "Moniepoint MFB verification is currently experiencing downtime. Please try a different bank.";
+                    case "090267": // Kuda
+                        return "Kuda verification is currently experiencing downtime. Please try a different bank.";
                     default:
                         return "The bank provider is currently unavailable. Please try again in a few minutes or use a different bank.";
                 }
@@ -159,6 +159,15 @@ export async function POST(req) {
                 }, { status: 200 });
             }
 
+            // If the provider is a mobile wallet and returned an error, trigger manual verification
+            if (["100004", "100033", "090267", "50515"].includes(bankCode)) {
+                return NextResponse.json({
+                    success: false,
+                    downtime: true,
+                    message: getMobileBankErrorMessage(bankCode)
+                }, { status: 200 });
+            }
+            // Existing generic error handling
             return NextResponse.json(
                 { success: false, message: data.message || `Account lookup failed (${response.status})` },
                 { status: response.status }

@@ -62,7 +62,8 @@ export default function VerifyAccountClient() {
   const bankOptions = [
     { name: 'OPay Digital Bank', code: '100004' },
     { name: 'Palmpay', code: '100033' },
-    { name: 'Moniepoint MFB', code: '50515' }
+    { name: 'Moniepoint MFB', code: '50515' },
+    { name: 'Kuda Bank', code: '090267' }
   ];
 
   return (
