@@ -151,7 +151,7 @@ export default function VerifyAccountClient() {
         </div>
       )}
 
-      {result && !result.success && result.downtime && (
+      {result && !result.success && (result.downtime || (result.message && result.message.toLowerCase().includes('downtime'))) && (
         <div className="mt-4 p-4 bg-yellow-100 border rounded">
           <p className="font-medium">{result.message}</p>
           <div className="mt-2">
@@ -162,7 +162,7 @@ export default function VerifyAccountClient() {
         </div>
       )}
 
-      {result && !result.success && !result.downtime && (
+      {result && !result.success && !result.downtime && !(result.message && result.message.toLowerCase().includes('downtime')) && (
         <div className="mt-4 p-4 bg-yellow-100 border rounded">
           <p className="font-medium">Verification failed:</p>
           <p>{result.message}</p>
