@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from "react"
-import { X as XIcon, Wallet as WalletIcon, CheckCircle as CheckCircleIcon, Calendar as CalendarIcon, Loader as LoaderIcon, AlertCircle as AlertCircleIcon, ShieldCheck as ShieldCheckIcon, CreditCard as CreditCardIcon, Building2 as BankIcon, Zap as ZapIcon } from "lucide-react"
+import { X as XIcon, Wallet as WalletIcon, CheckCircle as CheckCircleIcon, Calendar as CalendarIcon, Loader as LoaderIcon, AlertCircle as AlertCircleIcon, ShieldCheck as ShieldCheckIcon, CreditCard as CreditCardIcon, Building2 as BankIcon, Zap as ZapIcon, Clock as ClockIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
@@ -509,15 +509,25 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                 </div>
                                 <div className="absolute inset-0 bg-emerald-500/10 rounded-full animate-ping"></div>
                             </div>
-                            <div className="space-y-2">
-                                <h3 className="text-xl font-black text-slate-900 tracking-tight">Securing Your Transaction</h3>
-                                <p className="text-sm text-slate-400 font-medium max-w-[240px] mx-auto">Connecting to payment gateway...</p>
-                            </div>
-                            <div className="flex flex-col items-center gap-3 text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Validating order details</span>
-                                <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Secure gateway handshake</span>
-                                <span className="flex items-center gap-2 animate-pulse"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div> Awaiting payment confirmation</span>
-                            </div>
+                            {selectedPaymentMethod === 'MANUAL_TRANSFER' ? (
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Processing Manual Transfer</h3>
+                                    <p className="text-sm text-slate-400 font-medium max-w-[240px] mx-auto">Submitting your order details...</p>
+                                    <div className="flex flex-col items-center gap-3 text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                        <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Awaiting admin verification</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Securing Your Transaction</h3>
+                                    <p className="text-sm text-slate-400 font-medium max-w-[240px] mx-auto">Connecting to payment gateway...</p>
+                                    <div className="flex flex-col items-center gap-3 text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                        <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Validating order details</span>
+                                        <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Secure gateway handshake</span>
+                                        <span className="flex items-center gap-2 animate-pulse"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div> Awaiting payment confirmation</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -606,26 +616,27 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                         <p className="text-sm text-slate-400 font-medium">We have received your order details.</p>
                                     </div>
 
-                                    <div className="bg-amber-50 border border-amber-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
-                                        <div className="p-2.5 bg-amber-500 rounded-xl shrink-0">
-                                            <AlertCircleIcon size={16} className="text-white" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Admin Verification Required</p>
+                                    <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 flex items-start gap-4">
+                                        <AlertCircleIcon size={20} className="text-orange-500 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">Awaiting Admin Approval</p>
                                             <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                                Your payment from <span className="font-bold text-amber-600">{orderResult.paymentSenderName || senderName}</span> is currently being verified by our finance team. You will be notified by email once approved.
+                                                Your bank transfer is being reviewed by our finance team. Once verified, the seller's pickup address and your collection code will be unlocked. This usually takes 24–48 hours.
+                                            </p>
+                                            <p className="text-xs text-slate-500 font-medium mt-2">
+                                                <span className="font-bold text-slate-900">Pickup Address:</span> Address will be revealed after verification
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="bg-white border border-slate-100 rounded-[2rem] p-6 text-left flex items-start gap-4 shadow-sm">
-                                        <div className="p-2.5 bg-[#05DF72] rounded-xl shrink-0 shadow-lg shadow-[#05DF72]/20">
-                                            <ZapIcon size={16} className="text-white" />
+                                    <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
+                                        <div className="p-2.5 bg-slate-300 rounded-xl shrink-0">
+                                            <ClockIcon size={16} className="text-white" />
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Order Processing</p>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">What Happens Next?</p>
                                             <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                                                The seller has been notified of your payment. Please proceed to <span className="font-bold text-slate-900">{orderResult?.store?.address || product?.pickupAddress || "the collection point"}</span> on the scheduled date. A detailed receipt has been sent to your email.
+                                                Once our finance team verifies your transfer, you will receive an email with the seller's pickup address and your verification code. This usually takes 24–48 hours.
                                             </p>
                                         </div>
                                     </div>

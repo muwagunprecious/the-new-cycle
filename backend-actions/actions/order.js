@@ -190,29 +190,30 @@ export async function getUserOrders(userId) {
             return ApiResponse.unauthorized()
         }
 
-        const { unstable_cache } = await import("next/cache");
-        const getCachedUserOrders = unstable_cache(
-            async (uid) => {
-                const orders = await withRetry(() => prisma.order.findMany({
-                    where: {
-                        userId: uid,
+        const orders = await withRetry(() => prisma.order.findMany({
+            where: {
+                userId: userId,
+                OR: [
+                    // Paid orders (all statuses)
+                    {
                         isPaid: true,
                         status: {
                             in: ['PAID', 'APPROVED', 'PROCESSING', 'SHIPPED', 'PICKED_UP', 'DELIVERED', 'COMPLETED', 'ORDER_PLACED']
                         }
                     },
-                    include: {
-                        orderItems: { include: { product: true } },
-                        store: { include: { user: { select: { phone: true, name: true } } } }
-                    },
-                    orderBy: { createdAt: 'desc' }
-                }));;
+                    // Unpaid manual transfer orders (awaiting admin payment verification)
+                    {
+                        isPaid: false,
+                        paymentMethod: 'MANUAL_TRANSFER'
+                    }
+                ]
             },
-            [`user-orders-${userId}`],
-            { tags: ['orders', `buyer-${userId}`], revalidate: 60 }
-        );
-
-        const orders = await getCachedUserOrders(userId);
+            include: {
+                orderItems: { include: { product: true } },
+                store: { include: { user: { select: { phone: true, name: true } } } }
+            },
+            orderBy: { createdAt: 'desc' }
+        }));
         logger.info(`Found ${orders.length} orders for user ${userId}`)
 
         // Sanitize sensitive tokens

@@ -16,11 +16,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
 
     const [loading, setLoading] = useState(false)
 
-    useEffect(() => {
-        if (!initialSummary || !initialUsers?.data) {
-            toast.error("Network issue: Failed to load complete dashboard data. Please refresh.", { duration: 5000, id: 'admin-load-error' });
-        }
-    }, [initialSummary, initialUsers]);
+
 
     const [activeTab, setActiveTab] = useState('overview') // overview | users | orders | payouts
     const [users, setUsers] = useState(initialUsers?.data || [])

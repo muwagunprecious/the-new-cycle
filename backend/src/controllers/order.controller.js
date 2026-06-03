@@ -85,18 +85,20 @@ exports.createOrder = async (req, res) => {
             data: { inStock: false, status: 'sold' }
         });
 
-        // Notifications
-        const notification = await createNotification(store.userId, "New Purchase Request", `You have a new purchase for ${order.orderItems?.[0]?.product?.name}. Total: ₦${totalAmount.toLocaleString()}`, "ORDER");
-        
-        // Real-time emit
-        emitToUser(store.userId, 'NEW_PURCHASE', {
-            orderId: order.id,
-            buyerName: buyer.name,
-            productName: order.orderItems?.[0]?.product?.name || 'Battery',
-            amount: totalAmount,
-            collectionDate: collectionDate || 'Pending',
-            verificationCode: order.verificationCode
-        });
+        // For manual transfers, defer seller notification until admin verifies payment.
+        if (paymentMethod !== 'MANUAL_TRANSFER') {
+            // Immediate notification for instant payments (e.g., Stripe)
+            await createNotification(store.userId, "New Purchase Request", `ORDER:${order.id}|BUYER:${buyer.name}|PHONE:${buyer.phone || ''}|AMOUNT:${totalAmount}|PROD:${order.orderItems?.[0]?.product?.name || 'Battery'}|DATE:${collectionDate || 'Pending'}|CODE:${order.verificationCode}|QTY:${order.orderItems?.[0]?.quantity || 1}`, "ORDER");
+            // Real-time emit to seller
+            emitToUser(store.userId, 'NEW_PURCHASE', {
+                orderId: order.id,
+                buyerName: buyer.name,
+                productName: order.orderItems?.[0]?.product?.name || 'Battery',
+                amount: totalAmount,
+                collectionDate: collectionDate || 'Pending',
+                verificationCode: order.verificationCode
+            });
+        }
         
         const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
         for (const admin of admins) {
@@ -273,10 +275,17 @@ exports.verifyOrderPayment = async (req, res) => {
         });
 
         // Notifications
-        await createNotification(order.userId, "Payment Verified!", `Your payment for Order #${order.id} has been verified.`, "PAYMENT");
+        await createNotification(order.userId, "Payment Verified!", `ORDER:${order.id}|BUYER:${order.user.name}|PHONE:${order.user.phone || ''}|AMOUNT:${order.total}|PROD:${order.orderItems?.[0]?.product?.name || 'Battery'}|DATE:${order.collectionDate || 'Pending'}|CODE:${order.verificationCode}|QTY:${order.orderItems?.[0]?.quantity || 1}`, "ORDER");
         await createNotification(order.store.userId, "New Paid Order!", `Order #${order.id} is now paid. You can prepare for pickup.`, "ORDER");
-
-        res.status(200).json({ success: true, data: updatedOrder, message: 'Payment verified successfully' });
+        // Emit real-time update to seller after payment verification
+        emitToUser(order.store.userId, 'NEW_PURCHASE', {
+            orderId: order.id,
+            buyerName: order.user.name,
+            productName: order.orderItems?.[0]?.product?.name || 'Battery',
+            amount: order.total,
+            collectionDate: order.collectionDate || 'Pending',
+            verificationCode: order.verificationCode
+        });
     } catch (error) {
         console.error("Verify Payment Error:", error);
         res.status(500).json({ success: false, message: 'Payment verification failed' });

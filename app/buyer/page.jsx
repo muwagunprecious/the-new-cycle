@@ -150,6 +150,10 @@ export default function BuyerDashboard() {
 
     const resolveStatusBadge = (order) => {
         if (!order) return { bg: 'bg-slate-100 text-slate-500', label: 'Unknown' }
+        // Manual transfer waiting for admin to verify payment
+        if (!order.isPaid && order.paymentMethod === 'MANUAL_TRANSFER') {
+            return { bg: 'bg-orange-100 text-orange-700 font-black', label: 'Payment Pending Verification' }
+        }
         if (!order.isPaid) return { bg: 'bg-orange-100 text-orange-700 font-black', label: 'Payment Pending' }
         switch (order.status) {
             case 'AWAITING_PICKUP':
@@ -203,12 +207,60 @@ export default function BuyerDashboard() {
                         <ShoppingCartIcon size={18} /> Browse Batteries
                     </Link>
                 </div>
+                {/* Payment Pending Verification Banner — Manual Transfer, not yet admin-approved */}
+                {orders.some(o => o?.paymentMethod === 'MANUAL_TRANSFER' && !o?.isPaid) && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-[2.5rem] p-8 md:p-10">
+                        <div className="flex items-center gap-2 mb-6">
+                            <span className="bg-orange-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full animate-pulse">Awaiting Verification</span>
+                            <h2 className="text-2xl font-black text-slate-900">Payment Pending Verification</h2>
+                        </div>
+                        <div className="grid gap-4">
+                            {orders.filter(o => o?.paymentMethod === 'MANUAL_TRANSFER' && !o?.isPaid).map(order => (
+                                <div key={order.id} className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-orange-100 flex flex-col gap-6">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center shrink-0">
+                                                <ClockIcon size={28} />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-black text-slate-900 text-lg leading-tight">{order.orderItems?.map(i => i.product?.name).join(', ') || 'Battery Order'}</h3>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Order ID: {order.id}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-orange-50 px-5 py-3 rounded-2xl border border-orange-100 self-start md:self-auto">
+                                            <CalendarIcon size={18} className="text-orange-500" />
+                                            <div>
+                                                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-tighter leading-none mb-1">Collection Date</p>
+                                                <p className="text-sm font-black text-slate-900 leading-none">
+                                                    {order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Pending Confirmation'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 flex items-start gap-4">
+                                        <AlertCircleIcon size={20} className="text-orange-500 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">Awaiting Admin Approval</p>
+                                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                                Your bank transfer is being reviewed by our finance team. Once verified, the seller's pickup address and your collection code will be unlocked. This usually takes 24–48 hours.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="pt-4 border-t border-slate-50">
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Amount: <span className="text-slate-700">₦{(order.total || 0).toLocaleString()}</span></p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
+                {/* Verify Pickup Banner — Only for paid/verified orders */}
                 {orders.some(order => order?.status && ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid) && (
                     <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10">
                         <div className="flex items-center gap-2 mb-6">
                             <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full animate-pulse">Action Required</span>
-                            <h2 className="text-2xl font-black text-slate-900">Verify Pickup</h2>
+                            <h2 className="text-2xl font-black text-slate-900">Payment Verified — Verify Pickup</h2>
                         </div>
                         <div className="grid gap-4">
                             {orders.filter(o => o?.status && ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status) && o.isPaid).map(order => (
@@ -251,7 +303,13 @@ export default function BuyerDashboard() {
                                         </div>
                                     )}
 
-                                    <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-slate-50 items-end">
+                                    {/* Payment Verified badge */}
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircleIcon size={16} className="text-[#05DF72]" />
+                                        <span className="text-[11px] font-black text-[#05DF72] uppercase tracking-widest">Payment Verified</span>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-8 pt-4 border-t border-slate-50 items-end">
                                         <div className="space-y-5">
                                             <div className="flex items-start gap-3">
                                                 <div className="mt-1 size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
@@ -313,7 +371,36 @@ export default function BuyerDashboard() {
                 <div className="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100 mt-12">
                     <div className="flex items-center justify-between mb-8">
                         <h2 className="text-xl font-black text-slate-900">My Orders</h2>
-                        <span className="text-xs font-bold text-slate-400">{orders.length} order(s)</span>
+                        <div className="flex items-center gap-4">
+                            <button 
+                                onClick={async () => {
+                                    setLoading(true);
+                                    try {
+                                        const idToUse = user?.id;
+                                        if (idToUse) {
+                                            const [ordersRes, notifyRes, profileRes] = await Promise.all([
+                                                getUserOrders(idToUse),
+                                                getNotifications(idToUse),
+                                                getUserProfile(idToUse)
+                                            ]);
+                                            if (ordersRes.success) {
+                                                const ordersArray = ordersRes.data?.orders || ordersRes.data || [];
+                                                setOrders(ordersArray);
+                                                toast.success("Orders refreshed!");
+                                            }
+                                        }
+                                    } catch (e) {
+                                        toast.error("Failed to refresh orders");
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all"
+                            >
+                                Refresh Orders
+                            </button>
+                            <span className="text-xs font-bold text-slate-400">{orders.length} order(s)</span>
+                        </div>
                     </div>
 
                     {orders.length === 0 ? (

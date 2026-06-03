@@ -644,9 +644,11 @@ export async function verifyOrderPayment(orderId) {
         }
 
         revalidatePath('/admin/orders')
+        revalidatePath('/buyer')              // buyer dashboard — shows Verify Pickup banner
         revalidatePath('/buyer/orders')
         revalidatePath('/seller/orders')
-
+        revalidateTag('orders')               // bust the user-orders cache
+        revalidateTag(`buyer-${order.userId}`) // bust this specific buyer's order cache
         revalidateTag('admin-stats')
         return ApiResponse.success(null, "Order payment verified successfully")
     } catch (error) {

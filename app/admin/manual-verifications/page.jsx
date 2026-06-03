@@ -84,8 +84,8 @@ export default function ManualVerificationPage() {
         body: JSON.stringify({
           accountNumber: record.accountNumber,
           bankCode: record.bankCode,
-          firstname: record.fullName.split(" ")[0] || "N/A",
-          lastname: record.fullName.split(" ").slice(1).join(" ") || "N/A"
+          firstname: (record.fullName || "").split(" ")[0] || "N/A",
+          lastname: (record.fullName || "").split(" ").slice(1).join(" ") || "N/A"
         })
       });
       const data = await res.json();
@@ -117,11 +117,14 @@ export default function ManualVerificationPage() {
   // Filtered lists
   const filteredRecords = records.filter(r => {
     const bankName = bankNames[r.bankCode] || r.bankCode || "";
+    const fullName = r.fullName || "";
+    const accountNumber = r.accountNumber || "";
+    const term = searchTerm.toLowerCase();
     const matchesSearch = 
-      r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.accountNumber.includes(searchTerm) ||
-      (r.storeName && r.storeName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      bankName.toLowerCase().includes(searchTerm.toLowerCase());
+      fullName.toLowerCase().includes(term) ||
+      accountNumber.includes(searchTerm) ||
+      (r.storeName && r.storeName.toLowerCase().includes(term)) ||
+      bankName.toLowerCase().includes(term);
 
     if (activeTab === "all") return matchesSearch;
     return matchesSearch && r.status === activeTab;
@@ -290,7 +293,9 @@ export default function ManualVerificationPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <UserIcon size={14} className="text-slate-400" />
-                        <span className="font-semibold text-slate-800">{record.fullName}</span>
+                        <span className="font-semibold text-slate-800">
+                          {record.fullName || <span className="text-slate-400 italic text-xs">Not provided</span>}
+                        </span>
                       </div>
                     </td>
 
