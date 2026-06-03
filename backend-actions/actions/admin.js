@@ -306,6 +306,19 @@ export async function banUser(userId, isBanned) {
     }
 }
 
+export async function deleteUser(userId) {
+    try {
+        await prisma.user.delete({
+            where: { id: userId }
+        })
+        revalidatePath('/admin/users')
+        return ApiResponse.success(null, "User deleted successfully")
+    } catch (error) {
+        logger.error("Delete User Error", error)
+        return ApiResponse.error("Failed to delete user")
+    }
+}
+
 export async function releasePayout(orderId) {
     try {
         const order = await prisma.order.findUnique({

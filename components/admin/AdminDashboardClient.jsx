@@ -1,11 +1,11 @@
 'use client'
 import Loading from "@/components/Loading"
-import { CircleDollarSign as CircleDollarSignIcon, ShoppingBasket as ShoppingBasketIcon, Store as StoreIcon, Tags as TagsIcon, Users as UsersIcon, PackageCheck as PackageCheckIcon, ShieldCheck as ShieldCheckIcon, ShieldX as ShieldXIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Wallet as WalletIcon, Eye as EyeIcon, Send as SendIcon } from "lucide-react"
+import { CircleDollarSign as CircleDollarSignIcon, ShoppingBasket as ShoppingBasketIcon, Store as StoreIcon, Tags as TagsIcon, Users as UsersIcon, PackageCheck as PackageCheckIcon, ShieldCheck as ShieldCheckIcon, ShieldX as ShieldXIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Wallet as WalletIcon, Eye as EyeIcon, Send as SendIcon, Trash2 as TrashIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/Button"
-import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory, getUserProfile } from "@/backend-actions/actions/admin"
+import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory, getUserProfile, deleteUser } from "@/backend-actions/actions/admin"
 import { getAllOrders } from "@/backend-actions/actions/order"
 import dynamic from 'next/dynamic'
 const AdminDiagnosticsPanel = dynamic(() => import('@/components/admin/AdminDiagnosticsPanel'), { ssr: false })
@@ -163,6 +163,17 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
             toast.success(`User ${newStatus === 'banned' ? 'banned' : 'unbanned'} successfully`)
         } else {
             toast.error(result.error || "Failed to update user status")
+        }
+    }
+
+    const handleDeleteUser = async (userId, name) => {
+        if (!confirm(`Are you sure you want to permanently delete ${name}? This action cannot be undone.`)) return
+        const result = await deleteUser(userId)
+        if (result.success) {
+            setUsers(users.filter(u => u.id !== userId))
+            toast.success(`${name} has been deleted successfully!`)
+        } else {
+            toast.error(result.error || "Failed to delete user")
         }
     }
 
@@ -423,13 +434,22 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                                     <EyeIcon size={16} />
                                                 </button>
                                                 {user.role !== 'ADMIN' && (
-                                                    <button
-                                                        onClick={() => handleBanUser(user.id, user.status || 'active')}
-                                                        className={`p-2 hover:bg-slate-100 rounded-lg ${user.status === 'banned' ? 'text-green-500' : 'text-red-400 hover:text-red-500'
-                                                            }`}
-                                                    >
-                                                        <BanIcon size={16} />
-                                                    </button>
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleBanUser(user.id, user.status || 'active')}
+                                                            className={`p-2 hover:bg-slate-100 rounded-lg ${user.status === 'banned' ? 'text-green-500' : 'text-red-400 hover:text-red-500'
+                                                                }`}
+                                                        >
+                                                            <BanIcon size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteUser(user.id, user.name)}
+                                                            className="p-2 hover:bg-slate-100 rounded-lg text-red-500 hover:text-red-600"
+                                                            title="Delete user"
+                                                        >
+                                                            <TrashIcon size={16} />
+                                                        </button>
+                                                    </>
                                                 )}
                                             </div>
                                         </td>

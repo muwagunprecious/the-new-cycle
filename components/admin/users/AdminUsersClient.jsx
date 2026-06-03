@@ -6,9 +6,9 @@ import { toggleUserStatus } from "@/lib/features/auth/authSlice"
 import toast from "react-hot-toast"
 import { showLoader, hideLoader } from "@/lib/features/ui/uiSlice"
 import { useSearchParams } from "next/navigation"
-import { banUser, approveBuyer, createAdminAccount } from "@/backend-actions/actions/admin"
+import { banUser, approveBuyer, createAdminAccount, deleteUser } from "@/backend-actions/actions/admin"
 import Loading from "@/components/Loading"
-import { ShieldCheck as ShieldCheckIcon, Search as SearchIcon, Mail as MailIcon, Phone as PhoneIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Check as CheckIcon } from "lucide-react"
+import { ShieldCheck as ShieldCheckIcon, Search as SearchIcon, Mail as MailIcon, Phone as PhoneIcon, Ban as BanIcon, CheckCircle as CheckCircleIcon, AlertCircle as AlertCircleIcon, Check as CheckIcon, Trash2 as TrashIcon } from "lucide-react"
 
 export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
     const dispatch = useDispatch()
@@ -48,6 +48,21 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
             toast.success(`${name} has been ${isBanning ? 'banned' : 'restored'}`)
         } else {
             toast.error(res.error || "Failed to update status")
+        }
+    }
+
+    const handleDeleteUser = async (userId, name) => {
+        if (!confirm(`Are you sure you want to permanently delete ${name}? This action cannot be undone.`)) return
+
+        dispatch(showLoader(`Deleting ${name}...`))
+        const res = await deleteUser(userId)
+        dispatch(hideLoader())
+
+        if (res.success) {
+            setDbUsers(prev => prev.filter(u => u.id !== userId))
+            toast.success(`${name} has been deleted successfully!`)
+        } else {
+            toast.error(res.error || "Failed to delete user")
         }
     }
 
@@ -207,6 +222,13 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                                     } disabled:opacity-30 disabled:cursor-not-allowed`}
                                             >
                                                 {(user.status === 'active' || !user.status) ? <><BanIcon size={14} /> Ban Access</> : <><CheckCircleIcon size={14} /> Restore</>}
+                                            </button>
+                                            <button
+                                                disabled={user.role === 'ADMIN'}
+                                                onClick={() => handleDeleteUser(user.id, user.name)}
+                                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <TrashIcon size={14} /> Delete
                                             </button>
                                         </div>
                                     </td>
