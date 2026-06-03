@@ -14,3 +14,9 @@ prisma/generated/
 /express-api/node_modules/
 /express-api/.env
 .next_old/
+node_modules_old/
+tmp/
+scratch/
+*.txt
+*.log
+*.out
