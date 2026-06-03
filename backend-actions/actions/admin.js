@@ -670,6 +670,94 @@ export async function verifyOrderPayment(orderId) {
     }
 }
 
+export async function adminApproveOrderPickup(orderId) {
+    try {
+        const order = await prisma.order.update({
+            where: { id: orderId },
+            data: {
+                status: 'COMPLETED',
+                collectionStatus: 'COLLECTED',
+                payoutStatus: 'pending'
+            },
+            include: { store: true }
+        })
+
+        // Notify Buyer
+        const { createNotification } = await import('./notification')
+        await createNotification(
+            order.userId,
+            "Pickup Confirmed by Admin",
+            `Admin has verified and confirmed the collection of Order #${order.transactionId || order.id}. Your code verification is complete.`,
+            "ORDER"
+        )
+
+        // Notify Seller
+        await createNotification(
+            order.store.userId,
+            "Collection Approved by Admin",
+            `Admin has approved the collection of Order #${order.transactionId || order.id}. Payout is now pending.`,
+            "PAYMENT"
+        )
+
+        revalidatePath('/admin/orders')
+        revalidatePath('/buyer')
+        revalidatePath('/buyer/orders')
+        revalidatePath('/seller/orders')
+        revalidateTag('orders')
+        revalidateTag(`buyer-${order.userId}`)
+        revalidateTag(`seller-stats-${order.store.userId}`)
+        return ApiResponse.success(order, "Order pickup approved and completed successfully.")
+    } catch (error) {
+        logger.error("Admin Approve Order Pickup Error", error)
+        return ApiResponse.error("Failed to approve order pickup")
+    }
+}
+
+export async function adminRescheduleOrderPickup(orderId, newDate) {
+    try {
+        const order = await prisma.order.update({
+            where: { id: orderId },
+            data: {
+                collectionDate: newDate,
+                proposedDate: newDate,
+                proposedBy: 'ADMIN',
+                collectionStatus: 'RESCHEDULE_REQUESTED'
+            },
+            include: { store: true }
+        })
+
+        // Notify Buyer
+        const { createNotification } = await import('./notification')
+        await createNotification(
+            order.userId,
+            "Pickup Rescheduled by Admin",
+            `Admin has rescheduled the pickup date for Order #${order.transactionId || order.id} to ${newDate}.`,
+            "RESCHEDULE"
+        )
+
+        // Notify Seller
+        await createNotification(
+            order.store.userId,
+            "Pickup Rescheduled by Admin",
+            `Admin has rescheduled the pickup date for Order #${order.transactionId || order.id} to ${newDate}.`,
+            "RESCHEDULE"
+        )
+
+        revalidatePath('/admin/orders')
+        revalidatePath('/buyer')
+        revalidatePath('/buyer/orders')
+        revalidatePath('/seller/orders')
+        revalidateTag('orders')
+        revalidateTag(`buyer-${order.userId}`)
+        revalidateTag(`seller-stats-${order.store.userId}`)
+        return ApiResponse.success(order, "Order pickup date rescheduled successfully.")
+    } catch (error) {
+        logger.error("Admin Reschedule Order Pickup Error", error)
+        return ApiResponse.error("Failed to reschedule order pickup")
+    }
+}
+
+
 export async function runEmergencyDBDiagnostic() {
     try {
         const url = process.env.DATABASE_URL || "NOT_SET";

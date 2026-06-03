@@ -131,184 +131,128 @@ export default function OrderManagementClient({ initialOrders }) {
                 </div>
             </div>
 
-            {/* Mock Modal for Details */}
+            {/* Slide-out Sidebar for Details */}
             {selectedOrder && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white">
-                            <h2 className="text-xl font-bold text-slate-900">Order Details - {selectedOrder.id}</h2>
-                            <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
-                                <XCircleIcon size={24} />
-                            </button>
-                        </div>
-                        <div className="p-8 space-y-8">
-                            <div className="grid grid-cols-2 gap-8">
-                                <div>
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Buyer Information</h3>
-                                    <p className="text-slate-900 font-medium">{selectedOrder.user?.name || 'Unknown'}</p>
-                                    <p className="text-sm text-slate-500">Email: {selectedOrder.user?.email || 'N/A'}</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vendor Information</h3>
-                                    <p className="text-slate-900 font-medium">{selectedOrder.store?.name || selectedOrder.storeId}</p>
-                                    <div className="mt-2 inline-flex items-center gap-2 px-2 py-1 bg-[#05DF72]/10 text-[#05DF72] rounded text-[10px] font-bold">
-                                        {(selectedOrder.store?.isVerified || true) ? 'VERIFIED VENDOR' : 'PENDING VERIFICATION'}
-                                    </div>
-                                </div>
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end">
+                    <div className="bg-white w-full max-w-lg h-full shadow-2xl flex flex-col justify-between overflow-y-auto animate-slide-in">
+                        <div>
+                            <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                                <h2 className="text-xl font-bold text-slate-900">Order Details - {selectedOrder.id}</h2>
+                                <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                                    <XCircleIcon size={24} />
+                                </button>
                             </div>
-
-                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Tracking Progress</h3>
-                                <div className="flex items-center justify-between relative mt-8">
-                                    <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 -translate-y-1/2 -z-0"></div>
-                                    <div className="absolute top-1/2 left-0 w-1/2 h-1 bg-[#05DF72] -translate-y-1/2 -z-0 transition-all duration-1000"></div>
-
-                                    {['Pending', 'Approved', 'Picked', 'Transit', 'Completed'].map((step, idx) => (
-                                        <div key={step} className="flex flex-col items-center gap-3 relative z-10">
-                                            <div className={`w-10 h-10 rounded-full border-4 border-white flex items-center justify-center shadow-md ${idx <= 2 ? 'bg-[#05DF72] text-white' : 'bg-slate-200 text-slate-400'}`}>
-                                                {idx < 2 ? <CheckCircleIcon size={16} /> : (idx === 2 ? <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div> : idx + 1)}
-                                            </div>
-                                            <span className={`text-[10px] font-bold uppercase tracking-tighter ${idx <= 2 ? 'text-slate-900' : 'text-slate-400'}`}>{step}</span>
+                            <div className="p-6 space-y-6">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Buyer Information</h3>
+                                        <p className="text-slate-900 font-medium">{selectedOrder.user?.name || 'Unknown'}</p>
+                                        <p className="text-sm text-slate-500">Email: {selectedOrder.user?.email || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Vendor Information</h3>
+                                        <p className="text-slate-900 font-medium">{selectedOrder.store?.name || selectedOrder.storeId}</p>
+                                        <div className="mt-1.5 inline-flex items-center gap-2 px-2 py-0.5 bg-[#05DF72]/10 text-[#05DF72] rounded text-[10px] font-bold">
+                                            {(selectedOrder.store?.isVerified || true) ? 'VERIFIED VENDOR' : 'PENDING'}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Buyer Payment Verification Section */}
-                            <div className="bg-white border border-slate-100 rounded-3xl p-8 shadow-xl relative overflow-hidden">
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                                        Incoming Buyer Payment
-                                    </div>
-                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black ${selectedOrder.paymentStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                                        {selectedOrder.paymentStatus?.toUpperCase() || 'PENDING'}
-                                    </span>
-                                </h3>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Expected Amount</p>
-                                        <p className="font-bold text-lg text-slate-900">₦{(selectedOrder.total || 0).toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Payment Method</p>
-                                        <p className="font-bold text-lg text-slate-900 uppercase">{selectedOrder.paymentMethod || 'MANUAL_TRANSFER'}</p>
-                                    </div>
-                                    <div className="md:col-span-2 bg-amber-50 p-4 rounded-2xl border border-amber-100">
-                                        <p className="text-[10px] text-amber-600 uppercase font-black mb-1">Stated Sender Account Name</p>
-                                        <p className="font-bold text-lg text-amber-900 uppercase tracking-wider">{selectedOrder.paymentSenderName || 'NOT PROVIDED'}</p>
-                                        <p className="text-[10px] mt-1 text-amber-700 font-medium tracking-wide">Please check your bank app to confirm you received ₦{(selectedOrder.total || 0).toLocaleString()} from this name.</p>
                                     </div>
                                 </div>
-                                
-                                {selectedOrder.paymentStatus !== 'verified' && (
-                                    <div className="pt-6 border-t border-slate-100">
+
+                                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tracking Progress</h3>
+                                    <div className="flex items-center justify-between relative mt-4">
+                                        <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 -translate-y-1/2 -z-0"></div>
+                                        <div className="absolute top-1/2 left-0 w-1/2 h-1 bg-[#05DF72] -translate-y-1/2 -z-0 transition-all"></div>
+
+                                        {['Pending', 'Approved', 'Picked', 'Transit', 'Completed'].map((step, idx) => (
+                                            <div key={step} className="flex flex-col items-center gap-2 relative z-10">
+                                                <div className={`w-8 h-8 rounded-full border-4 border-white flex items-center justify-center shadow-md text-[10px] font-bold ${idx <= 2 ? 'bg-[#05DF72] text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                                    {idx < 2 ? '✓' : (idx === 2 ? '●' : idx + 1)}
+                                                </div>
+                                                <span className={`text-[8px] font-bold uppercase tracking-tighter ${idx <= 2 ? 'text-slate-900' : 'text-slate-400'}`}>{step}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Buyer Payment Verification Section */}
+                                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                            Incoming Buyer Payment
+                                        </div>
+                                        <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-black ${selectedOrder.paymentStatus === 'verified' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                            {selectedOrder.paymentStatus?.toUpperCase() || 'PENDING'}
+                                        </span>
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                            <p className="text-[9px] text-slate-400 uppercase font-black mb-0.5">Expected Amount</p>
+                                            <p className="font-bold text-base text-slate-900">₦{(selectedOrder.total || 0).toLocaleString()}</p>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                            <p className="text-[9px] text-slate-400 uppercase font-black mb-0.5">Payment Method</p>
+                                            <p className="font-bold text-base text-slate-900 uppercase">{selectedOrder.paymentMethod || 'MANUAL_TRANSFER'}</p>
+                                        </div>
+                                        <div className="md:col-span-2 bg-amber-50 p-3 rounded-xl border border-amber-100">
+                                            <p className="text-[9px] text-amber-600 uppercase font-black mb-0.5">Sender Account Name</p>
+                                            <p className="font-bold text-base text-amber-900 uppercase tracking-wider">{selectedOrder.paymentSenderName || 'NOT PROVIDED'}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    {selectedOrder.paymentStatus !== 'verified' && (
                                         <button
                                             onClick={async () => {
-                                                import('react-hot-toast').then(({ default: toast }) => {
-                                                   if (!confirm("Are you sure you have received the exact funds from this buyer?")) return;
-                                                   import('@/backend-actions/actions/admin').then(async ({ verifyOrderPayment }) => {
-                                                       const res = await verifyOrderPayment(selectedOrder.id)
-                                                       if (res.success) {
-                                                           toast.success('Payment verified! Buyer and Vendor have been notified.')
-                                                           setSelectedOrder(null)
-                                                           const ordersRes = await getAllOrders()
-                                                           if (ordersRes.success) setOrders(ordersRes.data)
-                                                       } else {
-                                                           toast.error('Failed to verify payment: ' + res.error)
-                                                       }
-                                                   })
-                                                })
+                                                if (!confirm("Are you sure you have received the exact funds from this buyer?")) return;
+                                                const { verifyOrderPayment } = await import('@/backend-actions/actions/admin')
+                                                const res = await verifyOrderPayment(selectedOrder.id)
+                                                if (res.success) {
+                                                    toast.success('Payment verified! Buyer and Vendor have been notified.')
+                                                    setSelectedOrder(null)
+                                                    const ordersRes = await getAllOrders()
+                                                    if (ordersRes.success) setOrders(ordersRes.data)
+                                                } else {
+                                                    toast.error('Failed to verify payment: ' + res.error)
+                                                }
                                             }}
-                                            className="w-full px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl transition-all shadow-xl shadow-slate-900/20 flex items-center justify-center gap-2 group"
+                                            className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black uppercase rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
                                         >
-                                            <CheckCircleIcon size={20} className="group-hover:scale-110 transition-transform" />
+                                            <CheckCircleIcon size={16} />
                                             FUNDS RECEIVED - VERIFY PAYMENT
                                         </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Vendor Bank Details & Payout Section */}
-                            {/* Vendor Bank Details & Payout Section */}
-                            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-[#05DF72]/10 rounded-full blur-3xl"></div>
-
-                                <h3 className="text-xs font-bold text-[#05DF72] uppercase tracking-[0.2em] mb-6 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#05DF72]"></div>
-                                        Financials & Target Payout
-                                    </div>
-                                    <div className="bg-[#05DF72]/20 text-[#05DF72] px-3 py-1 rounded-full text-[9px] font-black">
-                                        PLATFORM EARNINGS: ₦{((selectedOrder.buyerFee || 0) + (selectedOrder.sellerFee || 0)).toLocaleString()}
-                                    </div>
-                                </h3>
-
-                                <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
-                                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Base Price (Subtotal)</p>
-                                        <p className="font-bold text-lg">₦{(selectedOrder.subtotal || 0).toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Buyer Paid (+5% Fee)</p>
-                                        <p className="font-bold text-lg">₦{(selectedOrder.total || 0).toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-white/5 p-4 rounded-xl border border-rose-500/20">
-                                        <p className="text-[10px] text-rose-400 uppercase font-black mb-1">Seller -5% Fee</p>
-                                        <p className="font-bold text-lg text-rose-400">- ₦{(selectedOrder.sellerFee || 0).toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-[#05DF72]/10 p-4 rounded-xl border border-[#05DF72]/30">
-                                        <p className="text-[10px] text-[#05DF72] uppercase font-black mb-1">Net Vendor Payout</p>
-                                        <p className="font-black text-xl text-[#05DF72]">₦{(selectedOrder.payoutAmount || 0).toLocaleString()}</p>
-                                    </div>
+                                    )}
                                 </div>
 
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                                    Vendor Bank Details
-                                </h3>
+                                {/* Vendor Payout Section */}
+                                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-white shadow-sm relative overflow-hidden">
+                                    <h3 className="text-xs font-bold text-[#05DF72] uppercase tracking-wider mb-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#05DF72]"></div>
+                                            Target Payout
+                                        </div>
+                                        <div className="bg-[#05DF72]/20 text-[#05DF72] px-2 py-0.5 rounded-full text-[8px] font-black">
+                                            FEE: ₦{((selectedOrder.buyerFee || 0) + (selectedOrder.sellerFee || 0)).toLocaleString()}
+                                        </div>
+                                    </h3>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative z-10">
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Bank Name</p>
-                                        <p className="font-bold text-lg">{selectedOrder.store?.bankName || 'Not Provided'}</p>
+                                    <div className="grid grid-cols-2 gap-3 mb-4">
+                                        <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                                            <p className="text-[8px] text-slate-400 uppercase font-black mb-0.5">Base Price</p>
+                                            <p className="font-bold text-sm">₦{(selectedOrder.subtotal || 0).toLocaleString()}</p>
+                                        </div>
+                                        <div className="bg-[#05DF72]/10 p-3 rounded-lg border border-[#05DF72]/20">
+                                            <p className="text-[8px] text-[#05DF72] uppercase font-black mb-0.5">Net Vendor Payout</p>
+                                            <p className="font-black text-sm text-[#05DF72]">₦{(selectedOrder.payoutAmount || 0).toLocaleString()}</p>
+                                        </div>
                                     </div>
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Account Number</p>
-                                        <p className="font-mono text-lg font-bold tracking-wider">{selectedOrder.store?.accountNumber || 'Not Provided'}</p>
-                                    </div>
-                                    <div className="md:col-span-2 bg-white/5 p-4 rounded-2xl border border-white/10">
-                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Account Name</p>
-                                        <p className="font-bold text-lg uppercase">{selectedOrder.store?.accountName || 'Not Provided'}</p>
-                                    </div>
-                                </div>
 
-                                {/* Collection Code Status */}
-                                <div className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/10 backdrop-blur-sm">
-                                    <div className="flex items-center justify-between">
+                                    {/* Payout Release Action */}
+                                    <div className="flex items-center justify-between gap-4 pt-4 border-t border-white/10">
                                         <div>
-                                            <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Collection Token</p>
-                                            <p className="font-mono text-2xl font-black text-[#05DF72]">{selectedOrder.verificationCode || '---'}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Verification Status</p>
-                                            <span className={`inline-block px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${selectedOrder.collectionStatus === 'COLLECTED'
-                                                ? 'bg-[#05DF72] text-slate-900'
-                                                : 'bg-white/10 text-slate-400'
-                                                }`}>
-                                                {selectedOrder.collectionStatus || 'PENDING'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Payout Status & Action */}
-                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-6 border-t border-white/10">
-                                    <div>
-                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-2">Payout Release Status</p>
-                                        <div className="flex items-center gap-3">
-                                            <span className={`status-badge-big ${selectedOrder.payoutStatus === 'released'
+                                            <p className="text-[8px] text-slate-400 uppercase font-black mb-1">Payout Status</p>
+                                            <span className={`status-badge-big py-1 px-3 text-[9px] ${selectedOrder.payoutStatus === 'released'
                                                 ? 'bg-green-500/20 text-green-400 border-green-500/30'
                                                 : selectedOrder.payoutStatus === 'pending'
                                                     ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
@@ -316,47 +260,99 @@ export default function OrderManagementClient({ initialOrders }) {
                                                 }`}>
                                                 {selectedOrder.payoutStatus?.toUpperCase() || 'NONE'}
                                             </span>
-                                            {selectedOrder.payoutStatus === 'released' && (
-                                                <span className="text-[10px] font-bold text-slate-400">Funds Transferred</span>
-                                            )}
                                         </div>
-                                    </div>
 
-                                    {selectedOrder.collectionStatus === 'COLLECTED' && selectedOrder.payoutStatus !== 'released' && (
-                                        <button
-                                            onClick={async () => {
-                                                if (!confirm("Are you sure you have transferred funds to this vendor's account?")) return;
-                                                const { releasePayout } = await import('@/backend-actions/actions/admin')
-                                                const res = await releasePayout(selectedOrder.id)
-                                                if (res.success) {
-                                                    toast.success('Payout released and vendor notified!')
-                                                    setSelectedOrder(null)
-                                                    const ordersRes = await getAllOrders()
-                                                    if (ordersRes.success) setOrders(ordersRes.data)
-                                                } else {
-                                                    toast.error('Failed to release payout: ' + res.error)
-                                                }
-                                            }}
-                                            className="w-full md:w-auto px-8 py-4 bg-[#05DF72] hover:bg-[#04c965] text-slate-900 font-black rounded-2xl transition-all shadow-lg shadow-[#05DF72]/20 flex items-center justify-center gap-2 group"
-                                        >
-                                            <CheckCircleIcon size={20} className="group-hover:scale-110 transition-transform" />
-                                            APPROVE & RELEASE PAYOUT
-                                        </button>
-                                    )}
+                                        {selectedOrder.collectionStatus === 'COLLECTED' && selectedOrder.payoutStatus !== 'released' && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm("Are you sure you have transferred funds to this vendor's account?")) return;
+                                                    const { releasePayout } = await import('@/backend-actions/actions/admin')
+                                                    const res = await releasePayout(selectedOrder.id)
+                                                    if (res.success) {
+                                                        toast.success('Payout released and vendor notified!')
+                                                        setSelectedOrder(null)
+                                                        const ordersRes = await getAllOrders()
+                                                        if (ordersRes.success) setOrders(ordersRes.data)
+                                                    } else {
+                                                        toast.error('Failed to release payout: ' + res.error)
+                                                    }
+                                                }}
+                                                className="px-5 py-2.5 bg-[#05DF72] hover:bg-[#04c965] text-slate-900 font-black rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
+                                            >
+                                                <CheckCircleIcon size={14} />
+                                                RELEASE PAYOUT
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="space-y-4">
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Logistics Actions</h3>
-                                <div className="flex flex-wrap gap-3">
-                                    <button className="flex-1 btn-primary text-sm !py-3">
-                                        <TruckIcon size={16} />
-                                        Approve Pickup
-                                    </button>
-                                    <button className="flex-1 border border-slate-200 text-slate-600 px-6 py-3 rounded-xl text-sm font-medium hover:bg-slate-50 transition-all">
-                                        Reschedule Pickup
-                                    </button>
-                                </div>
+                        {/* Interactive Logistics Section inside Sidebar */}
+                        <div className="p-6 bg-slate-50 border-t border-slate-100 space-y-4">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Logistics Controls</h3>
+                            <div className="flex flex-col gap-3">
+                                {selectedOrder.status !== 'COMPLETED' ? (
+                                    <>
+                                        <button
+                                            onClick={async () => {
+                                                if (!confirm("Are you sure you want to approve pickup and complete this order?")) return;
+                                                const { adminApproveOrderPickup } = await import('@/backend-actions/actions/admin');
+                                                const res = await adminApproveOrderPickup(selectedOrder.id);
+                                                if (res.success) {
+                                                    toast.success("Pickup approved! Order is now completed.");
+                                                    setSelectedOrder(null);
+                                                    const ordersRes = await getAllOrders();
+                                                    if (ordersRes.success) setOrders(ordersRes.data);
+                                                } else {
+                                                    toast.error("Failed to approve pickup: " + res.error);
+                                                }
+                                            }}
+                                            className="w-full py-4 bg-[#05DF72] hover:bg-[#04c764] text-slate-900 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                                        >
+                                            <TruckIcon size={14} /> Approve Pickup
+                                        </button>
+                                        
+                                        <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase">Reschedule Pickup Date</p>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    type="date"
+                                                    id="admin-reschedule-date"
+                                                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium focus:border-[#05DF72] outline-none"
+                                                />
+                                                <button
+                                                    onClick={async () => {
+                                                        const inputDate = document.getElementById('admin-reschedule-date')?.value;
+                                                        if (!inputDate) {
+                                                            toast.error("Please pick a reschedule date first.");
+                                                            return;
+                                                        }
+                                                        if (!confirm(`Confirm reschedule to ${inputDate}?`)) return;
+                                                        const { adminRescheduleOrderPickup } = await import('@/backend-actions/actions/admin');
+                                                        const res = await adminRescheduleOrderPickup(selectedOrder.id, inputDate);
+                                                        if (res.success) {
+                                                            toast.success(`Pickup rescheduled to ${inputDate}`);
+                                                            setSelectedOrder(null);
+                                                            const ordersRes = await getAllOrders();
+                                                            if (ordersRes.success) setOrders(ordersRes.data);
+                                                        } else {
+                                                            toast.error("Failed to reschedule: " + res.error);
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-slate-800 transition-colors"
+                                                >
+                                                    Submit
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                                        <p className="text-green-700 text-xs font-black uppercase">Order Completed</p>
+                                        <p className="text-green-600 text-[10px] mt-0.5">Logistics handling is complete.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
