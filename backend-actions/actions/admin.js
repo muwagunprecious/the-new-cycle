@@ -955,18 +955,54 @@ export async function getPendingCashouts() {
 export async function getNewsletterSubscribers(page = 1, limit = 50) {
     try {
         const skip = (page - 1) * limit
-        const [subscribers, total] = await prisma.$transaction([
-            prisma.newsletterSubscriber.findMany({
-                skip,
-                take: limit,
-                orderBy: { createdAt: 'desc' }
-            }),
-            prisma.newsletterSubscriber.count()
-        ])
+        
+        // Fetch explicit newsletter subscribers
+        const subscribers = await prisma.newsletterSubscriber.findMany({
+            select: { id: true, email: true, status: true, createdAt: true }
+        })
+
+        // Fetch all registered users (buyers and sellers)
+        const users = await prisma.user.findMany({
+            select: { id: true, email: true, createdAt: true },
+            where: { email: { not: null } }
+        })
+
+        // Combine them and remove duplicates by email
+        const emailMap = new Map()
+        
+        users.forEach(u => {
+            emailMap.set(u.email, {
+                id: u.id,
+                email: u.email,
+                status: 'active', // Registered users are active on the mailing list by default
+                createdAt: u.createdAt,
+                type: 'User Account'
+            })
+        })
+
+        subscribers.forEach(s => {
+            if (!emailMap.has(s.email)) {
+                emailMap.set(s.email, {
+                    id: s.id,
+                    email: s.email,
+                    status: s.status,
+                    createdAt: s.createdAt,
+                    type: 'Subscriber'
+                })
+            }
+        })
+
+        // Convert map to array and sort by createdAt descending
+        const allSubscribers = Array.from(emailMap.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        
+        const total = allSubscribers.length
+        
+        // Paginate manually
+        const paginatedSubscribers = allSubscribers.slice(skip, skip + limit)
 
         return ApiResponse.success({
-            subscribers,
-            data: subscribers,
+            subscribers: paginatedSubscribers,
+            data: paginatedSubscribers,
             pagination: {
                 total,
                 page,
