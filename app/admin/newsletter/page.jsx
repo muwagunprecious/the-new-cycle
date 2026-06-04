@@ -19,8 +19,9 @@ export default function AdminNewsletterPage() {
         try {
             const res = await getNewsletterSubscribers(1, 100)
             if (res.success) {
-                setSubscribers(res.data.subscribers || [])
-                setTotal(res.data.pagination?.total || 0)
+                const list = Array.isArray(res.data) ? res.data : (res.subscribers || [])
+                setSubscribers(list)
+                setTotal(res.pagination?.total || list.length || 0)
             } else {
                 setErrorMsg(res.error || "Failed to fetch subscribers")
             }
