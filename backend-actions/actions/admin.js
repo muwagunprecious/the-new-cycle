@@ -648,8 +648,6 @@ export async function verifyOrderPayment(orderId) {
         
         // Emails
         const { orderConfirmationEmail, sellerNewOrderEmail, sendEmail: mailer } = await import('@/backend-actions/lib/email')
-        const productName = order.orderItems[0]?.product?.name || 'Battery'
-        
         if (order.user.email) {
             const buyerTemplate = orderConfirmationEmail({
                 buyerName: order.user.name,
