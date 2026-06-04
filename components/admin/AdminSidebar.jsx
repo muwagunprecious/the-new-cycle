@@ -17,7 +17,6 @@ const AdminSidebar = () => {
 
     const sidebarLinks = [
         { name: 'Dashboard', href: '/admin', icon: HomeIcon },
-        { name: 'Visual Sitemap', href: '/admin/sitemap', icon: MapPinIcon },
         { name: 'Pending Sellers', href: '/admin/approve', icon: ShieldCheckIcon },
         { name: 'Manual Verifications', href: '/admin/manual-verifications', icon: CheckCircleIcon },
         { name: 'Verified Sellers', href: '/admin/sellers', icon: StoreIcon },
@@ -34,6 +33,7 @@ const AdminSidebar = () => {
         { name: 'Create Admin', href: '/admin/users?action=create-admin', icon: UserPlusIcon },
         { name: 'System Settings', href: '/admin/settings', icon: SettingsIcon },
         { name: 'Newsletter', href: '/admin/newsletter', icon: MailboxIcon },
+        { name: 'Visual Sitemap', href: '/admin/sitemap', icon: MapPinIcon },
     ]
 
     const handleLogout = () => {
