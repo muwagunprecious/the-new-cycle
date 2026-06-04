@@ -678,9 +678,9 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3">Audience</label>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                     {[
-                                        { value: 'all', label: '🌐 Everyone', desc: `${users.filter(u => u.role !== 'ADMIN').length} users` },
-                                        { value: 'buyers', label: '🛒 Buyers', desc: `${users.filter(u => u.role === 'USER').length} buyers` },
-                                        { value: 'sellers', label: '🏪 Sellers', desc: `${users.filter(u => u.role === 'SELLER').length} sellers` },
+                                        { value: 'all', label: '🌐 Everyone', desc: `${dashboardData.totalUsers || 0} users` },
+                                        { value: 'buyers', label: '🛒 Buyers', desc: `${(dashboardData.totalUsers || 0) - (dashboardData.stores || 0)} buyers` },
+                                        { value: 'sellers', label: '🏪 Sellers', desc: `${dashboardData.stores || 0} sellers` },
                                         { value: 'specific', label: '👤 One User', desc: 'Pick from list' },
                                     ].map(opt => (
                                         <button
