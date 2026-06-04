@@ -210,7 +210,7 @@ export default function SellerOrders() {
                                         {!order.isPaid ? (
                                             <span className="text-[9px] font-black text-red-500 uppercase tracking-widest mt-1">Awaiting Payment</span>
                                         ) : (
-                                            <span className="text-[9px] font-black text-[#05DF72] uppercase tracking-widest mt-1">Platform Fee Deducted</span>
+                                            <span className="text-[9px] font-black text-[#05DF72] uppercase tracking-widest mt-1">Final amount</span>
                                         )}
                                     </div>
                                 </div>
