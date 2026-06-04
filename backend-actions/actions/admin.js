@@ -7,6 +7,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import prisma, { withRetry } from "@/backend-actions/lib/prisma"
 import bcrypt from "bcryptjs"
 import { generateId } from "@/backend-actions/lib/api-utils"
+import { sendOTP, sendVerificationSMS } from "@/backend-actions/lib/sms"
 
 export async function getPendingSellers() {
     try {
@@ -683,6 +684,31 @@ export async function verifyOrderPayment(orderId) {
         revalidateTag('orders')               // bust the user-orders cache
         revalidateTag(`buyer-${order.userId}`) // bust this specific buyer's order cache
         revalidateTag('admin-stats')
+
+        // SMS: Buyer gets seller full details (name, phone, address)
+        try {
+            if (order.user?.phone) {
+                const sellerPhone = order.store.user?.phone || 'N/A';
+                const sellerAddress = order.store.address || 'N/A';
+                const sellerName = order.store.user?.name || order.store.name;
+                const buyerMsg = `GoCycle: Hi ${order.user.name}, your payment for Order #${order.transactionId} has been verified! Seller: ${sellerName}, Phone: ${sellerPhone}, Address: ${sellerAddress}. Collection date: ${order.collectionDate || 'TBD'}.`;
+                await sendOTP(order.user.phone, buyerMsg).catch(e => logger.warn('Buyer payment verified SMS failed', e));
+            }
+        } catch (e) { logger.warn('Buyer payment SMS error', e); }
+
+        // SMS: Seller gets verification code + buyer full details
+        try {
+            if (order.store.user?.phone) {
+                const buyerPhone = order.user?.phone || 'N/A';
+                const buyerName = order.user?.name;
+                const code = order.verificationCode;
+                await sendVerificationSMS(order.store.user.phone, buyerName, code, order.transactionId || order.id).catch(e => logger.warn('Seller verification SMS failed', e));
+                // Also send buyer contact details to seller
+                const sellerDetailsMsg = `GoCycle: New paid order #${order.transactionId}! Buyer: ${buyerName}, Phone: ${buyerPhone}. Pickup Code: ${code}. Keep it safe — verify code at collection.`;
+                await sendOTP(order.store.user.phone, sellerDetailsMsg).catch(e => logger.warn('Seller details SMS failed', e));
+            }
+        } catch (e) { logger.warn('Seller SMS error', e); }
+
         return ApiResponse.success(null, "Order payment verified successfully")
     } catch (error) {
         logger.error("Verify Order Payment Error", error)

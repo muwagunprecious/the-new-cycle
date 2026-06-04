@@ -8,6 +8,7 @@ import { createNotification } from "./notification"
 import { generatePaymentRef } from "@/backend-actions/lib/flutterwave"
 import { revalidatePath, revalidateTag } from "next/cache"
 import prisma, { withRetry } from "@/backend-actions/lib/prisma"
+import { sendOTP, sendVerificationSMS } from "@/backend-actions/lib/sms"
 
 export async function createOrder(orderData) {
     try {
@@ -165,6 +166,14 @@ export async function createOrder(orderData) {
         } catch (e) {
             logger.warn("Order emails failed", e);
         }
+
+        // 4. SMS to Buyer — notify order has been placed and payment is awaiting verification
+        try {
+            if (buyer.phone) {
+                const buyerMsg = `GoCycle: Hi ${buyer.name}, your order #${transactionId} has been placed! Kindly complete your bank transfer. Our team will verify payment within 24-48hrs.`;
+                await sendOTP(buyer.phone, buyerMsg).catch(e => logger.warn('Buyer order SMS failed', e));
+            }
+        } catch (e) { logger.warn('Buyer order SMS error', e); }
 
         revalidatePath('/buyer')
         revalidatePath('/buyer/orders')
@@ -392,6 +401,14 @@ export async function verifyOrderCollection(orderId, token) {
                 logger.warn("Buyer receipt email failed", err)
             )
         }
+
+        // SMS to Buyer — transaction completed
+        try {
+            if (order.user?.phone) {
+                const completionMsg = `GoCycle: Your pickup for Order #${order.transactionId || order.id} has been confirmed! Thank you for using GoCycle.`;
+                await sendOTP(order.user.phone, completionMsg).catch(e => logger.warn('Buyer completion SMS failed', e));
+            }
+        } catch (e) { logger.warn('Buyer completion SMS error', e); }
 
         return ApiResponse.success(updatedOrder, "Pickup Confirmed. Funds are now in pending payout status for Admin approval.")
     } catch (error) {
