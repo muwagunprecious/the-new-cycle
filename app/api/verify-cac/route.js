@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifyCAC } from "@/backend-actions/lib/qoreid";
 
 export async function POST(req) {
     try {
@@ -23,72 +24,33 @@ export async function POST(req) {
             });
         }
 
-        const BASE_URL = "https://api.qoreid.com";
+        console.log(`Verifying CAC using library function: ${regNumber}`);
+        const data = await verifyCAC(regNumber.trim());
 
-        // Get QoreID token
-        const getQoreIDToken = async () => {
-            const clientId = process.env.QOREID_CLIENT_ID;
-            const secretKey = process.env.QOREID_SECRET_KEY;
+        const isVerified = data.status === 'success' || 
+                          data.status?.status === 'verified' || 
+                          data.summary?.cac_check === 'verified' ||
+                          data.summary?.status === 'VERIFIED';
 
-            console.log("Fetching QoreID Access Token for CAC...");
-            const tokenRes = await fetch(`${BASE_URL}/token`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ clientId, secret: secretKey }),
-            });
-            const tokenData = await tokenRes.json();
-            if (!tokenRes.ok) throw new Error(tokenData.message || "Token exchange failed");
-            return tokenData.accessToken;
-        };
-
-        const API_KEY = await getQoreIDToken();
-        const endpoint = `${BASE_URL}/v1/ng/identities/cac-premium`;
-
-        console.log(`QoreID CAC Request: POST ${endpoint} — regNumber: ${regNumber}`);
-
-        const response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${API_KEY}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ regNumber: regNumber.trim() }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error("QoreID CAC API Failure:", {
-                status: response.status,
-                statusText: response.statusText,
-                data: data
-            });
-            return NextResponse.json(
-                { success: false, message: data.message || `CAC verification failed (${response.status})` },
-                { status: response.status }
-            );
-        }
-
-        const cacStatus = data.summary?.cac_check;
-
-        if (cacStatus === "verified") {
+        if (isVerified) {
+            const businessData = data.cac || data.data || {};
             return NextResponse.json({
                 success: true,
-                companyName: data.cac?.companyName || "",
-                rcNumber: data.cac?.rcNumber || regNumber,
-                companyType: data.cac?.companyType || "",
-                status: data.cac?.status || "",
-                branchAddress: data.cac?.branchAddress || "",
+                companyName: businessData.companyName || businessData.entityName || data.companyName || "",
+                rcNumber: businessData.rcNumber || businessData.regNumber || data.rcNumber || regNumber,
+                companyType: businessData.companyType || businessData.entityType || data.companyType || "",
+                status: businessData.status || data.status || "",
+                branchAddress: businessData.branchAddress || businessData.address || data.address || "",
             });
         } else {
-            console.log("QoreID CAC Status:", cacStatus, "Data:", JSON.stringify(data.summary));
+            console.log("QoreID CAC Verification Failed. Data:", JSON.stringify(data));
             return NextResponse.json({
                 success: false,
-                message: "Business verification failed. Please check the RC/BN/IT number and try again.",
+                message: data.summary?.description || data.error || data.message || "Business verification failed. Please check the RC/BN/IT number and try again.",
             });
         }
     } catch (error) {
-        console.error("QoreID CAC Error:", error);
+        console.error("QoreID CAC Route Error:", error);
         return NextResponse.json(
             { success: false, message: "Internal server error." },
             { status: 500 }

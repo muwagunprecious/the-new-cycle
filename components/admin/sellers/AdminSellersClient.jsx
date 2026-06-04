@@ -41,6 +41,8 @@ export default function AdminSellersClient({ initialSellers }) {
             if (result.success) {
                 toast.success(`Wallet updated. New balance: ₦${result.newBalance.toLocaleString()}`);
                 fetchSellers();
+                // Dispatch custom event to update admin sidebar stats
+                window.dispatchEvent(new Event('payout-released'));
             } else {
                 toast.error(result.error);
             }

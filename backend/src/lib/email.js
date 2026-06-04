@@ -39,7 +39,7 @@ async function sendEmail({ to, subject, html, text }) {
 
 // ─── Email Templates ───────────────────────────────────────────────────────────
 
-function orderConfirmationEmail({ buyerName, orderId, productName, amount, collectionDate, token }) {
+function orderConfirmationEmail({ buyerName, orderId, productName, amount, collectionDate, token, sellerName, sellerPhone, sellerAddress }) {
     return {
         subject: `Order Confirmed – #${orderId}`,
         html: `
@@ -60,12 +60,19 @@ function orderConfirmationEmail({ buyerName, orderId, productName, amount, colle
                 </div>
                 ` : ''}
 
+                <div style="background:#f8fafc;border-radius:10px;padding:20px;margin:20px 0;">
+                    <p style="margin:0 0 12px;font-size:11px;color:#64748b;font-weight:black;text-transform:uppercase;letter-spacing:1px;">Seller & Pickup Details</p>
+                    <p style="margin:4px 0;font-size:14px;color:#0f172a;"><strong>Seller:</strong> ${sellerName || 'Verified Seller'}</p>
+                    <p style="margin:4px 0;font-size:14px;color:#0f172a;"><strong>Phone:</strong> ${sellerPhone || 'N/A'}</p>
+                    <p style="margin:4px 0;font-size:14px;color:#0f172a;"><strong>Address:</strong> ${sellerAddress || 'See dashboard for details'}</p>
+                    <p style="margin:12px 0 4px;font-size:14px;color:#0f172a;"><strong>Collection Date:</strong> ${collectionDate}</p>
+                </div>
+
                 <div style="background:#f8fafc;border-radius:10px;padding:16px;margin:20px 0;">
                     <p style="margin:0 0 8px;font-size:13px;color:#64748b;">ORDER DETAILS</p>
                     <p style="margin:4px 0;"><strong>Order ID:</strong> #${orderId}</p>
                     <p style="margin:4px 0;"><strong>Product:</strong> ${productName}</p>
                     <p style="margin:4px 0;"><strong>Amount:</strong> ₦${Number(amount).toLocaleString()}</p>
-                    <p style="margin:4px 0;"><strong>Collection Date:</strong> ${collectionDate}</p>
                 </div>
                 <p style="color:#475569;font-size:14px;">The seller will be in touch with collection details. This 6-digit token is also sent to your registered phone number.</p>
             </div>

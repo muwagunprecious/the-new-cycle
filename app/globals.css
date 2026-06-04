@@ -149,4 +149,57 @@
     animation: float-delayed 5s ease-in-out infinite;
     animation-delay: 1.5s;
 }
+
+/* ── Admin Dashboard Animations ─────────────────────────── */
+@keyframes slide-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.animate-slide-in {
+    animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in {
+    animation: fade-in 0.25s ease-out both;
+}
+
+.animate-spin {
+    animation: spin 0.75s linear infinite;
+}
+
+/* ── Status Badges ──────────────────────────────────────── */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.status-pending   { background: #fef3c7; color: #92400e; }
+.status-approved  { background: #dbeafe; color: #1e40af; }
+.status-picked    { background: #e0e7ff; color: #3730a3; }
+.status-transit   { background: #fae8ff; color: #86198f; }
+.status-completed { background: #dcfce7; color: #166534; }
+
+/* ── Card utility (admin tables) ────────────────────────── */
+.card {
+    border-radius: 24px;
+    border: 1px solid rgba(0,0,0,0.04);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
 

@@ -25,6 +25,9 @@ function SignupContent() {
     const [isOtpModalOpen, setIsOtpModalOpen] = useState(false)
     const [tempOtp, setTempOtp] = useState('')
     const [otp, setOtp] = useState('')
+    const [resendTimer, setResendTimer] = useState(0)
+    const [verifyResendTimer, setVerifyResendTimer] = useState(0)
+    const [registeredUser, setRegisteredUser] = useState(null) // Stores DB user after registration
     const [verifyType, setVerifyType] = useState('NIN') // NIN | CAC
     const [formData, setFormData] = useState({
         nin: '',
@@ -76,6 +79,28 @@ function SignupContent() {
     useEffect(() => {
         dispatch(hideLoader())
     }, [dispatch])
+
+    // Resend Timer (phone verify modal)
+    useEffect(() => {
+        let interval = null
+        if (resendTimer > 0) {
+            interval = setInterval(() => {
+                setResendTimer(prev => prev - 1)
+            }, 1000)
+        }
+        return () => clearInterval(interval)
+    }, [resendTimer])
+
+    // Resend Timer (post-registration verify screen)
+    useEffect(() => {
+        let interval = null
+        if (verifyResendTimer > 0) {
+            interval = setInterval(() => {
+                setVerifyResendTimer(prev => prev - 1)
+            }, 1000)
+        }
+        return () => clearInterval(interval)
+    }, [verifyResendTimer])
 
     const formatWhatsApp = (value) => {
         // Strip everything but numbers
@@ -134,6 +159,7 @@ function SignupContent() {
 
             // In a real app, this is where SMS would be sent
             setIsOtpModalOpen(true)
+            setResendTimer(60)
             toast.success("Verification code sent!")
         } catch (error) {
             console.error("Verification Client Error:", error)
@@ -282,15 +308,20 @@ function SignupContent() {
                 throw new Error(result.error)
             }
 
+            // Store the real DB user so auto-login can use the actual user.id
+            const dbUser = result.data?.user || null
+            setRegisteredUser(dbUser)
+
             dispatch(hideLoader())
             setIsLoading(false)
 
             if (isPhoneVerified) {
                 toast.success("Registration successful! Signing you in...")
-                handleAutoLogin()
+                handleAutoLogin(dbUser)
             } else {
+                setVerifyResendTimer(60)
                 setStep('VERIFY_EMAIL')
-                toast.success("Account created! Please verify your account.")
+                toast.success("Account created! A verification code has been sent to your phone.")
             }
 
         } catch (error) {
@@ -302,22 +333,22 @@ function SignupContent() {
 
     const handleVerifyEmail = async (e) => {
         e.preventDefault()
-        if (!otp) return toast.error("Enter verification code")
+        if (!otp || otp.length < 6) return toast.error("Enter the 6-digit verification code")
 
         setIsLoading(true)
-        dispatch(showLoader("Verifying email..."))
+        dispatch(showLoader("Verifying account..."))
 
         try {
             const res = await verifyOTP(formData.whatsapp, otp, 'PHONE')
             if (res.success) {
                 dispatch(hideLoader())
                 setIsLoading(false)
-                toast.success("Account verified!")
+                toast.success("Account verified! Signing you in...")
 
-                // Automatically login
-                handleAutoLogin()
+                // Automatically login using the real DB user object
+                handleAutoLogin(registeredUser)
             } else {
-                throw new Error(res.error)
+                throw new Error(res.error || "Invalid code. Please try again.")
             }
         } catch (error) {
             dispatch(hideLoader())
@@ -326,15 +357,53 @@ function SignupContent() {
         }
     }
 
-const handleAutoLogin = async () => {
+    const handleResendVerificationCode = async () => {
+        if (verifyResendTimer > 0) return
+        setIsLoading(true)
+        try {
+            // Re-send OTP via checkPhoneAvailability which issues a fresh code via Termii
+            const { checkPhoneAvailability: resendOtp } = await import("@/backend-actions/actions/auth")
+            const result = await resendOtp(formData.whatsapp)
+            if (result.success) {
+                setVerifyResendTimer(60)
+                toast.success("A new verification code has been sent!")
+            } else {
+                toast.error(result.error || "Could not resend code. Please try again.")
+            }
+        } catch (error) {
+            toast.error("Failed to resend code.")
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+const handleAutoLogin = async (dbUser) => {
     setIsLoading(true)
     dispatch(showLoader("Signing you in..."))
 
     try {
-        // Use the user data we already have from registration instead of calling loginUser again
-        // This avoids 2FA issues and email verification loops
+        // Use the DB user returned from registration — it has the real user.id
+        // Passing formData here would cause JWT userId = undefined
         const { createSessionFromUser } = await import("@/backend-actions/actions/auth")
-        const loginResult = await createSessionFromUser(formData)
+
+        // If dbUser is null (edge case), fall back to loginUser with credentials
+        if (!dbUser?.id) {
+            const { loginUser } = await import("@/backend-actions/actions/auth")
+            const fallback = await loginUser(formData.whatsapp, formData.password)
+            dispatch(hideLoader())
+            setIsLoading(false)
+            if (fallback?.success && fallback.data?.user) {
+                dispatch(setCredentials(fallback.data.user))
+                const dest = { 'SUPER_ADMIN': '/admin', 'ADMIN': '/admin', 'SELLER': '/seller', 'USER': '/buyer' }
+                router.push(redirect || dest[(fallback.data.user.role || '').toUpperCase()] || '/login')
+            } else {
+                toast.error("Auto sign-in failed. Please log in manually.")
+                router.push('/login')
+            }
+            return
+        }
+
+        const loginResult = await createSessionFromUser(dbUser)
 
         // Always hide loader first — no matter what the result is
         dispatch(hideLoader())
@@ -797,18 +866,26 @@ const handleAutoLogin = async () => {
                     {step === 'VERIFY_EMAIL' && (
                         <form className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500" onSubmit={handleVerifyEmail}>
                             <div className="text-center">
-                                <div className="w-24 h-24 bg-emerald-50 rounded-[24px] flex items-center justify-center mx-auto mb-8 animate-float border border-emerald-100 shadow-sm">
+                                <div className="w-24 h-24 bg-emerald-50 rounded-[24px] flex items-center justify-center mx-auto mb-8 border border-emerald-100 shadow-sm">
                                     <ShieldCheckIcon className="text-emerald-500" size={48} />
                                 </div>
-                                <p className="text-slate-600 text-lg font-medium max-w-xs mx-auto">
-                                    Enter the 6-digit security code sent to your device.
+                                <p className="text-slate-700 font-semibold text-base">
+                                    Code sent to
+                                </p>
+                                <p className="text-slate-950 font-black text-lg tracking-wider mt-1">
+                                    {formData.whatsapp}
+                                </p>
+                                <p className="text-slate-400 text-sm font-medium mt-2">
+                                    Enter the 6-digit code below to activate your account.
                                 </p>
                             </div>
 
                             <div className="flex justify-center">
                                 <input
                                     type="text"
+                                    inputMode="numeric"
                                     placeholder="0 0 0 0 0 0"
+                                    autoFocus
                                     className="text-center text-4xl tracking-[0.5em] w-full max-w-sm py-8 bg-slate-50 border border-black/[0.06] rounded-[2rem] outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:bg-white text-slate-950 font-bold placeholder:text-slate-300 shadow-inner transition-all"
                                     value={otp}
                                     onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
@@ -816,22 +893,38 @@ const handleAutoLogin = async () => {
                                 />
                             </div>
 
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 <Button
                                     type="submit"
                                     loading={isLoading}
-                                    loadingText="VERIFYING SECURITY CODE..."
+                                    disabled={otp.length < 6}
+                                    loadingText="VERIFYING CODE..."
                                     className="w-full !py-6 !rounded-[2rem] shadow-xl shadow-emerald-500/10 text-md"
                                 >
-                                    VERIFY & INITIALIZE ACCOUNT
+                                    VERIFY & ACTIVATE ACCOUNT
                                 </Button>
 
+                                {/* Resend Code */}
+                                <div className="text-center">
+                                    <button
+                                        type="button"
+                                        disabled={verifyResendTimer > 0 || isLoading}
+                                        onClick={handleResendVerificationCode}
+                                        className="text-[11px] font-bold uppercase tracking-widest text-emerald-600 disabled:text-slate-400 hover:text-emerald-500 transition-colors disabled:cursor-not-allowed"
+                                    >
+                                        {verifyResendTimer > 0
+                                            ? `Resend code in ${verifyResendTimer}s`
+                                            : 'Resend Code'}
+                                    </button>
+                                </div>
+
+                                {/* Go back to update details */}
                                 <button
                                     type="button"
-                                    onClick={() => setStep('REGISTER')}
-                                    className="w-full text-[10px] font-bold text-slate-500 hover:text-emerald-500 transition-all uppercase tracking-[0.4em] flex items-center justify-center gap-2"
+                                    onClick={() => { setOtp(''); setStep('REGISTER') }}
+                                    className="w-full text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-all uppercase tracking-[0.4em] flex items-center justify-center gap-2"
                                 >
-                                    ← Resend or Update Details
+                                    ← Update Registration Details
                                 </button>
                             </div>
                         </form>
@@ -911,6 +1004,16 @@ const handleAutoLogin = async () => {
                                         className="flex-[2] bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white px-6 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
                                     >
                                         {isLoading ? 'Verifying...' : 'Confirm Code'}
+                                    </button>
+                                </div>
+                                <div className="flex justify-center mt-2">
+                                    <button 
+                                        type="button" 
+                                        disabled={resendTimer > 0 || isLoading}
+                                        onClick={handleInitiatePhoneVerify}
+                                        className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 disabled:text-slate-400 hover:text-emerald-500 transition-colors"
+                                    >
+                                        {resendTimer > 0 ? `Resend Code in ${resendTimer}s` : 'Resend Code'}
                                     </button>
                                 </div>
                             </div>

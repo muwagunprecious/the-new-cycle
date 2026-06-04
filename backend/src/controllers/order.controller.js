@@ -105,6 +105,8 @@ exports.createOrder = async (req, res) => {
             await createNotification(admin.id, "New Platform Sale", `Order #${transactionId} placed.`, "ORDER");
         }
 
+        const sellerUser = await prisma.user.findUnique({ where: { id: store.userId } });
+
         // Email flow
         if (buyer.email) {
             const product = await prisma.product.findUnique({ where: { id: productId }, select: { name: true } });
@@ -121,7 +123,10 @@ exports.createOrder = async (req, res) => {
                     productName: product?.name || 'Battery',
                     amount: totalAmount,
                     collectionDate: collectionDate || 'TBD',
-                    token: collectionToken
+                    token: collectionToken,
+                    sellerName: sellerUser?.name,
+                    sellerPhone: sellerUser?.phone,
+                    sellerAddress: store.address
                 });
                 sendEmail({ to: buyer.email, ...emailParams }).catch(err => console.error("Email failed", err));
             }

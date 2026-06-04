@@ -32,13 +32,15 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         verifiedUsers: 0,
         unverifiedUsers: 0,
         totalUsers: 0,
+        adminBalance: 0,
         pendingStats: {
             subtotal: 0,
             total: 0,
             sellerFee: 0,
             buyerFee: 0,
             payoutAmount: 0,
-            platformEarnings: 0
+            platformEarnings: 0,
+            adminBalance: 0
         }
     })
     const [sendingNotification, setSendingNotification] = useState(false)
@@ -62,6 +64,21 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
     const [selectedUserProfile, setSelectedUserProfile] = useState(null)
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
     const [profileLoading, setProfileLoading] = useState(false)
+
+    useEffect(() => {
+        const handlePayoutReleased = async () => {
+            try {
+                const res = await getAdminDashboardSummary()
+                if (res.success) {
+                    setDashboardData(res.data)
+                }
+            } catch (err) {
+                console.error("Failed to refresh dashboard data", err)
+            }
+        }
+        window.addEventListener('payout-released', handlePayoutReleased)
+        return () => window.removeEventListener('payout-released', handlePayoutReleased)
+    }, [])
 
     const handleViewProfile = async (userId) => {
         setSelectedUserProfile(null)
@@ -217,6 +234,8 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         if (result.success) {
             setOrders(orders.map(o => o.id === orderId ? { ...o, payoutStatus: 'released' } : o))
             toast.success("Payout released to seller!")
+            // Dispatch custom event to trigger real-time sidebar balance update
+            window.dispatchEvent(new Event('payout-released'));
         } else {
             toast.error(result.error || "Failed to release payout")
         }
@@ -235,10 +254,11 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
 
     const statsCards = [
         { title: 'Total Sellers', value: dashboardData.stores, icon: StoreIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { title: 'Verified Buyers', value: dashboardData.verifiedUsers, icon: ShieldCheckIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
         { title: 'Total Listings', value: dashboardData.products, icon: ShoppingBasketIcon, color: 'text-orange-600', bg: 'bg-orange-50' },
         { title: 'Total Orders', value: dashboardData.orders, icon: TagsIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { title: 'Platform Balance', value: currency + (dashboardData.adminBalance || 0).toLocaleString(), icon: CircleDollarSignIcon, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         { title: 'Total Revenue', value: currency + dashboardData.revenue.toLocaleString(), icon: CircleDollarSignIcon, color: 'text-green-600', bg: 'bg-green-50' },
-        { title: 'Verified Buyers', value: dashboardData.verifiedUsers, icon: ShieldCheckIcon, color: 'text-[#05DF72]', bg: 'bg-[#05DF72]/10' },
         { title: 'Pending Payouts', value: currency + dashboardData.pendingPayouts.toLocaleString(), icon: WalletIcon, color: 'text-rose-600', bg: 'bg-rose-50' },
     ]
 

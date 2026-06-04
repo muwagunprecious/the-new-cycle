@@ -112,10 +112,18 @@ export async function updateSellerWallet(storeId, amount, type = 'CREDIT') {
 
         if (newBalance < 0) return ApiResponse.error("Insufficient wallet balance", 400)
 
-        await prisma.store.update({
-            where: { id: storeId },
-            data: { walletBalance: newBalance }
-        })
+        const adminAdjustment = type === 'CREDIT' ? -amount : amount
+
+        await prisma.$transaction([
+            prisma.store.update({
+                where: { id: storeId },
+                data: { walletBalance: newBalance }
+            }),
+            prisma.user.updateMany({
+                where: { role: 'ADMIN' },
+                data: { walletBalance: { increment: adminAdjustment } }
+            })
+        ])
 
         const { createNotification } = await import('./notification')
         await createNotification(
@@ -156,7 +164,8 @@ export const getAdminDashboardSummary = async () => {
             buyerCount,
             pendingPayoutsData,
             recentOrders,
-            pendingVerifications
+            pendingVerifications,
+            adminUser
         ] = await withRetry(() => prisma.$transaction([
             prisma.user.count({ where: { role: 'SELLER' } }),
             prisma.product.count(),
@@ -199,8 +208,14 @@ export const getAdminDashboardSummary = async () => {
                     user: { select: { name: true } },
                     store: { select: { name: true } }
                 }
+            }),
+            prisma.user.findFirst({
+                where: { role: 'ADMIN' },
+                select: { walletBalance: true }
             })
         ]), 1, 20000)
+
+        const adminBalance = adminUser?.walletBalance || 0
 
                 const stats = {
                     products: productCount,
@@ -208,13 +223,15 @@ export const getAdminDashboardSummary = async () => {
                     orders: orderCount,
                     stores: sellerCount,
                     pendingPayouts: pendingPayoutsData._sum.payoutAmount || 0,
+                    adminBalance: adminBalance,
                     pendingStats: {
                         subtotal: pendingPayoutsData._sum.subtotal || 0,
                         total: pendingPayoutsData._sum.total || 0,
                         sellerFee: pendingPayoutsData._sum.sellerFee || 0,
                         buyerFee: pendingPayoutsData._sum.buyerFee || 0,
                         payoutAmount: pendingPayoutsData._sum.payoutAmount || 0,
-                        platformEarnings: (pendingPayoutsData._sum.buyerFee || 0) + (pendingPayoutsData._sum.sellerFee || 0)
+                        platformEarnings: (pendingPayoutsData._sum.buyerFee || 0) + (pendingPayoutsData._sum.sellerFee || 0),
+                        adminBalance: adminBalance
                     },
                     verifiedUsers: verifiedBuyerCount,
                     unverifiedUsers: buyerCount - verifiedBuyerCount,
@@ -637,7 +654,10 @@ export async function verifyOrderPayment(orderId) {
                 productName: productName,
                 amount: order.total,
                 collectionDate: order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { dateStyle: 'long' }) : 'TBD',
-                token: order.collectionToken
+                token: order.collectionToken,
+                sellerName: order.store.user?.name,
+                sellerPhone: order.store.user?.phone,
+                sellerAddress: order.store.address
             })
             mailer({ to: order.user.email, ...buyerTemplate }).catch(err => logger.warn("Approval email failed", err))
         }
@@ -822,5 +842,112 @@ export async function createAdminAccount(data) {
     } catch (error) {
         logger.error("Create Admin Error", error);
         return ApiResponse.error("Failed to create admin account");
+    }
+}
+
+/**
+ * Fetch all COMPLETED orders with pending payouts, grouped by store.
+ * Includes full bank account details so admin can verify before releasing.
+ */
+export async function getPendingCashouts() {
+    try {
+        const orders = await prisma.order.findMany({
+            where: {
+                status: 'COMPLETED',
+                payoutStatus: 'pending'
+            },
+            orderBy: { updatedAt: 'asc' }, // oldest first — FIFO payout
+            include: {
+                store: {
+                    include: {
+                        user: {
+                            select: {
+                                name: true,
+                                email: true,
+                                phone: true
+                            }
+                        }
+                    }
+                },
+                user: {
+                    select: { name: true }
+                }
+            }
+        })
+
+        // Group orders by storeId so we see total owed per seller
+        const grouped = {}
+        for (const order of orders) {
+            const sid = order.storeId
+            if (!grouped[sid]) {
+                grouped[sid] = {
+                    storeId: sid,
+                    storeName: order.store?.name || 'Unknown Store',
+                    bankName: order.store?.bankName || null,
+                    accountNumber: order.store?.accountNumber || null,
+                    accountName: order.store?.accountName || null,
+                    sellerName: order.store?.user?.name || null,
+                    sellerEmail: order.store?.user?.email || null,
+                    sellerPhone: order.store?.user?.phone || null,
+                    walletBalance: order.store?.walletBalance || 0,
+                    orders: [],
+                    totalPayout: 0,
+                    orderCount: 0
+                }
+            }
+            const payout = order.payoutAmount || (order.total - (order.sellerFee || order.total * 0.05))
+            grouped[sid].orders.push({
+                id: order.id,
+                transactionId: order.transactionId,
+                total: order.total,
+                payoutAmount: payout,
+                sellerFee: order.sellerFee || order.total * 0.05,
+                buyerName: order.user?.name || 'Unknown Buyer',
+                completedAt: order.updatedAt,
+                collectionDate: order.collectionDate
+            })
+            grouped[sid].totalPayout += payout
+            grouped[sid].orderCount += 1
+        }
+
+        const cashouts = Object.values(grouped)
+
+        return ApiResponse.success({
+            cashouts,
+            totalPendingAmount: cashouts.reduce((sum, g) => sum + g.totalPayout, 0),
+            totalStores: cashouts.length,
+            totalOrders: orders.length
+        })
+    } catch (error) {
+        logger.error('Get Pending Cashouts Error', error)
+        return ApiResponse.error('Failed to fetch pending cashouts')
+    }
+}
+
+export async function getNewsletterSubscribers(page = 1, limit = 50) {
+    try {
+        const skip = (page - 1) * limit
+        const [subscribers, total] = await prisma.$transaction([
+            prisma.newsletterSubscriber.findMany({
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.newsletterSubscriber.count()
+        ])
+
+        return ApiResponse.success({
+            subscribers,
+            data: subscribers,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        })
+    } catch (error) {
+        logger.error("Get Newsletter Subscribers Error", error)
+        return ApiResponse.error("Failed to fetch newsletter subscribers")
     }
 }
