@@ -102,7 +102,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
 
     // Fetch data when switching tabs if it hasn't been loaded yet
     useEffect(() => {
-        if (activeTab === 'users' && users.length === 0 && !fetchingData.users) {
+        if ((activeTab === 'users' || activeTab === 'notify') && users.length === 0 && !fetchingData.users) {
             fetchUsers()
         }
         if ((activeTab === 'orders' || activeTab === 'payouts') && orders.length === 0 && !fetchingData.orders) {
