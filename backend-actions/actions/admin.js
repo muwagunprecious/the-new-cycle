@@ -174,7 +174,7 @@ export const getAdminDashboardSummary = async () => {
                 _sum: { total: true }
             }),
             prisma.user.count({ where: { role: 'USER', accountStatus: 'approved' } }),
-            prisma.user.count({ where: { role: 'USER' } }),
+            prisma.user.count(),
             prisma.order.aggregate({
                 where: { status: 'COMPLETED', payoutStatus: 'pending' },
                 _sum: {
