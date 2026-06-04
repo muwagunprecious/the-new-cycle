@@ -121,13 +121,13 @@ export async function createOrder(orderData) {
         const productName = productInfo?.name || "Battery Product";
         const sellerUser = await prisma.user.findUnique({ where: { id: store.userId } });
 
-        // 2. In-app notifications — include rich data for the popup
+        // 2. In-app notifications — seller gets a heads-up (no code/phone until payment is verified)
         try {
-            const sellerMsg = `BUYER:${buyer.name}|PHONE:${buyer.phone || 'N/A'}|AMOUNT:${totalAmount}|CODE:${verificationCode}|DATE:${collectionDate || 'TBD'}|ORDER:${transactionId}|QTY:${quantity}|PROD:${productName}`;
-            await createNotification(store.userId, "New Purchase Request", sellerMsg, "ORDER");
+            const sellerMsg = `AMOUNT:${totalAmount}|DATE:${collectionDate || 'TBD'}|ORDER:${transactionId}|QTY:${quantity}|PROD:${productName}|STATUS:AWAITING_PAYMENT`;
+            await createNotification(store.userId, "New Order - Awaiting Payment", sellerMsg, "ORDER");
             
             const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
-            await Promise.all(admins.map(admin => createNotification(admin.id, "New Platform Sale", `Order #${transactionId} placed. Total: ₦${totalAmount.toLocaleString()}`, "ORDER")));
+            await Promise.all(admins.map(admin => createNotification(admin.id, "New Platform Sale", `Order #${transactionId} placed. Total: ₦${totalAmount.toLocaleString()}. Awaiting payment verification.`, "ORDER")));
         } catch (e) { 
             logger.warn("Order notifications failed", e); 
         }

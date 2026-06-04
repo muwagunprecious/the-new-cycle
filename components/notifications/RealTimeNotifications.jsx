@@ -48,6 +48,7 @@ export default function RealTimeNotifications() {
                 processedIds.current.add(n.id)
                 
                 if (n.type === 'ORDER' && n.message.includes('BUYER:') && n.message.includes('ORDER:')) {
+                    // Full notification — payment has been verified, includes buyer details and code
                     const fields = parseNotificationMessage(n.message)
                     newPopups.push({
                         id: n.id,
@@ -66,6 +67,28 @@ export default function RealTimeNotifications() {
                     toast.success(n.title || 'New purchase received!', {
                         duration: 6000,
                         icon: '🛍️',
+                    })
+                } else if (n.type === 'ORDER' && n.message.includes('ORDER:') && n.message.includes('STATUS:AWAITING_PAYMENT')) {
+                    // Awaiting payment notification — no buyer details or code yet
+                    const fields = parseNotificationMessage(n.message)
+                    newPopups.push({
+                        id: n.id,
+                        type: 'ORDER',
+                        orderId: fields.ORDER || n.id,
+                        buyerName: null,
+                        buyerPhone: null,
+                        amount: parseInt(fields.AMOUNT, 10) || 0,
+                        productName: fields.PROD || 'Battery Product',
+                        collectionDate: fields.DATE || 'Scheduled',
+                        verificationCode: null,
+                        quantity: fields.QTY || '1',
+                        rawMessage: n.message,
+                        awaitingPayment: true,
+                    })
+
+                    toast.success(n.title || 'New order received — awaiting payment', {
+                        duration: 6000,
+                        icon: '⏳',
                     })
                 } else if (n.type === 'RESCHEDULE' || n.title.toLowerCase().includes('reschedule')) {
                     // Show reschedule popup

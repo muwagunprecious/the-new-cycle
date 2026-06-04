@@ -76,10 +76,10 @@ export default function NewPurchaseModal({ notification, onClose, onDismiss, use
                             </div>
                             <div>
                                 <h3 className="text-white text-2xl font-black leading-none">
-                                    {isRescheduleType ? "Reschedule Request" : (isRescheduling ? "Reschedule Pickup" : (isSeller ? "New Purchase!" : "Payment Confirmed!"))}
+                                    {isRescheduleType ? "Reschedule Request" : (isRescheduling ? "Reschedule Pickup" : (isSeller ? (notification.awaitingPayment ? "New Order" : "New Purchase!") : "Payment Confirmed!"))}
                                 </h3>
                                 <p className="text-white/80 font-bold text-xs mt-2 uppercase tracking-widest">
-                                    {isRescheduleType ? "Review Proposal" : (isRescheduling ? "Propose New Date" : (isSeller ? "Immediate Confirmation" : "Order Processing"))}
+                                    {isRescheduleType ? "Review Proposal" : (isRescheduling ? "Propose New Date" : (isSeller ? (notification.awaitingPayment ? "Awaiting Payment Verification" : "Payment Confirmed") : "Order Processing"))}
                                 </p>
                             </div>
                         </div>

@@ -40,8 +40,8 @@ export async function POST(request) {
                 userId: sellerId,
                 type: 'ORDER',
                 status: 'unread',
-                title: 'New Purchase Request',
-                message: `New order from ${buyerName} for ${productName}. Amount: ₦${amount.toLocaleString()}. Verification code: ${verificationCode}. Collection date: ${collectionDate || 'TBD'}`,
+                title: 'New Order - Awaiting Payment',
+                message: `New order for ${productName}. Amount: ₦${amount.toLocaleString()}. Collection date: ${collectionDate || 'TBD'}. Payment verification pending.`,
             }
         })
 

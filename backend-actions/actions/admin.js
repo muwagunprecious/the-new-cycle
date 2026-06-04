@@ -636,11 +636,13 @@ export async function verifyOrderPayment(orderId) {
             "PAYMENT"
         )
 
-        // Notify Seller
+        // Notify Seller — NOW they get the full details (buyer info + verification code)
+        const productName = order.orderItems[0]?.product?.name || 'Battery'
+        const sellerMsg = `BUYER:${order.user.name}|PHONE:${order.user.phone || 'N/A'}|AMOUNT:${order.total}|CODE:${order.verificationCode}|DATE:${order.collectionDate || 'TBD'}|ORDER:${order.transactionId}|QTY:${order.orderItems[0]?.quantity || 1}|PROD:${productName}`;
         await createNotification(
             order.store.userId,
-            "New Order Received!",
-            `You have a new paid order! Order #${order.transactionId}.`,
+            "New Purchase — Payment Verified!",
+            sellerMsg,
             "ORDER"
         )
         
