@@ -248,6 +248,9 @@ function SignupContent() {
         if (!formData.cacNumber.trim()) {
             return toast.error("Please enter your RC/BN/IT number")
         }
+        if (!formData.businessName.trim()) {
+            return toast.error("Please enter your company name")
+        }
         if (!formData.firstName.trim() || !formData.lastName.trim()) {
             return toast.error("Please enter the name of the business owner/director")
         }
@@ -265,6 +268,20 @@ function SignupContent() {
             const data = await response.json()
 
             if (data.success) {
+                const returnedName = (data.companyName || "").trim().toUpperCase();
+                const inputtedName = (formData.businessName || "").trim().toUpperCase();
+                
+                const cleanName = (str) => str.replace(/[^A-Z0-9]/g, '');
+
+                if (cleanName(returnedName) !== cleanName(inputtedName)) {
+                    toast.error(`Wrong company name! This CAC belongs to: ${data.companyName}`, {
+                        duration: 6000
+                    });
+                    setIsLoading(false)
+                    dispatch(hideLoader())
+                    return;
+                }
+
                 setFormData(prev => ({
                     ...prev,
                     name: `${prev.firstName} ${prev.lastName}`.trim(),
@@ -619,24 +636,41 @@ const handleAutoLogin = async (dbUser) => {
                                 </div>
                             )}
 
-                            {/* CAC-specific field */}
+                            {/* CAC-specific fields */}
                             {verifyType === 'CAC' && (
-                                <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">RC / BN / IT Number</label>
-                                    <div className="relative group">
-                                        <BuildingIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                        <input
-                                            required
-                                            type="text"
-                                            placeholder="RC1234567"
-                                            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-5 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-xl tracking-[0.1em] placeholder:text-slate-400 placeholder:tracking-normal"
-                                            value={formData.cacNumber}
-                                            onChange={(e) => setFormData({ ...formData, cacNumber: e.target.value })}
-                                        />
+                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">RC / BN / IT Number</label>
+                                        <div className="relative group">
+                                            <BuildingIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                            <input
+                                                required
+                                                type="text"
+                                                placeholder="RC1234567"
+                                                className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-5 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-xl tracking-[0.1em] placeholder:text-slate-400 placeholder:tracking-normal"
+                                                value={formData.cacNumber}
+                                                onChange={(e) => setFormData({ ...formData, cacNumber: e.target.value })}
+                                            />
+                                        </div>
                                     </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Company Name</label>
+                                        <div className="relative group">
+                                            <BuildingIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                            <input
+                                                required
+                                                type="text"
+                                                placeholder="Input your company name"
+                                                className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-5 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-lg placeholder:text-slate-400"
+                                                value={formData.businessName}
+                                                onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                    
                                     <p className="text-[10px] text-slate-400 ml-2 font-medium">
                                         Verify your business registration via CAC.
-                                        <span className="text-emerald-500 ml-1">Test RC: RC0000000</span>
                                     </p>
                                 </div>
                             )}

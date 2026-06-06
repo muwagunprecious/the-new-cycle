@@ -195,14 +195,58 @@ export async function verifyNIN(nin, userData = {}) {
 }
 
 /**
- * Verify CAC (Premium)
+ * Verify CAC (with Basic and Premium fallback)
  * @param {string} rcNumber - RC Number (RC/BN/IT)
  */
 export async function verifyCAC(rcNumber) {
-    const endpoint = '/v1/ng/identities/cac-premium';
+    const rc = rcNumber.trim();
     const body = {
-        regNumber: rcNumber.trim()
+        regNumber: rc
     };
 
-    return await qoreidRequest(endpoint, 'POST', body);
+    // Try endpoints in sequence to handle credential permissions
+    const endpoints = [
+        '/v1/ng/identities/cac-premium',
+        '/v2/ng/identities/cac-premium',
+        '/v1/ng/identities/cac-basic',
+        '/v2/ng/identities/cac-basic'
+    ];
+
+    let lastResult = null;
+    for (const endpoint of endpoints) {
+        console.log(`[QoreID] Attempting CAC verification with endpoint: ${endpoint}`);
+        try {
+            const data = await qoreidRequest(endpoint, 'POST', body);
+            
+            const isVerified = data.status === 'success' || 
+                              data.status?.status === 'verified' || 
+                              data.summary?.cac_check === 'verified' ||
+                              data.summary?.status === 'VERIFIED';
+
+            if (isVerified) {
+                console.log(`[QoreID] CAC verification succeeded using endpoint: ${endpoint}`);
+                return data;
+            }
+
+            // Check if it failed due to authentication/forbidden (status/statusCode 403)
+            const isForbidden = data.status === 403 || data.statusCode === 403 || 
+                               (data.error && typeof data.error === 'string' && data.error.toLowerCase().includes('forbidden')) ||
+                               (data.message && typeof data.message === 'string' && data.message.toLowerCase().includes('forbidden'));
+
+            lastResult = data;
+
+            if (isForbidden) {
+                console.warn(`[QoreID] Endpoint ${endpoint} returned Forbidden. Trying next fallback...`);
+                continue;
+            }
+
+            // If it failed for other reasons (e.g. business not found), log and continue to try other endpoints in case
+            console.log(`[QoreID] Endpoint ${endpoint} failed. Result:`, JSON.stringify(data));
+        } catch (error) {
+            console.error(`[QoreID] Exception with endpoint ${endpoint}:`, error.message);
+        }
+    }
+
+    console.warn(`[QoreID] All CAC verification endpoints failed. Returning last result.`);
+    return lastResult || { success: false, error: "Verification failed on all endpoints." };
 }
