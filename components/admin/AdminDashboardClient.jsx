@@ -33,6 +33,8 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         unverifiedUsers: 0,
         totalUsers: 0,
         adminBalance: 0,
+        pendingVerifications: [],
+        recentOrders: [],
         pendingStats: {
             subtotal: 0,
             total: 0,
@@ -65,19 +67,24 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
     const [profileLoading, setProfileLoading] = useState(false)
 
-    useEffect(() => {
-        const handlePayoutReleased = async () => {
-            try {
-                const res = await getAdminDashboardSummary()
-                if (res.success) {
-                    setDashboardData(res.data)
-                }
-            } catch (err) {
-                console.error("Failed to refresh dashboard data", err)
+    // Refresh dashboard data on mount and on payout-released events
+    const refreshDashboard = async () => {
+        try {
+            const res = await getAdminDashboardSummary()
+            if (res.success) {
+                setDashboardData(res.data)
             }
+        } catch (err) {
+            console.error("Failed to refresh dashboard data", err)
         }
-        window.addEventListener('payout-released', handlePayoutReleased)
-        return () => window.removeEventListener('payout-released', handlePayoutReleased)
+    }
+
+    useEffect(() => {
+        // Refresh on mount to ensure fresh data (especially pendingVerifications)
+        refreshDashboard()
+
+        window.addEventListener('payout-released', refreshDashboard)
+        return () => window.removeEventListener('payout-released', refreshDashboard)
     }, [])
 
     const handleViewProfile = async (userId) => {
@@ -422,9 +429,10 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                         <td className="px-6 py-4">
                                             <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full ${user.role === 'ADMIN' ? 'bg-purple-50 text-purple-600' :
                                                 user.role === 'SELLER' ? 'bg-blue-50 text-blue-600' :
-                                                    'bg-slate-100 text-slate-600'
+                                                    user.role === 'USER' ? 'bg-emerald-50 text-[#05DF72]' :
+                                                        'bg-slate-100 text-slate-600'
                                                 }`}>
-                                                {user.role}
+                                                {user.role === 'USER' ? 'BUYER' : user.role}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -503,9 +511,10 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                 <tr>
                                     <th className="px-6 py-4 text-left font-semibold">Order ID</th>
                                     <th className="px-6 py-4 text-left font-semibold">Product</th>
-                                    <th className="px-6 py-4 text-left font-semibold">Amount</th>
+                                    <th className="px-6 py-4 text-left font-semibold">Battery Price</th>
+                                    <th className="px-6 py-4 text-left font-semibold">Paid by Buyer</th>
+                                    <th className="px-6 py-4 text-left font-semibold">Seller Payout</th>
                                     <th className="px-6 py-4 text-left font-semibold">Status</th>
-                                    <th className="px-6 py-4 text-left font-semibold">Collection Token</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -518,18 +527,24 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                             <p className="font-bold text-slate-900">{order.product?.name || 'Battery'}</p>
                                         </td>
                                         <td className="px-6 py-4">
+                                            <p className="font-semibold text-slate-600">{currency}{(order.subtotal || 0).toLocaleString()}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
                                             <p className="font-bold text-slate-900">{currency}{(order.total || 0).toLocaleString()}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full ${order.status === 'COMPLETED' ? 'bg-green-50 text-green-600' :
-                                                order.status === 'PICKED_UP' ? 'bg-blue-50 text-blue-600' :
-                                                    'bg-amber-50 text-amber-600'
-                                                }`}>
-                                                {order.status?.replace('_', ' ')}
-                                            </span>
+                                            <p className="font-semibold text-emerald-600">{currency}{(order.payoutAmount || 0).toLocaleString()}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="font-mono text-sm font-bold text-[#05DF72]">{order.verificationCode || '-'}</span>
+                                            <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full border ${
+                                                order.status === 'ORDER_PLACED' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                                order.status === 'PAID' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                order.status === 'COMPLETED' ? 'bg-green-50 text-green-600 border-green-100' :
+                                                order.status === 'PICKED_UP' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                                'bg-slate-100 text-slate-600 border-slate-200'
+                                            }`}>
+                                                {order.status?.replace('_', ' ')}
+                                            </span>
                                         </td>
                                     </tr>
                                 ))}
@@ -603,55 +618,69 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                     </div>
 
                     {/* Payout History Section */}
-                    {payoutHistory.length > 0 && (
-                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                                <h3 className="text-lg font-bold text-slate-900">Payout History</h3>
-                                <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-pulse"></div>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50 text-[10px] uppercase font-black tracking-widest text-slate-400">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left">Released Date</th>
-                                            <th className="px-6 py-4 text-left">Recipient (Seller)</th>
-                                            <th className="px-6 py-4 text-left">Amount Transferred</th>
-                                            <th className="px-6 py-4 text-left">Admin Fee Earned</th>
-                                            <th className="px-6 py-4 text-right">Reference</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {payoutHistory.map(pay => (
-                                            <tr key={pay.id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-4 text-sm font-bold text-slate-900">
-                                                    {new Date(pay.updatedAt).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <p className="text-sm font-bold text-slate-900">{pay.store?.name || 'Seller'}</p>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <p className="text-sm font-black text-slate-900">{currency}{pay.payoutAmount.toLocaleString()}</p>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <p className="text-sm font-black text-[#05DF72]">{currency}{(pay.buyerFee + pay.sellerFee).toLocaleString()}</p>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <span className="font-mono text-[10px] text-slate-400">{pay.id}</span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {pagination.payouts.page < pagination.payouts.totalPages && (
-                                <div className="p-6 text-center border-t border-slate-100">
-                                    <button onClick={loadMorePayoutHistory} className="text-xs font-black uppercase tracking-widest text-[#05DF72] hover:underline">
-                                        Load Full History
-                                    </button>
-                                </div>
-                            )}
+                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-slate-900">Payout History</h3>
+                            <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-pulse"></div>
                         </div>
-                    )}
+                        {payoutHistory.length > 0 ? (
+                            <>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-slate-50 text-[10px] uppercase font-black tracking-widest text-slate-400">
+                                            <tr>
+                                                <th className="px-6 py-4 text-left">Released Date</th>
+                                                <th className="px-6 py-4 text-left">Recipient (Seller)</th>
+                                                <th className="px-6 py-4 text-left">Battery Price</th>
+                                                <th className="px-6 py-4 text-left">Paid by Buyer</th>
+                                                <th className="px-6 py-4 text-left">Paid to Seller</th>
+                                                <th className="px-6 py-4 text-left">Admin Fee Earned</th>
+                                                <th className="px-6 py-4 text-right">Reference</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {payoutHistory.map(pay => (
+                                                <tr key={pay.id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                                                        {new Date(pay.updatedAt).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <p className="text-sm font-bold text-slate-900">{pay.store?.name || 'Seller'}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <p className="text-sm font-semibold text-slate-600">{currency}{(pay.subtotal || 0).toLocaleString()}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <p className="text-sm font-bold text-slate-900">{currency}{(pay.total || 0).toLocaleString()}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <p className="text-sm font-semibold text-emerald-600">{currency}{(pay.payoutAmount || 0).toLocaleString()}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <p className="text-sm font-black text-[#05DF72]">{currency}{(pay.buyerFee + pay.sellerFee).toLocaleString()}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <span className="font-mono text-[10px] text-slate-400">{pay.id}</span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {pagination.payouts.page < pagination.payouts.totalPages && (
+                                    <div className="p-6 text-center border-t border-slate-100">
+                                        <button onClick={loadMorePayoutHistory} className="text-xs font-black uppercase tracking-widest text-[#05DF72] hover:underline">
+                                            Load Full History
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="p-12 text-center text-slate-500">
+                                No payout history available
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 

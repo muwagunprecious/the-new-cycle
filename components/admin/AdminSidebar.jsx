@@ -17,7 +17,6 @@ const AdminSidebar = () => {
 
     const sidebarLinks = [
         { name: 'Dashboard', href: '/admin', icon: HomeIcon },
-        { name: 'Pending Sellers', href: '/admin/approve', icon: ShieldCheckIcon },
         { name: 'Manual Verifications', href: '/admin/manual-verifications', icon: CheckCircleIcon },
         { name: 'Verified Sellers', href: '/admin/sellers', icon: StoreIcon },
         { name: 'Verified Buyers', href: '/admin/users', icon: UsersIcon },

@@ -72,7 +72,7 @@ function CopyButton({ text }) {
 export default function PendingPayoutSidebar() {
     const currency = '₦'
 
-    const [activeTab, setActiveTab] = useState("cashout")
+    const [activeTab, setActiveTab] = useState("pickup")
 
     // ── Payout Stats ──────────────────────────────────────────────────
     const [stats, setStats] = useState({
@@ -304,22 +304,6 @@ export default function PendingPayoutSidebar() {
             {/* ── Tab Switcher ── */}
             <div className="flex border-b border-slate-100 shrink-0">
                 <button
-                    onClick={() => setActiveTab("cashout")}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 text-[9px] font-black uppercase tracking-widest transition-all ${
-                        activeTab === "cashout"
-                            ? "text-[#05DF72] border-b-2 border-[#05DF72] bg-[#05DF72]/5"
-                            : "text-slate-400 hover:text-slate-600"
-                    }`}
-                >
-                    <BanknoteIcon size={12} />
-                    Cashout
-                    {cashoutsTotal.orders > 0 && (
-                        <span className="ml-0.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[8px] flex items-center justify-center font-black">
-                            {cashoutsTotal.orders}
-                        </span>
-                    )}
-                </button>
-                <button
                     onClick={() => setActiveTab("pickup")}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 text-[9px] font-black uppercase tracking-widest transition-all ${
                         activeTab === "pickup"
@@ -332,6 +316,22 @@ export default function PendingPayoutSidebar() {
                     {orders.length > 0 && (
                         <span className="ml-0.5 w-4 h-4 rounded-full bg-[#05DF72] text-white text-[8px] flex items-center justify-center font-black">
                             {orders.length}
+                        </span>
+                    )}
+                </button>
+                <button
+                    onClick={() => setActiveTab("cashout")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 text-[9px] font-black uppercase tracking-widest transition-all ${
+                        activeTab === "cashout"
+                            ? "text-[#05DF72] border-b-2 border-[#05DF72] bg-[#05DF72]/5"
+                            : "text-slate-400 hover:text-slate-600"
+                    }`}
+                >
+                    <BanknoteIcon size={12} />
+                    Cashout
+                    {cashoutsTotal.orders > 0 && (
+                        <span className="ml-0.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[8px] flex items-center justify-center font-black">
+                            {cashoutsTotal.orders}
                         </span>
                     )}
                 </button>

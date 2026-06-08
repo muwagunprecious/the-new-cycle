@@ -169,9 +169,10 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                         <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${user.role === 'ADMIN' ? 'bg-slate-900 text-white border-slate-900' :
                                             user.role === 'SELLER' ? 'bg-blue-50 text-blue-600 border-blue-100' :
                                                 user.role === 'DELIVERY' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                    user.role === 'USER' ? 'bg-emerald-50 text-[#05DF72] border-emerald-100' :
                                                     'bg-slate-50 text-slate-600 border-slate-100'
                                             }`}>
-                                            {user.role}
+                                            {user.role === 'USER' ? 'BUYER' : user.role}
                                         </span>
                                     </td>
                                     <td className="px-8 py-6">

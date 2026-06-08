@@ -74,7 +74,7 @@ export default function OrderManagementClient({ initialOrders }) {
                 if (targetOrder) setSelectedOrder(targetOrder)
             }
         }
-    }, [])
+    }, [orders])
 
     // Reset banners when sidebar changes
     useEffect(() => {
