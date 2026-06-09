@@ -253,7 +253,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
     const tabs = [
         { id: 'overview', label: 'Overview' },
         { id: 'users', label: `Users (${dashboardData.totalUsers})` },
-        { id: 'orders', label: `Orders (${dashboardData.orders})` },
+        { id: 'orders', label: `Order Status (${dashboardData.orders})` },
         { id: 'payouts', label: 'Payouts' },
         { id: 'notify', label: '📣 Notify' },
         { id: 'diagnostics', label: '🩺 Diagnostics' },
