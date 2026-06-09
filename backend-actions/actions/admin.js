@@ -1054,3 +1054,48 @@ export async function getNewsletterSubscribers(page = 1, limit = 50) {
         return ApiResponse.error("Failed to fetch newsletter subscribers")
     }
 }
+
+export async function searchDisputes(query) {
+    try {
+        if (!query || query.trim() === "") {
+            return ApiResponse.success([])
+        }
+        
+        const q = query.trim().toLowerCase()
+        
+        // Find matching orders by Order ID, Transaction ID, Buyer name/email/phone, Seller store name/email/contact
+        const orders = await prisma.order.findMany({
+            where: {
+                OR: [
+                    { id: { contains: q, mode: 'insensitive' } },
+                    { transactionId: { contains: q, mode: 'insensitive' } },
+                    { user: { name: { contains: q, mode: 'insensitive' } } },
+                    { user: { email: { contains: q, mode: 'insensitive' } } },
+                    { user: { phone: { contains: q, mode: 'insensitive' } } },
+                    { store: { name: { contains: q, mode: 'insensitive' } } },
+                    { store: { email: { contains: q, mode: 'insensitive' } } },
+                    { store: { contact: { contains: q, mode: 'insensitive' } } }
+                ]
+            },
+            include: {
+                user: true,
+                store: {
+                    include: {
+                        user: true
+                    }
+                },
+                orderItems: {
+                    include: {
+                        product: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        })
+        
+        return ApiResponse.success(orders)
+    } catch (error) {
+        logger.error("Search Disputes Error", error)
+        return ApiResponse.error("Failed to search disputes")
+    }
+}

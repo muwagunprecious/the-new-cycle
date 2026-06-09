@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon, DollarSign as DollarSignIcon, FileText as FileTextIcon, UserPlus as UserPlusIcon, MapPin as MapPinIcon, Mail as MailIcon, CheckCircle as CheckCircleIcon, Truck as TruckIcon, Banknote as BanknoteIcon, Mailbox as MailboxIcon } from "lucide-react"
+import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon, DollarSign as DollarSignIcon, FileText as FileTextIcon, UserPlus as UserPlusIcon, MapPin as MapPinIcon, Mail as MailIcon, CheckCircle as CheckCircleIcon, Truck as TruckIcon, Banknote as BanknoteIcon, Mailbox as MailboxIcon, AlertTriangle as AlertTriangleIcon } from "lucide-react"
 import { useDispatch } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
 import { logout } from "@/lib/features/auth/authSlice"
@@ -23,6 +23,7 @@ const AdminSidebar = () => {
         { name: 'Pending Products', href: '/admin/pending-products', icon: ShoppingBagIcon },
         { name: 'Products', href: '/admin/products', icon: ShoppingBagIcon },
         { name: 'Orders', href: '/admin/orders', icon: ShieldCheckIcon },
+        { name: 'Disputes & Audits', href: '/admin/disputes', icon: AlertTriangleIcon },
         { name: 'Approve Pickups', href: '/admin/approve-pickups', icon: TruckIcon },
         { name: 'Pending Cashouts', href: '/admin/payments', icon: BanknoteIcon },
         { name: 'Notifications', href: '/admin/notifications', icon: BellIcon },

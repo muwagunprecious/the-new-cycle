@@ -46,6 +46,7 @@ const sitemapData = [
             { name: "Overview Summary", href: "/admin", status: "Complete", icon: LayoutDashboard },
             { name: "Pending Sellers", href: "/admin/approve", status: "Complete", icon: ShieldCheck },
             { name: "User Management", href: "/admin/users", status: "Complete", icon: ShieldCheck },
+            { name: "Disputes & Audits", href: "/admin/disputes", status: "Complete", icon: ShieldCheck },
             { name: "Inventory (Pending)", href: "/admin/pending-products", status: "Complete", icon: Battery },
             { name: "Admin Settings", href: "/admin/settings", status: "Complete", icon: ShieldCheck },
         ]
