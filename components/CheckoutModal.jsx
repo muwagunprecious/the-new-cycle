@@ -400,13 +400,13 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
                                             <h3 className="font-black text-slate-900 text-sm">Manual Bank Transfer</h3>
-                                            <span className="bg-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">24-48hrs</span>
+                                            <span className="bg-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">1-24hrs</span>
                                         </div>
                                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                                             Direct Bank Transfer • Admin Verified
                                         </p>
                                         <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
-                                            Transfer to our bank account. Payment is verified manually by our finance team within 24-48 hours.
+                                            Transfer to our bank account. Payment is verified manually by our finance team within 1-24 hours.
                                         </p>
                                     </div>
                                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
@@ -621,7 +621,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                         <div>
                                             <p className="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">Awaiting Admin Approval</p>
                                             <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                                Your bank transfer is being reviewed by our finance team. Once verified, the seller's pickup address and your collection code will be unlocked. This usually takes 24–48 hours.
+                                                Your bank transfer is being reviewed by our finance team. Once verified, the seller's pickup address and your collection code will be unlocked. This usually takes 1-24 hours.
                                             </p>
                                             <p className="text-xs text-slate-500 font-medium mt-2">
                                                 <span className="font-bold text-slate-900">Pickup Address:</span> Address will be revealed after verification
@@ -636,7 +636,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                         <div className="space-y-1">
                                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">What Happens Next?</p>
                                             <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                                                Once our finance team verifies your transfer, you will receive an email with the seller's pickup address and your verification code. This usually takes 24–48 hours.
+                                                Once our finance team verifies your transfer, you will receive an email with the seller's pickup address and your verification code. This usually takes 1-24 hours.
                                             </p>
                                         </div>
                                     </div>

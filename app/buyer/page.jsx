@@ -242,7 +242,7 @@ export default function BuyerDashboard() {
                                         <div>
                                             <p className="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">Awaiting Admin Approval</p>
                                             <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                                Your bank transfer is being reviewed by our finance team. Once verified, the seller's pickup address and your collection code will be unlocked. This usually takes 24–48 hours.
+                                                Your bank transfer is being reviewed by our finance team. Once verified, the seller's pickup address and your collection code will be unlocked. This usually takes 1-24 hours.
                                             </p>
                                         </div>
                                     </div>
