@@ -755,11 +755,7 @@ export default function DisputeManagementClient() {
                                             <p className="text-[10px] uppercase font-bold text-slate-400">Description</p>
                                             <p className="text-slate-600 mt-1 leading-relaxed">{selectedOrder.orderItems?.[0]?.product?.description || "No description provided."}</p>
                                         </div>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            <div>
-                                                <p className="text-[10px] uppercase font-bold text-slate-400">MRP</p>
-                                                <p className="text-slate-800 font-semibold">₦{(selectedOrder.orderItems?.[0]?.product?.mrp || 0).toLocaleString()}</p>
-                                            </div>
+                                        <div className="grid grid-cols-2 gap-3">
                                             <div>
                                                 <p className="text-[10px] uppercase font-bold text-slate-400">Recycled Price</p>
                                                 <p className="text-slate-800 font-semibold">₦{(selectedOrder.orderItems?.[0]?.product?.price || 0).toLocaleString()}</p>
