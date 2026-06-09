@@ -4,46 +4,62 @@ import { useState } from "react"
 import { useSelector } from "react-redux"
 import { getPendingAdminProducts, adminDeleteProduct, adminApproveProduct, adminRejectProduct } from "@/backend-actions/actions/product"
 import { toast } from "react-hot-toast"
-import { Search as SearchIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, ExternalLink as ExternalLinkIcon, Trash2 as Trash2Icon } from "lucide-react"
+import { Search as SearchIcon, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon, ExternalLink as ExternalLinkIcon, Trash2 as Trash2Icon, Loader2 as Loader2Icon } from "lucide-react"
 
 export default function AdminPendingProductsClient({ initialProducts }) {
     const { user } = useSelector(state => state.auth)
     const [products, setProducts] = useState(initialProducts || [])
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
+    const [approvingId, setApprovingId] = useState(null)
+    const [rejectingId, setRejectingId] = useState(null)
 
     // Initial data passed as props!
 
-    const fetchProducts = async () => {
-        setLoading(true)
+    const fetchProducts = async (silent = false) => {
+        if (!silent) setLoading(true)
         const res = await getPendingAdminProducts()
         if (res.success) {
             setProducts(res.products)
         } else {
             toast.error(res.error || "Failed to load products")
         }
-        setLoading(false)
+        if (!silent) setLoading(false)
     }
 
     const handleApprove = async (id) => {
-        const res = await adminApproveProduct(id, user?.id)
-        if (res.success) {
-            toast.success("Product approved successfully")
-            fetchProducts()
-        } else {
-            toast.error(res.error || "Failed to approve product")
+        setApprovingId(id)
+        try {
+            const res = await adminApproveProduct(id, user?.id)
+            if (res.success) {
+                toast.success("Product approved successfully")
+                await fetchProducts(true)
+            } else {
+                toast.error(res.error || "Failed to approve product")
+            }
+        } catch (error) {
+            toast.error("Failed to approve product")
+        } finally {
+            setApprovingId(null)
         }
     }
 
     const handleReject = async (id) => {
         const reason = prompt("Enter rejection reason (optional):", "Listing does not meet guidelines.")
         if (reason !== null) {
-            const res = await adminRejectProduct(id, reason, user?.id)
-            if (res.success) {
-                toast.success("Product rejected")
-                fetchProducts()
-            } else {
-                toast.error(res.error || "Failed to reject product")
+            setRejectingId(id)
+            try {
+                const res = await adminRejectProduct(id, reason, user?.id)
+                if (res.success) {
+                    toast.success("Product rejected")
+                    await fetchProducts(true)
+                } else {
+                    toast.error(res.error || "Failed to reject product")
+                }
+            } catch (error) {
+                toast.error("Failed to reject product")
+            } finally {
+                setRejectingId(null)
             }
         }
     }
@@ -163,13 +179,31 @@ export default function AdminPendingProductsClient({ initialProducts }) {
                                         <td className="px-8 py-6">
                                             <div className="flex items-center justify-end gap-2">
                                                 {product.status === 'pending' && (
-                                                    <button onClick={() => handleApprove(product.id)} className="p-2.5 bg-green-50 text-[#05DF72] rounded-xl hover:bg-[#05DF72] hover:text-white transition-all shadow-sm" title="Approve Product">
-                                                        <CheckCircleIcon size={18} />
+                                                    <button 
+                                                        onClick={() => handleApprove(product.id)} 
+                                                        disabled={approvingId === product.id || rejectingId === product.id}
+                                                        className="p-2.5 bg-green-50 text-[#05DF72] rounded-xl hover:bg-[#05DF72] hover:text-white transition-all shadow-sm disabled:opacity-50 flex items-center justify-center min-w-9 min-h-9" 
+                                                        title="Approve Product"
+                                                    >
+                                                        {approvingId === product.id ? (
+                                                            <Loader2Icon size={18} className="animate-spin text-[#05DF72] hover:text-white" />
+                                                        ) : (
+                                                            <CheckCircleIcon size={18} />
+                                                        )}
                                                     </button>
                                                 )}
                                                 {product.status === 'pending' && (
-                                                    <button onClick={() => handleReject(product.id)} className="p-2.5 bg-orange-50 text-orange-500 rounded-xl hover:bg-orange-500 hover:text-white transition-all shadow-sm" title="Reject Product">
-                                                        <XCircleIcon size={18} />
+                                                    <button 
+                                                        onClick={() => handleReject(product.id)} 
+                                                        disabled={approvingId === product.id || rejectingId === product.id}
+                                                        className="p-2.5 bg-orange-50 text-orange-500 rounded-xl hover:bg-orange-500 hover:text-white transition-all shadow-sm disabled:opacity-50 flex items-center justify-center min-w-9 min-h-9" 
+                                                        title="Reject Product"
+                                                    >
+                                                        {rejectingId === product.id ? (
+                                                            <Loader2Icon size={18} className="animate-spin text-orange-500 hover:text-white" />
+                                                        ) : (
+                                                            <XCircleIcon size={18} />
+                                                        )}
                                                     </button>
                                                 )}
                                                 <button
