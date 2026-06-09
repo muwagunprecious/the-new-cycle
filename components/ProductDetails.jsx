@@ -160,7 +160,7 @@ const ProductDetails = ({ product }) => {
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 p-5 sm:p-8 glass rounded-[1.5rem] sm:rounded-[2.5rem] border-slate-100">
                     {[
                         { label: 'Battery Type', value: product.batteryType || product.category, icon: Battery },
-                        { label: 'Brand', value: product.brand || 'N/A', icon: InfoIcon },
+                        { label: 'Brand', value: product.brand || '', icon: InfoIcon },
                         { label: 'Condition', value: product.condition || 'SCRAP', color: 'text-amber-600' },
                         { label: 'Stock Status', value: `${product.unitsAvailable || 0} Units In Stock`, color: 'text-emerald-600' }
                     ].map((spec, i) => (
