@@ -455,72 +455,74 @@ export default function BuyerDashboard() {
                                                 <button onClick={() => { setSelectedOrder(order); setIsActionSheetOpen(true); }} className="px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10">
                                                     <CalendarIcon size={14} /> Manage Pickup
                                                 </button>
-                                                <button 
-                                                    onClick={() => {
-                                                        const win = window.open('', '_blank');
-                                                        win.document.write(`
-                                                            <html>
-                                                                <head>
-                                                                    <title>Receipt - ${order.id}</title>
-                                                                    <script src="https://cdn.tailwindcss.com"></script>
-                                                                </head>
-                                                                <body class="bg-slate-100 p-8">
-                                                                    <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden font-sans">
-                                                                        <div class="bg-slate-900 p-8 text-center text-white">
-                                                                            <h1 class="text-3xl font-black mb-2">Go-Cycle Receipt</h1>
-                                                                            <p class="text-slate-400 uppercase tracking-widest text-xs font-bold">Official Transaction Record</p>
+                                                {order.isPaid && (
+                                                    <button 
+                                                        onClick={() => {
+                                                            const win = window.open('', '_blank');
+                                                            win.document.write(`
+                                                                <html>
+                                                                    <head>
+                                                                        <title>Receipt - ${order.id}</title>
+                                                                        <script src="https://cdn.tailwindcss.com"></script>
+                                                                    </head>
+                                                                    <body class="bg-slate-100 p-8">
+                                                                        <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden font-sans">
+                                                                            <div class="bg-slate-900 p-8 text-center text-white">
+                                                                                <h1 class="text-3xl font-black mb-2">Go-Cycle Receipt</h1>
+                                                                                <p class="text-slate-400 uppercase tracking-widest text-xs font-bold">Official Transaction Record</p>
+                                                                            </div>
+                                                                            <div class="p-12">
+                                                                                <div class="flex justify-between items-start mb-12">
+                                                                                    <div>
+                                                                                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Customer</p>
+                                                                                        <p class="text-xl font-bold text-slate-900">${user?.name || 'Customer'}</p>
+                                                                                    </div>
+                                                                                    <div class="text-right">
+                                                                                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Order Date</p>
+                                                                                        <p class="font-bold text-slate-900">${new Date(order.createdAt).toLocaleDateString()}</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="border-y border-slate-100 py-8 mb-8">
+                                                                                    <div class="flex justify-between mb-4">
+                                                                                        <span class="font-bold text-slate-600">${order.orderItems?.[0]?.product?.name || 'Battery Product'}</span>
+                                                                                        <span class="font-black text-slate-900">₦${(order.total || 0).toLocaleString()}</span>
+                                                                                    </div>
+                                                                                    <div class="flex justify-between text-sm">
+                                                                                        <span class="text-slate-400 italic">Pickup: ${order.store?.address || 'See Manage Pickup'}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="bg-slate-50 rounded-2xl p-8 border border-slate-100 mb-8">
+                                                                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Pickup Location & Seller Details</p>
+                                                                                    <div class="flex flex-col gap-4">
+                                                                                        <div>
+                                                                                            <p class="text-[10px] font-bold text-[#05DF72] uppercase">Store Name</p>
+                                                                                            <p class="font-bold text-slate-900">${order.store?.name || 'Authorized Go-Cycle Partner'}</p>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <p class="text-[10px] font-bold text-[#05DF72] uppercase">Pickup Address</p>
+                                                                                            <p class="font-bold text-slate-900">${order.store?.address || 'See Manage Pickup for details'}</p>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <p class="text-[10px] font-bold text-[#05DF72] uppercase">Contact Number</p>
+                                                                                            <p class="font-bold text-slate-900">${order.store?.user?.phone || order.store?.contact || 'N/A'}</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="text-center pt-8 border-t border-slate-50">
+                                                                                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Secured by Flutterwave</p>
+                                                                                    <button onclick="window.print()" class="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest">Print Receipt</button>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
-                                                                        <div class="p-12">
-                                                                            <div class="flex justify-between items-start mb-12">
-                                                                                <div>
-                                                                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Customer</p>
-                                                                                    <p class="text-xl font-bold text-slate-900">${user?.name || 'Customer'}</p>
-                                                                                </div>
-                                                                                <div class="text-right">
-                                                                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Order Date</p>
-                                                                                    <p class="font-bold text-slate-900">${new Date(order.createdAt).toLocaleDateString()}</p>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="border-y border-slate-100 py-8 mb-8">
-                                                                                <div class="flex justify-between mb-4">
-                                                                                    <span class="font-bold text-slate-600">${order.orderItems?.[0]?.product?.name || 'Battery Product'}</span>
-                                                                                    <span class="font-black text-slate-900">₦${(order.total || 0).toLocaleString()}</span>
-                                                                                </div>
-                                                                                <div class="flex justify-between text-sm">
-                                                                                    <span class="text-slate-400 italic">Pickup: ${order.store?.address || 'See Manage Pickup'}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="bg-slate-50 rounded-2xl p-8 border border-slate-100 mb-8">
-                                                                                <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Pickup Location & Seller Details</p>
-                                                                                <div class="flex flex-col gap-4">
-                                                                                    <div>
-                                                                                        <p class="text-[10px] font-bold text-[#05DF72] uppercase">Store Name</p>
-                                                                                        <p class="font-bold text-slate-900">${order.store?.name || 'Authorized Go-Cycle Partner'}</p>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <p class="text-[10px] font-bold text-[#05DF72] uppercase">Pickup Address</p>
-                                                                                        <p class="font-bold text-slate-900">${order.store?.address || 'See Manage Pickup for details'}</p>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <p class="text-[10px] font-bold text-[#05DF72] uppercase">Contact Number</p>
-                                                                                        <p class="font-bold text-slate-900">${order.store?.user?.phone || order.store?.contact || 'N/A'}</p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="text-center pt-8 border-t border-slate-50">
-                                                                                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Secured by Flutterwave</p>
-                                                                                <button onclick="window.print()" class="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest">Print Receipt</button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </body>
-                                                            </html>
-                                                        `);
-                                                    }}
-                                                    className="px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
-                                                >
-                                                    <CheckCircleIcon size={14} /> View Receipt
-                                                </button>
+                                                                    </body>
+                                                                </html>
+                                                            `);
+                                                        }}
+                                                        className="px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <CheckCircleIcon size={14} /> View Receipt
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
