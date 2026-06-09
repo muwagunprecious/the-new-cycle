@@ -326,14 +326,55 @@ export async function banUser(userId, isBanned) {
 
 export async function deleteUser(userId) {
     try {
-        await prisma.user.delete({
-            where: { id: userId }
+        logger.info(`Starting deletion of user: ${userId}`)
+        
+        await prisma.$transaction(async (tx) => {
+            // 1. Check for Store
+            const store = await tx.store.findUnique({
+                where: { userId }
+            })
+            
+            if (store) {
+                logger.info(`User has store: ${store.id}. Deleting store-related records...`)
+                
+                // Delete store orders (which cascades to OrderItem)
+                await tx.order.deleteMany({
+                    where: { storeId: store.id }
+                })
+                
+                // Delete store products
+                await tx.product.deleteMany({
+                    where: { storeId: store.id }
+                })
+                
+                // Delete the store itself
+                await tx.store.delete({
+                    where: { id: store.id }
+                })
+            }
+            
+            // 2. Delete buyer orders (which cascades to OrderItem)
+            await tx.order.deleteMany({
+                where: { userId }
+            })
+            
+            // 3. Delete authored blogs
+            await tx.blog.deleteMany({
+                where: { authorId: userId }
+            })
+            
+            // 4. Finally delete the user (will cascade to Address, Notification, Rating)
+            await tx.user.delete({
+                where: { id: userId }
+            })
         })
+        
+        logger.info(`User ${userId} deleted successfully`)
         revalidatePath('/admin/users')
         return ApiResponse.success(null, "User deleted successfully")
     } catch (error) {
         logger.error("Delete User Error", error)
-        return ApiResponse.error("Failed to delete user")
+        return ApiResponse.error(error.message || "Failed to delete user")
     }
 }
 
