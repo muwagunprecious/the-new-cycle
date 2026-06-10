@@ -70,7 +70,7 @@ export async function withRetry(fn, retries = 1) {
         // The retry below will surface the original failure if reconnecting is impossible.
       }
       await new Promise(resolve => setTimeout(resolve, 1000))
-      return withRetry(fn, retries - 1, timeoutMs)
+      return withRetry(fn, retries - 1)
     }
 
     throw error
