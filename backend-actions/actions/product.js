@@ -15,6 +15,76 @@ import { headers } from "next/headers"
 
 import { sendEmail, productApprovedEmail, productRejectedEmail } from "@/backend-actions/lib/email"
 
+/**
+ * Automatically checks if a product's pickup/collection dates are in the past.
+ * If they are, it shifts the start date to tomorrow (24 hours from now) and extends
+ * the end date to preserve the original window duration, updating the DB.
+ */
+export async function checkAndShiftProductDates(product) {
+    if (!product || !product.collectionDateEnd) return product;
+
+    const now = new Date();
+    const endDate = new Date(product.collectionDateEnd);
+    
+    if (endDate.getTime() < now.getTime()) {
+        console.log(`[DATE_AUTO_SHIFT] Product ${product.id} ("${product.name}") collection dates are in the past. Shifting...`);
+        
+        const startDate = new Date(product.collectionDateStart);
+        const durationMs = endDate.getTime() - startDate.getTime();
+        
+        // New start date is tomorrow (24 hours from now) at 9:00 AM
+        const newStart = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        newStart.setHours(9, 0, 0, 0);
+        
+        const newEnd = new Date(newStart.getTime() + durationMs);
+        
+        // Regenerate collectionDates string array
+        const newCollectionDates = [];
+        const tempDate = new Date(newStart);
+        while (tempDate.getTime() <= newEnd.getTime()) {
+            newCollectionDates.push(tempDate.toISOString().split('T')[0]);
+            tempDate.setDate(tempDate.getDate() + 1);
+        }
+        
+        if (newCollectionDates.length === 0) {
+            newCollectionDates.push(newStart.toISOString().split('T')[0]);
+        }
+
+        try {
+            await prisma.product.update({
+                where: { id: product.id },
+                data: {
+                    collectionDateStart: newStart,
+                    collectionDateEnd: newEnd,
+                    collectionDates: newCollectionDates
+                }
+            });
+
+            // Revalidate cache
+            try {
+                revalidateTag('products');
+                revalidateTag(`product-${product.id}`);
+                revalidatePath('/shop');
+                revalidatePath('/marketplace');
+                revalidatePath(`/product/${product.id}`);
+            } catch (cacheErr) {
+                console.warn("[DATE_AUTO_SHIFT] Next cache revalidate warning:", cacheErr.message);
+            }
+
+            return {
+                ...product,
+                collectionDateStart: newStart,
+                collectionDateEnd: newEnd,
+                collectionDates: newCollectionDates
+            };
+        } catch (dbErr) {
+            console.error(`[DATE_AUTO_SHIFT] DB Update failed for product ${product.id}:`, dbErr.message);
+        }
+    }
+    
+    return product;
+}
+
 export async function createProduct(data, userId) {
     logger.info("Creating new product", { userId, productName: data.name })
     try {
@@ -166,7 +236,8 @@ export async function getSellerProducts(userId, page = 1, limit = 50) {
         ]);
 
         logToFile(`GET_SELLER_PRODUCTS: Found ${products.length} products (Total: ${totalCount})`);
-        const formatted = products.map(mapProductToFrontend);
+        const shiftedProducts = await Promise.all(products.map(p => checkAndShiftProductDates(p)));
+        const formatted = shiftedProducts.map(mapProductToFrontend);
 
         return ApiResponse.success({
             data: {
@@ -291,7 +362,8 @@ export async function getAllProducts() {
             take: 20
         }));
 
-        const formatted = prismaProducts.map(mapProductToFrontend);
+        const shiftedProducts = await Promise.all(prismaProducts.map(p => checkAndShiftProductDates(p)));
+        const formatted = shiftedProducts.map(mapProductToFrontend);
         return ApiResponse.success({ products: formatted, data: formatted });
 
     } catch (error) {
@@ -327,7 +399,8 @@ export async function getProductById(productId) {
         }
 
         console.log("SERVER: Product FOUND:", product.name)
-        const mapped = mapProductToFrontend(product)
+        const shiftedProduct = await checkAndShiftProductDates(product)
+        const mapped = mapProductToFrontend(shiftedProduct)
         return ApiResponse.success(mapped)
     } catch (error) {
         console.error("SERVER: getProductById EXCEPTION:", error)
@@ -365,7 +438,8 @@ export async function getAdminProducts(page = 1, limit = 50) {
         const [products, total] = await getCachedAdminProducts(skip, limit);
 
         logToFile(`GET_ADMIN_PRODUCTS: Found ${products.length} products (Total: ${total})`);
-        const formatted = products.map(mapProductToFrontend)
+        const shiftedProducts = await Promise.all(products.map(p => checkAndShiftProductDates(p)));
+        const formatted = shiftedProducts.map(mapProductToFrontend)
         return ApiResponse.success({
             products: formatted,
             data: formatted,
@@ -417,7 +491,8 @@ export async function getPendingAdminProducts(page = 1, limit = 50) {
         const [products, total] = await getCachedPendingProducts(skip, limit);
 
         logToFile(`GET_PENDING_ADMIN_PRODUCTS: Found ${products.length} products (Total: ${total})`);
-        const formatted = products.map(mapProductToFrontend)
+        const shiftedProducts = await Promise.all(products.map(p => checkAndShiftProductDates(p)));
+        const formatted = shiftedProducts.map(mapProductToFrontend)
         return ApiResponse.success({
             products: formatted,
             data: formatted,
