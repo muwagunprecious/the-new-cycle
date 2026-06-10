@@ -244,11 +244,6 @@ export default function BuyerOrders() {
 
                             {/* Details & Action */}
                             <div className="flex items-center justify-between md:justify-end gap-10 md:w-1/3">
-                                <div className="text-right hidden sm:block">
-                                    <p className="text-xs font-black text-slate-900">
-                                        Pickup only
-                                    </p>
-                                </div>
 
                                 {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'SELLER' ? (
                                     <div className="flex flex-col gap-2">
