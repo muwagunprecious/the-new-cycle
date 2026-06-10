@@ -222,6 +222,7 @@ export default function PendingPayoutSidebar() {
             if (res.success) {
                 setBanners(prev => ({ ...prev, [orderId]: { type: "success", message: "Pickup approved!" } }))
                 toast.success("Pickup approved!")
+                window.dispatchEvent(new Event('pickup-approved'))
                 setTimeout(() => {
                     setOrders(prev => prev.filter(o => o.id !== orderId))
                     fetchStats(); fetchCashouts()

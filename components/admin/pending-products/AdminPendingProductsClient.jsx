@@ -33,8 +33,8 @@ export default function AdminPendingProductsClient({ initialProducts }) {
             const res = await adminApproveProduct(id, user?.id)
             if (res.success) {
                 toast.success("Product approved successfully")
-                window.dispatchEvent(new Event('product-approved'))
                 await fetchProducts(true)
+                window.dispatchEvent(new Event('product-approved'))
             } else {
                 toast.error(res.error || "Failed to approve product")
             }
@@ -53,8 +53,8 @@ export default function AdminPendingProductsClient({ initialProducts }) {
                 const res = await adminRejectProduct(id, reason, user?.id)
                 if (res.success) {
                     toast.success("Product rejected")
-                    window.dispatchEvent(new Event('product-rejected'))
                     await fetchProducts(true)
+                    window.dispatchEvent(new Event('product-rejected'))
                 } else {
                     toast.error(res.error || "Failed to reject product")
                 }
@@ -72,6 +72,7 @@ export default function AdminPendingProductsClient({ initialProducts }) {
             if (res.success) {
                 toast.success("Product deleted successfully")
                 fetchProducts()
+                window.dispatchEvent(new Event('product-deleted'))
             } else {
                 toast.error(res.error || "Failed to delete product")
             }

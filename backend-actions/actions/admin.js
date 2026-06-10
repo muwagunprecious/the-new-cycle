@@ -1112,7 +1112,6 @@ export async function getAdminSidebarCounts() {
             prisma.product.count({ where: { status: 'pending' } }),
             prisma.order.count({ 
                 where: { 
-                    isPaid: true, 
                     status: { notIn: ['COMPLETED', 'CANCELLED'] } 
                 } 
             }),
@@ -1135,4 +1134,3 @@ export async function getAdminSidebarCounts() {
         return ApiResponse.error("Failed to fetch sidebar counts");
     }
 }
-
