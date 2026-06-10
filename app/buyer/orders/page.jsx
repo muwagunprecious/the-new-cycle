@@ -43,6 +43,7 @@ export default function BuyerOrders() {
     const [rescheduleReason, setRescheduleReason] = useState('')
     const [isRescheduling, setIsRescheduling] = useState(false)
     const [isResponding, setIsResponding] = useState(false)
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
 
     useEffect(() => {
         if (isHydrated) {
@@ -307,7 +308,7 @@ export default function BuyerOrders() {
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={() => handleNavigation(`/product/${order.orderItems?.[0]?.productId || ''}`)}
+                                        onClick={() => { setSelectedOrder(order); setIsDetailsModalOpen(true); }}
                                         className="px-8 py-4 bg-slate-50 text-slate-400 font-bold text-xs rounded-xl border border-slate-100 hover:bg-slate-100 transition-all"
                                     >
                                         View Details
@@ -484,6 +485,96 @@ export default function BuyerOrders() {
                     </div>
                 )
             }
+
+            {/* Details Modal */}
+            {isDetailsModalOpen && selectedOrder && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-xl overflow-hidden shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300">
+                        {/* Header */}
+                        <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                            <div>
+                                <h3 className="text-2xl font-black text-slate-900 leading-none">Purchase <span className="text-[#05DF72]">Details</span></h3>
+                                <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Order #{selectedOrder.id}</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setIsDetailsModalOpen(false)
+                                    setSelectedOrder(null)
+                                }}
+                                className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:shadow-lg transition-all"
+                            >
+                                <XIcon size={24} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                            {/* Product Info with Image */}
+                            <div className="flex gap-4 items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <div className="w-20 h-20 bg-slate-100 rounded-xl overflow-hidden shrink-0 border border-slate-200">
+                                    <img 
+                                        src={selectedOrder.orderItems?.[0]?.product?.images?.[0] || '/placeholder-battery.jpg'} 
+                                        alt="" 
+                                        className="w-full h-full object-cover" 
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <h4 className="font-black text-slate-900 text-sm">{selectedOrder.orderItems?.[0]?.product?.name || 'Battery Product'}</h4>
+                                    <p className="text-xs text-slate-500 font-medium">Brand: {selectedOrder.orderItems?.[0]?.product?.brand || 'N/A'}</p>
+                                    <p className="text-xs text-slate-500 font-medium">Quantity: {selectedOrder.orderItems?.[0]?.quantity || 1} Unit(s)</p>
+                                </div>
+                            </div>
+
+                            {/* Details Grid */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Status</span>
+                                    <p className="text-sm font-black text-[#05DF72] uppercase">
+                                        {!selectedOrder.isPaid ? 'PAYMENT PENDING' : selectedOrder.status?.replace('_', ' ') || 'PENDING'}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Total Price</span>
+                                    <p className="text-sm font-black text-slate-900">₦{(selectedOrder.total || 0).toLocaleString()}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Collection Date</span>
+                                    <p className="text-sm font-black text-slate-900">
+                                        {selectedOrder.collectionDate ? new Date(selectedOrder.collectionDate).toLocaleDateString() : 'TBD'}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Collection Code</span>
+                                    <p className="text-sm font-black text-slate-900 tracking-wider">
+                                        {selectedOrder.isPaid ? (selectedOrder.verificationCode || 'Awaiting Code') : 'Locked until payment verified'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Pickup & Seller details */}
+                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Seller & Collection Info</h4>
+                                <div className="space-y-3">
+                                    <div>
+                                        <p className="text-[10px] font-bold text-[#05DF72] uppercase">Store Name</p>
+                                        <p className="font-bold text-slate-800 text-sm">{selectedOrder.store?.name || 'Authorized Partner'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-[#05DF72] uppercase">Pickup Address</p>
+                                        <p className="font-bold text-slate-800 text-sm leading-tight">
+                                            {selectedOrder.isPaid ? (selectedOrder.store?.address || 'Address not available') : "Address will be revealed after verification"}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-[#05DF72] uppercase">Seller Phone</p>
+                                        <p className="font-bold text-slate-800 text-sm">{selectedOrder.store?.user?.phone || selectedOrder.store?.contact || 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
 
         </div >
