@@ -64,6 +64,7 @@ export default function ManualVerificationPage() {
       toast.dismiss(loadingToast);
       if (data.success) {
         toast.success(`Request successfully ${status}!`);
+        window.dispatchEvent(new Event('verification-updated'));
         fetchRecords();
       } else {
         toast.error(data.message || "Failed to update request status");

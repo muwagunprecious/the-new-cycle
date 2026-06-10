@@ -1099,3 +1099,40 @@ export async function searchDisputes(query) {
         return ApiResponse.error("Failed to search disputes")
     }
 }
+
+export async function getAdminSidebarCounts() {
+    try {
+        const [
+            manualVerifications,
+            pendingProducts,
+            pendingPickups,
+            pendingCashouts
+        ] = await Promise.all([
+            prisma.manualVerification.count({ where: { status: 'pending' } }),
+            prisma.product.count({ where: { status: 'pending' } }),
+            prisma.order.count({ 
+                where: { 
+                    isPaid: true, 
+                    status: { notIn: ['COMPLETED', 'CANCELLED'] } 
+                } 
+            }),
+            prisma.order.count({ 
+                where: { 
+                    status: 'COMPLETED', 
+                    payoutStatus: 'pending' 
+                } 
+            })
+        ]);
+
+        return ApiResponse.success({
+            manualVerifications,
+            pendingProducts,
+            pendingPickups,
+            pendingCashouts
+        });
+    } catch (error) {
+        logger.error("Failed to fetch sidebar counts:", error);
+        return ApiResponse.error("Failed to fetch sidebar counts");
+    }
+}
+

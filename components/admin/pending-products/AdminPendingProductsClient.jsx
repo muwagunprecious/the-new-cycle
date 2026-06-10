@@ -33,6 +33,7 @@ export default function AdminPendingProductsClient({ initialProducts }) {
             const res = await adminApproveProduct(id, user?.id)
             if (res.success) {
                 toast.success("Product approved successfully")
+                window.dispatchEvent(new Event('product-approved'))
                 await fetchProducts(true)
             } else {
                 toast.error(res.error || "Failed to approve product")
@@ -52,6 +53,7 @@ export default function AdminPendingProductsClient({ initialProducts }) {
                 const res = await adminRejectProduct(id, reason, user?.id)
                 if (res.success) {
                     toast.success("Product rejected")
+                    window.dispatchEvent(new Event('product-rejected'))
                     await fetchProducts(true)
                 } else {
                     toast.error(res.error || "Failed to reject product")

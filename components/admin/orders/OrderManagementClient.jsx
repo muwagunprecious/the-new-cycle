@@ -111,6 +111,7 @@ export default function OrderManagementClient({ initialOrders }) {
             if (res.success) {
                 setPickupBanner({ type: "success", message: "✅ Pickup approved! Order marked as completed. Buyer & seller have been notified." })
                 toast.success("Pickup approved! Order completed.")
+                window.dispatchEvent(new Event('pickup-approved'))
                 await refreshOrders()
                 // Update the in-sidebar order too
                 setSelectedOrder((prev) => ({ ...prev, status: "COMPLETED", collectionStatus: "COLLECTED" }))
@@ -199,6 +200,7 @@ export default function OrderManagementClient({ initialOrders }) {
             if (res.success) {
                 setPayoutBanner({ type: "success", message: "✅ Payout released! Vendor has been notified." })
                 toast.success("Payout released and vendor notified!")
+                window.dispatchEvent(new Event('payout-released'))
                 await refreshOrders()
                 setSelectedOrder((prev) => ({ ...prev, payoutStatus: "released" }))
             } else {
