@@ -550,7 +550,7 @@ export async function rejectBuyer(userId, reason) {
  * @param {'SYSTEM'|'ORDER'|'PAYMENT'|'PROMO'} [options.type] - Notification type
  * @param {boolean} [options.sendEmail] - Whether to also send an email
  */
-export async function sendAdminNotification({ target, userId, title, message, type = 'SYSTEM', sendEmail: withEmail = false }) {
+export async function sendAdminNotification({ target, userId, title, message, type = 'SYSTEM', sendEmail: withEmail = false, sendSMS: withSMS = false }) {
     try {
         if (!title?.trim() || !message?.trim()) {
             return ApiResponse.error("Title and message are required", 400)
@@ -606,6 +606,16 @@ export async function sendAdminNotification({ target, userId, title, message, ty
                         </div>
                     </div>`
                 }).catch(err => logger.warn(`Email failed for ${user.email}`, err))
+            ))
+        }
+
+        // Optionally send SMS
+        if (withSMS) {
+            const { sendOTP } = await import('@/backend-actions/lib/sms')
+            const smsRecipients = recipients.filter(u => u.phone)
+            await Promise.all(smsRecipients.map(user =>
+                sendOTP(user.phone, `${title}: ${message}`)
+                    .catch(err => logger.warn(`SMS failed for ${user.phone}`, err))
             ))
         }
 

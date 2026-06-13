@@ -52,7 +52,8 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         title: '',
         message: '',
         type: 'SYSTEM',
-        withEmail: false
+        withEmail: false,
+        withSMS: false
     })
 
     const [fetchingData, setFetchingData] = useState({ users: false, orders: false, payouts: false })
@@ -220,12 +221,13 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                 title: notificationForm.title,
                 message: notificationForm.message,
                 type: notificationForm.type,
-                sendEmail: notificationForm.withEmail
+                sendEmail: notificationForm.withEmail,
+                sendSMS: notificationForm.withSMS
             })
 
             if (result.success) {
                 toast.success(result.message || "Notification sent!")
-                setNotificationForm(f => ({ ...f, title: '', message: '', userId: '' }))
+                setNotificationForm(f => ({ ...f, title: '', message: '', userId: '', withEmail: false, withSMS: false }))
             } else {
                 toast.error(result.error || "Failed to send notification")
             }
@@ -805,6 +807,21 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                     className={`relative w-11 h-6 rounded-full transition-colors ${notificationForm.withEmail ? 'bg-[#05DF72]' : 'bg-slate-200'}`}
                                 >
                                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notificationForm.withEmail ? 'translate-x-5' : ''}`} />
+                                </button>
+                            </div>
+
+                            {/* SMS Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                <div>
+                                    <p className="font-bold text-sm text-slate-900">Also send via SMS</p>
+                                    <p className="text-xs text-slate-400">Sends an SMS message alongside the in-app notification</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setNotificationForm(f => ({ ...f, withSMS: !f.withSMS }))}
+                                    className={`relative w-11 h-6 rounded-full transition-colors ${notificationForm.withSMS ? 'bg-[#05DF72]' : 'bg-slate-200'}`}
+                                >
+                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notificationForm.withSMS ? 'translate-x-5' : ''}`} />
                                 </button>
                             </div>
 
