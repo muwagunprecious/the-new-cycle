@@ -267,9 +267,8 @@ export async function getAllUsers(page = 1, limit = 50, filters = {}) {
                     name: true,
                     email: true,
                     role: true,
+                    phone: true,
                     accountStatus: true,
-                    // createdAt: true
-                    // Exclude heavy fields like 'image' if not needed in the list
                 }
             }),
             prisma.user.count({ where })
@@ -1142,5 +1141,29 @@ export async function getAdminSidebarCounts() {
     } catch (error) {
         logger.error("Failed to fetch sidebar counts:", error);
         return ApiResponse.error("Failed to fetch sidebar counts");
+    }
+}
+
+export async function getUserByEmail(email) {
+    try {
+        if (!email) return ApiResponse.error("Email is required")
+        const user = await prisma.user.findUnique({
+            where: { email: email.toLowerCase().trim() },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                phone: true,
+                accountStatus: true,
+            }
+        })
+        if (!user || user.role === 'ADMIN') {
+            return ApiResponse.error("User not found", 404)
+        }
+        return ApiResponse.success(user)
+    } catch (error) {
+        logger.error("Get User By Email Error", error)
+        return ApiResponse.error("Failed to fetch user")
     }
 }

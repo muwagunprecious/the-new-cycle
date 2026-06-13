@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/Button"
-import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory, getUserProfile, deleteUser } from "@/backend-actions/actions/admin"
+import { getAdminDashboardSummary, getAllUsers, banUser, releasePayout, sendAdminNotification, getAdminPayoutHistory, getUserProfile, deleteUser, getUserByEmail } from "@/backend-actions/actions/admin"
 import { getAllOrders } from "@/backend-actions/actions/order"
 import dynamic from 'next/dynamic'
 const AdminDiagnosticsPanel = dynamic(() => import('@/components/admin/AdminDiagnosticsPanel'), { ssr: false })
@@ -55,6 +55,9 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         withEmail: false,
         withSMS: false
     })
+    const [userEmailInput, setUserEmailInput] = useState('')
+    const [searchingEmail, setSearchingEmail] = useState(false)
+    const [selectedUser, setSelectedUser] = useState(null)
 
     const [fetchingData, setFetchingData] = useState({ users: false, orders: false, payouts: false })
 
@@ -202,6 +205,28 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
         }
     }
 
+    const handleSearchDatabase = async () => {
+        if (!userEmailInput || !userEmailInput.includes('@')) {
+            toast.error("Please enter a valid email address")
+            return
+        }
+        setSearchingEmail(true)
+        try {
+            const res = await getUserByEmail(userEmailInput)
+            if (res.success && res.data) {
+                setSelectedUser(res.data)
+                setNotificationForm(f => ({ ...f, userId: res.data.id }))
+                toast.success("User found!")
+            } else {
+                toast.error(res.error || "User not found in database")
+            }
+        } catch (err) {
+            toast.error("Error searching database")
+        } finally {
+            setSearchingEmail(false)
+        }
+    }
+
     const handleSendNotification = async (e) => {
         e.preventDefault()
         if (!notificationForm.title || !notificationForm.message) {
@@ -228,6 +253,8 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
             if (result.success) {
                 toast.success(result.message || "Notification sent!")
                 setNotificationForm(f => ({ ...f, title: '', message: '', userId: '', withEmail: false, withSMS: false }))
+                setUserEmailInput('')
+                setSelectedUser(null)
             } else {
                 toast.error(result.error || "Failed to send notification")
             }
@@ -717,7 +744,11 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                         <button
                                             key={opt.value}
                                             type="button"
-                                            onClick={() => setNotificationForm(f => ({ ...f, target: opt.value, userId: '' }))}
+                                            onClick={() => {
+                                                setNotificationForm(f => ({ ...f, target: opt.value, userId: '' }))
+                                                setUserEmailInput('')
+                                                setSelectedUser(null)
+                                            }}
                                             className={`p-3 rounded-xl border-2 text-left transition-all ${notificationForm.target === opt.value
                                                 ? 'border-[#05DF72] bg-[#05DF72]/5'
                                                 : 'border-slate-100 hover:border-slate-200'
@@ -732,21 +763,102 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
 
                             {/* Specific User Picker */}
                             {notificationForm.target === 'specific' && (
-                                <div>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Select User</label>
-                                    <select
-                                        value={notificationForm.userId}
-                                        onChange={e => setNotificationForm(f => ({ ...f, userId: e.target.value }))}
-                                        className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
-                                        required
-                                    >
-                                        <option value="">Choose a user...</option>
-                                        {users.filter(u => u.role !== 'ADMIN').map(u => (
-                                            <option key={u.id} value={u.id}>
-                                                {u.name} – {u.role} ({u.email || u.phone})
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">User Email</label>
+                                        <div className="flex gap-2">
+                                            <div className="relative flex-1">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter user email..."
+                                                    value={userEmailInput}
+                                                    onChange={e => {
+                                                        const val = e.target.value
+                                                        setUserEmailInput(val)
+                                                        // Check local users list for exact match (case insensitive)
+                                                        const matched = users.find(u => u.email?.toLowerCase() === val.trim().toLowerCase() && u.role !== 'ADMIN')
+                                                        if (matched) {
+                                                            setSelectedUser(matched)
+                                                            setNotificationForm(f => ({ ...f, userId: matched.id }))
+                                                        } else {
+                                                            setNotificationForm(f => ({ ...f, userId: '' }))
+                                                            setSelectedUser(null)
+                                                        }
+                                                    }}
+                                                    className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
+                                                    required={!notificationForm.userId}
+                                                />
+                                                {/* Local matches dropdown suggestions */}
+                                                {userEmailInput.trim() !== '' && !selectedUser && (
+                                                    <div className="absolute z-10 w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                                                        {users
+                                                            .filter(u => u.role !== 'ADMIN' && u.email?.toLowerCase().includes(userEmailInput.toLowerCase()))
+                                                            .map(u => (
+                                                                <button
+                                                                    key={u.id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setUserEmailInput(u.email || '')
+                                                                        setSelectedUser(u)
+                                                                        setNotificationForm(f => ({ ...f, userId: u.id }))
+                                                                    }}
+                                                                    className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors flex items-center justify-between border-b border-slate-100 last:border-0"
+                                                                >
+                                                                    <div>
+                                                                        <p className="font-bold text-sm text-slate-900">{u.name}</p>
+                                                                        <p className="text-xs text-slate-400">{u.email}</p>
+                                                                    </div>
+                                                                    <span className="text-[10px] bg-slate-100 px-2 py-1 rounded-md font-bold text-slate-500 uppercase">{u.role}</span>
+                                                                </button>
+                                                            ))}
+                                                        {users.filter(u => u.role !== 'ADMIN' && u.email?.toLowerCase().includes(userEmailInput.toLowerCase())).length === 0 && (
+                                                            <p className="text-xs text-slate-400 p-3 text-center">No local user found. Use "Find User" to search database.</p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleSearchDatabase}
+                                                disabled={searchingEmail}
+                                                className="px-4 py-3 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white disabled:text-slate-400 font-bold text-xs rounded-xl transition-colors shrink-0"
+                                            >
+                                                {searchingEmail ? 'Searching...' : 'Find User'}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Display Selected User profile */}
+                                    {selectedUser && (
+                                        <div className="p-4 bg-emerald-50/20 border border-[#05DF72]/20 rounded-xl flex items-center justify-between animate-fadeIn">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-[#05DF72] mb-1">Target User Details</p>
+                                                <p className="font-bold text-base text-slate-900">{selectedUser.name}</p>
+                                                <div className="flex flex-col gap-1 mt-1.5">
+                                                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                                                        <span>📧</span> {selectedUser.email || 'No email address'}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                                                        <span>📞</span> {selectedUser.phone || 'No phone number'}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                                                        <span>🛡️</span> Role: <span className="font-bold text-slate-700 capitalize">{selectedUser.role}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setNotificationForm(f => ({ ...f, userId: '' }))
+                                                    setUserEmailInput('')
+                                                    setSelectedUser(null)
+                                                }}
+                                                className="text-xs font-bold text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100/50 px-3 py-1.5 rounded-lg transition-all shrink-0"
+                                            >
+                                                Clear Selection
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
