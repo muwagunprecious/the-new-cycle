@@ -66,7 +66,6 @@ export default function AdminCashoutsPage() {
     const [loading, setLoading] = useState(true)
     const [releasingId, setReleasingId] = useState(null)   // orderId being released
     const [expandedStore, setExpandedStore] = useState(null)
-    const [filter, setFilter] = useState('all')             // 'all' | 'has-bank' | 'no-bank'
     const [search, setSearch] = useState('')
     const [history, setHistory] = useState([])
     const [historyLoading, setHistoryLoading] = useState(false)
@@ -150,11 +149,6 @@ export default function AdminCashoutsPage() {
     /* Filtered + searched cashouts */
     const filtered = cashouts
         .filter(s => {
-            if (filter === 'has-bank') return s.bankName && s.accountNumber
-            if (filter === 'no-bank') return !s.bankName || !s.accountNumber
-            return true
-        })
-        .filter(s => {
             if (!search.trim()) return true
             const q = search.toLowerCase()
             return (
@@ -226,25 +220,6 @@ export default function AdminCashoutsPage() {
                         onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-amber-400 transition-colors"
                     />
-                </div>
-                <div className="flex gap-2">
-                    {[
-                        { key: 'all', label: 'All' },
-                        { key: 'has-bank', label: '✓ Has Bank' },
-                        { key: 'no-bank', label: '⚠ No Bank' },
-                    ].map(f => (
-                        <button
-                            key={f.key}
-                            onClick={() => setFilter(f.key)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                filter === f.key
-                                    ? 'bg-slate-900 text-white'
-                                    : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'
-                            }`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
                 </div>
             </div>
 
