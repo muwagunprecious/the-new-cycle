@@ -14,7 +14,7 @@ import { createOrder } from "@/backend-actions/actions/order"
  * Flow:
  * 1. Order Summary
  * 2. Payment Method Selection (Flutterwave or Manual Transfer)
- * 3a. Flutterwave Inline Popup → Auto-verify → Success
+ * 3a. Flutterwave VP4 → Server creates payment link → Browser redirects to hosted checkout → Callback page verifies
  * 3b. Manual Transfer Details → Submit → Pending Verification
  * 4. Success / Failed
  */
@@ -30,20 +30,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     const [senderName, setSenderName] = useState('')
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('FLUTTERWAVE')
 
-    useEffect(() => {
-        if (isOpen) {
-            const script = document.createElement('script')
-            script.src = 'https://checkout.flutterwave.com/v3.js'
-            script.async = true
-            document.body.appendChild(script)
-            return () => {
-                const existingScript = document.querySelector('script[src="https://checkout.flutterwave.com/v3.js"]')
-                if (existingScript && existingScript.parentNode) {
-                    existingScript.parentNode.removeChild(existingScript)
-                }
-            }
-        }
-    }, [isOpen])
+    // VP4: No inline script needed — payment is server-initiated via /api/flutterwave/initiate
 
     if (!isOpen) return null
 
@@ -66,7 +53,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
         setStep('PROCESSING')
 
         try {
-            // 1. Create order with FLUTTERWAVE method
+            // 1. Create the order in the database
             const result = await createOrder({
                 buyerId: user?.id,
                 sellerId: product.sellerId || product.userId || product.store?.userId,
@@ -96,113 +83,38 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                 return
             }
 
-            // 2. Launch Flutterwave inline popup
-            if (!window.FlutterwaveCheckout) {
-                toast.error("Payment gateway is loading. Please try again.")
+            // 2. VP4: Ask server to create a hosted payment link
+            const initiateRes = await fetch('/api/flutterwave/initiate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: order.id,
+                    amount: totalAmount,
+                    currency: 'NGN',
+                    txRef,
+                    customerEmail: user?.email || 'buyer@gocycle.ng',
+                    customerName: user?.name || 'GoCycle Buyer',
+                    customerPhone: user?.phone || '',
+                    productName: product?.name || 'Battery'
+                })
+            })
+
+            const initiateData = await initiateRes.json()
+
+            if (!initiateData.success || !initiateData.paymentUrl) {
+                toast.error(initiateData.message || 'Failed to initialize payment')
                 setStep('PAYMENT_METHOD')
                 setIsLoading(false)
                 return
             }
 
-            setIsLoading(false) // Popup handles its own loading
-
-            try {
-                // Diagnostic check for Live/Vercel
-                if (typeof window.FlutterwaveCheckout !== 'function') {
-                    console.error('[Flutterwave] SDK not found on window object')
-                    throw new Error("Payment gateway is taking too long to load. Please refresh.")
-                }
-
-                const publicKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY
-                if (!publicKey || publicKey === 'undefined') {
-                    console.error('[Flutterwave] NEXT_PUBLIC_FLW_PUBLIC_KEY is missing or undefined.')
-                    throw new Error("Payment setup is incomplete. Admin needs to check Vercel environment variables.")
-                }
-
-                console.log('[Flutterwave] Launching with Key:', publicKey.substring(0, 15) + '...')
-
-                const flwModal = window.FlutterwaveCheckout({
-                    public_key: publicKey,
-                    tx_ref: txRef,
-                    amount: totalAmount,
-                    currency: 'NGN',
-                    payment_options: 'card,banktransfer,ussd',
-                    customer: {
-                        email: user?.email || 'buyer@gocycle.ng',
-                        phone_number: user?.phone || '',
-                        name: user?.name || 'GoCycle Buyer'
-                    },
-                    customizations: {
-                        title: 'GoCycle Battery Purchase',
-                        description: `Payment for ${product?.name || 'Battery'}`,
-                        logo: 'https://gocycle.ng/favicon.ico'
-                    },
-                    callback: async (response) => {
-                        console.log('[Flutterwave] Callback received:', response)
-                        setStep('PROCESSING')
-                        setIsLoading(true)
-
-                        try {
-                            const verifyRes = await fetch('/api/flutterwave/verify', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    transaction_id: response.transaction_id,
-                                    tx_ref: txRef
-                                })
-                            })
-
-                            const verifyData = await verifyRes.json()
-
-                            if (verifyData.success) {
-                                setOrderResult({
-                                    ...order,
-                                    ...verifyData.order,
-                                    collectionToken: order.collectionToken || verifyData.order?.collectionToken,
-                                    paymentMethod: 'FLUTTERWAVE'
-                                })
-                                
-                                if (flwModal && typeof flwModal.close === 'function') {
-                                    flwModal.close()
-                                }
-
-                                // Mark as bought locally (for instant UI update in demo mode)
-                                try {
-                                    const bought = JSON.parse(localStorage.getItem('gocycle_bought_products') || '[]')
-                                    if (!bought.includes(product.id)) {
-                                        bought.push(product.id)
-                                        localStorage.setItem('gocycle_bought_products', JSON.stringify(bought))
-                                    }
-                                } catch (e) {}
-                                
-                                setStep('SUCCESS')
-                            } else {
-                                toast.error(verifyData.message || "Payment verification failed")
-                                setStep('FAILED')
-                            }
-                        } catch (err) {
-                            console.error('[Flutterwave] Verify error:', err)
-                            toast.error("Verification failed. Contact support if debited.")
-                            setStep('FAILED')
-                        }
-
-                        setIsLoading(false)
-                    },
-                    onclose: () => {
-                        console.log('[Flutterwave] Popup closed by user')
-                        if (step === 'PROCESSING' || step === 'SUCCESS') return 
-                        setStep('PAYMENT_METHOD')
-                    }
-                })
-            } catch (err) {
-                console.error('[Flutterwave] Launcher Error:', err.message)
-                toast.error(err.message)
-                setStep('PAYMENT_METHOD')
-                setIsLoading(false)
-            }
+            // 3. Redirect the browser to Flutterwave's hosted checkout page
+            console.log('[Flutterwave VP4] Redirecting to hosted checkout...')
+            window.location.href = initiateData.paymentUrl
+            // (User returns to /payment/callback after completing payment)
 
         } catch (error) {
-            console.error('[Checkout] Flutterwave error:', error)
+            console.error('[Checkout] Flutterwave VP4 error:', error)
             toast.error("Payment initialization failed")
             setStep('FAILED')
             setIsLoading(false)
