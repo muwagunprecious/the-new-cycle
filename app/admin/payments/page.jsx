@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from "react"
 import { getPendingCashouts, releasePayout, getAdminDashboardSummary } from "@/backend-actions/actions/admin"
+import { getPendingAffiliatePayouts, approveAffiliatePayout, rejectAffiliatePayout } from "@/backend-actions/actions/admin-affiliates"
 import toast from "react-hot-toast"
 import {
     Banknote as BanknoteIcon,
@@ -64,19 +65,27 @@ export default function AdminCashoutsPage() {
     const [totals, setTotals] = useState({ amount: 0, stores: 0, orders: 0 })
     const [platformBalance, setPlatformBalance] = useState(0)
     const [loading, setLoading] = useState(true)
-    const [releasingId, setReleasingId] = useState(null)   // orderId being released
+    const [releasingId, setReleasingId] = useState(null)   // orderId or affiliate payout request ID being released
     const [expandedStore, setExpandedStore] = useState(null)
     const [search, setSearch] = useState('')
     const [history, setHistory] = useState([])
     const [historyLoading, setHistoryLoading] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
 
+    // Affiliate specific states
+    const [activeFinanceTab, setActiveFinanceTab] = useState('sellers') // 'sellers' | 'affiliates'
+    const [affiliatePayouts, setAffiliatePayouts] = useState([])
+    const [affiliateTotals, setAffiliateTotals] = useState({ amount: 0, count: 0 })
+    const [rejectAffiliateId, setRejectAffiliateId] = useState(null)
+    const [rejectReason, setRejectReason] = useState('')
+
     const fetchAll = useCallback(async () => {
         setLoading(true)
         try {
-            const [cashoutRes, dashRes] = await Promise.all([
+            const [cashoutRes, dashRes, affiliateRes] = await Promise.all([
                 getPendingCashouts(),
-                getAdminDashboardSummary()
+                getAdminDashboardSummary(),
+                getPendingAffiliatePayouts()
             ])
             if (cashoutRes.success) {
                 setCashouts(cashoutRes.data.cashouts || [])
@@ -88,6 +97,13 @@ export default function AdminCashoutsPage() {
             }
             if (dashRes.success) {
                 setPlatformBalance(dashRes.data.adminBalance || 0)
+            }
+            if (affiliateRes.success) {
+                setAffiliatePayouts(affiliateRes.data.payouts || [])
+                setAffiliateTotals({
+                    amount: affiliateRes.data.totalAmount || 0,
+                    count: affiliateRes.data.count || 0
+                })
             }
         } catch (e) {
             toast.error("Failed to load cashout data")
@@ -146,6 +162,46 @@ export default function AdminCashoutsPage() {
         }
     }
 
+    const handleReleaseAffiliate = async (requestId, amount, affiliateName) => {
+        if (!confirm(`Approve and release ₦${amount.toLocaleString()} payout to affiliate "${affiliateName}"?`)) return
+        setReleasingId(requestId)
+        try {
+            const res = await approveAffiliatePayout(requestId)
+            if (res.success) {
+                toast.success(`Payout approved for ${affiliateName}`)
+                window.dispatchEvent(new Event('payout-released'))
+                fetchAll()
+            } else {
+                toast.error(res.error || "Approval failed")
+            }
+        } catch (e) {
+            toast.error(e?.message || "Unexpected error")
+        } finally {
+            setReleasingId(null)
+        }
+    }
+
+    const handleRejectAffiliate = async () => {
+        if (!rejectAffiliateId || !rejectReason.trim()) return
+        setReleasingId(rejectAffiliateId)
+        try {
+            const res = await rejectAffiliatePayout(rejectAffiliateId, rejectReason)
+            if (res.success) {
+                toast.success("Affiliate payout request rejected")
+                setRejectAffiliateId(null)
+                setRejectReason('')
+                window.dispatchEvent(new Event('payout-released'))
+                fetchAll()
+            } else {
+                toast.error(res.error || "Rejection failed")
+            }
+        } catch (e) {
+            toast.error(e?.message || "Unexpected error")
+        } finally {
+            setReleasingId(null)
+        }
+    }
+
     /* Filtered + searched cashouts */
     const filtered = cashouts
         .filter(s => {
@@ -159,6 +215,16 @@ export default function AdminCashoutsPage() {
             )
         })
 
+    const affiliateFiltered = affiliatePayouts.filter(p => {
+        if (!search.trim()) return true
+        const q = search.toLowerCase()
+        return (
+            p.affiliate?.name?.toLowerCase().includes(q) ||
+            p.bankName?.toLowerCase().includes(q) ||
+            p.accountNumber?.includes(q)
+        )
+    })
+
     return (
         <div className="p-6 lg:p-10 max-w-6xl mx-auto space-y-8">
 
@@ -170,7 +236,7 @@ export default function AdminCashoutsPage() {
                         Pending <span className="text-amber-500">Cashouts</span>
                     </h1>
                     <p className="text-slate-500 font-medium mt-1">
-                        Review seller bank details and release verified payouts.
+                        Review bank details and release verified payouts to sellers and partners.
                     </p>
                 </div>
                 <button
@@ -193,19 +259,19 @@ export default function AdminCashoutsPage() {
                 </div>
                 <div className="bg-amber-500 rounded-2xl p-5 text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-xl" />
-                    <p className="text-[9px] font-black uppercase tracking-widest text-amber-100 mb-1">Total Pending</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-amber-100 mb-1">Seller Pending</p>
                     <p className="text-2xl font-black">₦{totals.amount.toLocaleString()}</p>
                     <p className="text-[10px] text-amber-100 mt-1 font-medium">Owed to sellers</p>
                 </div>
                 <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Sellers Waiting</p>
-                    <p className="text-2xl font-black text-slate-900">{totals.stores}</p>
-                    <p className="text-[10px] text-slate-400 mt-1 font-medium">Unique sellers</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Affiliate Pending</p>
+                    <p className="text-2xl font-black text-slate-900">₦{affiliateTotals.amount.toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-400 mt-1 font-medium">Owed to partners ({affiliateTotals.count})</p>
                 </div>
                 <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Pending Orders</p>
                     <p className="text-2xl font-black text-slate-900">{totals.orders}</p>
-                    <p className="text-[10px] text-slate-400 mt-1 font-medium">Ready to release</p>
+                    <p className="text-[10px] text-slate-400 mt-1 font-medium">Seller orders waiting</p>
                 </div>
             </div>
 
@@ -215,7 +281,7 @@ export default function AdminCashoutsPage() {
                     <StoreIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                     <input
                         type="text"
-                        placeholder="Search store, seller, bank, account..."
+                        placeholder="Search store, partner, bank, account..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-amber-400 transition-colors"
@@ -223,214 +289,337 @@ export default function AdminCashoutsPage() {
                 </div>
             </div>
 
-            {/* ── Cashout List ── */}
-            {loading ? (
-                <div className="py-20 flex flex-col items-center gap-3">
-                    <Spinner size={32} className="text-amber-500" />
-                    <p className="text-slate-500 font-medium">Loading pending cashouts...</p>
-                </div>
-            ) : filtered.length === 0 ? (
-                <div className="py-20 text-center bg-white border border-slate-100 rounded-3xl">
-                    <CheckCircleIcon size={48} className="mx-auto text-emerald-300 mb-4" />
-                    <p className="text-xl font-black text-emerald-600">All paid out!</p>
-                    <p className="text-slate-400 font-medium mt-2">No pending seller cashouts matching your filter.</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {filtered.map((store) => {
-                        const isExpanded = expandedStore === store.storeId
-                        const hasBankDetails = !!(store.bankName && store.accountNumber)
+            {/* ── Tabs Selector ── */}
+            <div className="flex gap-6 border-b border-slate-100 pb-px">
+                <button
+                    onClick={() => setActiveFinanceTab('sellers')}
+                    className={`pb-3 text-sm font-bold transition-all relative ${
+                        activeFinanceTab === 'sellers'
+                            ? 'text-slate-900 border-b-2 border-slate-800'
+                            : 'text-slate-400 hover:text-slate-650'
+                    }`}
+                >
+                    Seller Cashouts ({totals.orders})
+                </button>
+                <button
+                    onClick={() => setActiveFinanceTab('affiliates')}
+                    className={`pb-3 text-sm font-bold transition-all relative ${
+                        activeFinanceTab === 'affiliates'
+                            ? 'text-slate-900 border-b-2 border-slate-800'
+                            : 'text-slate-400 hover:text-slate-650'
+                    }`}
+                >
+                    Affiliate Payouts ({affiliateTotals.count})
+                </button>
+            </div>
 
-                        return (
-                            <div
-                                key={store.storeId}
-                                className={`bg-white rounded-3xl border overflow-hidden transition-all duration-200 ${
-                                    isExpanded
-                                        ? 'border-amber-200 shadow-xl shadow-amber-500/5'
-                                        : 'border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200'
-                                }`}
-                            >
-                                {/* ── Store Header Row ── */}
-                                <button
-                                    onClick={() => setExpandedStore(isExpanded ? null : store.storeId)}
-                                    className="w-full p-5 flex items-center gap-4 text-left"
+            {/* ── Sellers Cashout List ── */}
+            {activeFinanceTab === 'sellers' && (
+                loading ? (
+                    <div className="py-20 flex flex-col items-center gap-3">
+                        <Spinner size={32} className="text-amber-500" />
+                        <p className="text-slate-500 font-medium">Loading pending cashouts...</p>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="py-20 text-center bg-white border border-slate-100 rounded-3xl">
+                        <CheckCircleIcon size={48} className="mx-auto text-emerald-300 mb-4" />
+                        <p className="text-xl font-black text-emerald-600">All paid out!</p>
+                        <p className="text-slate-400 font-medium mt-2">No pending seller cashouts matching your filter.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {filtered.map((store) => {
+                            const isExpanded = expandedStore === store.storeId
+                            const hasBankDetails = !!(store.bankName && store.accountNumber)
+
+                            return (
+                                <div
+                                    key={store.storeId}
+                                    className={`bg-white rounded-3xl border overflow-hidden transition-all duration-200 ${
+                                        isExpanded
+                                            ? 'border-amber-200 shadow-xl shadow-amber-500/5'
+                                            : 'border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200'
+                                    }`}
                                 >
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
-                                        hasBankDetails ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'
-                                    }`}>
-                                        <StoreIcon size={20} className={hasBankDetails ? "text-amber-500" : "text-red-400"} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <h3 className="text-base font-black text-slate-900">{store.storeName}</h3>
-                                            <StatusBadge hasBankDetails={hasBankDetails} />
+                                    {/* ── Store Header Row ── */}
+                                    <button
+                                        onClick={() => setExpandedStore(isExpanded ? null : store.storeId)}
+                                        className="w-full p-5 flex items-center gap-4 text-left"
+                                    >
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+                                            hasBankDetails ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'
+                                        }`}>
+                                            <StoreIcon size={20} className={hasBankDetails ? "text-amber-500" : "text-red-400"} />
                                         </div>
-                                        <p className="text-sm text-slate-500 font-medium mt-0.5">
-                                            {store.sellerName} · {store.orderCount} order{store.orderCount !== 1 ? 's' : ''}
-                                        </p>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                        <p className="text-xl font-black text-amber-500">₦{store.totalPayout.toLocaleString()}</p>
-                                        <p className="text-[10px] text-slate-400 font-medium">total pending</p>
-                                    </div>
-                                    <ChevronDownIcon
-                                        size={18}
-                                        className={`text-slate-300 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                                    />
-                                </button>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h3 className="text-base font-black text-slate-900">{store.storeName}</h3>
+                                                <StatusBadge hasBankDetails={hasBankDetails} />
+                                            </div>
+                                            <p className="text-sm text-slate-500 font-medium mt-0.5">
+                                                {store.sellerName} · {store.orderCount} order{store.orderCount !== 1 ? 's' : ''}
+                                            </p>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <p className="text-xl font-black text-amber-500">₦{store.totalPayout.toLocaleString()}</p>
+                                            <p className="text-[10px] text-slate-400 font-medium">total pending</p>
+                                        </div>
+                                        <ChevronDownIcon
+                                            size={18}
+                                            className={`text-slate-300 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                        />
+                                    </button>
 
-                                {/* ── Expanded Detail ── */}
-                                {isExpanded && (
-                                    <div className="border-t border-slate-50 p-5 space-y-5 bg-slate-50/30">
+                                    {/* ── Expanded Detail ── */}
+                                    {isExpanded && (
+                                        <div className="border-t border-slate-50 p-5 space-y-5 bg-slate-50/30">
 
-                                        {/* Bank + Contact grid */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Bank + Contact grid */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                                            {/* Bank Details */}
-                                            <div className={`rounded-2xl p-5 border ${hasBankDetails ? 'bg-white border-slate-100' : 'bg-red-50 border-red-200'}`}>
-                                                <div className="flex items-center gap-2 mb-4">
-                                                    <Building2Icon size={15} className={hasBankDetails ? "text-slate-500" : "text-red-500"} />
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Bank Account</p>
-                                                </div>
-                                                {hasBankDetails ? (
-                                                    <div className="space-y-3">
-                                                        <div>
-                                                            <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Bank Name</p>
-                                                            <p className="text-sm font-black text-slate-900">{store.bankName}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Account Number</p>
-                                                            <div className="flex items-center gap-2">
-                                                                <p className="text-lg font-black text-slate-900 tracking-widest">{store.accountNumber}</p>
-                                                                <CopyBtn text={store.accountNumber} label="Acct No." />
-                                                            </div>
-                                                        </div>
-                                                        {store.accountName && (
+                                                {/* Bank Details */}
+                                                <div className={`rounded-2xl p-5 border ${hasBankDetails ? 'bg-white border-slate-100' : 'bg-red-50 border-red-200'}`}>
+                                                    <div className="flex items-center gap-2 mb-4">
+                                                        <Building2Icon size={15} className={hasBankDetails ? "text-slate-500" : "text-red-500"} />
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Bank Account</p>
+                                                    </div>
+                                                    {hasBankDetails ? (
+                                                        <div className="space-y-3">
                                                             <div>
-                                                                <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Account Name</p>
-                                                                <p className="text-sm font-bold text-slate-700">{store.accountName}</p>
+                                                                 <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Bank Name</p>
+                                                                 <p className="text-sm font-black text-slate-900">{store.bankName}</p>
                                                             </div>
-                                                        )}
+                                                            <div>
+                                                                 <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Account Number</p>
+                                                                 <div className="flex items-center gap-2">
+                                                                     <p className="text-lg font-black text-slate-900 tracking-widest">{store.accountNumber}</p>
+                                                                     <CopyBtn text={store.accountNumber} label="Acct No." />
+                                                                 </div>
+                                                            </div>
+                                                            {store.accountName && (
+                                                                <div>
+                                                                    <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Account Name</p>
+                                                                    <p className="text-sm font-bold text-slate-700">{store.accountName}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="py-4 text-center">
+                                                            <AlertCircleIcon size={28} className="mx-auto text-red-300 mb-2" />
+                                                            <p className="text-sm font-black text-red-600">No Bank Details</p>
+                                                            <p className="text-xs text-red-400 mt-1">Contact seller to update their bank info before releasing funds.</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Seller Contact */}
+                                                <div className="bg-white rounded-2xl p-5 border border-slate-100 space-y-3">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <ShieldIcon size={15} className="text-slate-500" />
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Seller Contact</p>
                                                     </div>
-                                                ) : (
-                                                    <div className="py-4 text-center">
-                                                        <AlertCircleIcon size={28} className="mx-auto text-red-300 mb-2" />
-                                                        <p className="text-sm font-black text-red-600">No Bank Details</p>
-                                                        <p className="text-xs text-red-400 mt-1">Contact seller to update their bank info before releasing funds.</p>
+                                                    <div>
+                                                        <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Full Name</p>
+                                                        <p className="text-sm font-black text-slate-900">{store.sellerName || '—'}</p>
                                                     </div>
-                                                )}
+                                                    {store.sellerEmail && (
+                                                        <div>
+                                                            <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Email</p>
+                                                            <div className="flex items-center gap-2">
+                                                                <MailIcon size={12} className="text-slate-400 shrink-0" />
+                                                                <p className="text-xs font-medium text-slate-700 truncate">{store.sellerEmail}</p>
+                                                                <CopyBtn text={store.sellerEmail} label="Email" />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {store.sellerPhone && (
+                                                        <div>
+                                                            <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Phone</p>
+                                                            <div className="flex items-center gap-2">
+                                                                <PhoneIcon size={12} className="text-slate-400 shrink-0" />
+                                                                <p className="text-sm font-bold text-slate-900">{store.sellerPhone}</p>
+                                                                <CopyBtn text={store.sellerPhone} label="Phone" />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Seller Wallet Balance</p>
+                                                        <p className="text-sm font-black text-[#05DF72]">₦{store.walletBalance.toLocaleString()}</p>
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            {/* Seller Contact */}
-                                            <div className="bg-white rounded-2xl p-5 border border-slate-100 space-y-3">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <ShieldIcon size={15} className="text-slate-500" />
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Seller Contact</p>
+                                            {/* Release All CTA */}
+                                            {hasBankDetails && store.orderCount > 1 && (
+                                                <button
+                                                    onClick={() => handleReleaseAll(store)}
+                                                    disabled={!!releasingId}
+                                                    className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+                                                >
+                                                    <SendIcon size={16} />
+                                                    Release All {store.orderCount} Orders · ₦{store.totalPayout.toLocaleString()}
+                                                </button>
+                                            )}
+
+                                            {/* Orders Table */}
+                                            <div className="rounded-2xl border border-slate-100 overflow-hidden bg-white">
+                                                <div className="px-5 py-3 border-b border-slate-50 bg-slate-50/80">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                        Orders Pending Payout ({store.orderCount})
+                                                    </p>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Full Name</p>
-                                                    <p className="text-sm font-black text-slate-900">{store.sellerName || '—'}</p>
-                                                </div>
-                                                {store.sellerEmail && (
-                                                    <div>
-                                                        <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Email</p>
-                                                        <div className="flex items-center gap-2">
-                                                            <MailIcon size={12} className="text-slate-400 shrink-0" />
-                                                            <p className="text-xs font-medium text-slate-700 truncate">{store.sellerEmail}</p>
-                                                            <CopyBtn text={store.sellerEmail} label="Email" />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {store.sellerPhone && (
-                                                    <div>
-                                                        <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Phone</p>
-                                                        <div className="flex items-center gap-2">
-                                                            <PhoneIcon size={12} className="text-slate-400 shrink-0" />
-                                                            <p className="text-sm font-bold text-slate-900">{store.sellerPhone}</p>
-                                                            <CopyBtn text={store.sellerPhone} label="Phone" />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                <div>
-                                                    <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Seller Wallet Balance</p>
-                                                    <p className="text-sm font-black text-[#05DF72]">₦{store.walletBalance.toLocaleString()}</p>
+                                                <div className="divide-y divide-slate-50">
+                                                    {store.orders.map(order => {
+                                                        const isReleasing = releasingId === order.id
+                                                        const completedDate = order.completedAt
+                                                            ? new Date(order.completedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                            : '—'
+                                                        return (
+                                                            <div key={order.id} className="px-5 py-4 flex items-center gap-4">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                                        <span className="text-sm font-black text-slate-900">{order.buyerName}</span>
+                                                                        <span className="text-[9px] font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                                                                            #{(order.transactionId || order.id).slice(-10)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3 mt-1">
+                                                                        <span className="text-xs text-slate-400 flex items-center gap-1">
+                                                                            <ClockIcon size={10} /> Completed {completedDate}
+                                                                        </span>
+                                                                        <span className="text-xs text-rose-500 font-medium">
+                                                                            -₦{order.sellerFee.toLocaleString()} fee
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-right shrink-0">
+                                                                    <p className="text-base font-black text-[#05DF72]">₦{order.payoutAmount.toLocaleString()}</p>
+                                                                    <p className="text-[10px] text-slate-400">of ₦{order.total.toLocaleString()}</p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleRelease(order.id, store.storeId, order.payoutAmount, store.storeName)}
+                                                                    disabled={!!releasingId || !hasBankDetails}
+                                                                    title={!hasBankDetails ? "No bank details on file" : "Release payout"}
+                                                                    className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all shrink-0 ${
+                                                                        hasBankDetails
+                                                                            ? 'bg-[#05DF72] hover:bg-[#04c764] text-slate-900 shadow-md shadow-emerald-500/20 disabled:opacity-50'
+                                                                            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                                    }`}
+                                                                >
+                                                                    {isReleasing ? (
+                                                                        <><Spinner size={12} /> Releasing...</>
+                                                                    ) : (
+                                                                        <><SendIcon size={12} /> Release</>
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        )
+                                                    })}
                                                 </div>
                                             </div>
                                         </div>
+                                    )}
+                                </div>
+                            )
+                        })}
+                    </div>
+                )
+            )}
 
-                                        {/* Release All CTA */}
-                                        {hasBankDetails && store.orderCount > 1 && (
-                                            <button
-                                                onClick={() => handleReleaseAll(store)}
-                                                disabled={!!releasingId}
-                                                className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
-                                            >
-                                                <SendIcon size={16} />
-                                                Release All {store.orderCount} Orders · ₦{store.totalPayout.toLocaleString()}
-                                            </button>
-                                        )}
-
-                                        {/* Orders Table */}
-                                        <div className="rounded-2xl border border-slate-100 overflow-hidden bg-white">
-                                            <div className="px-5 py-3 border-b border-slate-50 bg-slate-50/80">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                                    Orders Pending Payout ({store.orderCount})
-                                                </p>
+            {/* ── Affiliates Payout List ── */}
+            {activeFinanceTab === 'affiliates' && (
+                loading ? (
+                    <div className="py-20 flex flex-col items-center gap-3">
+                        <Spinner size={32} className="text-emerald-500" />
+                        <p className="text-slate-500 font-medium">Loading pending affiliate payouts...</p>
+                    </div>
+                ) : affiliateFiltered.length === 0 ? (
+                    <div className="py-20 text-center bg-white border border-slate-100 rounded-3xl">
+                        <CheckCircleIcon size={48} className="mx-auto text-emerald-300 mb-4" />
+                        <p className="text-xl font-black text-emerald-600">All paid out!</p>
+                        <p className="text-slate-400 font-medium mt-2">No pending affiliate payouts matching your filter.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {affiliateFiltered.map((payout) => {
+                            const isReleasing = releasingId === payout.id
+                            const aff = payout.affiliate
+                            return (
+                                <div
+                                    key={payout.id}
+                                    className="bg-white rounded-3xl border border-slate-100 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-all"
+                                >
+                                    <div className="flex-1 min-w-0 space-y-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-base font-black text-slate-900">{aff.name}</h3>
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 text-slate-650 border border-slate-200 rounded-full text-[9px] font-black uppercase tracking-wider">
+                                                Partner Affiliate
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 font-medium">
+                                            Phone: {aff.phone} · Email: {aff.email}
+                                        </p>
+                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase text-slate-400 mb-0.5">Bank Information</p>
+                                                <p className="font-bold text-slate-900">{payout.bankName}</p>
+                                                <p className="text-slate-800 font-mono tracking-widest mt-0.5">{payout.accountNumber} — {payout.accountName}</p>
                                             </div>
-                                            <div className="divide-y divide-slate-50">
-                                                {store.orders.map(order => {
-                                                    const isReleasing = releasingId === order.id
-                                                    const completedDate = order.completedAt
-                                                        ? new Date(order.completedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
-                                                        : '—'
-                                                    return (
-                                                        <div key={order.id} className="px-5 py-4 flex items-center gap-4">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2 flex-wrap">
-                                                                    <span className="text-sm font-black text-slate-900">{order.buyerName}</span>
-                                                                    <span className="text-[9px] font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
-                                                                        #{(order.transactionId || order.id).slice(-10)}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="flex items-center gap-3 mt-1">
-                                                                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                                                                        <ClockIcon size={10} /> Completed {completedDate}
-                                                                    </span>
-                                                                    <span className="text-xs text-rose-500 font-medium">
-                                                                        -₦{order.sellerFee.toLocaleString()} fee
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="text-right shrink-0">
-                                                                <p className="text-base font-black text-[#05DF72]">₦{order.payoutAmount.toLocaleString()}</p>
-                                                                <p className="text-[10px] text-slate-400">of ₦{order.total.toLocaleString()}</p>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => handleRelease(order.id, store.storeId, order.payoutAmount, store.storeName)}
-                                                                disabled={!!releasingId || !hasBankDetails}
-                                                                title={!hasBankDetails ? "No bank details on file" : "Release payout"}
-                                                                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all shrink-0 ${
-                                                                    hasBankDetails
-                                                                        ? 'bg-[#05DF72] hover:bg-[#04c764] text-slate-900 shadow-md shadow-emerald-500/20 disabled:opacity-50'
-                                                                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                                                }`}
-                                                            >
-                                                                {isReleasing ? (
-                                                                    <><Spinner size={12} /> Releasing...</>
-                                                                ) : (
-                                                                    <><SendIcon size={12} /> Release</>
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    )
-                                                })}
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase text-slate-400 mb-0.5">Partner Wallet Stats</p>
+                                                <p className="text-slate-855">Available Wallet: <strong className="text-slate-950 font-mono">₦{aff.walletBalance.toLocaleString()}</strong></p>
+                                                <p className="text-slate-855">Amount Requested: <strong className="text-emerald-600 font-mono">₦{payout.amount.toLocaleString()}</strong></p>
                                             </div>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        )
-                    })}
+                                    <div className="flex flex-row md:flex-col items-stretch md:items-end gap-2 w-full md:w-auto">
+                                        <button
+                                            onClick={() => handleReleaseAffiliate(payout.id, payout.amount, aff.name)}
+                                            disabled={!!releasingId}
+                                            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#05DF72] hover:bg-[#04c764] text-slate-900 font-black text-[11px] uppercase tracking-widest transition-all disabled:opacity-50 shadow-md shadow-emerald-500/25"
+                                        >
+                                            {isReleasing ? <><Spinner size={12} /> Releasing...</> : <><CheckCircleIcon size={12} /> Approve & Pay</>}
+                                        </button>
+                                        <button
+                                            onClick={() => { setRejectAffiliateId(payout.id); setRejectReason('') }}
+                                            disabled={!!releasingId}
+                                            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 font-black text-[11px] uppercase tracking-widest transition-all disabled:opacity-50 bg-white"
+                                        >
+                                            <XCircleIcon size={12} /> Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                )
+            )}
+
+            {/* Rejection Modal */}
+            {rejectAffiliateId && (
+                <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl border border-slate-150 p-6 w-full max-w-md shadow-2xl relative space-y-4 text-slate-800">
+                        <button onClick={() => setRejectAffiliateId(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-650">
+                            <XCircleIcon size={20} />
+                        </button>
+                        <h3 className="text-lg font-black text-slate-900 uppercase tracking-wide">Reject Payout Request</h3>
+                        <p className="text-xs text-slate-500 font-medium">Please provide a reason for rejecting this affiliate payout request. The partner will see this reason in their dashboard.</p>
+                        <textarea
+                            rows={3}
+                            placeholder="e.g. Account name mismatch, incorrect NUBAN, etc."
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            className="w-full p-3 border border-slate-200 rounded-xl text-xs outline-none focus:border-red-400 resize-none font-medium"
+                        />
+                        <div className="flex gap-2 pt-2">
+                            <button onClick={() => setRejectAffiliateId(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-black uppercase tracking-wider">
+                                Cancel
+                            </button>
+                            <button onClick={handleRejectAffiliate} disabled={!rejectReason.trim()} className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-black uppercase tracking-wider">
+                                Confirm Rejection
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

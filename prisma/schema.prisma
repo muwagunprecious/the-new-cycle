@@ -42,6 +42,7 @@ model User {
   gender             String?
   state              String?        @default("Lagos")
   lga                String?
+  referredByCode     String?        // GCY-AFF-XXXXXX code used at signup (buyers only)
   Address            Address[]
   notifications      Notification[]
   buyerOrders        Order[]        @relation("BuyerRelation")
@@ -56,6 +57,7 @@ model User {
   @@index([accountStatus])
   @@index([role, accountStatus])           // Admin: filter sellers/buyers by status
   @@index([createdAt])                     // Admin: sort users by registration date
+  @@index([referredByCode])                // Affiliate: users referred by a code
   @@map("users")
 }
 
@@ -415,4 +417,70 @@ model ManualVerification {
   @@index([bankCode])
   @@index([status])
   @@map("ManualVerification")
+}
+
+// ─── Affiliate System ───────────────────────────────────────────────────────
+
+model Affiliate {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  phone           String   @unique
+  password        String
+  referralCode    String   @unique  // GCY-AFF-XXXXXX
+  isEmailVerified Boolean  @default(false)
+  isPhoneVerified Boolean  @default(false)
+  status          String   @default("active")  // active | suspended
+  walletBalance   Float    @default(0)
+  totalEarned     Float    @default(0)
+  bankName        String?
+  accountNumber   String?
+  accountName     String?
+  verificationCode String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  earnings        AffiliateEarning[]
+  payoutRequests  AffiliatePayoutRequest[]
+
+  @@index([referralCode])
+  @@index([status])
+  @@index([createdAt])
+  @@map("affiliates")
+}
+
+model AffiliateEarning {
+  id          String   @id @default(cuid())
+  affiliateId String
+  orderId     String   @unique
+  buyerId     String
+  subtotal    Float
+  buyerFee    Float
+  commission  Float    // 50% of buyerFee = 2.5% of subtotal
+  status      String   @default("pending")  // pending | paid
+  createdAt   DateTime @default(now())
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  @@index([affiliateId])
+  @@index([status])
+  @@index([orderId])
+  @@map("affiliate_earnings")
+}
+
+model AffiliatePayoutRequest {
+  id          String    @id @default(cuid())
+  affiliateId String
+  amount      Float
+  bankName    String
+  accountNumber String
+  accountName String
+  status      String    @default("pending")  // pending | approved | rejected
+  note        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  @@index([affiliateId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("affiliate_payout_requests")
 }

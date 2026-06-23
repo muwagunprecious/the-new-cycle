@@ -410,7 +410,49 @@ export async function verifyOrderCollection(orderId, token) {
             }
         } catch (e) { logger.warn('Buyer completion SMS error', e); }
 
+        // ─── Affiliate Commission Hook ────────────────────────────────────────
+        try {
+            const referralCode = order.user?.referredByCode
+            if (referralCode && order.buyerFee > 0) {
+                const affiliate = await prisma.affiliate.findUnique({
+                    where: { referralCode },
+                    select: { id: true, status: true, name: true }
+                })
+                if (affiliate && affiliate.status === 'active') {
+                    const commission = Math.round(order.buyerFee * 0.5)
+                    const alreadyCredited = await prisma.affiliateEarning.findUnique({ where: { orderId: order.id } })
+                    if (!alreadyCredited) {
+                        await prisma.$transaction([
+                            prisma.affiliateEarning.create({
+                                data: {
+                                    affiliateId: affiliate.id,
+                                    orderId: order.id,
+                                    buyerId: order.userId,
+                                    subtotal: order.subtotal,
+                                    buyerFee: order.buyerFee,
+                                    commission,
+                                    status: 'pending'
+                                }
+                            }),
+                            prisma.affiliate.update({
+                                where: { id: affiliate.id },
+                                data: {
+                                    walletBalance: { increment: commission },
+                                    totalEarned: { increment: commission }
+                                }
+                            })
+                        ])
+                        logger.info(`[AFFILIATE] Credited ₦${commission} to ${affiliate.name} for order ${order.id}`)
+                    }
+                }
+            }
+        } catch (affErr) {
+            logger.warn('[AFFILIATE COMMISSION] Non-fatal error:', affErr)
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         return ApiResponse.success(updatedOrder, "Pickup Confirmed. Funds are now in pending payout status for Admin approval.")
+
     } catch (error) {
         logger.error("Verify Collection Error", error)
         return ApiResponse.error("Verification failed")

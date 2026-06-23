@@ -1,7 +1,7 @@
 import prisma from "@/backend-actions/lib/prisma";
 
 export default async function sitemap() {
-    const baseUrl = 'https://gocycle.africa';
+    const baseUrl = 'https://gocycle.ng';
     
     // 1. Core Public Pages
     const staticRoutes = [

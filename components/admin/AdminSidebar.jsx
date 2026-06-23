@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon, DollarSign as DollarSignIcon, FileText as FileTextIcon, UserPlus as UserPlusIcon, MapPin as MapPinIcon, Mail as MailIcon, CheckCircle as CheckCircleIcon, Truck as TruckIcon, Banknote as BanknoteIcon, Mailbox as MailboxIcon, AlertTriangle as AlertTriangleIcon } from "lucide-react"
+import { Home as HomeIcon, ShieldCheck as ShieldCheckIcon, Store as StoreIcon, Users as UsersIcon, ShoppingBag as ShoppingBagIcon, Bell as BellIcon, LogOut as LogOutIcon, Settings as SettingsIcon, DollarSign as DollarSignIcon, FileText as FileTextIcon, UserPlus as UserPlusIcon, MapPin as MapPinIcon, Mail as MailIcon, CheckCircle as CheckCircleIcon, Truck as TruckIcon, Banknote as BanknoteIcon, Mailbox as MailboxIcon, AlertTriangle as AlertTriangleIcon, Handshake as HandshakeIcon } from "lucide-react"
+
 import { useDispatch } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
 import { logout } from "@/lib/features/auth/authSlice"
@@ -29,6 +30,7 @@ const AdminSidebar = () => {
         { name: 'Manual Verifications', href: '/admin/manual-verifications', icon: CheckCircleIcon },
         { name: 'Verified Sellers', href: '/admin/sellers', icon: StoreIcon },
         { name: 'Verified Buyers', href: '/admin/users', icon: UsersIcon },
+        { name: 'Affiliates', href: '/admin/affiliates', icon: HandshakeIcon },
         { name: 'Pending Products', href: '/admin/pending-products', icon: ShoppingBagIcon },
         { name: 'Products', href: '/admin/products', icon: ShoppingBagIcon },
         { name: 'Orders', href: '/admin/orders', icon: ShieldCheckIcon },

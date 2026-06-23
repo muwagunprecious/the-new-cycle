@@ -233,6 +233,49 @@ export async function verifyOTP(pinId, pin) {
 }
 
 /**
+ * Send a plain notification/broadcast SMS (NOT an OTP)
+ * Uses 'generic' channel which works for general messages.
+ * Called by admin notification broadcasts.
+ */
+export async function sendNotificationSMS(to, message) {
+    const { apiKey, baseUrl, senderId } = await getTermiiConfig();
+    const formattedTo = normalizePhone(to);
+
+    if (!apiKey) {
+        console.error('[TERMII ERROR] API Key missing');
+        return { success: false, error: 'SMS service not configured' };
+    }
+
+    console.log(`[TERMII NOTIFY] Sending to ${formattedTo}`);
+
+    try {
+        const response = await fetch(`${baseUrl}/api/sms/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                api_key: apiKey,
+                to: formattedTo,
+                from: senderId || 'N-Alert',
+                sms: message,
+                type: 'plain',
+                channel: 'generic'  // ✅ correct channel for non-OTP messages
+            })
+        });
+
+        const data = await response.json();
+        console.log('[TERMII NOTIFY Response]:', JSON.stringify(data));
+
+        if (data.code === 'ok' || data.message === 'Successfully Sent') {
+            return { success: true, data };
+        }
+        return { success: false, error: data.message || 'SMS failed' };
+    } catch (error) {
+        console.error('[TERMII NOTIFY Error]:', error.message);
+        return { success: false, error: 'Network failure' };
+    }
+}
+
+/**
  * Specialized SMS for Verification Codes (Seller Alert)
  */
 export async function sendVerificationSMS(to, buyerName, code, orderId) {
