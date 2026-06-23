@@ -610,12 +610,18 @@ export async function sendAdminNotification({ target, userId, title, message, ty
 
         // Optionally send SMS
         if (withSMS) {
-            const { sendOTP } = await import('@/backend-actions/lib/sms')
-            const smsRecipients = recipients.filter(u => u.phone)
-            await Promise.all(smsRecipients.map(user =>
-                sendOTP(user.phone, `${title}: ${message}`)
-                    .catch(err => logger.warn(`SMS failed for ${user.phone}`, err))
-            ))
+            const { sendNotificationSMS } = await import('@/backend-actions/lib/sms')
+            const smsRecipients = recipients.filter(u => u.phone || u.phoneNumber)
+            if (smsRecipients.length > 0) {
+                await Promise.all(smsRecipients.map(user => {
+                    const phone = user.phone || user.phoneNumber
+                    const smsMessage = `GoCycle: ${title}\n${message}`
+                    return sendNotificationSMS(phone, smsMessage)
+                        .catch(err => logger.warn(`SMS failed for ${phone}`, err))
+                }))
+            } else {
+                logger.warn('[Admin SMS] No recipients had a phone number stored — SMS not sent')
+            }
         }
 
         logger.info(`Admin notification sent to ${recipients.length} user(s)`, { target, title })
@@ -1115,7 +1121,8 @@ export async function getAdminSidebarCounts() {
             manualVerifications,
             pendingProducts,
             pendingPickups,
-            pendingCashouts
+            pendingSellerCashouts,
+            pendingAffiliateCashouts
         ] = await Promise.all([
             prisma.manualVerification.count({ where: { status: 'pending' } }),
             prisma.product.count({ where: { status: 'pending' } }),
@@ -1129,6 +1136,9 @@ export async function getAdminSidebarCounts() {
                     status: 'COMPLETED', 
                     payoutStatus: 'pending' 
                 } 
+            }),
+            prisma.affiliatePayoutRequest.count({
+                where: { status: 'pending' }
             })
         ]);
 
@@ -1136,7 +1146,7 @@ export async function getAdminSidebarCounts() {
             manualVerifications,
             pendingProducts,
             pendingPickups,
-            pendingCashouts
+            pendingCashouts: pendingSellerCashouts + pendingAffiliateCashouts
         });
     } catch (error) {
         logger.error("Failed to fetch sidebar counts:", error);

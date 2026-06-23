@@ -43,12 +43,17 @@ function SignupContent() {
         state: 'Lagos',
         lga: '',
         gender: '',
-        address: ''
+        address: '',
+        referralCode: ''
     })
 
 
-    // Sync role with URL parameters
+    // Sync role and referral code with URL parameters
     useEffect(() => {
+        const refParam = searchParams.get('ref')
+        if (refParam) {
+            setFormData(prev => ({ ...prev, referralCode: refParam.trim().toUpperCase() }))
+        }
         if (roleParam) {
             setFormData(prev => ({ ...prev, role: roleParam }))
             // Sellers skip identity verification as per request
@@ -60,7 +65,7 @@ function SignupContent() {
         } else {
             setStep('CHOOSE_ROLE')
         }
-    }, [roleParam])
+    }, [roleParam, searchParams])
 
     // Auto-scroll to form top when step changes so user doesn't have to scroll down
     useEffect(() => {
@@ -853,6 +858,22 @@ const handleAutoLogin = async (dbUser) => {
                                     </div>
                                 </div>
                             </div>
+
+                            {formData.role === 'BUYER' && (
+                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Referral Code (Optional)</label>
+                                    <div className="relative group">
+                                        <ZapIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                        <input
+                                            type="text"
+                                            placeholder="GCY-AFF-XXXXXX"
+                                            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400 uppercase"
+                                            value={formData.referralCode}
+                                            onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <Button
                                 type="submit"

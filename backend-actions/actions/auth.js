@@ -102,7 +102,7 @@ export async function resetAdminPassword(token, newPassword) {
 export async function registerUser(userData) {
     logger.info("Registering new user", { email: userData.email, role: userData.role })
     try {
-        let { firstName, lastName, name, email, password, role, whatsapp, businessName, gender, state, lga, address } = userData
+        let { firstName, lastName, name, email, password, role, whatsapp, businessName, gender, state, lga, address, referralCode } = userData
 
         // Map BUYER to USER for Prisma schema compatibility
         if (role === 'BUYER') role = 'USER'
@@ -160,6 +160,22 @@ export async function registerUser(userData) {
             await new Promise(resolve => setTimeout(resolve, 100))
         }
 
+        // Validate Referral Code (Optional)
+        let referredByCode = null
+        if (referralCode?.trim()) {
+            const codeClean = referralCode.trim().toUpperCase()
+            const affiliate = await prisma.affiliate.findUnique({
+                where: { referralCode: codeClean }
+            })
+            if (!affiliate || affiliate.status !== 'active') {
+                return ApiResponse.error("Invalid or inactive affiliate referral code.", 400)
+            }
+            if (role === 'SELLER') {
+                return ApiResponse.error("Referral codes can only be used for buyer accounts.", 400)
+            }
+            referredByCode = codeClean
+        }
+
         const safeEmail = (email && email.trim() !== "") ? email.trim() : null
         const hashedPassword = await bcrypt.hash(password, 10)
         const otp = Math.floor(100000 + Math.random() * 900000).toString()
@@ -207,7 +223,8 @@ export async function registerUser(userData) {
                     accountNumber: userData.accountNumber || null,
                     accountName: userData.accountName || null,
                     verificationCode: otp,
-                    needsPasswordChange: role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'SUPER_ADMIN'
+                    needsPasswordChange: role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'SUPER_ADMIN',
+                    referredByCode
                 }
             })
 
