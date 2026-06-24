@@ -170,8 +170,8 @@ export async function registerUser(userData) {
             if (!affiliate || affiliate.status !== 'active') {
                 return ApiResponse.error("Invalid or inactive affiliate referral code.", 400)
             }
-            if (role === 'SELLER') {
-                return ApiResponse.error("Referral codes can only be used for buyer accounts.", 400)
+            if (role === 'USER') {
+                return ApiResponse.error("Referral codes can only be used for seller accounts.", 400)
             }
             referredByCode = codeClean
         }

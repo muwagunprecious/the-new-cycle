@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getAffiliateDashboard, requestAffiliatePayout, updateAffiliateBankDetails, logoutAffiliate, sendPayoutOTP } from '@/backend-actions/actions/affiliate'
 import toast from 'react-hot-toast'
-import { Copy, CheckCircle, DollarSign, Users, TrendingUp, Wallet, LogOut, ExternalLink, CreditCard, Clock, CheckCircle2, XCircle, ChevronRight, X, Menu } from 'lucide-react'
+import { Copy, CheckCircle, DollarSign, Users, TrendingUp, Wallet, LogOut, ExternalLink, CreditCard, Clock, CheckCircle2, XCircle, ChevronRight, X, Menu, Download } from 'lucide-react'
+import { assets } from '@/assets/assets'
+import Image from 'next/image'
 
 export default function AffiliateDashboard() {
     const router = useRouter()
@@ -16,6 +18,7 @@ export default function AffiliateDashboard() {
     const [submitting, setSubmitting] = useState(false)
     const [dashTab, setDashTab] = useState('overview') // overview | earnings | payouts | settings
     const [showMobileSidebar, setShowMobileSidebar] = useState(false)
+    const [showIDCardModal, setShowIDCardModal] = useState(false)
 
     // Payout OTP state variables
     const [payoutStep, setPayoutStep] = useState('form') // form | otp
@@ -23,6 +26,17 @@ export default function AffiliateDashboard() {
     const [payoutResendTimer, setPayoutResendTimer] = useState(0)
 
     useEffect(() => { fetchDashboard() }, [])
+
+    useEffect(() => {
+        if (data) {
+            // Auto popup for previously created accounts on load, once per session
+            const hasShown = sessionStorage.getItem('gocycle_affiliate_idcard_shown')
+            if (!hasShown) {
+                setShowIDCardModal(true)
+                sessionStorage.setItem('gocycle_affiliate_idcard_shown', 'true')
+            }
+        }
+    }, [data])
 
     useEffect(() => {
         let t = null
@@ -123,6 +137,241 @@ export default function AffiliateDashboard() {
         finally { setSubmitting(false) }
     }
 
+    const handleDownloadIDCard = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = 600
+        canvas.height = 900
+        const ctx = canvas.getContext('2d')
+
+        // 1. Clean off-white background
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, 600, 900)
+
+        // Subtle thin outline border
+        ctx.strokeStyle = '#e2e8f0'
+        ctx.lineWidth = 2
+        ctx.strokeRect(10, 10, 580, 880)
+
+        // 2. Geometric Accent Shapes
+        // Top-Right green gradient circle/arc
+        const topArcGrad = ctx.createLinearGradient(400, 0, 600, 200)
+        topArcGrad.addColorStop(0, '#05DF72')
+        topArcGrad.addColorStop(1, '#029e4f')
+        ctx.fillStyle = topArcGrad
+        ctx.beginPath()
+        ctx.arc(600, 0, 240, 0, Math.PI * 2)
+        ctx.fill()
+
+        // Bottom-Left dark slate arc
+        ctx.fillStyle = '#0f172a'
+        ctx.beginPath()
+        ctx.arc(0, 900, 200, 0, Math.PI * 2)
+        ctx.fill()
+
+        // Little green accent arc bottom-left edge
+        ctx.fillStyle = '#05DF72'
+        ctx.beginPath()
+        ctx.arc(0, 900, 215, 0, Math.PI * 2)
+        ctx.strokeStyle = '#05DF72'
+        ctx.lineWidth = 6
+        ctx.stroke()
+
+        // 3. Dot Grid Patterns (inspired by reference image)
+        // Dot Grid 1 (Top-Left, black/grey dots)
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.2)'
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+                ctx.beginPath()
+                ctx.arc(60 + c * 18, 160 + r * 18, 3.5, 0, Math.PI * 2)
+                ctx.fill()
+            }
+        }
+
+        // Dot Grid 2 (Bottom-Right, green dots)
+        ctx.fillStyle = 'rgba(5, 223, 114, 0.4)'
+        for (let r = 0; r < 6; r++) {
+            for (let c = 0; c < 6; c++) {
+                ctx.beginPath()
+                ctx.arc(460 + c * 18, 680 + r * 18, 3.5, 0, Math.PI * 2)
+                ctx.fill()
+            }
+        }
+
+        // 4. Abstract Triangles & Wavy Lines (inspired by red/blue shapes in reference)
+        // Triangles
+        ctx.fillStyle = '#05DF72'
+        ctx.beginPath()
+        ctx.moveTo(80, 360)
+        ctx.lineTo(105, 380)
+        ctx.lineTo(75, 395)
+        ctx.closePath()
+        ctx.fill()
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.08)'
+        ctx.beginPath()
+        ctx.moveTo(500, 280)
+        ctx.lineTo(530, 310)
+        ctx.lineTo(480, 320)
+        ctx.closePath()
+        ctx.fill()
+
+        // Wavy lines
+        ctx.strokeStyle = '#0f172a'
+        ctx.lineWidth = 2.5
+        ctx.beginPath()
+        ctx.moveTo(80, 480)
+        ctx.bezierCurveTo(95, 470, 105, 490, 120, 480)
+        ctx.stroke()
+
+        ctx.strokeStyle = '#05DF72'
+        ctx.beginPath()
+        ctx.moveTo(480, 420)
+        ctx.bezierCurveTo(495, 410, 505, 430, 520, 420)
+        ctx.stroke()
+
+        // 5. Render GoCycle Logo
+        const logoImg = new window.Image()
+        const logoSrc = assets.gs_logo?.src || assets.gs_logo || '/assets/gocycle.png'
+        logoImg.src = logoSrc
+        logoImg.onload = () => {
+            ctx.drawImage(logoImg, 300 - 80, 75, 160, 40)
+            finalizeDrawing()
+        }
+        logoImg.onerror = () => {
+            ctx.fillStyle = '#0f172a'
+            ctx.font = '900 36px sans-serif'
+            ctx.textAlign = 'center'
+            ctx.fillText('GoCycle', 300, 105)
+
+            ctx.fillStyle = '#05DF72'
+            ctx.font = 'bold 12px sans-serif'
+            ctx.fillText('NIGERIA\'S E-WASTE HUB', 300, 125)
+            finalizeDrawing()
+        }
+
+        function finalizeDrawing() {
+            // Header Text (Date or verified tag)
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.5)'
+            ctx.font = 'bold 11px monospace'
+            ctx.textAlign = 'center'
+            ctx.fillText('EST. 2026 • DIGITAL OFFICIAL ID', 300, 160)
+
+            // Circular avatar with double border
+            ctx.beginPath()
+            ctx.arc(300, 280, 72, 0, Math.PI * 2)
+            ctx.strokeStyle = '#0f172a'
+            ctx.lineWidth = 3
+            ctx.stroke()
+
+            ctx.beginPath()
+            ctx.arc(300, 280, 65, 0, Math.PI * 2)
+            ctx.strokeStyle = '#05DF72'
+            ctx.lineWidth = 3
+            ctx.stroke()
+
+            ctx.fillStyle = 'rgba(5, 223, 114, 0.05)'
+            ctx.beginPath()
+            ctx.arc(300, 280, 62, 0, Math.PI * 2)
+            ctx.fill()
+
+            // Avatar Silhouette
+            ctx.fillStyle = '#0f172a'
+            ctx.beginPath()
+            ctx.arc(300, 260, 20, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.beginPath()
+            ctx.arc(300, 320, 40, Math.PI, 0)
+            ctx.fill()
+
+            // Verification Checkmark icon
+            ctx.fillStyle = '#05DF72'
+            ctx.beginPath()
+            ctx.arc(350, 230, 12, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.strokeStyle = '#ffffff'
+            ctx.lineWidth = 2.5
+            ctx.beginPath()
+            ctx.moveTo(345, 230)
+            ctx.lineTo(349, 234)
+            ctx.lineTo(356, 226)
+            ctx.stroke()
+
+            // "EVENT CREW" equivalent -> "OFFICIAL PARTNER" label
+            ctx.fillStyle = '#05DF72'
+            ctx.fillRect(200, 385, 200, 28)
+            ctx.fillStyle = '#ffffff'
+            ctx.font = '900 11px sans-serif'
+            ctx.textAlign = 'center'
+            ctx.fillText('OFFICIAL PARTNER', 300, 403)
+
+            // Large Uppercase Name (Inspired by "JOHN" in reference)
+            ctx.fillStyle = '#0f172a'
+            ctx.font = '900 48px sans-serif'
+            ctx.textAlign = 'center'
+            ctx.fillText(affiliate.name.toUpperCase(), 300, 470)
+
+            // Sub-title
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.6)'
+            ctx.font = 'bold 12px sans-serif'
+            ctx.fillText('GoCycle Ambassador Network', 300, 495)
+
+            // Referral Code Section (Clean white card box with black border)
+            ctx.fillStyle = '#ffffff'
+            ctx.fillRect(170, 540, 260, 65)
+            ctx.strokeStyle = '#0f172a'
+            ctx.lineWidth = 2
+            ctx.strokeRect(170, 540, 260, 65)
+
+            ctx.fillStyle = '#0f172a'
+            ctx.font = 'bold 10px monospace'
+            ctx.fillText('REFERRAL CODE', 300, 560)
+            ctx.fillStyle = '#05DF72'
+            ctx.font = '900 26px monospace'
+            ctx.fillText(referralCode, 300, 592)
+
+            // Link section
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.5)'
+            ctx.font = 'bold 10px monospace'
+            ctx.fillText('SHAREABLE SIGN-UP LINK:', 300, 680)
+
+            ctx.fillStyle = '#0f172a'
+            ctx.font = 'bold 13px monospace'
+            ctx.fillText(referralLink, 300, 705)
+
+            // Barcode Pattern at the bottom
+            const barcodeX = 180
+            const barcodeY = 750
+            const barcodeHeight = 35
+            const barcodePattern = [2, 4, 1, 3, 2, 1, 4, 2, 3, 1, 2, 4, 1, 2, 3, 1, 4, 2, 2, 1, 3, 4, 1, 2, 3, 1, 2, 4]
+            let currentX = barcodeX
+            barcodePattern.forEach((width, index) => {
+                ctx.fillStyle = index % 2 === 0 ? '#0f172a' : 'rgba(5, 223, 114, 0.15)'
+                ctx.fillRect(currentX, barcodeY, width * 3, barcodeHeight)
+                currentX += width * 3 + 2
+            })
+
+            // Footer tagline
+            ctx.fillStyle = '#05DF72'
+            ctx.font = 'black 11px sans-serif'
+            ctx.fillText('RECYCLE. EARN. SUSTAIN.', 300, 815)
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.4)'
+            ctx.font = 'normal 9px sans-serif'
+            ctx.fillText('This digital ID is a verified ambassador token of GoCycle.ng.', 300, 840)
+            ctx.fillText('All transactions made using this code generate active rewards.', 300, 855)
+
+            // Save and download
+            const imgURL = canvas.toDataURL('image/png')
+            const downloadLink = document.createElement('a')
+            downloadLink.href = imgURL
+            downloadLink.download = `GoCycle_Partner_${affiliate.name.replace(/\s+/g, '_')}_ID.png`
+            document.body.appendChild(downloadLink)
+            downloadLink.click()
+            document.body.removeChild(downloadLink)
+            toast.success('Professional ID Card downloaded!')
+        }
+    }
+
     const handleLogout = async () => {
         await logoutAffiliate()
         router.push('/affiliate')
@@ -141,7 +390,7 @@ export default function AffiliateDashboard() {
     const statCards = [
         { label: 'Wallet Balance', value: `₦${stats.walletBalance.toLocaleString()}`, icon: Wallet, color: 'emerald', sub: 'Available for immediate payout' },
         { label: 'Total Earned', value: `₦${stats.totalEarned.toLocaleString()}`, icon: TrendingUp, color: 'blue', sub: 'All-time earned commissions' },
-        { label: 'Total Referrals', value: stats.referralCount, icon: Users, color: 'purple', sub: 'Registered referred buyers' },
+        { label: 'Total Referrals', value: stats.referralCount, icon: Users, color: 'purple', sub: 'Registered referred sellers' },
         { label: 'Pending Commission', value: `₦${stats.pendingEarnings.toLocaleString()}`, icon: DollarSign, color: 'amber', sub: 'Awaiting order completion' },
     ]
 
@@ -286,6 +535,18 @@ export default function AffiliateDashboard() {
                                 </div>
                             </div>
 
+                            {/* ID Card Banner */}
+                            <div className="bg-white border border-slate-200 rounded-sm p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div>
+                                    <h3 className="text-slate-900 font-semibold text-xs sm:text-sm">Official Partner ID Card</h3>
+                                    <p className="text-slate-500 text-[11px] sm:text-xs mt-1">Get your verified digital ID card and share it on social media to promote your referral code.</p>
+                                </div>
+                                <button onClick={() => setShowIDCardModal(true)}
+                                    className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center gap-1.5 bg-slate-950 hover:bg-slate-800 text-white font-semibold text-xs uppercase tracking-wider px-4 py-2.5 rounded-sm transition-colors border border-transparent">
+                                    <CreditCard size={14} /> View ID Card
+                                </button>
+                            </div>
+
                             {/* Quick Payout Callout */}
                             <div className="bg-white border border-slate-200 rounded-sm p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div>
@@ -312,13 +573,13 @@ export default function AffiliateDashboard() {
                         <div className="bg-white border border-slate-200 rounded-sm overflow-hidden">
                             <div className="px-6 py-4 border-b border-slate-150">
                                 <h2 className="text-slate-900 font-semibold text-sm">Commissions History</h2>
-                                <p className="text-slate-500 text-xs mt-0.5">Commissions are calculated as 2.5% of buyer orders and released on order completion</p>
+                                <p className="text-slate-500 text-xs mt-0.5">Commissions are calculated as 2.5% of referred seller orders and released on order completion</p>
                             </div>
                             {earnings.length === 0 ? (
                                 <div className="p-12 text-center space-y-2">
                                     <TrendingUp className="text-slate-300 mx-auto" size={32} />
                                     <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">No earnings recorded</p>
-                                    <p className="text-slate-500 text-xs">Share your referral link to refer active e-waste buyers and earn commission.</p>
+                                    <p className="text-slate-500 text-xs">Share your referral link to refer active battery sellers and earn commission.</p>
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
@@ -499,6 +760,142 @@ export default function AffiliateDashboard() {
                                 </form>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* ID Card Modal */}
+            {showIDCardModal && (
+                <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white border border-slate-200 rounded-md p-6 sm:p-8 w-full max-w-sm sm:max-w-md shadow-2xl relative my-8 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-slate-900 font-bold text-sm uppercase tracking-wider">Partner Identity Card</h3>
+                            <button onClick={() => setShowIDCardModal(false)} className="text-slate-400 hover:text-slate-600 p-1 border border-slate-200 rounded-sm bg-white hover:bg-slate-50">
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        {/* ID Card HTML Display */}
+                        <div className="relative w-full max-w-[320px] mx-auto bg-white border border-slate-200 rounded-sm overflow-hidden p-6 text-center shadow-xl space-y-6 select-none min-h-[460px]">
+                            {/* Geometric Accents */}
+                            {/* Top-Right green gradient circle/arc */}
+                            <div className="absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-br from-[#05DF72] to-[#029e4f] rounded-full z-0"></div>
+                            
+                            {/* Bottom-Left dark slate arc with green border */}
+                            <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-[#0f172a] rounded-full border-4 border-[#05DF72] z-0"></div>
+
+                            {/* Dot Grids */}
+                            <div className="absolute top-20 left-4 grid grid-cols-5 gap-1 opacity-20 text-slate-900 pointer-events-none">
+                                {Array.from({ length: 25 }).map((_, i) => (
+                                    <div key={i} className="w-1 h-1 bg-current rounded-full" />
+                                ))}
+                            </div>
+                            <div className="absolute bottom-28 right-4 grid grid-cols-6 gap-1 opacity-35 text-[#05DF72] pointer-events-none">
+                                {Array.from({ length: 36 }).map((_, i) => (
+                                    <div key={i} className="w-1 h-1 bg-current rounded-full" />
+                                ))}
+                            </div>
+
+                            {/* Abstract Triangles & Waves */}
+                            <div className="absolute top-[32%] left-[6%] w-0 h-0 border-t-[8px] border-t-transparent border-l-[16px] border-l-[#05DF72] border-b-[8px] border-b-transparent transform rotate-[15deg] pointer-events-none"></div>
+                            <div className="absolute top-[28%] right-[25%] w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-slate-200 border-b-[10px] border-b-transparent transform -rotate-[45deg] pointer-events-none"></div>
+                            
+                            <svg className="absolute top-[48%] left-[8%] w-8 h-2 text-slate-900 opacity-20 pointer-events-none" viewBox="0 0 40 10" fill="none">
+                                <path d="M0,5 Q10,0 20,5 T40,5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                            </svg>
+                            <svg className="absolute top-[42%] right-[8%] w-8 h-2 text-[#05DF72] opacity-60 pointer-events-none" viewBox="0 0 40 10" fill="none">
+                                <path d="M0,5 Q10,0 20,5 T40,5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                            </svg>
+
+                            {/* Header Logo */}
+                            <div className="pt-2 flex flex-col items-center justify-center relative z-10">
+                                <Image 
+                                    src={assets.gs_logo} 
+                                    alt="GoCycle" 
+                                    width={110} 
+                                    height={28} 
+                                    className="h-5 w-auto object-contain mx-auto filter brightness-95"
+                                />
+                                <span className="text-slate-400 text-[8px] font-mono tracking-wider uppercase mt-2 block">
+                                    EST. 2026 • DIGITAL OFFICIAL ID
+                                </span>
+                            </div>
+
+                            {/* Circular avatar with double border and badge */}
+                            <div className="relative w-28 h-28 mx-auto rounded-full border-2 border-slate-900 p-1 bg-white shadow-sm z-10">
+                                <div className="relative w-full h-full rounded-full border-2 border-[#05DF72] bg-[#05DF72]/5 flex items-center justify-center overflow-hidden">
+                                    <div className="absolute inset-0.5 rounded-full bg-[#05DF72]/10 flex flex-col justify-end items-center">
+                                        <div className="w-7 h-7 rounded-full bg-[#0f172a] mb-1"></div>
+                                        <div className="w-14 h-8 rounded-t-full bg-[#0f172a]"></div>
+                                    </div>
+                                </div>
+                                {/* Verified Check Badge */}
+                                <div className="absolute top-2 right-2 w-6 h-6 bg-[#05DF72] rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                                    <svg className="w-3.5 h-3.5 text-white stroke-[3.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Name & Title */}
+                            <div className="space-y-1 relative z-10">
+                                {/* Partner Label (event crew style pill) */}
+                                <div className="inline-block bg-[#05DF72] text-white text-[9px] font-black tracking-widest uppercase px-3 py-1 rounded-sm mb-1">
+                                    OFFICIAL PARTNER
+                                </div>
+                                <h4 className="text-[#0f172a] font-black text-2xl tracking-tight uppercase truncate max-w-full px-2">
+                                    {affiliate.name}
+                                </h4>
+                                <span className="text-slate-550 text-[9px] font-semibold tracking-wider block">
+                                    GoCycle Ambassador Network
+                                </span>
+                            </div>
+
+                            {/* Referral Code Container */}
+                            <div className="bg-white border-2 border-slate-900 rounded-sm py-2 px-4 max-w-[200px] mx-auto shadow-sm relative z-10">
+                                <span className="text-slate-400 text-[7px] font-mono tracking-wider block uppercase mb-0.5">Referral Code</span>
+                                <span className="text-[#05DF72] font-mono font-black text-lg tracking-widest">{referralCode}</span>
+                            </div>
+
+                            {/* Fake Barcode */}
+                            <div className="flex items-center justify-center gap-[1.5px] h-6 opacity-85 pointer-events-none relative z-10">
+                                {[2, 4, 1, 3, 2, 1, 4, 2, 3, 1, 2, 4, 1, 2, 3, 1, 4, 2, 2, 1, 3, 4, 1, 2, 3].map((val, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        style={{ width: `${val}px` }} 
+                                        className={`h-full ${idx % 2 === 0 ? 'bg-slate-900' : 'bg-[#05DF72]/15'}`}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Referral Link block */}
+                            <div className="space-y-0.5 relative z-10">
+                                <span className="text-slate-400 text-[7px] font-mono uppercase tracking-wider block">Exclusive Sign-Up Link</span>
+                                <span className="text-slate-800 text-[9px] font-mono truncate block max-w-full px-4">{referralLink}</span>
+                            </div>
+
+                            {/* Footer slogans */}
+                            <div className="pt-2 border-t border-slate-100 relative z-10">
+                                <p className="text-[#05DF72] text-[9px] font-extrabold uppercase tracking-widest">Recycle. Earn. Sustain.</p>
+                                <span className="text-slate-400 text-[6px] block mt-0.5">Powered by GoCycle.ng • E-waste Revolution</span>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                            <button
+                                onClick={handleDownloadIDCard}
+                                className="w-full flex items-center justify-center gap-2 bg-[#05DF72] hover:bg-[#04c865] text-slate-950 font-bold py-3 px-4 rounded-sm text-xs uppercase tracking-wider shadow-md transition-colors"
+                            >
+                                <Download size={14} /> Download Card Image
+                            </button>
+                            <button
+                                onClick={() => setShowIDCardModal(false)}
+                                className="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold py-3 px-4 rounded-sm text-xs uppercase tracking-wider shadow-sm transition-colors"
+                            >
+                                Close Preview
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

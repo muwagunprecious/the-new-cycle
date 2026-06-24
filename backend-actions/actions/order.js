@@ -412,14 +412,18 @@ export async function verifyOrderCollection(orderId, token) {
 
         // ─── Affiliate Commission Hook ────────────────────────────────────────
         try {
-            const referralCode = order.user?.referredByCode
-            if (referralCode && order.buyerFee > 0) {
+            const sellerStore = await prisma.store.findUnique({
+                where: { id: order.storeId },
+                include: { user: true }
+            })
+            const referralCode = sellerStore?.user?.referredByCode
+            if (referralCode && order.sellerFee > 0) {
                 const affiliate = await prisma.affiliate.findUnique({
                     where: { referralCode },
                     select: { id: true, status: true, name: true }
                 })
                 if (affiliate && affiliate.status === 'active') {
-                    const commission = Math.round(order.buyerFee * 0.5)
+                    const commission = Math.round(order.sellerFee * 0.5)
                     const alreadyCredited = await prisma.affiliateEarning.findUnique({ where: { orderId: order.id } })
                     if (!alreadyCredited) {
                         await prisma.$transaction([
@@ -442,7 +446,7 @@ export async function verifyOrderCollection(orderId, token) {
                                 }
                             })
                         ])
-                        logger.info(`[AFFILIATE] Credited ₦${commission} to ${affiliate.name} for order ${order.id}`)
+                        logger.info(`[AFFILIATE] Credited ₦${commission} to ${affiliate.name} for referred seller order ${order.id}`)
                     }
                 }
             }

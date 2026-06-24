@@ -492,24 +492,20 @@ const handleAutoLogin = async (dbUser) => {
     const [showPassword, setShowPassword] = useState(false)
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
-            {/* Background Decorative Elements */}
-            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[150px] -mr-60 -mt-40 -z-0 animate-pulse"></div>
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] -ml-20 -mb-20 -z-0"></div>
+        <div className="min-h-screen bg-[#080b11] flex items-center justify-center p-6 relative overflow-hidden">
+            <div className="w-full max-w-xl relative z-10">
+                <div id="signup-form-card" className="bg-[#0c101b] rounded-sm p-8 sm:p-12 border border-slate-800 shadow-xl relative">
 
-            <div className="w-full max-w-2xl relative z-10">
-                <div className="bg-white rounded-[32px] sm:rounded-[40px] p-8 sm:p-14 border border-black/[0.04] shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
-
-                    <div className="text-center mb-12">
-                        <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-emerald-100 rotate-3">
-                            <ZapIcon className="text-emerald-500" size={40} />
+                    <div className="text-center mb-8">
+                        <div className="w-12 h-12 bg-slate-800 border border-slate-700 rounded-sm flex items-center justify-center mx-auto mb-4">
+                            <ZapIcon className="text-[#05DF72]" size={20} fill="currentColor" fillOpacity={0.2} />
                         </div>
-                        <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mb-2 tracking-tight">
+                        <h1 className="text-xl font-bold text-white mb-1.5 tracking-tight">
                             {step === 'IDENTITY_VERIFY' ? (formData.role === 'SELLER' ? 'Join as Seller' : 'Join as Buyer') :
                                 step === 'REGISTER' ? (formData.role === 'SELLER' ? 'Join as Seller' : 'Join as Buyer') :
-                                    'Secure Verification'}
+                                    step === 'CHOOSE_ROLE' ? 'Create Account' : 'Secure Verification'}
                         </h1>
-                        <p className="text-slate-500 font-medium">
+                        <p className="text-slate-400 font-medium text-xs">
                             {step === 'CHOOSE_ROLE' ? 'Please select your role to continue' :
                                 step === 'IDENTITY_VERIFY' ? 'Verify your identity to begin your journey' :
                                     step === 'REGISTER' ? 'Complete your registration details' :
@@ -518,28 +514,27 @@ const handleAutoLogin = async (dbUser) => {
                     </div>
 
                     {step === 'CHOOSE_ROLE' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
-                            <div className="bg-emerald-50/50 border border-emerald-500/10 p-8 rounded-[32px] text-center">
-                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 block mb-6">Choose Your Path</label>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+                            <div className="bg-[#111625] border border-slate-800 p-6 rounded-sm text-center">
+                                <label className="text-[9px] font-semibold uppercase tracking-wider text-[#05DF72] block mb-4">Choose Your Path</label>
 
-                                <div className="relative max-w-sm mx-auto group">
-                                    <div className="absolute inset-x-0 -top-px -bottom-px bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div className="relative max-w-xs mx-auto group">
                                     <div className="relative">
-                                        <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-500" size={20} />
+                                        <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                         <select
-                                            className="w-full bg-white border-2 border-emerald-500/20 rounded-2xl py-5 pl-14 pr-12 outline-none transition-all focus:border-emerald-500 focus:shadow-xl focus:shadow-emerald-500/10 font-bold text-slate-900 text-lg appearance-none cursor-pointer"
+                                            className="w-full bg-[#111625] border border-slate-700 rounded-sm py-2.5 pl-9 pr-10 outline-none transition-all focus:border-[#05DF72] text-white text-xs appearance-none cursor-pointer"
                                             value={formData.role}
                                             onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
                                         >
-                                            <option value="" disabled>-- Select Role --</option>
-                                            <option value="BUYER">Buyer</option>
-                                            <option value="SELLER">Seller</option>
+                                            <option value="" disabled className="bg-[#111625]">-- Select Role --</option>
+                                            <option value="BUYER" className="bg-[#111625]">Buyer</option>
+                                            <option value="SELLER" className="bg-[#111625]">Seller</option>
                                         </select>
-                                        <ChevronDownIcon className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none" size={20} />
+                                        <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={13} />
                                     </div>
                                 </div>
 
-                                <p className="mt-6 text-sm text-slate-500 font-medium px-4">
+                                <p className="mt-4 text-xs text-slate-400 font-medium px-4">
                                     {formData.role === 'BUYER' ? 'Start buying verified batteries and contribute to the circular economy.' :
                                         formData.role === 'SELLER' ? 'List your inventory, manage sales, and grow your battery business.' :
                                             'Select whether you want to buy or sell batteries on Nigeria\'s largest network.'}
@@ -552,15 +547,15 @@ const handleAutoLogin = async (dbUser) => {
                                     if (formData.role === 'SELLER') setStep('REGISTER')
                                     else setStep('IDENTITY_VERIFY')
                                 }}
-                                className="w-full !py-6 !rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-md font-black uppercase tracking-widest"
+                                className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors mt-2"
                                 disabled={!formData.role}
                             >
                                 Continue Registration
                             </Button>
 
-                            <div className="pt-8 border-t border-black/[0.04] text-center font-medium text-slate-500 text-sm">
+                            <div className="pt-6 border-t border-slate-800 text-center font-medium text-slate-400 text-xs">
                                 Already have an account? {' '}
-                                <Link href="/login" className="text-emerald-600 font-bold hover:underline underline-offset-4 decoration-emerald-500/30">
+                                <Link href="/login" className="text-[#05DF72] font-semibold hover:underline">
                                     Log In
                                 </Link>
                             </div>
@@ -568,32 +563,32 @@ const handleAutoLogin = async (dbUser) => {
                     )}
 
                     {step === 'IDENTITY_VERIFY' && (
-                        <form className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500" onSubmit={verifyType === 'NIN' ? handleNINVerify : handleCACVerify}>
+                        <form className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-500" onSubmit={verifyType === 'NIN' ? handleNINVerify : handleCACVerify}>
                             {/* Name Fields (moved to top as per request) */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">First Name</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">First Name</label>
                                     <div className="relative group">
-                                        <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                        <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                         <input
                                             required
                                             type="text"
                                             placeholder="John"
-                                            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-lg placeholder:text-slate-400"
+                                            className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all placeholder:text-slate-600"
                                             value={formData.firstName}
                                             onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Last Name</label>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Last Name</label>
                                     <div className="relative group">
-                                        <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                        <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                         <input
                                             required
                                             type="text"
                                             placeholder="Doe"
-                                            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-lg placeholder:text-slate-400"
+                                            className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all placeholder:text-slate-600"
                                             value={formData.lastName}
                                             onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                         />
@@ -602,41 +597,40 @@ const handleAutoLogin = async (dbUser) => {
                             </div>
 
                             {/* Verification Type Dropdown (moved below names) */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Verification Method</label>
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Verification Method</label>
                                 <div className="relative group">
-                                    <ShieldCheckIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                    <ShieldCheckIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                     <select
-                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-lg appearance-none cursor-pointer"
+                                        className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-10 outline-none transition-all text-white text-xs appearance-none cursor-pointer"
                                         value={verifyType}
                                         onChange={(e) => setVerifyType(e.target.value)}
                                     >
-                                        <option value="NIN">NIN — National Identity Number</option>
-                                        <option value="CAC">CAC — Business Registration</option>
+                                        <option value="NIN" className="bg-[#111625]">NIN — National Identity Number</option>
+                                        <option value="CAC" className="bg-[#111625]">CAC — Business Registration</option>
                                     </select>
-                                    <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+                                    <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={13} />
                                 </div>
                             </div>
 
                             {/* NIN-specific field */}
                             {verifyType === 'NIN' && (
-                                <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">National Identity Number (NIN)</label>
+                                <div className="space-y-1 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">National Identity Number (NIN)</label>
                                     <div className="relative group">
-                                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                        <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                         <input
                                             required
                                             type="text"
                                             maxLength={11}
                                             placeholder="12345678901"
-                                            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-5 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-xl tracking-[0.2em] placeholder:text-slate-400 placeholder:tracking-normal"
+                                            className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all tracking-[0.2em] placeholder:tracking-normal placeholder:text-slate-600"
                                             value={formData.nin}
                                             onChange={(e) => setFormData({ ...formData, nin: e.target.value.replace(/\D/g, '') })}
                                         />
                                     </div>
-                                    <p className="text-[10px] text-slate-400 ml-2 font-medium">
+                                    <p className="text-[9px] text-slate-500 font-medium">
                                         Verify your identity instantly via NIMC.
-                                        <span className="text-emerald-500 ml-1"></span>
                                     </p>
                                 </div>
                             )}
@@ -644,37 +638,37 @@ const handleAutoLogin = async (dbUser) => {
                             {/* CAC-specific fields */}
                             {verifyType === 'CAC' && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">RC / BN / IT Number</label>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">RC / BN / IT Number</label>
                                         <div className="relative group">
-                                            <BuildingIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                            <BuildingIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                             <input
                                                 required
                                                 type="text"
                                                 placeholder="RC1234567"
-                                                className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-5 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-xl tracking-[0.1em] placeholder:text-slate-400 placeholder:tracking-normal"
+                                                className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all tracking-[0.1em] placeholder:tracking-normal placeholder:text-slate-600"
                                                 value={formData.cacNumber}
                                                 onChange={(e) => setFormData({ ...formData, cacNumber: e.target.value })}
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Company Name</label>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Company Name</label>
                                         <div className="relative group">
-                                            <BuildingIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                            <BuildingIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                             <input
                                                 required
                                                 type="text"
                                                 placeholder="Input your company name"
-                                                className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-5 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 text-lg placeholder:text-slate-400"
+                                                className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all placeholder:text-slate-600"
                                                 value={formData.businessName}
                                                 onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                                             />
                                         </div>
                                     </div>
                                     
-                                    <p className="text-[10px] text-slate-400 ml-2 font-medium">
+                                    <p className="text-[9px] text-slate-500 font-medium">
                                         Verify your business registration via CAC.
                                     </p>
                                 </div>
@@ -683,67 +677,65 @@ const handleAutoLogin = async (dbUser) => {
                                 type="submit"
                                 loading={isLoading}
                                 loadingText="VERIFYING..."
-                                className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm font-black uppercase tracking-widest"
+                                className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors mt-2"
                             >
                                 Verify Information
                             </Button>
 
-                            <div className="pt-8 border-t border-black/[0.04]">
-                                <p className="text-center text-slate-500 font-medium text-sm">
-                                    Already have an account? {' '}
-                                    <Link href="/login" className="text-emerald-600 font-bold hover:text-emerald-500 transition-colors border-b-2 border-emerald-500/20 hover:border-emerald-500">
-                                        Log In
-                                    </Link>
-                                </p>
+                            <div className="pt-6 border-t border-slate-800 text-center font-medium text-slate-400 text-xs">
+                                Already have an account? {' '}
+                                <Link href="/login" className="text-[#05DF72] font-semibold hover:underline">
+                                    Log In
+                                </Link>
                             </div>
                         </form>
                     )}
 
                     {/* Step 1: Registration Form */}
                     {step === 'REGISTER' && (
-                        <form className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500" onSubmit={handleSubmit}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center ml-2">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Full Name</label>
+                        <form className="space-y-4 animate-in fade-in slide-in-from-right-8 duration-500" onSubmit={handleSubmit}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <div className="flex justify-between items-center">
+                                        <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Full Name</label>
                                         {(formData.nin || formData.cacNumber) && (
-                                            <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                                                <ShieldCheckIcon size={10} /> {formData.nin ? 'NIN' : 'CAC'} Verified
+                                            <span className="flex items-center gap-1 text-[8px] font-bold text-[#05DF72] uppercase tracking-wider bg-[#05DF72]/10 border border-[#05DF72]/20 px-1.5 py-0.5 rounded-sm">
+                                                <ShieldCheckIcon size={9} /> {formData.nin ? 'NIN' : 'CAC'} Verified
                                             </span>
                                         )}
                                     </div>
                                     <div className="relative group">
-                                        <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                        <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                         <input
                                             required
                                             type="text"
                                             readOnly={formData.role === 'BUYER'} // Only readOnly for verified buyers
                                             placeholder="John Doe"
-                                            className={`w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400 ${formData.role === 'BUYER' ? 'cursor-default' : 'cursor-text'}`}
+                                            className={`w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all placeholder:text-slate-600 ${formData.role === 'BUYER' ? 'cursor-default opacity-85' : 'cursor-text'}`}
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         />
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center ml-2">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Phone Number</label>
+                                <div className="space-y-1">
+                                    <div className="flex justify-between items-center">
+                                        <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Phone Number</label>
                                         {isPhoneVerified && (
-                                            <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                                                <ShieldCheckIcon size={10} /> Verified
+                                            <span className="flex items-center gap-1 text-[8px] font-bold text-[#05DF72] uppercase tracking-wider bg-[#05DF72]/10 border border-[#05DF72]/20 px-1.5 py-0.5 rounded-sm">
+                                                <ShieldCheckIcon size={9} /> Verified
                                             </span>
                                         )}
                                     </div>
                                     <div className="relative group flex items-center gap-2">
                                         <div className="relative flex-1">
-                                            <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                            <PhoneIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                             <input
                                                 required
                                                 type="tel"
                                                 readOnly={isPhoneVerified}
                                                 placeholder="+234 803-0818-868"
-                                                className={`w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-bold text-slate-950 tracking-wider placeholder:text-slate-400 ${isPhoneVerified ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                className={`w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all tracking-wider placeholder:text-slate-600 ${isPhoneVerified ? 'opacity-60 cursor-not-allowed' : ''}`}
                                                 value={formData.whatsapp}
                                                 onChange={handleWhatsAppChange}
                                             />
@@ -752,7 +744,7 @@ const handleAutoLogin = async (dbUser) => {
                                             <button
                                                 type="button"
                                                 onClick={handleInitiatePhoneVerify}
-                                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-4 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
+                                                className="bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 px-3 py-2.5 rounded-sm font-semibold text-[9px] uppercase tracking-wider transition-all h-[38px] flex items-center justify-center shrink-0"
                                             >
                                                 Verify
                                             </button>
@@ -760,13 +752,13 @@ const handleAutoLogin = async (dbUser) => {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Gender</label>
-                                    <div className="flex gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Gender</label>
+                                    <div className="flex gap-3">
                                         {['Male', 'Female'].map((g) => (
-                                            <label key={g} className={`flex-1 flex items-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${formData.gender === g ? 'bg-emerald-50 border-emerald-500/30 text-emerald-700 shadow-sm' : 'bg-slate-50 border-black/[0.04] text-slate-500 hover:bg-white hover:shadow-sm'}`}>
-                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${formData.gender === g ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300'}`}>
-                                                    {formData.gender === g && <div className="w-2 h-2 rounded-full bg-white shadow-sm" />}
+                                            <label key={g} className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-sm border transition-all cursor-pointer ${formData.gender === g ? 'bg-[#05DF72]/10 border-[#05DF72]/30 text-white shadow-sm' : 'bg-[#111625] border-slate-700 text-slate-400 hover:bg-[#111625]/80 hover:text-white'}`}>
+                                                <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-all ${formData.gender === g ? 'border-[#05DF72] bg-[#05DF72]' : 'border-slate-500'}`}>
+                                                    {formData.gender === g && <div className="w-1.5 h-1.5 rounded-full bg-[#0c101b] shadow-sm" />}
                                                 </div>
                                                 <input
                                                     type="radio"
@@ -777,7 +769,7 @@ const handleAutoLogin = async (dbUser) => {
                                                     checked={formData.gender === g}
                                                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                                                 />
-                                                <span className="text-sm font-bold uppercase tracking-widest text-slate-950">{g}</span>
+                                                <span className="text-[10px] font-semibold uppercase tracking-wider">{g}</span>
                                             </label>
                                         ))}
                                     </div>
@@ -790,13 +782,13 @@ const handleAutoLogin = async (dbUser) => {
                                     onLgaChange={(lga) => setFormData({ ...formData, lga })}
                                 />
 
-                                <div className="space-y-2 col-span-full">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Full Address</label>
+                                <div className="space-y-1 col-span-full">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Full Address</label>
                                     <textarea
                                         required
                                         placeholder="Enter your street address, building number, and landmark..."
                                         rows={2}
-                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 px-6 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400 resize-none"
+                                        className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 px-4 outline-none transition-all text-white text-xs placeholder:text-slate-600 resize-none"
                                         value={formData.address}
                                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                     />
@@ -806,14 +798,14 @@ const handleAutoLogin = async (dbUser) => {
 
                             {/* Business Name for Sellers */}
                             {formData.role === 'SELLER' && (
-                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Business Name (Optional)</label>
+                                <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Business Name (Optional)</label>
                                     <div className="relative group">
-                                        <BuildingIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                        <BuildingIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                         <input
                                             type="text"
                                             placeholder="Your business name"
-                                            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400"
+                                            className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all placeholder:text-slate-600"
                                             value={formData.businessName}
                                             onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                                         />
@@ -821,53 +813,53 @@ const handleAutoLogin = async (dbUser) => {
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Email (Optional)</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Email (Optional)</label>
                                     <div className="relative group">
-                                        <MailIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                        <MailIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                         <input
                                             type="email"
                                             placeholder="you@example.com"
-                                            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400"
+                                            className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all placeholder:text-slate-600"
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         />
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Create Password</label>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Create Password</label>
                                     <div className="relative group">
-                                        <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                        <LockIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                         <input
                                             required
                                             type={showPassword ? "text" : "password"}
                                             placeholder="••••••••"
-                                            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400"
+                                            className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-10 text-white text-xs outline-none transition-all placeholder:text-slate-600"
                                             value={formData.password}
                                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
                                         >
-                                            {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                                            {showPassword ? <EyeOffIcon size={13} /> : <EyeIcon size={13} />}
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            {formData.role === 'BUYER' && (
-                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Referral Code (Optional)</label>
+                            {formData.role === 'SELLER' && (
+                                <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Referral Code (Optional)</label>
                                     <div className="relative group">
-                                        <ZapIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                        <ZapIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                         <input
                                             type="text"
                                             placeholder="GCY-AFF-XXXXXX"
-                                            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400 uppercase"
+                                            className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all placeholder:text-slate-600 uppercase"
                                             value={formData.referralCode}
                                             onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })}
                                         />
@@ -879,38 +871,38 @@ const handleAutoLogin = async (dbUser) => {
                                 type="submit"
                                 loading={isLoading}
                                 loadingText="INITIALIZING SECURITY..."
-                                className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm"
+                                className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors mt-2"
                             >
                                 {formData.role === 'SELLER' ? 'JOIN AS SELLER' : 'JOIN AS BUYER'}
                             </Button>
 
-                            <div className="pt-8 border-t border-black/[0.04]">
+                            <div className="pt-6 border-t border-slate-800">
                                 {formData.role !== 'SELLER' ? (
-                                    <div className="bg-emerald-50 border border-emerald-100 p-8 rounded-[32px] flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group/banner shadow-sm">
+                                    <div className="bg-[#111625] border border-slate-800 p-6 rounded-sm flex flex-col md:flex-row items-center justify-between gap-4 overflow-hidden relative group/banner shadow-sm">
                                         <div className="relative z-10">
-                                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em] mb-2">Grow with us</p>
-                                            <h3 className="text-xl font-bold text-slate-950">Are you a merchant?</h3>
-                                            <p className="text-slate-600 text-xs mt-2 font-medium">Join Nigeria's largest battery recycling network.</p>
+                                            <p className="text-[8px] font-bold text-[#05DF72] uppercase tracking-wider mb-1">Grow with us</p>
+                                            <h3 className="text-base font-bold text-white">Are you a merchant?</h3>
+                                            <p className="text-slate-400 text-xs mt-1 font-medium">Join Nigeria's largest battery recycling network.</p>
                                         </div>
                                         <Link
                                             href="/signup?role=SELLER&redirect=/create-store"
-                                            className="relative z-10 bg-white text-slate-950 px-8 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all shadow-sm border border-black/[0.04]"
+                                            className="relative z-10 bg-[#05DF72] text-slate-950 hover:bg-[#04c865] px-4 py-2.5 rounded-sm font-semibold text-[9px] uppercase tracking-wider transition-colors shrink-0"
                                         >
                                             JOIN AS SELLER
                                         </Link>
                                     </div>
                                 ) : (
                                     <div className="text-center">
-                                        <Link href="/signup?role=BUYER" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-emerald-500 transition-all flex items-center justify-center gap-2">
+                                        <Link href="/signup?role=BUYER" className="text-[9px] font-semibold text-[#05DF72] uppercase tracking-wider hover:underline flex items-center justify-center gap-2">
                                             ← Switch to a Buyer Account
                                         </Link>
                                     </div>
                                 )}
                             </div>
 
-                            <p className="text-center text-slate-500 font-medium text-sm pt-4">
+                            <p className="text-center text-slate-400 font-medium text-xs pt-2">
                                 Already part of the movement? {' '}
-                                <Link href="/login" className="text-emerald-600 font-bold hover:text-emerald-500 transition-colors border-b-2 border-emerald-500/20 hover:border-emerald-500">
+                                <Link href="/login" className="text-[#05DF72] font-semibold hover:underline">
                                     Secure Log In
                                 </Link>
                             </p>
@@ -919,18 +911,18 @@ const handleAutoLogin = async (dbUser) => {
 
                     {/* Step 2: Verification Form */}
                     {step === 'VERIFY_EMAIL' && (
-                        <form className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500" onSubmit={handleVerifyEmail}>
+                        <form className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500" onSubmit={handleVerifyEmail}>
                             <div className="text-center">
-                                <div className="w-24 h-24 bg-emerald-50 rounded-[24px] flex items-center justify-center mx-auto mb-8 border border-emerald-100 shadow-sm">
-                                    <ShieldCheckIcon className="text-emerald-500" size={48} />
+                                <div className="w-12 h-12 bg-slate-800 border border-slate-700 rounded-sm flex items-center justify-center mx-auto mb-4">
+                                    <ShieldCheckIcon className="text-[#05DF72]" size={20} />
                                 </div>
-                                <p className="text-slate-700 font-semibold text-base">
+                                <p className="text-slate-400 font-medium text-xs">
                                     Code sent to
                                 </p>
-                                <p className="text-slate-950 font-black text-lg tracking-wider mt-1">
+                                <p className="text-white font-bold text-sm tracking-wider mt-1">
                                     {formData.whatsapp}
                                 </p>
-                                <p className="text-slate-400 text-sm font-medium mt-2">
+                                <p className="text-slate-400 text-xs font-medium mt-1">
                                     Enter the 6-digit code below to activate your account.
                                 </p>
                             </div>
@@ -939,22 +931,22 @@ const handleAutoLogin = async (dbUser) => {
                                 <input
                                     type="text"
                                     inputMode="numeric"
-                                    placeholder="0 0 0 0 0 0"
+                                    placeholder="000000"
                                     autoFocus
-                                    className="text-center text-4xl tracking-[0.5em] w-full max-w-sm py-8 bg-slate-50 border border-black/[0.06] rounded-[2rem] outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:bg-white text-slate-950 font-bold placeholder:text-slate-300 shadow-inner transition-all"
+                                    className="text-center text-xl tracking-[0.4em] w-full max-w-xs py-3 bg-[#111625] border border-slate-700/80 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 text-white font-bold placeholder:text-slate-600 transition-all font-mono"
                                     value={otp}
                                     onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
                                     maxLength={6}
                                 />
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <Button
                                     type="submit"
                                     loading={isLoading}
                                     disabled={otp.length < 6}
                                     loadingText="VERIFYING CODE..."
-                                    className="w-full !py-6 !rounded-[2rem] shadow-xl shadow-emerald-500/10 text-md"
+                                    className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors"
                                 >
                                     VERIFY & ACTIVATE ACCOUNT
                                 </Button>
@@ -965,7 +957,7 @@ const handleAutoLogin = async (dbUser) => {
                                         type="button"
                                         disabled={verifyResendTimer > 0 || isLoading}
                                         onClick={handleResendVerificationCode}
-                                        className="text-[11px] font-bold uppercase tracking-widest text-emerald-600 disabled:text-slate-400 hover:text-emerald-500 transition-colors disabled:cursor-not-allowed"
+                                        className="text-[9px] font-bold uppercase tracking-wider text-[#05DF72] disabled:text-slate-500 hover:text-white transition-colors disabled:cursor-not-allowed"
                                     >
                                         {verifyResendTimer > 0
                                             ? `Resend code in ${verifyResendTimer}s`
@@ -977,7 +969,7 @@ const handleAutoLogin = async (dbUser) => {
                                 <button
                                     type="button"
                                     onClick={() => { setOtp(''); setStep('REGISTER') }}
-                                    className="w-full text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-all uppercase tracking-[0.4em] flex items-center justify-center gap-2"
+                                    className="w-full text-[9px] font-bold text-slate-400 hover:text-white transition-all uppercase tracking-wider flex items-center justify-center gap-2"
                                 >
                                     ← Update Registration Details
                                 </button>
@@ -986,7 +978,7 @@ const handleAutoLogin = async (dbUser) => {
                     )}
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-black/[0.04] text-center">
+                <div className="mt-8 pt-4 border-t border-slate-800 text-center">
                     <button
                         type="button"
                         onClick={async () => {
@@ -1006,49 +998,47 @@ const handleAutoLogin = async (dbUser) => {
                                 console.error("Heartbeat Error:", e);
                             }
                         }}
-                        className="text-[9px] font-bold text-slate-300 hover:text-emerald-500 uppercase tracking-widest transition-all"
+                        className="text-[9px] font-bold text-slate-500 hover:text-[#05DF72] uppercase tracking-widest transition-all"
                     >
                         Diagnostic: Test Server Connection
                     </button>
                 </div>
 
-                <p className="text-center mt-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
-                    <ShieldCheckIcon size={14} className="text-emerald-500/50" /> End-to-End Encryption Enabled
+                <p className="text-center mt-8 text-[9px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                    <ShieldCheckIcon size={12} className="text-[#05DF72]/60" /> End-to-End Encryption Enabled
                 </p>
             </div>
 
             {/* Phone Verification Modal */}
             {isOtpModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-white border border-black/[0.04] rounded-[32px] p-10 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-300">
-                        <div className="text-center space-y-6">
-                            <div className="w-20 h-20 bg-emerald-50 rounded-[24px] flex items-center justify-center mx-auto border border-emerald-100 shadow-sm">
-                                <ShieldCheckIcon className="text-emerald-500" size={40} />
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-[#0c101b] border border-slate-800 rounded-sm p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="text-center space-y-4">
+                            <div className="w-12 h-12 bg-slate-800 border border-slate-700 rounded-sm flex items-center justify-center mx-auto mb-2">
+                                <ShieldCheckIcon className="text-[#05DF72]" size={20} />
                             </div>
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-bold text-slate-950">Verify Phone</h3>
-                                <p className="text-slate-500 text-sm font-medium">
+                            <div className="space-y-1">
+                                <h3 className="text-lg font-bold text-white tracking-tight">Verify Phone</h3>
+                                <p className="text-slate-400 text-xs">
                                     We've sent a 6-digit code to <br />
-                                    <span className="text-slate-950 font-bold">{formData.whatsapp}</span>
+                                    <span className="text-[#05DF72] font-semibold">{formData.whatsapp}</span>
                                 </p>
                             </div>
 
-
-
-                            <div className="space-y-4">
+                            <div className="space-y-4 pt-2">
                                 <input
                                     type="text"
                                     maxLength={6}
                                     placeholder="000000"
-                                    className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-5 text-center text-3xl font-bold text-slate-950 tracking-[0.5em] outline-none focus:border-emerald-500/50 focus:bg-white focus:shadow-sm transition-all placeholder:text-slate-300 shadow-inner"
+                                    className="w-full bg-[#111625] border border-slate-700/80 rounded-sm py-2.5 text-center text-xl font-bold font-mono text-white tracking-[0.4em] outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 transition-all placeholder:text-slate-600"
                                     value={tempOtp}
                                     onChange={(e) => setTempOtp(e.target.value.replace(/\D/g, ''))}
                                 />
-                                <div className="flex gap-4 pt-2">
+                                <div className="flex gap-3 pt-2">
                                     <button
                                         type="button"
                                         onClick={() => setIsOtpModalOpen(false)}
-                                        className="flex-1 px-6 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest text-slate-500 hover:text-slate-950 transition-colors bg-slate-50 hover:bg-slate-100 border border-black/[0.04]"
+                                        className="flex-1 px-4 py-2.5 rounded-sm font-semibold text-[10px] uppercase tracking-wider text-slate-400 hover:text-white transition-colors bg-[#111625] hover:bg-[#111625]/80 border border-slate-700"
                                     >
                                         Cancel
                                     </button>
@@ -1056,7 +1046,7 @@ const handleAutoLogin = async (dbUser) => {
                                         type="button"
                                         onClick={handleConfirmPhoneOTP}
                                         disabled={tempOtp.length !== 6 || isLoading}
-                                        className="flex-[2] bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white px-6 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
+                                        className="flex-[2] bg-[#05DF72] hover:bg-[#04c865] disabled:opacity-50 disabled:hover:bg-[#05DF72] text-slate-950 px-4 py-2.5 rounded-sm font-semibold text-[10px] uppercase tracking-wider transition-all"
                                     >
                                         {isLoading ? 'Verifying...' : 'Confirm Code'}
                                     </button>
@@ -1066,7 +1056,7 @@ const handleAutoLogin = async (dbUser) => {
                                         type="button" 
                                         disabled={resendTimer > 0 || isLoading}
                                         onClick={handleInitiatePhoneVerify}
-                                        className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 disabled:text-slate-400 hover:text-emerald-500 transition-colors"
+                                        className="text-[9px] font-bold uppercase tracking-wider text-[#05DF72] disabled:text-slate-500 hover:text-white transition-colors"
                                     >
                                         {resendTimer > 0 ? `Resend Code in ${resendTimer}s` : 'Resend Code'}
                                     </button>
