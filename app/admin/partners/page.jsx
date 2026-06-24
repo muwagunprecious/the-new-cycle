@@ -129,15 +129,15 @@ export default function AdminPartnersPage() {
                 </button>
             </div>
 
-            <div className="card bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
+            <div className="card bg-white rounded-sm overflow-hidden border border-slate-200 shadow-sm">
                 {isLoading ? (
                     <div className="p-20 text-center flex flex-col items-center gap-4">
                         <Loader2Icon className="animate-spin text-[#05DF72]" size={40} />
                         <p className="text-slate-500 font-medium">Loading partners...</p>
                     </div>
-                ) : partners.length === 0 ? (
+                    ) : partners.length === 0 ? (
                     <div className="p-20 text-center">
-                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                        <div className="w-20 h-20 bg-slate-50 rounded-sm flex items-center justify-center mx-auto mb-6 text-slate-300 border border-slate-200">
                             <ImageIcon size={40} />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900">No Partners Yet</h3>
@@ -162,7 +162,7 @@ export default function AdminPartnersPage() {
                                 {partners.map((partner) => (
                                     <tr key={partner.id} className="hover:bg-slate-50/50 transition-colors group">
                                         <td className="px-8 py-6">
-                                            <div className="w-20 h-12 bg-slate-50 rounded-lg border border-slate-100 p-2 flex items-center justify-center overflow-hidden">
+                                            <div className="w-20 h-12 bg-slate-50 rounded-sm border border-slate-200 p-2 flex items-center justify-center overflow-hidden">
                                                 <img src={partner.logo} alt={partner.name} className="max-w-full max-h-full object-contain" />
                                             </div>
                                         </td>
@@ -180,16 +180,16 @@ export default function AdminPartnersPage() {
                                             {partner.order}
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${partner.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                                            <span className={`px-3 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border ${partner.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
                                                 {partner.isActive ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-3">
-                                                <button onClick={() => handleOpenModal(partner)} className="p-2 bg-slate-50 text-slate-400 hover:text-[#05DF72] hover:bg-[#05DF72]/5 rounded-lg transition-all">
+                                                <button onClick={() => handleOpenModal(partner)} className="p-2 bg-slate-50 text-slate-400 hover:text-[#05DF72] hover:bg-[#05DF72]/5 rounded-sm transition-all border border-slate-200">
                                                     <Edit3Icon size={18} />
                                                 </button>
-                                                <button onClick={() => handleDelete(partner.id)} className="p-2 bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                                <button onClick={() => handleDelete(partner.id)} className="p-2 bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-sm transition-all border border-slate-200">
                                                     <TrashIcon size={18} />
                                                 </button>
                                             </div>
@@ -205,10 +205,10 @@ export default function AdminPartnersPage() {
             {/* Partner Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-300">
-                        <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                    <div className="bg-white rounded-sm shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-200">
+                        <div className="p-8 border-b border-slate-200 flex items-center justify-between">
                             <h2 className="text-xl font-bold text-slate-900">{editingPartner ? 'Edit' : 'Add'} <span className="text-[#05DF72]">Partner</span></h2>
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400">
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-sm transition-colors text-slate-400 border border-slate-200">
                                 <XIcon size={24} />
                             </button>
                         </div>
@@ -223,14 +223,14 @@ export default function AdminPartnersPage() {
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="e.g. Lagos State Government"
-                                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] font-medium text-sm"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Partner Logo *</label>
                                     <div className="flex items-center gap-4">
-                                        <div className="w-24 h-24 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
+                                        <div className="w-24 h-24 bg-slate-50 rounded-sm border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
                                             {formData.logo ? (
                                                 <>
                                                     <img src={formData.logo} alt="Preview" className="w-full h-full object-contain p-2" />
@@ -263,7 +263,7 @@ export default function AdminPartnersPage() {
                                         value={formData.link}
                                         onChange={e => setFormData({ ...formData, link: e.target.value })}
                                         placeholder="https://partner-website.com"
-                                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] font-medium text-sm"
                                     />
                                 </div>
 
@@ -274,7 +274,7 @@ export default function AdminPartnersPage() {
                                             type="number"
                                             value={formData.order}
                                             onChange={e => setFormData({ ...formData, order: e.target.value })}
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] font-medium text-sm"
                                         />
                                     </div>
                                     <div className="space-y-2">

@@ -170,7 +170,7 @@ export default function BuyerDashboard() {
         }
     }
 
-    const orderedProductIds = orders.map(o => o.productId)
+    const orderedProductIds = orders.map(o => o?.productId).filter(Boolean)
     const suggestedProducts = productDummyData.filter(p => !orderedProductIds.includes(p.id)).slice(0, 4)
 
     const isVerified = user?.accountStatus === 'approved'
@@ -180,13 +180,13 @@ export default function BuyerDashboard() {
         <div key={user?.id || 'guest'} className="relative space-y-12 min-h-[80vh]">
             {isRejected && (
                 <div className="fixed inset-0 z-50 bg-red-50/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-                    <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl max-w-xl border border-red-100">
-                        <AlertCircleIcon className="text-red-500 mx-auto mb-8" size={48} />
-                        <h2 className="text-4xl font-black text-slate-900 mb-4">Verification Rejected</h2>
-                        <p className="text-slate-500 mb-10 leading-relaxed text-lg">Unfortunately, your buyer account verification was not approved.</p>
-                        <div className="flex flex-col gap-4">
-                            <button onClick={() => window.location.href = 'mailto:support@gocycle.com'} className="bg-slate-900 text-white px-10 py-5 rounded-2xl font-bold shadow-lg">Contact Support</button>
-                            <button onClick={() => window.location.href = '/'} className="text-slate-400 text-sm font-bold">Back to Home</button>
+                    <div className="bg-white p-10 rounded-sm shadow-xl max-w-xl border border-slate-200">
+                        <AlertCircleIcon className="text-red-500 mx-auto mb-6" size={40} />
+                        <h2 className="text-2xl font-bold text-slate-900 mb-3">Verification Rejected</h2>
+                        <p className="text-slate-500 mb-8 leading-relaxed text-sm">Unfortunately, your buyer account verification was not approved.</p>
+                        <div className="flex flex-col gap-3">
+                            <button onClick={() => window.location.href = 'mailto:support@gocycle.com'} className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-sm font-bold shadow-sm transition-colors text-xs uppercase tracking-wider">Contact Support</button>
+                            <button onClick={() => window.location.href = '/'} className="text-slate-500 hover:text-slate-900 text-xs font-bold transition-colors">Back to Home</button>
                         </div>
                     </div>
                 </div>
@@ -203,51 +203,51 @@ export default function BuyerDashboard() {
                         <h1 className="text-4xl font-black text-slate-900 leading-tight">My <span className="text-[#05DF72]">Dashboard</span></h1>
                         <p className="text-slate-400 font-bold text-sm mt-1">Welcome back, {user?.name || 'Buyer'}!</p>
                     </div>
-                    <Link href={isVerified ? "/shop" : "#"} onClick={() => !isVerified && toast.error("Verification required")} className={`btn-primary ${!isVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                        <ShoppingCartIcon size={18} /> Browse Batteries
+                    <Link href={isVerified ? "/shop" : "#"} onClick={() => !isVerified && toast.error("Verification required")} className={`bg-[#05DF72] hover:bg-[#04c865] text-slate-950 font-bold uppercase tracking-wider text-xs px-6 py-3 rounded-sm transition-colors shadow-sm inline-flex items-center gap-2 ${!isVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <ShoppingCartIcon size={16} /> Browse Batteries
                     </Link>
                 </div>
                 {/* Payment Pending Verification Banner — Manual Transfer, not yet admin-approved */}
                 {orders.some(o => o?.paymentMethod === 'MANUAL_TRANSFER' && !o?.isPaid) && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-[2.5rem] p-8 md:p-10">
+                    <div className="bg-orange-50 border border-orange-200 rounded-sm p-6 md:p-8">
                         <div className="flex items-center gap-2 mb-6">
-                            <span className="bg-orange-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full animate-pulse">Awaiting Verification</span>
-                            <h2 className="text-2xl font-black text-slate-900">Payment Pending Verification</h2>
+                            <span className="bg-orange-500 text-white text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-sm animate-pulse">Awaiting Verification</span>
+                            <h2 className="text-xl font-bold text-slate-900">Payment Pending Verification</h2>
                         </div>
                         <div className="grid gap-4">
                             {orders.filter(o => o?.paymentMethod === 'MANUAL_TRANSFER' && !o?.isPaid).map(order => (
-                                <div key={order.id} className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-orange-100 flex flex-col gap-6">
+                                <div key={order.id} className="bg-white rounded-sm p-6 shadow-sm border border-slate-200 flex flex-col gap-6">
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center shrink-0">
-                                                <ClockIcon size={28} />
+                                            <div className="w-12 h-12 bg-orange-50 border border-orange-100 text-orange-500 rounded-sm flex items-center justify-center shrink-0">
+                                                <ClockIcon size={20} />
                                             </div>
                                             <div>
-                                                <h3 className="font-black text-slate-900 text-lg leading-tight">{order.orderItems?.map(i => i.product?.name).join(', ') || 'Battery Order'}</h3>
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Order ID: {order.id}</p>
+                                                <h3 className="font-bold text-slate-900 text-base leading-tight">{order.orderItems?.map(i => i.product?.name).join(', ') || 'Battery Order'}</h3>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Order ID: {order.id}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 bg-orange-50 px-5 py-3 rounded-2xl border border-orange-100 self-start md:self-auto">
-                                            <CalendarIcon size={18} className="text-orange-500" />
+                                        <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-sm border border-slate-200 self-start md:self-auto">
+                                            <CalendarIcon size={16} className="text-slate-500" />
                                             <div>
-                                                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-tighter leading-none mb-1">Collection Date</p>
-                                                <p className="text-sm font-black text-slate-900 leading-none">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-1">Collection Date</p>
+                                                <p className="text-sm font-bold text-slate-900 leading-none">
                                                     {order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Pending Confirmation'}
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 flex items-start gap-4">
+                                    <div className="bg-orange-50/50 border border-orange-100 rounded-sm p-4 flex items-start gap-4">
                                         <AlertCircleIcon size={20} className="text-orange-500 shrink-0 mt-0.5" />
                                         <div>
-                                            <p className="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">Awaiting Admin Approval</p>
+                                            <p className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">Awaiting Admin Approval</p>
                                             <p className="text-xs text-slate-500 font-medium leading-relaxed">
                                                 Your bank transfer is being reviewed by our finance team. Once verified, the seller's pickup address and your collection code will be unlocked. This usually takes 1-24 hours.
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="pt-4 border-t border-slate-50">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Amount: <span className="text-slate-700">₦{(order.total || 0).toLocaleString()}</span></p>
+                                    <div className="pt-4 border-t border-slate-200">
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Amount: <span className="text-slate-700">₦{(order.total || 0).toLocaleString()}</span></p>
                                     </div>
                                 </div>
                             ))}
@@ -257,29 +257,29 @@ export default function BuyerDashboard() {
 
                 {/* Verify Pickup Banner — Only for paid/verified orders */}
                 {orders.some(order => order?.status && ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status) && order.isPaid) && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10">
+                    <div className="bg-amber-50 border border-amber-200 rounded-sm p-6 md:p-8">
                         <div className="flex items-center gap-2 mb-6">
-                            <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full animate-pulse">Action Required</span>
-                            <h2 className="text-2xl font-black text-slate-900">Payment Verified — Verify Pickup</h2>
+                            <span className="bg-amber-500 text-white text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-sm animate-pulse">Action Required</span>
+                            <h2 className="text-xl font-bold text-slate-900">Payment Verified — Verify Pickup</h2>
                         </div>
                         <div className="grid gap-4">
                             {orders.filter(o => o?.status && ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status) && o.isPaid).map(order => (
-                                <div key={order.id} className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-amber-100 flex flex-col gap-8 transition-all hover:shadow-md">
+                                <div key={order.id} className="bg-white rounded-sm p-6 shadow-sm border border-slate-200 flex flex-col gap-6 transition-all hover:shadow-sm">
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 bg-[#05DF72]/10 text-[#05DF72] rounded-2xl flex items-center justify-center shrink-0">
-                                                <PackageIcon size={28} />
+                                            <div className="w-12 h-12 bg-[#05DF72]/10 text-[#05DF72] rounded-sm flex items-center justify-center shrink-0 border border-[#05DF72]/20">
+                                                <PackageIcon size={20} />
                                             </div>
                                             <div>
-                                                <h3 className="font-black text-slate-900 text-lg leading-tight">{order.orderItems?.map(i => i.product?.name).join(', ') || 'Battery Order'}</h3>
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Order ID: {order.id}</p>
+                                                <h3 className="font-bold text-slate-900 text-base leading-tight">{order.orderItems?.map(i => i.product?.name).join(', ') || 'Battery Order'}</h3>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Order ID: {order.id}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 bg-amber-50 px-5 py-3 rounded-2xl border border-amber-100 self-start md:self-auto">
-                                            <CalendarIcon size={18} className="text-amber-600" />
+                                        <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-sm border border-slate-200 self-start md:self-auto">
+                                            <CalendarIcon size={16} className="text-slate-500" />
                                             <div>
-                                                <p className="text-[10px] font-bold text-amber-600 uppercase tracking-tighter leading-none mb-1">Agreed Date</p>
-                                                <p className="text-sm font-black text-slate-900 leading-none">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-1">Agreed Date</p>
+                                                <p className="text-sm font-bold text-slate-900 leading-none">
                                                     {order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Pending Confirmation'}
                                                 </p>
                                             </div>
@@ -287,16 +287,16 @@ export default function BuyerDashboard() {
                                     </div>
 
                                     {order.collectionStatus === 'RESCHEDULE_REQUESTED' && order.proposedBy === 'SELLER' && (
-                                        <div className="bg-amber-50 border-y border-amber-100 -mx-8 px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                        <div className="bg-amber-50/50 border border-amber-200 p-4 rounded-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                                             <div className="flex items-center gap-3">
-                                                <CalendarIcon size={18} className="text-amber-600 shrink-0" />
+                                                <CalendarIcon size={16} className="text-amber-650 shrink-0" />
                                                 <p className="text-xs font-bold text-amber-900">
-                                                    Seller proposed a new pickup date: <span className="font-black underline">{new Date(order.proposedDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</span>
+                                                    Seller proposed a new pickup date: <span className="font-bold underline">{new Date(order.proposedDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</span>
                                                 </p>
                                             </div>
                                             <button 
                                                 onClick={() => { setSelectedOrder(order); setIsActionSheetOpen(true); }}
-                                                className="px-6 py-2 bg-amber-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20 whitespace-nowrap"
+                                                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-sm font-bold text-[10px] uppercase tracking-wider whitespace-nowrap transition-colors"
                                             >
                                                 Review & Respond
                                             </button>
@@ -306,30 +306,30 @@ export default function BuyerDashboard() {
                                     {/* Payment Verified badge */}
                                     <div className="flex items-center gap-2">
                                         <CheckCircleIcon size={16} className="text-[#05DF72]" />
-                                        <span className="text-[11px] font-black text-[#05DF72] uppercase tracking-widest">Payment Verified</span>
+                                        <span className="text-[10px] font-bold text-[#05DF72] uppercase tracking-wider">Payment Verified</span>
                                     </div>
 
-                                    <div className="grid md:grid-cols-2 gap-8 pt-4 border-t border-slate-50 items-end">
-                                        <div className="space-y-5">
+                                    <div className="grid md:grid-cols-2 gap-8 pt-4 border-t border-slate-200 items-end">
+                                        <div className="space-y-4">
                                             <div className="flex items-start gap-3">
-                                                <div className="mt-1 size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                                                <div className="mt-0.5 size-8 rounded-sm bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 shrink-0">
                                                     <MapPinIcon size={16} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pickup Address</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pickup Address</p>
                                                     <p className="text-sm font-bold text-slate-700 leading-snug">{order.store?.address || 'Address pending...'}</p>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-0.5 size-8 rounded-sm bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 shrink-0">
                                                     <MessageSquareIcon size={16} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Seller Contact</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Seller Contact</p>
                                                     <div className="flex items-center gap-2">
-                                                        <p className="text-sm font-black text-slate-800">{order.store?.contact || 'N/A'}</p>
+                                                        <p className="text-sm font-bold text-slate-800">{order.store?.contact || 'N/A'}</p>
                                                         {order.store?.contact && (
-                                                            <a href={`tel:${order.store.contact}`} className="text-[10px] font-black text-[#05DF72] uppercase hover:underline ml-2">Call Now</a>
+                                                            <a href={`tel:${order.store.contact}`} className="text-[10px] font-bold text-[#05DF72] uppercase hover:underline ml-2">Call Now</a>
                                                         )}
                                                     </div>
                                                 </div>
@@ -338,13 +338,13 @@ export default function BuyerDashboard() {
                                         <div className="flex flex-col sm:flex-row gap-3">
                                             <button 
                                                 onClick={() => { setSelectedOrder(order); setShowRescheduleForm(true); setIsActionSheetOpen(true); }}
-                                                className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-[1.25rem] font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                                                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-sm font-bold uppercase text-[10px] tracking-wider transition-colors flex items-center justify-center gap-2"
                                             >
                                                 <CalendarIcon size={14} /> Reschedule
                                             </button>
                                             <button 
                                                 onClick={() => { setSelectedOrder(order); setShowRescheduleForm(false); setIsActionSheetOpen(true); }}
-                                                className="flex-[1.5] py-4 bg-[#05DF72] text-white rounded-[1.25rem] font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-all shadow-xl shadow-[#05DF72]/20 flex items-center justify-center gap-2"
+                                                className="flex-[1.5] py-3 bg-[#05DF72] hover:bg-[#04c865] text-slate-955 rounded-sm font-bold uppercase text-[10px] tracking-wider transition-colors flex items-center justify-center gap-2"
                                             >
                                                 <CheckCircleIcon size={14} /> Verify Pickup
                                             </button>
@@ -358,19 +358,19 @@ export default function BuyerDashboard() {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                     {metrics.map((stat) => (
-                        <div key={stat.label} className="bg-white rounded-2xl p-6 flex flex-col gap-4 shadow-lg border border-slate-100">
-                            <div className={`${stat.bg} ${stat.color} w-12 h-12 rounded-xl flex items-center justify-center`}><stat.icon size={24} /></div>
+                        <div key={stat.label} className="bg-white rounded-sm p-6 flex flex-col gap-4 shadow-sm border border-slate-200">
+                            <div className={`w-10 h-10 rounded-sm border border-slate-200/80 bg-slate-50 flex items-center justify-center text-slate-700`}><stat.icon size={20} /></div>
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{stat.label}</p>
                                 <h3 className="text-2xl font-black text-slate-900">{stat.value}</h3>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <div className="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100 mt-12">
+                <div className="bg-white rounded-sm p-8 shadow-sm border border-slate-200 mt-12">
                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-xl font-black text-slate-900">My Orders</h2>
+                        <h2 className="text-xl font-bold text-slate-900">My Orders</h2>
                         <div className="flex items-center gap-4">
                             <button 
                                 onClick={async () => {
@@ -395,7 +395,7 @@ export default function BuyerDashboard() {
                                         setLoading(false);
                                     }
                                 }}
-                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all"
+                                className="px-4 py-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-sm transition-colors"
                             >
                                 Refresh Orders
                             </button>
@@ -409,7 +409,7 @@ export default function BuyerDashboard() {
                             <h3 className="text-lg font-bold text-slate-900">No Orders Yet</h3>
                             <p className="text-slate-500 mt-2">Start shopping to see your orders here.</p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-                                <Link href="/shop" className="px-8 py-3 bg-[#05DF72] text-white rounded-xl font-bold hover:bg-[#04c764] transition-all">Browse Batteries</Link>
+                                <Link href="/shop" className="px-6 py-2.5 bg-[#05DF72] hover:bg-[#04c865] text-slate-955 rounded-sm font-bold text-xs uppercase tracking-wider transition-all">Browse Batteries</Link>
                                 <button 
                                     onClick={async () => {
                                         const { logoutUser } = await import("@/backend-actions/actions/auth")
@@ -418,7 +418,7 @@ export default function BuyerDashboard() {
                                         localStorage.clear();
                                         window.location.reload();
                                     }}
-                                    className="px-8 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm"
+                                    className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-sm font-bold text-xs uppercase tracking-wider transition-colors"
                                 >
                                     Refresh Session
                                 </button>
@@ -429,10 +429,10 @@ export default function BuyerDashboard() {
                             {orders.filter(Boolean).map((order) => {
                                 const badge = resolveStatusBadge(order)
                                 return (
-                                    <div key={order.id} className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                                    <div key={order.id} className="bg-slate-50 rounded-sm p-6 border border-slate-200">
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-[#05DF72] shadow-sm"><PackageIcon size={28} /></div>
+                                                <div className="w-12 h-12 bg-white rounded-sm border border-slate-200 flex items-center justify-center text-[#05DF72] shadow-sm"><PackageIcon size={24} /></div>
                                                 <div>
                                                     <h3 className="font-bold text-slate-900">{order.orderItems?.map(i => i.product?.name).join(', ') || 'Battery Order'}</h3>
                                                     <p className="text-sm text-slate-500">Qty: {order.quantity || 1}</p>
@@ -440,19 +440,19 @@ export default function BuyerDashboard() {
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-xl font-black text-slate-900">₦{(order.total || 0).toLocaleString()}</p>
-                                                <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${badge.bg}`}>{badge.label}</span>
+                                                <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-sm border ${badge.bg}`}>{badge.label}</span>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
                                             <div className="flex items-center gap-3">
                                                 <CalendarIcon size={16} className="text-slate-400" />
                                                 <div>
-                                                    <p className="text-[10px] font-bold uppercase text-slate-400">Collection Date</p>
-                                                    <p className="text-sm font-bold text-slate-700">{order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBD'}</p>
+                                                    <p className="text-[10px] font-bold uppercase text-slate-400 font-sans tracking-wide">Collection Date</p>
+                                                    <p className="text-sm font-bold text-slate-750">{order.collectionDate ? new Date(order.collectionDate).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBD'}</p>
                                                 </div>
                                             </div>
                                             <div className="mt-4 flex flex-wrap gap-3">
-                                                <button onClick={() => { setSelectedOrder(order); setIsActionSheetOpen(true); }} className="px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10">
+                                                <button onClick={() => { setSelectedOrder(order); setIsActionSheetOpen(true); }} className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors flex items-center justify-center gap-2">
                                                     <CalendarIcon size={14} /> Manage Pickup
                                                 </button>
                                                 {order.isPaid && (
@@ -466,7 +466,7 @@ export default function BuyerDashboard() {
                                                                         <script src="https://cdn.tailwindcss.com"></script>
                                                                     </head>
                                                                     <body class="bg-slate-100 p-8">
-                                                                        <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden font-sans">
+                                                                        <div class="max-w-2xl mx-auto bg-white rounded-sm shadow-xl overflow-hidden font-sans border border-slate-200">
                                                                             <div class="bg-slate-900 p-8 text-center text-white">
                                                                                 <h1 class="text-3xl font-black mb-2">Go-Cycle Receipt</h1>
                                                                                 <p class="text-slate-400 uppercase tracking-widest text-xs font-bold">Official Transaction Record</p>
@@ -491,7 +491,7 @@ export default function BuyerDashboard() {
                                                                                         <span class="text-slate-400 italic">Pickup: ${order.store?.address || 'See Manage Pickup'}</span>
                                                                                     </div>
                                                                                 </div>
-                                                                                <div class="bg-slate-50 rounded-2xl p-8 border border-slate-100 mb-8">
+                                                                                <div class="bg-slate-50 rounded-sm p-8 border border-slate-200 mb-8">
                                                                                     <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Pickup Location & Seller Details</p>
                                                                                     <div class="flex flex-col gap-4">
                                                                                         <div>
@@ -510,7 +510,7 @@ export default function BuyerDashboard() {
                                                                                 </div>
                                                                                 <div class="text-center pt-8 border-t border-slate-50">
                                                                                     <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Secured by Flutterwave</p>
-                                                                                    <button onclick="window.print()" class="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest">Print Receipt</button>
+                                                                                    <button onclick="window.print()" class="px-8 py-3 bg-slate-900 text-white rounded-sm font-bold text-xs uppercase tracking-widest">Print Receipt</button>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -518,7 +518,7 @@ export default function BuyerDashboard() {
                                                                 </html>
                                                             `);
                                                         }}
-                                                        className="px-6 py-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                                                        className="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-[10px] font-bold uppercase tracking-wider rounded-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
                                                     >
                                                         <CheckCircleIcon size={14} /> View Receipt
                                                     </button>
@@ -547,18 +547,18 @@ export default function BuyerDashboard() {
 
             <BottomActionSheet isOpen={isActionSheetOpen} onClose={() => setIsActionSheetOpen(false)} title="Pickup Coordination" subtitle={selectedOrder?.id ? `Order #${selectedOrder.id}` : 'Manage Order'}>
                 <div className="space-y-8">
-                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
+                    <div className="bg-slate-50 rounded-sm p-6 border border-slate-200">
                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Seller Contact Details</h4>
                         <div className="space-y-4">
                             <div className="flex items-center gap-4">
-                                <div className="size-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm"><MapPinIcon size={20} /></div>
+                                <div className="size-10 bg-white rounded-sm flex items-center justify-center text-slate-400 shadow-sm border border-slate-100"><MapPinIcon size={20} /></div>
                                 <div className="flex-1">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase">Pickup Address</p>
                                     <p className="text-sm font-black text-slate-700 leading-tight">{selectedOrder?.store?.address || 'Address not available'}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
-                                <div className="size-10 bg-white rounded-xl flex items-center justify-center text-[#05DF72] shadow-sm"><MessageSquareIcon size={20} /></div>
+                                <div className="size-10 bg-white rounded-sm flex items-center justify-center text-[#05DF72] shadow-sm border border-slate-100"><MessageSquareIcon size={20} /></div>
                                 <div className="flex-1">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase">Contact Seller</p>
                                     <p className="text-sm font-black text-slate-700">{selectedOrder?.store?.contact || 'Phone not available'}</p>
@@ -569,7 +569,7 @@ export default function BuyerDashboard() {
 
                     {/* Reschedule Info (If requested by SELLER) */}
                     {selectedOrder?.collectionStatus === 'RESCHEDULE_REQUESTED' && selectedOrder?.proposedBy === 'SELLER' && (
-                        <div className="bg-amber-50 rounded-3xl p-6 border border-amber-100">
+                        <div className="bg-amber-50 rounded-sm p-6 border border-amber-200">
                              <div className="flex items-center gap-2 mb-3">
                                 <CalendarIcon size={16} className="text-amber-600" />
                                 <h4 className="text-xs font-black text-amber-600 uppercase tracking-widest">Seller Proposed Reschedule</h4>
@@ -581,13 +581,13 @@ export default function BuyerDashboard() {
                                 <button 
                                     onClick={() => handleRescheduleResponse('ACCEPT')}
                                     disabled={isResponding}
-                                    className="flex-1 py-3 bg-amber-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20 disabled:opacity-50"
+                                    className="flex-1 py-3 bg-amber-500 text-white rounded-sm font-black text-[10px] uppercase tracking-widest shadow-md disabled:opacity-50"
                                 >
                                     {isResponding ? 'Processing...' : 'Accept Date'}
                                 </button>
                                 <button 
                                     onClick={() => setShowRescheduleForm(true)}
-                                    className="flex-1 py-3 bg-white text-slate-600 border border-amber-200 rounded-xl font-black text-[10px] uppercase tracking-widest"
+                                    className="flex-1 py-3 bg-white text-slate-600 border border-amber-200 rounded-sm font-black text-[10px] uppercase tracking-widest"
                                 >
                                     Suggest Other
                                 </button>
@@ -597,7 +597,7 @@ export default function BuyerDashboard() {
 
                     {/* Reschedule Info (If requested by BUYER - Pending Seller) */}
                     {selectedOrder?.collectionStatus === 'RESCHEDULE_REQUESTED' && selectedOrder?.proposedBy === 'BUYER' && (
-                        <div className="bg-blue-50 rounded-3xl p-6 border border-blue-100">
+                        <div className="bg-blue-50 rounded-sm p-6 border border-blue-200">
                              <div className="flex items-center gap-2 mb-3">
                                 <ClockIcon size={16} className="text-blue-600" />
                                 <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest">Reschedule Pending</h4>
@@ -618,7 +618,7 @@ export default function BuyerDashboard() {
                             <p className="text-xs text-slate-500 font-medium mb-6">Enter the 6-digit verification code provided by the seller to release the funds.</p>
                             
                             <form onSubmit={(e) => executePickupVerification(e, selectedOrder?.id)} className="flex flex-col gap-4">
-                                <div className="bg-slate-100 p-6 rounded-[2rem] border border-slate-200 flex items-center justify-center">
+                                <div className="bg-slate-50 p-6 rounded-sm border border-slate-200 flex items-center justify-center">
                                     <input
                                         type="text"
                                         maxLength={6}
@@ -631,7 +631,7 @@ export default function BuyerDashboard() {
                                 <button
                                     type="submit"
                                     disabled={verifying || verifyToken.length < 6}
-                                    className="w-full py-5 bg-[#05DF72] text-white rounded-[2rem] font-black uppercase text-sm tracking-widest hover:bg-[#04c764] transition-all shadow-xl shadow-[#05DF72]/20 flex items-center justify-center gap-3"
+                                    className="w-full py-5 bg-[#05DF72] text-white rounded-sm font-black uppercase text-sm tracking-widest hover:bg-[#04c764] transition-all flex items-center justify-center gap-3"
                                 >
                                     {verifying ? (
                                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -643,7 +643,7 @@ export default function BuyerDashboard() {
 
                             <button 
                                 onClick={() => setShowRescheduleForm(true)}
-                                className="w-full mt-8 py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3"
+                                className="w-full mt-8 py-5 bg-slate-900 text-white rounded-sm font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3"
                             >
                                 <CalendarIcon size={20} /> Need to Reschedule Pickup?
                             </button>
@@ -666,7 +666,7 @@ export default function BuyerDashboard() {
                                         type="date" 
                                         required
                                         min={new Date().toISOString().split('T')[0]}
-                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 focus:ring-2 focus:ring-[#05DF72] outline-none"
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm font-bold text-slate-700 focus:ring-1 focus:ring-[#05DF72] outline-none"
                                         value={rescheduleDate}
                                         onChange={(e) => setRescheduleDate(e.target.value)}
                                     />
@@ -675,7 +675,7 @@ export default function BuyerDashboard() {
                                     <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Reason for Reschedule</label>
                                     <textarea 
                                         placeholder="Briefly explain why you need to change the date..."
-                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 focus:ring-2 focus:ring-[#05DF72] outline-none h-24 resize-none"
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm font-bold text-slate-700 focus:ring-1 focus:ring-[#05DF72] outline-none h-24 resize-none"
                                         value={rescheduleReason}
                                         onChange={(e) => setRescheduleReason(e.target.value)}
                                     />
@@ -683,7 +683,7 @@ export default function BuyerDashboard() {
                                 <button
                                     type="submit"
                                     disabled={isRescheduling}
-                                    className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all shadow-xl flex items-center justify-center gap-3"
+                                    className="w-full py-5 bg-slate-900 text-white rounded-sm font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3"
                                 >
                                     {isRescheduling ? (
                                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

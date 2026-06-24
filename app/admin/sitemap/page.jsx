@@ -66,11 +66,11 @@ const sitemapData = [
 const StatusBadge = ({ status }) => {
     switch (status) {
         case "Complete":
-            return <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-wider"><CheckCircle2 size={10} /> Complete</span>
+            return <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-sm uppercase tracking-wider border border-emerald-100"><CheckCircle2 size={10} /> Complete</span>
         case "In Progress":
-            return <span className="flex items-center gap-1 text-[10px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider"><Clock size={10} /> In Progress</span>
+            return <span className="flex items-center gap-1 text-[10px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-sm uppercase tracking-wider border border-amber-100"><Clock size={10} /> In Progress</span>
         case "Planned":
-            return <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full uppercase tracking-wider"><Construction size={10} /> Planned</span>
+            return <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-sm uppercase tracking-wider border border-slate-200"><Construction size={10} /> Planned</span>
         default:
             return null
     }
@@ -92,9 +92,9 @@ const SitemapPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {sitemapData.map((section, sIndex) => (
-                    <div key={sIndex} className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        <div className="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                    <div key={sIndex} className="bg-white rounded-sm border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-6 bg-slate-50/50 border-b border-slate-200 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-sm bg-[#05DF72] flex items-center justify-center text-white shadow-sm">
                                 <section.icon size={20} />
                             </div>
                             <h2 className="font-black text-slate-900 uppercase tracking-wider text-sm">{section.title}</h2>
@@ -104,10 +104,10 @@ const SitemapPage = () => {
                                 <Link 
                                     href={page.href} 
                                     key={pIndex}
-                                    className={`flex items-center justify-between p-3 rounded-2xl transition-all group ${page.href === '#' ? 'cursor-not-allowed opacity-60' : 'hover:bg-slate-50'}`}
+                                    className={`flex items-center justify-between p-3 rounded-sm transition-all group ${page.href === '#' ? 'cursor-not-allowed opacity-60' : 'hover:bg-slate-50 hover:border hover:border-slate-200'}`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-emerald-500 transition-colors">
+                                        <div className="w-8 h-8 rounded-sm bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-[#05DF72] transition-colors border border-slate-200">
                                             <page.icon size={16} />
                                         </div>
                                         <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-950 transition-colors">{page.name}</span>
@@ -120,7 +120,7 @@ const SitemapPage = () => {
                 ))}
             </div>
 
-            <div className="mt-12 p-8 bg-slate-950 rounded-[40px] text-white relative overflow-hidden">
+            <div className="mt-12 p-8 bg-slate-950 rounded-sm text-white relative overflow-hidden border border-slate-800">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 blur-[100px] rounded-full"></div>
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div>
@@ -129,7 +129,7 @@ const SitemapPage = () => {
                             Our architecture is designed for scalability. Contact the development team to add new recycling modules or logistics features.
                         </p>
                     </div>
-                    <button className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-emerald-500/20 active:scale-95 whitespace-nowrap">
+                    <button className="px-8 py-4 bg-[#05DF72] hover:bg-[#04c764] text-slate-900 rounded-sm font-black uppercase tracking-widest text-xs transition-all shadow-sm active:scale-95 whitespace-nowrap">
                         Request Feature
                     </button>
                 </div>

@@ -32,33 +32,33 @@ const LatestProducts = ({ initialProducts = [] }) => {
     }, [products, selectedLGA, localBoughtIds])
 
     return (
-        <section className='bg-slate-50/50 py-24 md:py-32 border-y border-slate-100'>
+        <section className='bg-slate-50/40 py-20 md:py-28 border-y border-slate-200/60'>
             <div className='max-container'>
                 
-                <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-20 gap-12">
-                    <div className="space-y-6 max-w-2xl">
-                        <div className='inline-flex items-center gap-3 bg-white border border-black/[0.04] text-[#00D166] px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-sm'>
-                            <LayoutGrid size={14} />
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-12">
+                    <div className="space-y-4 max-w-2xl">
+                        <div className='inline-flex items-center gap-2 bg-[#05DF72]/10 border border-[#05DF72]/20 text-[#05DF72] px-3 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider w-fit'>
+                            <LayoutGrid size={12} />
                             Marketplace
                         </div>
-                        <h2 className='text-heading text-gradient'>
-                            Latest <span className="text-[#00D166]">Assets</span> in Market.
+                        <h2 className='text-2xl md:text-4xl font-bold tracking-tight text-slate-900'>
+                            Latest <span className="text-[#05DF72]">Assets</span> in Market.
                         </h2>
-                        <p className='text-body'>
+                        <p className='text-slate-500 text-sm md:text-base leading-relaxed'>
                             Explore verified end-of-life batteries available for immediate trade and material recovery. Browse newest listings across Lagos.
                         </p>
                     </div>
 
                     {/* Premium Filter */}
-                    <div className="flex items-center gap-4 bg-white p-2.5 px-6 rounded-full border border-black/[0.04] w-full lg:w-auto shadow-premium group focus-within:ring-2 focus-within:ring-[#00D166]/10 transition-all">
-                        <div className="flex items-center gap-2 text-slate-300 shrink-0 border-r border-slate-100 pr-4 mr-2">
-                            <MapPinIcon size={18} className="group-focus-within:text-[#00D166] transition-colors" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Region</span>
+                    <div className="flex items-center gap-3 bg-white p-2 px-4 rounded-sm border border-slate-200 w-full lg:w-auto shadow-sm group focus-within:border-[#05DF72] transition-all">
+                        <div className="flex items-center gap-2 text-slate-400 shrink-0 border-r border-slate-200 pr-3 mr-1">
+                            <MapPinIcon size={16} className="group-focus-within:text-[#05DF72] transition-colors" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Region</span>
                         </div>
                         <select
                             value={selectedLGA}
                             onChange={(e) => setSelectedLGA(e.target.value)}
-                            className="bg-transparent text-xs font-bold text-slate-900 uppercase tracking-widest outline-none w-full lg:min-w-[180px] cursor-pointer"
+                            className="bg-transparent text-xs font-semibold text-slate-800 uppercase tracking-wider outline-none w-full lg:min-w-[160px] cursor-pointer"
                         >
                             <option value="All">All Regions</option>
                             {lagosLGAs.sort().map(lga => (
@@ -68,24 +68,24 @@ const LatestProducts = ({ initialProducts = [] }) => {
                     </div>
                 </div>
 
-                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 lg:gap-10'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8'>
                     {filteredProducts.slice(0, 8).map((product, index) => (
                         <ProductCard key={product.id || index} product={product} />
                     ))}
                 </div>
 
                 {filteredProducts.length === 0 && (
-                    <div className="text-center py-24 bg-white rounded-[40px] border border-dashed border-slate-200 mt-12">
-                        <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">No verified battery listings found in this region.</p>
+                    <div className="text-center py-20 bg-white rounded-sm border border-dashed border-slate-200 mt-12">
+                        <p className="text-slate-400 font-bold uppercase tracking-wider text-xs">No verified battery listings found in this region.</p>
                     </div>
                 )}
 
-                <div className="mt-20 flex justify-center">
+                <div className="mt-16 flex justify-center">
                     <button 
                         onClick={() => router.push('/shop')}
-                        className="btn-secondary !px-12 group"
+                        className="group border border-slate-200 bg-white hover:bg-slate-50 text-slate-850 hover:text-slate-950 px-8 py-3.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-all inline-flex items-center gap-2"
                     >
-                        View All Listings <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                        View All Listings <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                     </button>
                 </div>
             </div>
@@ -94,4 +94,3 @@ const LatestProducts = ({ initialProducts = [] }) => {
 }
 
 export default LatestProducts
-

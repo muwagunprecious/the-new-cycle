@@ -129,21 +129,21 @@ export default function SellerOrders() {
                         placeholder="Search name, phone, or code..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-[#05DF72] focus:ring-4 focus:ring-[#05DF72]/5 transition-all outline-none font-bold text-sm shadow-sm"
+                        className="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-sm focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all outline-none font-bold text-sm shadow-sm"
                     />
                 </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
                 {filteredOrders.map((order) => (
-                    <div key={order.id} className="bg-white rounded-[2.5rem] border-2 border-slate-100 overflow-hidden shadow-sm hover:shadow-xl hover:border-[#05DF72]/20 transition-all group">
+                    <div key={order.id} className="bg-white rounded-sm border border-slate-200 overflow-hidden shadow-sm hover:border-[#05DF72]/40 hover:shadow-md transition-all group">
                         {/* 1. Header Section: ID & Status */}
-                        <div className="bg-slate-50/50 px-8 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div className="bg-slate-50 px-8 py-4 border-b border-slate-200 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 rounded-full bg-[#05DF72] animate-pulse" />
+                                <div className="w-2 h-2 rounded-sm bg-[#05DF72] animate-pulse" />
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{order.transactionId || order.id}</span>
                             </div>
-                            <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${order.status === 'ORDER_PLACED' ? 'bg-orange-100 text-orange-600' : (order.status === 'COMPLETED' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600')}`}>
+                            <span className={`px-4 py-1 rounded-sm text-[9px] font-black uppercase tracking-widest ${order.status === 'ORDER_PLACED' ? 'bg-orange-100 text-orange-600 border border-orange-200' : (order.status === 'COMPLETED' ? 'bg-green-105 text-[#05DF72] border border-[#05DF72]/20' : 'bg-blue-100 text-blue-600 border border-blue-200')}`}>
                                 {order.status.replace('_', ' ')}
                             </span>
                         </div>
@@ -174,25 +174,25 @@ export default function SellerOrders() {
                             {/* 3. Handoff Core: The "Boxed" Section */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Verification Box */}
-                                <div className="bg-slate-900 rounded-3xl p-6 text-white flex items-center justify-between shadow-xl shadow-slate-900/10 group-hover:scale-[1.02] transition-transform">
+                                <div className="bg-[#0c101b] border border-slate-800 rounded-sm p-6 text-white flex items-center justify-between shadow-sm">
                                     <div>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Code to Share</p>
-                                        <p className="text-3xl font-black tracking-[0.15em]">{order.verificationCode || '---'}</p>
+                                        <p className="text-[9px] font-black text-slate-450 uppercase tracking-[0.2em] mb-1">Code to Share</p>
+                                        <p className="text-3xl font-black tracking-[0.15em] text-[#05DF72]">{order.verificationCode || '---'}</p>
                                     </div>
                                     <button 
                                         onClick={() => {
                                             navigator.clipboard.writeText(order.verificationCode);
                                             toast.success("Code copied!");
                                         }}
-                                        className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-[#05DF72] hover:text-slate-900 transition-all"
+                                        className="w-12 h-12 rounded-sm bg-white/10 flex items-center justify-center hover:bg-[#05DF72] hover:text-slate-950 transition-all border border-white/10"
                                     >
                                         <Copy size={20} />
                                     </button>
                                 </div>
 
                                 {/* Buyer Box */}
-                                <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-slate-400 shadow-sm">
+                                <div className="bg-slate-50 rounded-sm p-6 border border-slate-200 flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-sm bg-white border border-slate-200 flex items-center justify-center text-slate-500 shadow-sm">
                                         <User size={24} />
                                     </div>
                                     <div>
@@ -203,7 +203,7 @@ export default function SellerOrders() {
                             </div>
 
                             {/* 4. Action & Pricing Section */}
-                            <div className="pt-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="pt-6 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6">
                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col">
                                         <span className="text-2xl font-black text-slate-900 leading-none">₦{(order.payoutAmount || order.total || 0).toLocaleString()}</span>
@@ -219,7 +219,7 @@ export default function SellerOrders() {
                                     {order.status !== 'COMPLETED' && order.status !== 'PICKED_UP' && (
                                         <div className="flex flex-col gap-3 w-full md:w-auto">
                                             {order.collectionStatus === 'RESCHEDULE_REQUESTED' && (
-                                                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 space-y-3">
+                                                <div className="bg-amber-50 p-4 rounded-sm border border-amber-200 space-y-3">
                                                     <div className="flex items-center justify-between">
                                                         <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest flex items-center gap-2">
                                                             <ClockIcon size={12} /> {order.proposedBy === 'BUYER' ? 'Buyer Requested' : 'You Requested'}
@@ -231,21 +231,21 @@ export default function SellerOrders() {
                                                         <div className="flex gap-2">
                                                             <button 
                                                                 onClick={() => handleSellerRescheduleAction(order.id, 'ACCEPT')} 
-                                                                className="flex-1 bg-[#05DF72] text-slate-900 font-black text-[10px] uppercase tracking-widest py-2.5 rounded-lg hover:bg-[#04c764] transition-all"
+                                                                className="flex-1 bg-[#05DF72] text-slate-955 font-black text-[10px] uppercase tracking-widest py-2.5 rounded-sm hover:bg-[#04c764] transition-all"
                                                             >
                                                                 Accept
                                                             </button>
                                                             <button 
                                                                 onClick={() => handleSellerRescheduleAction(order.id, 'REJECT')} 
-                                                                className="flex-1 bg-red-50 text-red-600 border border-red-100 font-black text-[10px] uppercase tracking-widest py-2.5 rounded-lg hover:bg-red-100 transition-all"
+                                                                className="flex-1 bg-red-50 text-red-650 border border-red-100 font-black text-[10px] uppercase tracking-widest py-2.5 rounded-sm hover:bg-red-100 transition-all"
                                                             >
                                                                 Reject
                                                             </button>
                                                         </div>
                                                     )}
 
-                                                    <div className="flex items-center gap-2 pt-2 border-t border-amber-100">
-                                                        <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center text-slate-400">
+                                                    <div className="flex items-center gap-2 pt-2 border-t border-amber-200">
+                                                        <div className="w-6 h-6 rounded-sm bg-white border border-slate-200 flex items-center justify-center text-slate-400">
                                                             <User size={12} />
                                                         </div>
                                                         <p className="text-[9px] font-bold text-slate-500">{order.user?.name} • {order.user?.phone || 'No phone'}</p>
@@ -258,7 +258,7 @@ export default function SellerOrders() {
                                                     setSelectedOrder(order);
                                                     setIsActionSheetOpen(true);
                                                 }}
-                                                className="px-8 py-4 bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/10"
+                                                className="px-8 py-4 bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest rounded-sm hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-sm"
                                             >
                                                 <CalendarIcon size={16} /> Manage Pickup
                                             </button>
@@ -266,7 +266,7 @@ export default function SellerOrders() {
                                     )}
 
                                     {order.status === 'PICKED_UP' && (
-                                        <div className="bg-blue-50 text-blue-600 px-6 py-3 rounded-xl border border-blue-100 flex items-center gap-2">
+                                        <div className="bg-blue-50 text-blue-600 px-6 py-3 rounded-sm border border-blue-200 flex items-center gap-2">
                                             <CheckCircleIcon size={18} />
                                             <span className="text-xs font-black uppercase tracking-widest">Picked Up</span>
                                         </div>
@@ -282,7 +282,7 @@ export default function SellerOrders() {
                 <div className="flex justify-center pt-8">
                     <button
                         onClick={loadMoreOrders}
-                        className="btn-primary !bg-white !text-slate-900 border border-slate-200 hover:border-[#05DF72] !shadow-none hover:!bg-[#05DF72]/5"
+                        className="px-6 py-3 bg-white text-slate-900 border border-slate-200 hover:border-[#05DF72] hover:bg-[#05DF72]/5 rounded-sm font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
                     >
                         Load More Orders
                     </button>
@@ -290,8 +290,8 @@ export default function SellerOrders() {
             )}
 
             {orders.length === 0 && (
-                <div className="p-20 text-center card bg-slate-50 border-dashed">
-                    <p className="text-slate-400">No incoming orders yet.</p>
+                <div className="p-12 text-center bg-white border border-dashed border-slate-200 rounded-sm">
+                    <p className="text-slate-400 font-medium">No incoming orders yet.</p>
                 </div>
             )}
 
@@ -306,11 +306,11 @@ export default function SellerOrders() {
                 subtitle={selectedOrder?.transactionId || selectedOrder?.id}
             >
                 <div className="space-y-6">
-                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                    <div className="bg-slate-50 p-6 rounded-sm border border-slate-200">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Buyer Information</p>
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400">
+                                <div className="w-10 h-10 rounded-sm bg-white border border-slate-200 flex items-center justify-center text-slate-500">
                                     <User size={20} />
                                 </div>
                                 <div>
@@ -320,9 +320,9 @@ export default function SellerOrders() {
                             </div>
 
                             {selectedOrder?.user?.phone && (
-                                <div className="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-100">
+                                <div className="flex items-center justify-between bg-white p-3 rounded-sm border border-slate-200">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-[#05DF72]">
+                                        <div className="w-8 h-8 rounded-sm bg-slate-50 border border-slate-200 flex items-center justify-center text-[#05DF72]">
                                             <Phone size={16} />
                                         </div>
                                         <span className="text-sm font-bold text-slate-700">{selectedOrder.user.phone}</span>
@@ -343,17 +343,17 @@ export default function SellerOrders() {
 
                     <div className="space-y-3">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Products</p>
-                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <div className="bg-slate-50 p-4 rounded-sm border border-slate-200">
                             <p className="text-sm font-bold text-slate-700 leading-relaxed">
                                 {selectedOrder?.orderItems?.map(item => item.product?.name).join(', ')}
                             </p>
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                    <div className="bg-slate-50 p-6 rounded-sm border border-slate-200">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Pickup Logistics</p>
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#05DF72] shadow-sm">
+                            <div className="w-10 h-10 rounded-sm bg-white border border-slate-200 flex items-center justify-center text-[#05DF72]">
                                 <TruckIcon size={20} />
                             </div>
                             <div>
@@ -366,10 +366,10 @@ export default function SellerOrders() {
                     </div>
 
                     {selectedOrder?.collectionStatus === 'RESCHEDULE_REQUESTED' && (
-                        <div className="bg-amber-50 p-6 rounded-3xl border border-amber-100">
+                        <div className="bg-amber-50 p-6 rounded-sm border border-amber-200">
                             <div className="flex items-center justify-between mb-4">
                                 <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest">Reschedule Proposal</p>
-                                <span className="px-2 py-0.5 bg-amber-200 text-amber-900 text-[8px] font-black rounded-full uppercase">Review</span>
+                                <span className="px-2 py-0.5 bg-amber-200 text-amber-900 text-[8px] font-black rounded-sm uppercase border border-amber-300">Review</span>
                             </div>
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3 text-slate-900">
@@ -379,9 +379,9 @@ export default function SellerOrders() {
                                 </div>
                                 {selectedOrder.proposedBy === 'BUYER' ? (
                                     <div className="flex gap-2">
-                                        <button onClick={() => { handleSellerRescheduleAction(selectedOrder.id, 'ACCEPT'); setIsActionSheetOpen(false); }} className="flex-1 bg-[#05DF72] text-slate-900 font-black text-[10px] uppercase tracking-widest py-4 rounded-xl hover:bg-[#04c764] transition-all">Accept</button>
-                                        <button onClick={() => { handleSellerRescheduleAction(selectedOrder.id, 'REJECT'); setIsActionSheetOpen(false); }} className="flex-1 bg-red-50 text-red-600 border border-red-100 font-black text-[10px] uppercase tracking-widest py-4 rounded-xl">Reject</button>
-                                        <button onClick={() => { setIsActionSheetOpen(false); setIsRescheduleModalOpen(true); }} className="flex-1 bg-white border border-slate-200 text-slate-900 font-black text-[10px] uppercase tracking-widest py-4 rounded-xl">Counter</button>
+                                        <button onClick={() => { handleSellerRescheduleAction(selectedOrder.id, 'ACCEPT'); setIsActionSheetOpen(false); }} className="flex-1 bg-[#05DF72] text-slate-950 font-black text-[10px] uppercase tracking-widest py-4 rounded-sm hover:bg-[#04c764] transition-all">Accept</button>
+                                        <button onClick={() => { handleSellerRescheduleAction(selectedOrder.id, 'REJECT'); setIsActionSheetOpen(false); }} className="flex-1 bg-red-50 text-red-650 border border-red-100 font-black text-[10px] uppercase tracking-widest py-4 rounded-sm">Reject</button>
+                                        <button onClick={() => { setIsActionSheetOpen(false); setIsRescheduleModalOpen(true); }} className="flex-1 bg-white border border-slate-200 text-slate-900 font-black text-[10px] uppercase tracking-widest py-4 rounded-sm hover:bg-slate-50 transition-colors">Counter</button>
                                     </div>
                                 ) : (
                                     <button onClick={() => { setIsActionSheetOpen(false); setIsRescheduleModalOpen(true); }} className="w-full text-[10px] font-black text-[#05DF72] uppercase underline tracking-widest py-2 text-left">Change Proposal</button>
@@ -391,7 +391,7 @@ export default function SellerOrders() {
                     )}
 
                     {selectedOrder?.collectionStatus !== 'RESCHEDULE_REQUESTED' && selectedOrder?.status !== 'COMPLETED' && (
-                        <button onClick={() => { setIsActionSheetOpen(false); setIsRescheduleModalOpen(true); }} className="w-full bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all">
+                        <button onClick={() => { setIsActionSheetOpen(false); setIsRescheduleModalOpen(true); }} className="w-full bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest py-5 rounded-sm flex items-center justify-center gap-2 hover:bg-slate-800 transition-all">
                             <CalendarIcon size={14} /> Request Reschedule
                         </button>
                     )}

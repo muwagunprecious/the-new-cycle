@@ -105,7 +105,7 @@ export default function SellerLayout({ children }) {
     }
 
     return (
-        <div className="flex h-screen bg-[#f9fafb]">
+        <div className="flex h-screen bg-slate-50">
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex flex-col w-72 bg-white border-r border-slate-200 transition-all">
                 <div className="p-8">
@@ -116,7 +116,7 @@ export default function SellerLayout({ children }) {
                         <button
                             key={link.name}
                             onClick={() => handleNavigation(link.href, `Loading ${link.name}...`)}
-                            className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all w-full text-left ${pathname === link.href ? 'bg-[#05DF72]/10 text-[#05DF72] font-semibold' : 'text-slate-500 hover:bg-slate-50'}`}
+                            className={`flex items-center gap-3 px-4 py-3.5 rounded-sm transition-all w-full text-left ${pathname === link.href ? 'bg-[#05DF72]/10 text-[#05DF72] font-bold border-l-4 border-[#05DF72]' : 'text-slate-500 hover:bg-slate-50 border-l-4 border-transparent'}`}
                         >
                             <link.icon size={20} />
                             {link.name}
@@ -126,7 +126,7 @@ export default function SellerLayout({ children }) {
                 <div className="p-4 border-t border-slate-100">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-rose-500 transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 rounded-sm w-full text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
                     >
                         <LogOutIcon size={20} />
                         Logout
@@ -154,7 +154,7 @@ export default function SellerLayout({ children }) {
                                         setIsSidebarOpen(false)
                                         handleNavigation(link.href, `Loading ${link.name}...`)
                                     }}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full text-left ${pathname === link.href ? 'bg-[#05DF72]/10 text-[#05DF72] font-semibold' : 'text-slate-500'}`}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-sm w-full text-left ${pathname === link.href ? 'bg-[#05DF72]/10 text-[#05DF72] font-bold border-l-4 border-[#05DF72]' : 'text-slate-500 border-l-4 border-transparent'}`}
                                 >
                                     <link.icon size={20} />
                                     {link.name}
@@ -162,7 +162,7 @@ export default function SellerLayout({ children }) {
                             ))}
                             <button
                                 onClick={handleLogout}
-                                className="flex items-center gap-3 px-4 py-3 w-full text-left text-slate-400"
+                                className="flex items-center gap-3 px-4 py-3 rounded-sm w-full text-left text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
                             >
                                 <LogOutIcon size={20} />
                                 Logout

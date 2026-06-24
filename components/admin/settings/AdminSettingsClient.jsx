@@ -194,22 +194,22 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
             </div>
 
             {/* Tab Switcher */}
-            <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit flex-wrap">
+            <div className="flex gap-2 p-1 bg-slate-100 rounded-sm w-fit flex-wrap border border-slate-200">
                 <button 
                     onClick={() => setActiveTab('termii')}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'termii' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`px-6 py-2.5 rounded-sm text-sm font-black transition-all ${activeTab === 'termii' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                     Termii SMS
                 </button>
                 <button 
                     onClick={() => setActiveTab('qoreid')}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'qoreid' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`px-6 py-2.5 rounded-sm text-sm font-black transition-all ${activeTab === 'qoreid' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                     QoreID (Live)
                 </button>
                 <button 
                     onClick={() => setActiveTab('pricing')}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'pricing' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`px-6 py-2.5 rounded-sm text-sm font-black transition-all ${activeTab === 'pricing' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                     💰 Pricing Formula
                 </button>
@@ -218,14 +218,14 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Config Card */}
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+                    <div className="bg-white rounded-sm border border-slate-200 shadow-sm overflow-hidden">
 
                         {/* ── Termii Tab ── */}
                         {activeTab === 'termii' && (
                             <>
-                                <div className="bg-slate-900 p-8 text-white">
+                                <div className="bg-slate-900 p-8 text-white border-b border-slate-800">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-[#05DF72]/20 rounded-2xl flex items-center justify-center border border-[#05DF72]/30">
+                                        <div className="w-12 h-12 bg-[#05DF72]/20 rounded-sm flex items-center justify-center border border-[#05DF72]/30">
                                             <SendIcon className="text-[#05DF72]" size={24} />
                                         </div>
                                         <div>
@@ -246,7 +246,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                                 placeholder="Enter your TLE... key"
                                                 value={config.apiKey}
                                                 onChange={e => setConfig({ ...config, apiKey: e.target.value })}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 font-mono text-sm outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] transition-all"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-sm px-5 py-4 font-mono text-sm outline-none focus:border-[#05DF72] transition-all"
                                                 required
                                             />
                                         </div>
@@ -258,7 +258,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                             <select
                                                 value={config.baseUrl}
                                                 onChange={e => setConfig({ ...config, baseUrl: e.target.value })}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] appearance-none"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-sm px-5 py-4 text-sm font-bold outline-none focus:border-[#05DF72] appearance-none"
                                             >
                                                 <option value="https://api.ng.termii.com">api.ng.termii.com (Nigeria)</option>
                                                 <option value="https://v3.api.termii.com">v3.api.termii.com (Global v3)</option>
@@ -275,7 +275,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                                         <select
                                                             value={config.senderId}
                                                             onChange={e => setConfig({ ...config, senderId: e.target.value })}
-                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-black text-[#05DF72] outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] appearance-none"
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-sm px-5 py-4 text-sm font-black text-[#05DF72] outline-none focus:border-[#05DF72] appearance-none"
                                                         >
                                                             {activeSenders.map(id => (
                                                                 <option key={id} value={id}>{id}</option>
@@ -287,7 +287,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                                             placeholder="e.g. N-Alert"
                                                             value={config.senderId}
                                                             onChange={e => setConfig({ ...config, senderId: e.target.value })}
-                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72]"
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-sm px-5 py-4 text-sm font-black text-slate-900 outline-none focus:border-[#05DF72]"
                                                         />
                                                     )}
                                                 </div>
@@ -295,7 +295,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                                     type="button"
                                                     onClick={handleFetchSenders}
                                                     disabled={fetchingSenders}
-                                                    className="px-4 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-colors text-slate-600 disabled:opacity-50"
+                                                    className="px-4 bg-slate-100 hover:bg-slate-200 rounded-sm transition-colors text-slate-600 disabled:opacity-50 border border-slate-200"
                                                     title="Sync Sender IDs"
                                                 >
                                                     <RefreshCwIcon className={fetchingSenders ? "animate-spin" : ""} size={18} />
@@ -309,7 +309,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                         loading={saving}
                                         loadingText="Saving..."
                                         icon={SaveIcon}
-                                        className="w-full shadow-lg shadow-[#05DF72]/20 py-4 text-lg"
+                                        className="w-full py-4 text-lg"
                                     >
                                         Save Configuration
                                     </Button>
@@ -320,9 +320,9 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                         {/* ── QoreID Tab ── */}
                         {activeTab === 'qoreid' && (
                             <>
-                                <div className="bg-[#000000] p-8 text-white">
+                                <div className="bg-[#000000] p-8 text-white border-b border-slate-800">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center border border-blue-500/30">
+                                        <div className="w-12 h-12 bg-blue-500/20 rounded-sm flex items-center justify-center border border-blue-500/30">
                                             <ShieldCheckIcon className="text-blue-500" size={24} />
                                         </div>
                                         <div>
@@ -343,7 +343,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                                 placeholder="Enter your Client ID"
                                                 value={qoreidConfig.clientId}
                                                 onChange={e => setQoreidConfig({ ...qoreidConfig, clientId: e.target.value })}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 font-mono text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-sm px-5 py-4 font-mono text-sm outline-none focus:border-blue-500 transition-all"
                                                 required
                                             />
                                         </div>
@@ -357,7 +357,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                                 placeholder="Enter your Secret Key"
                                                 value={qoreidConfig.secretKey}
                                                 onChange={e => setQoreidConfig({ ...qoreidConfig, secretKey: e.target.value })}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 font-mono text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-sm px-5 py-4 font-mono text-sm outline-none focus:border-blue-500 transition-all"
                                                 required
                                             />
                                         </div>
@@ -369,7 +369,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                             <select
                                                 value={qoreidConfig.baseUrl}
                                                 onChange={e => setQoreidConfig({ ...qoreidConfig, baseUrl: e.target.value })}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-sm px-5 py-4 text-sm font-bold outline-none focus:border-blue-500 appearance-none"
                                             >
                                                 <option value="https://api.qoreid.com">api.qoreid.com (Live)</option>
                                                 <option value="https://sandbox.qoreid.com">sandbox.qoreid.com (Sandbox)</option>
@@ -393,7 +393,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                             loading={saving}
                                             loadingText="Saving..."
                                             icon={SaveIcon}
-                                            className="flex-[2] shadow-lg shadow-blue-500/20 py-4"
+                                            className="flex-[2] py-4"
                                         >
                                             Save QoreID Settings
                                         </Button>
@@ -405,9 +405,9 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                         {/* ── Pricing Formula Tab ── */}
                         {activeTab === 'pricing' && (
                             <>
-                                <div className="bg-gradient-to-r from-[#05DF72]/10 to-emerald-50 p-8 border-b border-slate-100">
+                                <div className="bg-[#fcfdfd] p-8 border-b border-slate-200">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-[#05DF72]/20 rounded-2xl flex items-center justify-center border border-[#05DF72]/30">
+                                        <div className="w-12 h-12 bg-[#05DF72]/20 rounded-sm flex items-center justify-center border border-[#05DF72]/30">
                                             <DollarSignIcon className="text-[#05DF72]" size={24} />
                                         </div>
                                         <div>
@@ -417,16 +417,16 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                     </div>
                                 </div>
 
-                                <div className="p-8 space-y-4">
+                                <div className="p-8 space-y-4 bg-white">
                                     {Object.entries(pricingTable).map(([batteryType, sizes]) => (
-                                        <div key={batteryType} className="border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
+                                        <div key={batteryType} className="border border-slate-200 rounded-sm overflow-hidden shadow-sm">
                                             {/* Accordion Header */}
                                             <button 
                                                 onClick={() => toggleType(batteryType)}
                                                 className={`w-full flex items-center justify-between p-5 text-left transition-all ${expandedType === batteryType ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`p-2 rounded-xl ${expandedType === batteryType ? 'bg-[#05DF72]/10 text-[#05DF72]' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <div className={`p-2 rounded-sm ${expandedType === batteryType ? 'bg-[#05DF72]/10 text-[#05DF72]' : 'bg-slate-100 text-slate-400'}`}>
                                                         <BatteryIcon size={20} />
                                                     </div>
                                                     <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">{batteryType}</h3>
@@ -436,19 +436,19 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
 
                                             {/* Accordion Content */}
                                             {expandedType === batteryType && (
-                                                <div className="p-6 bg-white space-y-3 border-t border-slate-50">
+                                                <div className="p-6 bg-white space-y-3 border-t border-slate-200">
                                                     {Object.entries(sizes).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(([amps, price]) => {
                                                         const sizeKey = `${batteryType}_${amps}`
                                                         const isExpanded = expandedSize === sizeKey
                                                         
                                                         return (
-                                                            <div key={amps} className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
+                                                            <div key={amps} className="border border-slate-200 rounded-sm overflow-hidden bg-slate-50/50">
                                                                 <button 
                                                                     onClick={() => toggleSize(sizeKey)}
                                                                     className={`w-full p-4 flex items-center justify-between hover:bg-slate-100 transition-colors text-left ${isExpanded ? 'bg-slate-100' : ''}`}
                                                                 >
                                                                     <div className="flex items-center gap-4">
-                                                                        <span className="text-xs font-black text-slate-700 bg-white px-3 py-1 rounded-full shadow-sm">{amps} Ah</span>
+                                                                        <span className="text-xs font-black text-slate-700 bg-white px-3 py-1 rounded-sm shadow-sm">{amps} Ah</span>
                                                                         <span className="text-[10px] font-black uppercase tracking-widest text-[#05DF72]">₦/unit</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-3">
@@ -458,7 +458,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                                                 </button>
 
                                                                 {isExpanded && (
-                                                                    <div className="p-4 bg-white border-t border-slate-100 space-y-4">
+                                                                    <div className="p-4 bg-white border-t border-slate-200 space-y-4">
                                                                         <div className="relative">
                                                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₦</span>
                                                                             <input
@@ -467,11 +467,11 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                                                                 step="500"
                                                                                 value={price}
                                                                                 onChange={e => handlePriceChange(batteryType, amps, e.target.value)}
-                                                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-lg font-black text-slate-900 outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] transition-all"
+                                                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-sm text-lg font-black text-slate-900 outline-none focus:border-[#05DF72] transition-all"
                                                                                 placeholder="Enter unit price"
                                                                             />
                                                                         </div>
-                                                                        <div className="bg-slate-50 p-3 rounded-xl flex items-center justify-between">
+                                                                        <div className="bg-slate-50 p-3 rounded-sm flex items-center justify-between border border-slate-200">
                                                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">System Default</span>
                                                                             <span className="text-xs font-bold text-slate-600">₦{(DEFAULT_BATTERY_PRICES[batteryType]?.[amps] || 0).toLocaleString()}</span>
                                                                         </div>
@@ -485,12 +485,12 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                         </div>
                                     ))}
 
-                                    <div className="pt-8 border-t border-slate-100 flex flex-col sm:row gap-4 mt-4">
+                                    <div className="pt-8 border-t border-slate-200 flex flex-col sm:row gap-4 mt-4">
                                         <div className="flex flex-col sm:flex-row gap-4 w-full">
                                             <button
                                                 type="button"
                                                 onClick={handleResetPricing}
-                                                className="flex-1 py-4 px-6 rounded-2xl border border-slate-200 text-slate-600 text-sm font-black hover:bg-slate-50 transition-all"
+                                                className="flex-1 py-4 px-6 rounded-sm border border-slate-200 text-slate-600 text-sm font-black hover:bg-slate-50 transition-all"
                                             >
                                                 ↩ Reset to Defaults
                                             </button>
@@ -500,7 +500,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                                 loading={savingPricing}
                                                 loadingText="Saving..."
                                                 icon={SaveIcon}
-                                                className="flex-[2] shadow-lg shadow-[#05DF72]/20 py-4 text-lg"
+                                                className="flex-[2] py-4 text-lg"
                                             >
                                                 Save Pricing Formula
                                             </Button>
@@ -512,7 +512,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="p-6 bg-blue-50 border border-blue-100 rounded-3xl">
+                        <div className="p-6 bg-blue-50 border border-blue-200 rounded-sm">
                             <div className="flex items-center gap-2 text-blue-600 font-bold text-sm mb-2">
                                 <AlertCircleIcon size={18} />
                                 <span>Note on Sender IDs</span>
@@ -521,7 +521,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                 If your selected Sender ID is <b>Pending</b>, Termii will reject OTP requests with a "404 ApplicationSenderId not found" error. Please ensure your ID is <b>Active</b> in the status panel.
                             </p>
                         </div>
-                        <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl">
+                        <div className="p-6 bg-slate-50 border border-slate-200 rounded-sm">
                             <div className="flex items-center gap-2 text-slate-600 font-bold text-sm mb-2">
                                 <ShieldCheckIcon size={18} />
                                 <span>Security</span>
@@ -534,7 +534,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                 </div>
 
                 <div className="space-y-6">
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-lg p-6 space-y-4">
+                    <div className="bg-white rounded-sm border border-slate-200 shadow-sm p-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Balance</h3>
                             <button 
@@ -550,7 +550,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                             <span className="text-4xl font-black text-slate-900">{status.balance.toLocaleString()}</span>
                         </div>
                         <div className="pt-2">
-                            <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-1 bg-slate-100 rounded-sm overflow-hidden">
                                 <div 
                                     className={`h-full transition-all duration-1000 ${status.balance < 500 ? 'bg-red-500' : 'bg-[#05DF72]'}`}
                                     style={{ width: `${Math.min((status.balance / 5000) * 100, 100)}%` }}
@@ -559,11 +559,11 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-lg overflow-hidden">
-                        <div className="p-6 border-b border-slate-50">
+                    <div className="bg-white rounded-sm border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-200">
                             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sender ID Status</h3>
                         </div>
-                        <div className="divide-y divide-slate-50 max-h-[400px] overflow-y-auto">
+                        <div className="divide-y divide-slate-200 max-h-[400px] overflow-y-auto">
                             {status.senders.length > 0 ? (
                                 status.senders.map((s, idx) => (
                                     <div key={idx} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
@@ -571,9 +571,9 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                             <p className="text-sm font-black text-slate-900">{s.sender_id}</p>
                                             <p className="text-[10px] text-slate-400">{s.country}</p>
                                         </div>
-                                        <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter ${
-                                            s.status === 'active' ? 'bg-emerald-100 text-emerald-600' : 
-                                            s.status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-red-100 text-red-600'
+                                        <div className={`px-2 py-1 rounded-sm text-[10px] font-black uppercase tracking-tighter border border-slate-200 ${
+                                            s.status === 'active' ? 'bg-emerald-100 text-emerald-600 border-emerald-200' : 
+                                            s.status === 'pending' ? 'bg-amber-100 text-amber-600 border-amber-200' : 'bg-red-100 text-red-600 border-red-200'
                                         }`}>
                                             {s.status}
                                         </div>
@@ -581,7 +581,7 @@ export default function AdminSettingsClient({ initialTermii, initialQoreID, init
                                 ))
                             ) : (
                                 <div className="p-8 text-center space-y-2">
-                                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-300">
+                                    <div className="w-10 h-10 bg-slate-100 rounded-sm flex items-center justify-center mx-auto text-slate-300 border border-slate-200">
                                         <AlertCircleIcon size={20} />
                                     </div>
                                     <p className="text-xs text-slate-400 font-medium tracking-tight">No Sender IDs found. Check your Termii dashboard.</p>

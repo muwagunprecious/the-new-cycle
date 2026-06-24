@@ -23,12 +23,12 @@ import { lagosLGAs } from "@/assets/assets";
 // Simple skeleton row for loading state
 const SkeletonRow = () => (
   <tr className="animate-pulse">
-    <td className="px-6 py-4"><div className="w-24 h-4 bg-slate-200 rounded" /></td>
-    <td className="px-6 py-4"><div className="w-16 h-4 bg-slate-200 rounded" /></td>
-    <td className="px-6 py-4"><div className="w-20 h-4 bg-slate-200 rounded" /></td>
-    <td className="px-6 py-4"><div className="w-12 h-4 bg-slate-200 rounded" /></td>
-    <td className="px-6 py-4"><div className="w-24 h-4 bg-slate-200 rounded" /></td>
-    <td className="px-6 py-4"><div className="w-16 h-4 bg-slate-200 rounded" /></td>
+    <td className="px-6 py-4"><div className="w-24 h-4 bg-slate-200 rounded-sm" /></td>
+    <td className="px-6 py-4"><div className="w-16 h-4 bg-slate-200 rounded-sm" /></td>
+    <td className="px-6 py-4"><div className="w-20 h-4 bg-slate-200 rounded-sm" /></td>
+    <td className="px-6 py-4"><div className="w-12 h-4 bg-slate-200 rounded-sm" /></td>
+    <td className="px-6 py-4"><div className="w-24 h-4 bg-slate-200 rounded-sm" /></td>
+    <td className="px-6 py-4"><div className="w-16 h-4 bg-slate-200 rounded-sm" /></td>
   </tr>
 );
 
@@ -39,7 +39,7 @@ const ProductRow = memo(({ product, handleEditProduct, deleteProduct, getImageUr
   <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
     <td className="px-6 py-4">
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
+        <div className="w-10 h-10 rounded-sm bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden relative">
           {getImageUrl(product.images?.[0]) ? (
             <Image src={getImageUrl(product.images?.[0])} alt={product.name} width={45} height={45} className="w-full h-full object-cover" onError={(e) => { e.target.src = '/placeholder-battery.jpg' }} loading="lazy" />
           ) : (
@@ -66,7 +66,7 @@ const ProductRow = memo(({ product, handleEditProduct, deleteProduct, getImageUr
     </td>
     <td className="px-6 py-4">
       <div className="flex flex-col items-start gap-1">
-        <span className={`status-badge ${product.status === 'approved' ? 'status-completed' : product.status === 'rejected' ? 'status-cancelled' : 'status-pending'}`}
+        <span className={`status-badge !rounded-sm ${product.status === 'approved' ? 'status-completed' : product.status === 'rejected' ? 'status-cancelled' : 'status-pending'}`}
         >{product.status?.charAt(0).toUpperCase() + product.status?.slice(1)}</span>
         {product.status === 'rejected' && product.rejectionReason && (
           <p className="text-[10px] text-rose-500 mt-1 max-w-[150px] line-clamp-2" title={product.rejectionReason}>{product.rejectionReason}</p>
@@ -76,19 +76,19 @@ const ProductRow = memo(({ product, handleEditProduct, deleteProduct, getImageUr
     <td className="px-6 py-4">
       <div className="flex flex-wrap gap-1">
         {product.collectionDates?.slice(0, 2).map(date => (
-          <span key={date} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-full">{new Date(date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</span>
+          <span key={date} className="text-[10px] bg-slate-100 border border-slate-200 text-slate-600 px-2 py-1 rounded-sm">{new Date(date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</span>
         ))}
         {product.collectionDates?.length > 2 && (
-          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full">+{product.collectionDates.length - 2}</span>
+          <span className="text-[10px] bg-slate-100 border border-slate-200 text-slate-500 px-2 py-1 rounded-sm">+{product.collectionDates.length - 2}</span>
         )}
       </div>
     </td>
     <td className="px-6 py-4">
       <div className="flex items-center gap-2">
-        <button onClick={() => handleEditProduct(product)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500 transition-colors">
+        <button onClick={() => handleEditProduct(product)} className="p-2 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-sm text-slate-400 hover:text-blue-500 transition-colors">
           <Edit3Icon size={18} />
         </button>
-        <button onClick={() => deleteProduct(product.id)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-rose-500 transition-colors">
+        <button onClick={() => deleteProduct(product.id)} className="p-2 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-sm text-slate-400 hover:text-rose-500 transition-colors">
           <TrashIcon size={18} />
         </button>
       </div>
@@ -676,32 +676,32 @@ export default function SellerProducts() {
             </div>
 
             {storeInfo.status && storeInfo.status !== 'approved' && (
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center gap-3 text-amber-700 text-sm font-medium">
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-sm flex items-center gap-3 text-amber-700 text-sm font-medium">
                     <AlertCircleIcon size={20} className="shrink-0" />
                     <p>Your seller account is currently {storeInfo.status}. Please wait for admin approval before you can list products.</p>
                 </div>
             )}
 
-            <div className="card bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
-                <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="bg-white rounded-sm border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="relative w-full max-w-md">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
                             placeholder="Search listings..."
-                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72] transition-all text-sm"
+                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] transition-all text-sm bg-slate-50"
                         />
                     </div>
                 </div>
 
                 {products?.length === 0 ? (
                     <div className="p-12 text-center">
-                        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <div className="w-16 h-16 bg-slate-50 border border-slate-200 rounded-sm flex items-center justify-center mx-auto mb-4">
                             <BatteryIcon className="text-slate-400" size={32} />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900">No Listings Yet</h3>
                         <p className="text-slate-500 text-sm mt-2">Start by listing your first battery for sale.</p>
-                        <button onClick={() => setIsUploadModalOpen(true)} className="mt-6 btn-primary">
+                        <button onClick={() => setIsUploadModalOpen(true)} className="mt-6 px-6 py-3 bg-[#05DF72] text-slate-950 rounded-sm font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-colors shadow-sm flex items-center gap-2 mx-auto">
                             <PlusIcon size={18} />
                             Add First Listing
                         </button>
@@ -710,7 +710,7 @@ export default function SellerProducts() {
                     <>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
-                                <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
                                     <tr>
                                         <th className="px-6 py-4 font-semibold">Product</th>
                                         <th className="px-6 py-4 font-semibold">Location</th>
@@ -727,7 +727,7 @@ export default function SellerProducts() {
                                         <SkeletonRow key={idx} />
                                     ))
                                 ) : (
-                                    <tbody className="divide-y divide-slate-100">
+                                    <tbody className="divide-y divide-slate-200 bg-white">
                                         {products.map((product) => (
                                             <ProductRow
                                                 key={product.id}
@@ -742,7 +742,7 @@ export default function SellerProducts() {
                             </table>
                         </div>
                         {pagination.page < pagination.totalPages && (
-                            <div className="p-6 text-center border-t border-slate-100">
+                            <div className="p-6 text-center border-t border-slate-200 bg-slate-50/50">
                                 <button
                                     onClick={loadMoreProducts}
                                     className="text-sm font-bold text-[#05DF72] hover:underline"
@@ -757,9 +757,9 @@ export default function SellerProducts() {
 
             {/* Upload Modal */}
             {isUploadModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-100 animate-in fade-in zoom-in duration-300">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                <div className="fixed inset-0 bg-black/44 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-sm shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 animate-in fade-in zoom-in duration-300">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
                             <h2 className="text-xl font-bold text-slate-900">{editingProductId ? 'Edit' : 'List New'} <span className="text-[#05DF72]">Battery</span></h2>
                             <button 
                                 onClick={() => {
@@ -782,7 +782,7 @@ export default function SellerProducts() {
     setIsLoading(false)
     dispatch(hideLoader())
 }}
-                                className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400"
+                                className="p-2 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-sm transition-colors text-slate-405"
                             >
                                 <XIcon size={24} />
                             </button>
@@ -802,7 +802,7 @@ export default function SellerProducts() {
                                         <select
                                             value={formData.batteryType}
                                             onChange={e => setFormData({ ...formData, batteryType: e.target.value })}
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
                                             required
                                         >
                                             {BATTERY_TYPES.map(type => (
@@ -817,7 +817,7 @@ export default function SellerProducts() {
                                             value={formData.brand}
                                             onChange={e => setFormData({ ...formData, brand: e.target.value })}
                                             placeholder="e.g. Bosch, Luminous"
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
                                         />
                                     </div>
 
@@ -826,7 +826,7 @@ export default function SellerProducts() {
                                         <select
                                             value={formData.amps}
                                             onChange={e => setFormData({ ...formData, amps: e.target.value })}
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
                                             required
                                         >
                                             <option value="">Select Size</option>
@@ -838,7 +838,7 @@ export default function SellerProducts() {
 
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-[#05DF72]">Standard Applied</label>
-                                        <div className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between text-xs">
+                                        <div className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm flex items-center justify-between text-xs">
                                             <span className="text-slate-500">Condition: <span className="text-slate-900 font-bold">SCRAP</span></span>
                                             <span className="text-slate-500">State: <span className="text-slate-900 font-bold">LAGOS</span></span>
                                         </div>
@@ -853,7 +853,7 @@ export default function SellerProducts() {
                                             min="1"
                                             max="100"
                                             required
-                                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
                                         />
                                     </div>
 
@@ -868,10 +868,10 @@ export default function SellerProducts() {
                                                     value={formData.batteryType && formData.amps ? ((batteryPrices[formData.batteryType]?.[formData.amps] || 0) * parseInt(formData.unitsAvailable || 1)).toLocaleString() : ''}
                                                     readOnly
                                                     placeholder="Auto-calculated"
-                                                    className="w-full p-4 bg-slate-100/50 text-slate-400 border-none rounded-2xl outline-none font-medium text-sm cursor-not-allowed"
+                                                    className="w-full p-4 bg-slate-100/50 text-slate-400 border border-slate-200 rounded-sm outline-none font-medium text-sm cursor-not-allowed"
                                                 />
                                                 {formData.amps !== '' && (
-                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#05DF72]/10 text-[#05DF72] rounded-full text-[10px] font-bold uppercase">
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#05DF72]/10 text-[#05DF72] rounded-sm border border-[#05DF72]/20 text-[10px] font-bold uppercase">
                                                         Suggested
                                                     </div>
                                                 )}
@@ -900,7 +900,7 @@ export default function SellerProducts() {
                                                     min="1"
                                                     placeholder="e.g. 15000"
                                                     required
-                                                    className={`w-full p-4 rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm transition-all ${!formData.isManualPrice && formData.amps !== '' ? 'bg-[#05DF72]/5 text-[#05DF72] border border-[#05DF72]/20' : 'bg-slate-50 border-none'}`}
+                                                    className={`w-full p-4 border rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm transition-all ${!formData.isManualPrice && formData.amps !== '' ? 'bg-[#05DF72]/5 text-[#05DF72] border-[#05DF72]/20' : 'bg-slate-50 border-slate-200'}`}
                                                 />
                                             </div>
                                         </div>
@@ -909,7 +909,7 @@ export default function SellerProducts() {
                             </div>
 
                             {/* Location Section */}
-                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                            <div className="space-y-4 pt-4 border-t border-slate-200">
                                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                     <MapPinIcon size={16} className="text-[#05DF72]" />
                                     Location & Pickup Address
@@ -951,7 +951,7 @@ export default function SellerProducts() {
                                                     setFormData({ ...formData, lga: e.target.value })
                                                     if (addressMode === 'registered') setAddressMode('new')
                                                 }}
-                                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
                                                 required
                                             >
                                                 <option value="">Select LGA</option>
@@ -971,7 +971,7 @@ export default function SellerProducts() {
                                                 }}
                                                 placeholder="e.g. 12 Admiralty Way, Lekki Phase 1"
                                                 required
-                                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
                                             />
                                         </div>
                                     </div>
@@ -979,7 +979,7 @@ export default function SellerProducts() {
                             </div>
 
                             {/* Collection Dates Section */}
-                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                            <div className="space-y-4 pt-4 border-t border-slate-200">
                                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                     <CalendarIcon size={16} className="text-[#05DF72]" />
                                     Available Collection Dates *
@@ -1001,7 +1001,7 @@ export default function SellerProducts() {
                             </div>
 
                             {/* Media Section */}
-                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                            <div className="space-y-4 pt-4 border-t border-slate-200">
                                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                     <ImageIcon size={16} className="text-[#05DF72]" />
                                     Media Upload <span className="text-xs font-normal text-slate-400">(Min 2, Max 5)</span>
@@ -1009,12 +1009,12 @@ export default function SellerProducts() {
 
                                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
                                     {formData.images.map((img, index) => (
-                                        <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-100 group">
+                                        <div key={index} className="relative aspect-square rounded-sm overflow-hidden border border-slate-200 group">
                                             <img src={img} alt="" className="w-full h-full object-cover" />
                                             <button
                                                 type="button"
                                                 onClick={() => removeImage(index)}
-                                                className="absolute top-1 right-1 bg-black/50 hover:bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
+                                                className="absolute top-1 right-1 bg-black/50 hover:bg-red-500 text-white p-1 rounded-sm opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
                                             >
                                                 <XIcon size={14} />
                                             </button>
@@ -1022,7 +1022,7 @@ export default function SellerProducts() {
                                     ))}
 
                                     {formData.images.length < 5 && (
-                                        <label className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-4 text-center hover:border-[#05DF72]/50 hover:bg-[#05DF72]/5 transition-all cursor-pointer aspect-square">
+                                        <label className="border-2 border-dashed border-slate-200 rounded-sm flex flex-col items-center justify-center p-4 text-center hover:border-[#05DF72]/50 hover:bg-[#05DF72]/5 transition-all cursor-pointer aspect-square">
                                             <input
                                                 type="file"
                                                 multiple
@@ -1035,28 +1035,28 @@ export default function SellerProducts() {
                                         </label>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-400">Supported: JPG, PNG. Max 5MB per picture.</p>
+                                <p className="text-xs text-slate-405">Supported: JPG, PNG. Max 5MB per picture.</p>
                             </div>
 
-                            <div className="space-y-2 pt-4 border-t border-slate-100">
+                            <div className="space-y-2 pt-4 border-t border-slate-200">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Comments / Description</label>
                                 <textarea
                                     value={formData.comments}
                                     onChange={e => setFormData({ ...formData, comments: e.target.value })}
                                     placeholder="Any additional details about the batteries..."
                                     rows={3}
-                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm resize-none"
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm resize-none"
                                 />
                             </div>
 
                             {/* Terms and Conditions */}
-                            <div className="pt-4 border-t border-slate-100">
+                            <div className="pt-4 border-t border-slate-200">
                                 <label className="flex items-start gap-3 cursor-pointer group">
                                     <input
                                         type="checkbox"
                                         checked={acceptedTerms}
                                         onChange={(e) => setAcceptedTerms(e.target.checked)}
-                                        className="mt-0.5 w-5 h-5 rounded-md border-2 border-slate-300 text-[#05DF72] focus:ring-[#05DF72] focus:ring-offset-0 cursor-pointer accent-[#05DF72]"
+                                        className="mt-0.5 w-5 h-5 rounded-sm border-2 border-slate-300 text-[#05DF72] focus:ring-[#05DF72] focus:ring-offset-0 cursor-pointer accent-[#05DF72]"
                                     />
                                     <span className="text-xs text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
                                         I agree to Go-Cycle's <a href="/terms" target="_blank" className="text-[#05DF72] font-bold hover:underline">Terms and Conditions</a> and confirm that the battery details provided are accurate. I understand that misrepresentation may result in account suspension.
@@ -1065,7 +1065,7 @@ export default function SellerProducts() {
                             </div>
 
                             {/* Submit */}
-                            <div className="flex gap-4 pt-6">
+                            <div className="flex gap-4 pt-6 border-t border-slate-200">
                                 <button
                                     type="button"
                                     onClick={() => setIsUploadModalOpen(false)}
@@ -1077,7 +1077,7 @@ export default function SellerProducts() {
                                     type="submit"
                                     loading={isLoading}
                                     loadingText={editingProductId ? "Updating..." : "Submitting..."}
-                                    className="flex-1"
+                                    className="flex-1 rounded-sm"
                                     disabled={!acceptedTerms}
                                 >
                                     {editingProductId ? 'Update Listing' : 'Submit Listing'}
@@ -1090,9 +1090,9 @@ export default function SellerProducts() {
 
             {/* Payment Account Modal */}
             {showPaymentModal && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full border border-slate-100 animate-in fade-in zoom-in duration-300">
-                        <div className="p-6 border-b border-slate-100">
+                <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-sm shadow-xl max-w-md w-full border border-slate-200 animate-in fade-in zoom-in duration-300">
+                        <div className="p-6 border-b border-slate-200">
                             <h2 className="text-lg font-bold text-slate-900">Payment <span className="text-[#05DF72]">Details</span></h2>
                             <p className="text-xs text-slate-400 mt-1">Enter your bank account to receive payment for this listing</p>
                         </div>
@@ -1114,7 +1114,7 @@ export default function SellerProducts() {
                                             lookupAccountName(bankDetails.accountNumber, code)
                                         }
                                     }}
-                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:ring-1 focus:ring-[#05DF72] focus:border-[#05DF72] font-medium text-sm"
                                 >
                                     <option value="">-- Select your bank --</option>
                                     {Object.keys(NIGERIAN_BANKS).map(bank => (
@@ -1140,7 +1140,7 @@ export default function SellerProducts() {
                                         }}
                                         placeholder="0123456789"
                                         maxLength={10}
-                                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-bold text-lg tracking-[0.15em]"
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:ring-1 focus:ring-[#05DF72] focus:border-[#05DF72] font-bold text-lg tracking-[0.15em]"
                                     />
                                     {bankLookupLoading && (
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -1154,12 +1154,12 @@ export default function SellerProducts() {
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Name</label>
                                 {bankDetails.accountName ? (
-                                    <div className="w-full p-4 bg-[#05DF72]/5 border border-[#05DF72]/20 rounded-2xl flex items-center gap-3">
+                                    <div className="w-full p-4 bg-[#05DF72]/5 border border-[#05DF72]/20 rounded-sm flex items-center gap-3">
                                         <CheckCircleIcon className="text-[#05DF72] shrink-0" size={20} />
                                         <span className="font-bold text-slate-900">{bankDetails.accountName}</span>
                                     </div>
                                 ) : (
-                                    <div className="w-full p-4 bg-slate-50 rounded-2xl text-sm text-slate-400 font-medium">
+                                    <div className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm text-sm text-slate-405 font-medium">
                                         {bankLookupLoading ? 'Verifying account...' : 'Will auto-resolve when you select bank and enter account number'}
                                     </div>
                                 )}
@@ -1167,7 +1167,7 @@ export default function SellerProducts() {
 
                             {/* Bank downtime manual verification full name input */}
                             {isDowntime && (
-                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top duration-300">
+                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-sm space-y-3 animate-in fade-in slide-in-from-top duration-300">
                                     <div className="flex items-start gap-2 text-amber-700 text-xs font-medium">
                                         <AlertCircleIcon size={18} className="shrink-0 mt-0.5" />
                                         <span>{downtimeMessage}</span>
@@ -1179,7 +1179,7 @@ export default function SellerProducts() {
                                             value={bankDetails.accountName}
                                             onChange={e => setBankDetails(prev => ({ ...prev, accountName: e.target.value }))}
                                             placeholder="Enter your full name"
-                                            className="w-full p-3 bg-white border border-amber-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/20 font-bold text-sm text-slate-900"
+                                            className="w-full p-3 bg-white border border-amber-200 rounded-sm outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 font-bold text-sm text-slate-900"
                                         />
                                     </div>
                                 </div>
@@ -1190,7 +1190,7 @@ export default function SellerProducts() {
                                     type="checkbox"
                                     checked={saveAccount}
                                     onChange={(e) => setSaveAccount(e.target.checked)}
-                                    className="mt-0.5 w-5 h-5 rounded-md border-2 border-slate-300 text-[#05DF72] focus:ring-[#05DF72] cursor-pointer accent-[#05DF72]"
+                                    className="mt-0.5 w-5 h-5 rounded-sm border-2 border-slate-300 text-[#05DF72] focus:ring-[#05DF72] cursor-pointer accent-[#05DF72]"
                                 />
                                 <span className="text-xs text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
                                     Save this account number for future transactions
@@ -1198,7 +1198,7 @@ export default function SellerProducts() {
                             </label>
                         </div>
 
-                        <div className="p-6 border-t border-slate-100 flex gap-3">
+                        <div className="p-6 border-t border-slate-200 flex gap-3">
                             <button
                                 onClick={() => setShowPaymentModal(false)}
                                 className="flex-1 py-3 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
@@ -1207,7 +1207,7 @@ export default function SellerProducts() {
                             </button>
                             <Button
                                 onClick={handlePaymentSubmitAndPublish}
-                                className="flex-1"
+                                className="flex-1 rounded-sm font-bold uppercase tracking-widest text-xs py-3"
                                 disabled={!bankDetails.accountName || bankLookupLoading}
                             >
                                 Proceed to Submit

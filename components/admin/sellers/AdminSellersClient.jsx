@@ -71,7 +71,7 @@ export default function AdminSellersClient({ initialSellers }) {
                         placeholder="Search sellers..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:border-[#05DF72] transition-all font-medium text-slate-700"
+                        className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] transition-all font-medium text-slate-700"
                     />
                 </div>
             </div>
@@ -79,14 +79,14 @@ export default function AdminSellersClient({ initialSellers }) {
             {filteredSellers.length ? (
                 <div className="grid grid-cols-1 gap-6">
                     {filteredSellers.map((store) => (
-                        <div key={store.id} className="bg-white border border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/50 p-8 flex flex-col lg:flex-row gap-8 items-start lg:items-center" >
+                        <div key={store.id} className="bg-white border border-slate-200 rounded-sm shadow-sm p-8 flex flex-col lg:flex-row gap-8 items-start lg:items-center" >
                             {/* Store Info */}
                             <div className="flex-1 w-full">
                                 <StoreInfo store={store} />
                             </div>
 
                             {/* Wallet & Actions */}
-                            <div className="lg:w-64 w-full bg-slate-50 rounded-[2rem] p-6 border border-slate-100 flex flex-col gap-4">
+                            <div className="lg:w-64 w-full bg-slate-50 rounded-sm p-6 border border-slate-200 flex flex-col gap-4">
                                 <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[10px] mb-2">
                                     <WalletIcon size={14} className="text-[#05DF72]" /> Seller Wallet
                                 </div>
@@ -99,14 +99,14 @@ export default function AdminSellersClient({ initialSellers }) {
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         onClick={() => handleWalletUpdate(store.id, 'CREDIT')}
-                                        className="flex items-center justify-center gap-2 py-3 bg-[#05DF72] text-white rounded-xl hover:bg-[#04c966] transition-colors shadow-lg shadow-[#05DF72]/20"
+                                        className="flex items-center justify-center gap-2 py-3 bg-[#05DF72] text-white rounded-sm hover:bg-[#04c966] transition-colors shadow-sm"
                                     >
                                         <PlusIcon size={16} />
                                         <span className="text-xs font-bold uppercase">Credit</span>
                                     </button>
                                     <button
                                         onClick={() => handleWalletUpdate(store.id, 'DEBIT')}
-                                        className="flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20"
+                                        className="flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-sm hover:bg-slate-800 transition-colors shadow-sm"
                                     >
                                         <MinusIcon size={16} />
                                         <span className="text-xs font-bold uppercase">Debit</span>
@@ -117,7 +117,7 @@ export default function AdminSellersClient({ initialSellers }) {
                     ))}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center h-80 bg-white rounded-[3rem] border border-dashed border-slate-200">
+                <div className="flex flex-col items-center justify-center h-80 bg-white rounded-sm border border-dashed border-slate-200">
                     <SearchIcon size={48} className="text-slate-200 mb-4" />
                     <h1 className="text-xl text-slate-400 font-bold uppercase tracking-widest">No matching sellers found</h1>
                     <p className="text-sm text-slate-400 mt-2">Try a different search term or check back later.</p>

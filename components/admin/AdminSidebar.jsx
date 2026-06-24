@@ -113,7 +113,7 @@ const AdminSidebar = () => {
     return (
         <div className="inline-flex h-full flex-col gap-5 border-r border-slate-200 sm:min-w-64 bg-white overflow-y-auto no-scrollbar">
             <div className="flex flex-col gap-3 justify-center items-center pt-10 pb-6 max-sm:hidden">
-                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center border-2 border-[#05DF72]">
+                <div className="w-16 h-16 rounded-sm bg-slate-50 flex items-center justify-center border border-slate-200">
                     <UsersIcon className="text-[#05DF72]" size={30} />
                 </div>
                 <div className="text-center">
@@ -130,25 +130,24 @@ const AdminSidebar = () => {
                             <button
                                 key={index}
                                 onClick={() => handleNavigation(link.href)}
-                                className={`relative flex items-center gap-4 text-slate-500 hover:bg-slate-50 p-3.5 rounded-xl transition w-full text-left ${fullPath === link.href ? 'bg-slate-50 text-[#05DF72] font-semibold' : ''}`}
+                                className={`relative flex items-center gap-4 text-slate-500 hover:bg-slate-50 p-3.5 rounded-sm transition w-full text-left ${fullPath === link.href ? 'bg-slate-50 text-[#05DF72] font-semibold border-l-4 border-[#05DF72]' : 'border-l-4 border-transparent'}`}
                             >
-                                <link.icon size={20} />
+                                <link.icon size={20} className="shrink-0" />
                                 <p className="max-sm:hidden text-sm">{link.name}</p>
                                 {count > 0 && (
-                                    <span className={`max-sm:absolute max-sm:-top-1 max-sm:-right-1 max-sm:w-4 max-sm:h-4 max-sm:text-[8px] ml-auto w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold text-white shrink-0 ${
+                                    <span className={`max-sm:absolute max-sm:-top-1 max-sm:-right-1 max-sm:w-4 max-sm:h-4 max-sm:text-[8px] ml-auto w-5 h-5 rounded-sm text-[10px] flex items-center justify-center font-bold text-white shrink-0 ${
                                         link.name === 'Pending Cashouts' ? 'bg-amber-500' : 'bg-[#05DF72]'
                                     }`}>
                                         {count}
                                     </span>
                                 )}
-                                {fullPath === link.href && <span className="absolute bg-[#05DF72] left-0 top-3 bottom-3 w-1.5 rounded-r-full"></span>}
                             </button>
                         )
                     })
                 }
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-4 text-slate-500 hover:bg-rose-50 hover:text-rose-500 p-3.5 rounded-xl transition w-full text-left mt-4 border-t border-slate-50 pt-6"
+                    className="flex items-center gap-4 text-slate-500 hover:bg-rose-50 hover:text-rose-500 p-3.5 rounded-sm transition w-full text-left mt-4 border-t border-slate-100 pt-6"
                 >
                     <LogOutIcon size={20} />
                     <p className="max-sm:hidden text-sm font-semibold">Sign Out</p>

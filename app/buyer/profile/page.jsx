@@ -100,9 +100,9 @@ export default function BuyerProfile() {
             </div>
 
             {/* Profile Info Card */}
-            <div className="card bg-white p-8">
-                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
-                    <div className="w-12 h-12 bg-[#05DF72]/10 rounded-2xl flex items-center justify-center text-[#05DF72]">
+            <div className="bg-white border border-slate-200 rounded-sm p-8 shadow-sm">
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-200">
+                    <div className="w-12 h-12 bg-white border border-slate-200 rounded-sm flex items-center justify-center text-[#05DF72]">
                         <UserIcon size={24} />
                     </div>
                     <div>
@@ -143,7 +143,7 @@ export default function BuyerProfile() {
                         <div className="pt-4 md:col-span-2">
                             <button 
                                 onClick={() => setEditMode(true)}
-                                className="px-6 py-2 border-2 border-slate-900 text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all"
+                                className="px-6 py-2 border border-slate-900 text-slate-900 rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all"
                             >
                                 Edit Profile Name
                             </button>
@@ -159,7 +159,7 @@ export default function BuyerProfile() {
                                     value={editData.firstName}
                                     onChange={e => setEditData({ ...editData, firstName: e.target.value })}
                                     required
-                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:ring-1 focus:ring-[#05DF72] focus:border-[#05DF72] font-medium text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -169,18 +169,18 @@ export default function BuyerProfile() {
                                     value={editData.lastName}
                                     onChange={e => setEditData({ ...editData, lastName: e.target.value })}
                                     required
-                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:ring-1 focus:ring-[#05DF72] focus:border-[#05DF72] font-medium text-sm"
                                 />
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <button type="submit" className="px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#05DF72] transition-all shadow-xl shadow-slate-900/10">
+                            <button type="submit" className="px-8 py-3.5 bg-slate-900 text-white rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-[#05DF72] transition-all shadow-md">
                                 Save Profile
                             </button>
                             <button 
                                 type="button"
                                 onClick={() => setEditMode(false)}
-                                className="px-8 py-3.5 bg-slate-100 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
+                                className="px-8 py-3.5 bg-slate-100 text-slate-500 rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200"
                             >
                                 Cancel
                             </button>
@@ -190,9 +190,9 @@ export default function BuyerProfile() {
             </div>
 
             {/* Change Password Card */}
-            <div className="card bg-white p-8">
-                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
-                    <div className="w-12 h-12 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-500">
+            <div className="bg-white border border-slate-200 rounded-sm p-8 shadow-sm">
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-200">
+                    <div className="w-12 h-12 bg-white border border-rose-200 rounded-sm flex items-center justify-center text-rose-500">
                         <LockIcon size={24} />
                     </div>
                     <div>
@@ -211,7 +211,7 @@ export default function BuyerProfile() {
                                 onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                                 placeholder="Enter current password"
                                 required
-                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 font-medium text-sm"
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:ring-1 focus:ring-rose-500 focus:border-rose-500 font-medium text-sm"
                             />
                         </div>
 
@@ -223,7 +223,7 @@ export default function BuyerProfile() {
                                 onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                                 placeholder="Min. 6 characters"
                                 required
-                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:ring-1 focus:ring-[#05DF72] focus:border-[#05DF72] font-medium text-sm"
                             />
                         </div>
 
@@ -235,13 +235,13 @@ export default function BuyerProfile() {
                                 onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                                 placeholder="Repeat new password"
                                 required
-                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:ring-1 focus:ring-[#05DF72] focus:border-[#05DF72] font-medium text-sm"
                             />
                         </div>
                     </div>
 
                     <div className="pt-4 flex justify-end">
-                        <button type="submit" className="px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 transition-all shadow-xl shadow-slate-900/10 flex items-center gap-2">
+                        <button type="submit" className="px-8 py-3.5 bg-slate-900 text-white rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 transition-all shadow-md flex items-center gap-2">
                             <SaveIcon size={18} />
                             Update Password
                         </button>

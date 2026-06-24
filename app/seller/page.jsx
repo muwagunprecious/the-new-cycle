@@ -157,26 +157,26 @@ export default function SellerOverview() {
 
             {/* Mobile Quick Navigation */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:hidden mb-8">
-                <Link href="/seller" className="flex flex-col items-center gap-3 p-5 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 hover:border-[#05DF72]/30 transition-all">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500">
+                <Link href="/seller" className="flex flex-col items-center gap-3 p-5 bg-white rounded-sm border border-slate-200 shadow-sm hover:border-[#05DF72]/40 transition-all">
+                    <div className="w-12 h-12 rounded-sm bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500">
                         <HomeIcon size={24} />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 text-center">Overview</span>
                 </Link>
-                <Link href="/seller/products" className="flex flex-col items-center gap-3 p-5 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 hover:border-[#05DF72]/30 transition-all">
-                    <div className="w-12 h-12 rounded-2xl bg-[#05DF72]/10 flex items-center justify-center text-[#05DF72]">
+                <Link href="/seller/products" className="flex flex-col items-center gap-3 p-5 bg-white rounded-sm border border-slate-200 shadow-sm hover:border-[#05DF72]/40 transition-all">
+                    <div className="w-12 h-12 rounded-sm bg-[#05DF72]/10 border border-[#05DF72]/20 flex items-center justify-center text-[#05DF72]">
                         <BatteryIcon size={24} />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 text-center">List Battery</span>
                 </Link>
-                <Link href="/seller/orders" className="flex flex-col items-center gap-3 p-5 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 hover:border-[#05DF72]/30 transition-all">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-500">
+                <Link href="/seller/orders" className="flex flex-col items-center gap-3 p-5 bg-white rounded-sm border border-slate-200 shadow-sm hover:border-[#05DF72]/40 transition-all">
+                    <div className="w-12 h-12 rounded-sm bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-500">
                         <PackageIcon size={24} />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 text-center">Orders</span>
                 </Link>
-                <Link href="/seller/settings" className="flex flex-col items-center gap-3 p-5 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 hover:border-[#05DF72]/30 transition-all">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500">
+                <Link href="/seller/settings" className="flex flex-col items-center gap-3 p-5 bg-white rounded-sm border border-slate-200 shadow-sm hover:border-[#05DF72]/40 transition-all">
+                    <div className="w-12 h-12 rounded-sm bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500">
                         <SettingsIcon size={24} />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 text-center">Settings</span>
@@ -186,8 +186,8 @@ export default function SellerOverview() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 {stats.map((stat) => (
-                    <div key={stat.label} className="bg-white rounded-[2.5rem] p-8 flex flex-col gap-6 shadow-2xl shadow-slate-200/50 border border-slate-100 group hover:border-[#05DF72]/30 transition-all duration-500">
-                        <div className={`${stat.bg} ${stat.color} w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-12`}>
+                    <div key={stat.label} className="bg-white rounded-sm p-6 flex flex-col gap-6 shadow-sm border border-slate-200 group hover:border-[#05DF72]/40 transition-all duration-500">
+                        <div className={`${stat.bg} ${stat.color} w-14 h-14 rounded-sm border border-slate-200/40 flex items-center justify-center`}>
                             <stat.icon size={28} />
                         </div>
                         <div>
@@ -200,7 +200,7 @@ export default function SellerOverview() {
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 {/* Incoming Orders */}
-                <div className="lg:col-span-3 bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100">
+                <div className="lg:col-span-3 bg-white rounded-sm p-8 shadow-sm border border-slate-200">
                     <div className="flex items-center justify-between mb-10">
                         <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Incoming Orders</h2>
                         <span className="text-xs font-bold text-slate-400">{orders.length} total</span>
@@ -208,15 +208,15 @@ export default function SellerOverview() {
 
                     {orders.length === 0 ? (
                         <div className="text-center py-12">
-                            <PackageIcon className="mx-auto text-slate-300 mb-4" size={48} />
+                            <PackageIcon className="mx-auto text-slate-355 mb-4" size={48} />
                             <p className="text-slate-500">No orders yet</p>
                         </div>
                     ) : (
                         <div className="space-y-4">
                             {orders.slice(0, 5).map((order) => (
-                                <div key={order.id} className="flex items-center justify-between p-6 bg-slate-50/50 rounded-[2rem] border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-300">
+                                <div key={order.id} className="flex items-center justify-between p-6 bg-white rounded-sm border border-slate-200 hover:border-[#05DF72]/40 hover:shadow-md transition-all duration-300">
                                     <div className="flex items-center gap-5">
-                                        <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-[#05DF72] shadow-sm">
+                                        <div className="w-12 h-12 rounded-sm bg-slate-50 border border-slate-200 flex items-center justify-center text-[#05DF72]">
                                             <BatteryIcon size={24} />
                                         </div>
                                         <div className="flex flex-col">
@@ -230,7 +230,7 @@ export default function SellerOverview() {
                                     </div>
                                     <div className="text-right">
                                         <p className="font-black text-slate-900">₦{(order.total || 0).toLocaleString()}</p>
-                                        <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full mt-2 inline-block ${getStatusBadge(order.status)}`}>
+                                        <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-sm mt-2 inline-block ${getStatusBadge(order.status)}`}>
                                             {order.status?.replace('_', ' ')}
                                         </span>
                                         {order.status === 'PICKED_UP' && (
@@ -244,7 +244,7 @@ export default function SellerOverview() {
                                         {order.status === 'APPROVED' && (
                                             <div className="mt-2 flex flex-col items-end">
                                                 <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Collection Token</span>
-                                                <span className="font-mono font-black text-[#05DF72] text-lg bg-[#05DF72]/10 px-2 rounded-md border border-[#05DF72]/20">
+                                                <span className="font-mono font-black text-[#05DF72] text-lg bg-[#05DF72]/10 px-2 rounded-sm border border-[#05DF72]/20">
                                                     {order.collectionToken}
                                                 </span>
                                             </div>
@@ -257,7 +257,7 @@ export default function SellerOverview() {
                 </div>
 
                 {/* Payout Section */}
-                <div className="lg:col-span-2 bg-slate-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
+                <div className="lg:col-span-2 bg-[#0c101b] border border-slate-800 rounded-sm p-8 text-white shadow-sm relative overflow-hidden">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-10">
                             <h2 className="text-xl font-black uppercase tracking-tighter">Payouts</h2>
@@ -269,14 +269,14 @@ export default function SellerOverview() {
                         </div>
 
                         <div className="space-y-6">
-                            <div className="bg-white/10 rounded-2xl p-6">
+                            <div className="bg-white/5 border border-white/10 rounded-sm p-6">
                                 <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Pending Payout</p>
                                 <p className="text-3xl font-black text-[#05DF72]">₦{data.pendingPayouts.toLocaleString()}</p>
                                 <p className="text-xs text-slate-400 mt-2">Released after buyer confirms collection</p>
                             </div>
 
                             {store?.bankName ? (
-                                <div className="bg-white/5 rounded-2xl p-6 border border-white/10 group/bank relative">
+                                <div className="bg-white/5 rounded-sm p-6 border border-white/10 group/bank relative">
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-3">Bank Account</p>
                                     <button
                                         onClick={() => setShowVerificationModal(true)}
@@ -302,28 +302,27 @@ export default function SellerOverview() {
                             ) : (
                                 <button
                                     onClick={() => setShowVerificationModal(true)}
-                                    className="w-full py-4 bg-white/10 border border-white/20 rounded-xl text-sm font-bold hover:bg-white/20 transition-colors"
+                                    className="w-full py-4 bg-white/10 border border-white/20 rounded-sm text-sm font-bold hover:bg-white/20 transition-colors"
                                 >
                                     Add Bank Details
                                 </button>
                             )}
                         </div>
                     </div>
-                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-[#05DF72]/10 rounded-full blur-[80px]"></div>
                 </div>
             </div>
 
             {/* Payout History Table */}
             {payoutHistory.length > 0 && (
-                <div className="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100 overflow-hidden">
+                <div className="bg-white rounded-sm p-8 shadow-sm border border-slate-200 overflow-hidden">
                     <div className="flex items-center justify-between mb-10">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#05DF72]/10 rounded-2xl flex items-center justify-center text-[#05DF72]">
+                            <div className="w-10 h-10 bg-white border border-slate-200 rounded-sm flex items-center justify-center text-[#05DF72]">
                                 <WalletIcon size={20} />
                             </div>
                             <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Payout History</h2>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#05DF72] px-3 py-1 bg-[#05DF72]/10 rounded-full">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#05DF72] px-3 py-1 bg-[#05DF72]/10 rounded-sm">
                             Released
                         </span>
                     </div>

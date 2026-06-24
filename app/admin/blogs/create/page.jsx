@@ -95,7 +95,7 @@ export default function CreateBlogPage() {
             <div className="flex items-center gap-4">
                 <button 
                     onClick={() => router.push('/admin/blogs')} 
-                    className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full transition-colors"
+                    className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-sm transition-colors border border-slate-200"
                 >
                     <ArrowLeftIcon size={20} />
                 </button>
@@ -105,12 +105,12 @@ export default function CreateBlogPage() {
                 </div>
             </div>
 
-            <form onSubmit={handlePublish} className="space-y-6 bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+            <form onSubmit={handlePublish} className="space-y-6 bg-white p-8 rounded-sm shadow-sm border border-slate-200">
                 
                 {/* Headline Image */}
                 <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Headline Banner Image</label>
-                    <div className="relative group cursor-pointer border-2 border-dashed border-slate-200 hover:border-[#05DF72] rounded-2xl overflow-hidden transition-colors h-48 bg-slate-50 flex items-center justify-center">
+                    <div className="relative group cursor-pointer border-2 border-dashed border-slate-200 hover:border-[#05DF72] rounded-sm overflow-hidden transition-colors h-48 bg-slate-50 flex items-center justify-center">
                         <input
                             type="file"
                             accept="image/*"
@@ -136,7 +136,7 @@ export default function CreateBlogPage() {
                         value={formData.title}
                         onChange={e => setFormData({ ...formData, title: e.target.value })}
                         placeholder="e.g. Navigating Nigeria's E-Waste Challenges"
-                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-lg"
+                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] font-medium text-lg"
                         required
                     />
                 </div>
@@ -163,7 +163,7 @@ export default function CreateBlogPage() {
                         value={formData.content}
                         onChange={e => setFormData({ ...formData, content: e.target.value })}
                         placeholder="<p>Write your article here...</p>"
-                        className="w-full p-5 text-sm bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 min-h-[350px] font-mono leading-relaxed"
+                        className="w-full p-5 text-sm bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] min-h-[350px] font-mono leading-relaxed"
                         required
                     ></textarea>
                     <p className="text-[10px] text-slate-400 text-right">You can use standard HTML tags perfectly.</p>

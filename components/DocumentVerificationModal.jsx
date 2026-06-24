@@ -152,60 +152,60 @@ export default function DocumentVerificationModal({ user, onComplete }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="glass rounded-[3.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-glass border border-white/40 animate-in zoom-in-95 duration-500">
+            <div className="bg-white rounded-sm w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border border-slate-200 animate-in zoom-in-95 duration-500">
                 {/* Header */}
-                <div className="bg-slate-900/95 p-10 text-white sticky top-0 z-20 border-b border-white/10 backdrop-blur-xl">
+                <div className="bg-slate-50 p-8 sticky top-0 z-20 border-b border-slate-200 backdrop-blur-xl flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-[#05DF72]/10 border border-[#05DF72]/20 rounded-sm flex items-center justify-center text-[#05DF72]">
+                            <ShieldCheckIcon size={24} />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-[#05DF72] uppercase tracking-[0.2em] mb-0.5">Identity Trust Engine</p>
+                            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Secure Verification</h2>
+                        </div>
+                    </div>
                     <button
                         onClick={onComplete}
-                        className="absolute top-8 right-8 p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all border border-white/10"
+                        className="p-2 rounded-sm bg-white border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-all"
                     >
                         <XIcon size={18} />
                     </button>
-                    <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-emerald-500/20 rotate-3">
-                            <ShieldCheckIcon size={32} className="text-white" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-1">Identity Trust Engine</p>
-                            <h2 className="text-3xl font-black tracking-tight">Secure Verification</h2>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-10 space-y-12 bg-white/60">
+                <div className="p-8 space-y-10 bg-white">
 
                     {/* Trust Banner */}
-                    <div className="bg-emerald-50/50 border border-emerald-100 rounded-[2rem] p-6 flex items-start gap-4">
-                        <div className="p-3 bg-white rounded-2xl shadow-sm text-emerald-500">
+                    <div className="bg-[#05DF72]/5 border border-[#05DF72]/20 rounded-sm p-6 flex items-start gap-4">
+                        <div className="p-3 bg-white border border-slate-200 rounded-sm shadow-sm text-[#05DF72]">
                             <LockIcon size={20} />
                         </div>
                         <div>
-                            <h4 className="font-black text-slate-900 text-sm">End-to-End Encrypted</h4>
+                            <h4 className="font-bold text-slate-900 text-sm">End-to-End Encrypted</h4>
                             <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1">
-                                Your data is protected by GoCycle's military-grade encryption and processed securely through QoreID infrastructure.
+                                Your data is protected by GoCycle's encryption protocol and processed securely through QoreID infrastructure.
                             </p>
                         </div>
                     </div>
 
                     {/* NIN Verification Section */}
-                    <div className="space-y-6 relative">
+                    <div className="space-y-4 relative">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-xs">1</span>
-                                <label className="text-xs font-black text-slate-900 uppercase tracking-widest">
+                                <span className="w-6 h-6 rounded-sm bg-slate-950 text-white flex items-center justify-center font-bold text-xs">1</span>
+                                <label className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                                     Identity Verification (NIN)
                                 </label>
                             </div>
                             {ninVerified && (
-                                <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-white bg-emerald-500 px-3 py-1.5 rounded-full shadow-lg shadow-emerald-500/20">
+                                <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-950 bg-[#05DF72] px-2 py-0.5 rounded-sm border border-[#05DF72]/20">
                                     <CheckCircleIcon size={12} /> Verified
                                 </span>
                             )}
                         </div>
 
                         <div className="relative group">
-                            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#05DF72] transition-colors">
                                 <CreditCard size={20} />
                             </div>
                             <input
@@ -215,7 +215,7 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                                 disabled={ninVerified || verifyingNIN}
                                 maxLength={11}
                                 inputMode="numeric"
-                                className="w-full pl-14 pr-4 sm:pr-32 py-5 bg-white border-2 border-slate-100 rounded-[1.5rem] outline-none transition-all focus:border-emerald-500 font-black text-slate-900 tracking-[0.2em] placeholder:tracking-normal placeholder:font-medium placeholder:text-slate-300 text-lg disabled:bg-slate-50 disabled:text-slate-400"
+                                className="w-full pl-12 pr-4 sm:pr-36 py-3.5 bg-slate-50 border border-slate-200 rounded-sm outline-none transition-all focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-bold text-slate-900 tracking-[0.2em] placeholder:tracking-normal placeholder:font-medium placeholder:text-slate-400 text-base disabled:bg-slate-100 disabled:text-slate-400"
                                 value={formData.ninDocument || ''}
                                 onChange={(e) => {
                                     const val = e.target.value.replace(/\D/g, '')
@@ -229,45 +229,45 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                                     type="button"
                                     onClick={handleVerifyNIN}
                                     disabled={verifyingNIN || !formData.ninDocument || formData.ninDocument.length !== 11}
-                                    className="relative sm:absolute mt-4 sm:mt-0 sm:right-3 sm:top-1/2 sm:-translate-y-1/2 w-full sm:w-auto px-6 py-4 sm:py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-slate-900/10"
+                                    className="relative sm:absolute mt-3 sm:mt-0 sm:right-2 sm:top-1/2 sm:-translate-y-1/2 w-full sm:w-auto px-5 py-2 bg-slate-900 text-white rounded-sm text-[10px] font-bold uppercase tracking-wider hover:bg-[#05DF72] hover:text-slate-950 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {verifyingNIN ? <LoaderIcon className="animate-spin" size={14} /> : 'Authenticate'}
                                 </button>
                             )}
                         </div>
 
-                        <div className="p-4 bg-slate-50 rounded-2xl flex flex-col gap-2">
-                            <p className="text-[10px] text-slate-400 font-medium">
-                                Name mismatch protection enabled. Registered name: <span className="text-slate-900 font-black">{user.name}</span>
+                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-sm">
+                            <p className="text-[10px] text-slate-500 font-medium">
+                                Name mismatch protection enabled. Registered name: <span className="text-slate-900 font-bold">{user.name}</span>
                             </p>
                         </div>
                     </div>
 
                     {/* CAC Verification Section */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-black text-xs">2</span>
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                                <span className="w-6 h-6 rounded-sm bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">2</span>
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                                     Business Verification (Optional)
                                 </label>
                             </div>
                             {cacVerified && (
-                                <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-white bg-emerald-500 px-3 py-1.5 rounded-full shadow-lg shadow-emerald-500/20">
+                                <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-950 bg-[#05DF72] px-2 py-0.5 rounded-sm border border-[#05DF72]/20">
                                     <CheckCircleIcon size={12} /> Verified
                                 </span>
                             )}
                         </div>
 
                         <div className="relative group">
-                            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#05DF72] transition-colors">
                                 <BuildingIcon size={20} />
                             </div>
                             <input
                                 type="text"
                                 placeholder="CAC RC Number (e.g. RC123456)"
                                 disabled={cacVerified || verifyingCAC}
-                                className="w-full pl-14 pr-4 sm:pr-32 py-5 bg-white/50 border-2 border-slate-100 rounded-[1.5rem] outline-none transition-all focus:border-emerald-500 font-black text-slate-900 tracking-wider placeholder:font-medium placeholder:text-slate-300 disabled:bg-slate-50 disabled:text-slate-400"
+                                className="w-full pl-12 pr-4 sm:pr-36 py-3.5 bg-slate-50 border border-slate-200 rounded-sm outline-none transition-all focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-bold text-slate-900 tracking-wider placeholder:font-medium placeholder:text-slate-400 disabled:bg-slate-100 disabled:text-slate-400"
                                 value={formData.cacDocument || ''}
                                 onChange={(e) => setFormData({ ...formData, cacDocument: e.target.value })}
                             />
@@ -276,37 +276,36 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                                     type="button"
                                     onClick={handleVerifyCAC}
                                     disabled={verifyingCAC}
-                                    className="relative sm:absolute mt-4 sm:mt-0 sm:right-3 sm:top-1/2 sm:-translate-y-1/2 w-full sm:w-auto px-6 py-4 sm:py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-50 shadow-xl shadow-slate-900/10"
+                                    className="relative sm:absolute mt-3 sm:mt-0 sm:right-2 sm:top-1/2 sm:-translate-y-1/2 w-full sm:w-auto px-5 py-2 bg-slate-900 text-white rounded-sm text-[10px] font-bold uppercase tracking-wider hover:bg-[#05DF72] hover:text-slate-950 transition-all disabled:opacity-50"
                                 >
                                     {verifyingCAC ? <LoaderIcon className="animate-spin" size={14} /> : 'Verify Business'}
                                 </button>
                             )}
-
                         </div>
 
                         {cacVerified && (
-                            <div className="p-5 bg-emerald-50/50 border border-emerald-100 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top-2 duration-500">
+                            <div className="p-5 bg-slate-50 border border-slate-200 rounded-sm space-y-3 animate-in fade-in slide-in-from-top-2 duration-500">
                                 <div className="flex items-start justify-between">
                                     <div>
-                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Registered Entity</p>
-                                        <h4 className="text-sm font-black text-slate-900 uppercase">{businessInfo.name}</h4>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Registered Entity</p>
+                                        <h4 className="text-sm font-bold text-slate-900 uppercase">{businessInfo.name}</h4>
                                         <p className="text-[11px] text-slate-500 font-bold mt-0.5">{businessInfo.type}</p>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
-                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white rounded-full shadow-sm border border-emerald-100">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Active Status</span>
+                                        <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-white rounded-sm border border-slate-200">
+                                            <div className="w-1.5 h-1.5 rounded-sm bg-[#05DF72] animate-pulse"></div>
+                                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Active Status</span>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 {isDirectorVerified ? (
-                                    <div className="flex items-center gap-2 py-2 px-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/10">
-                                        <ShieldCheckIcon size={14} />
+                                    <div className="flex items-center gap-2 py-2 px-3 bg-[#05DF72]/15 border border-[#05DF72]/30 text-slate-900 rounded-sm text-[10px] font-bold uppercase tracking-wider">
+                                        <ShieldCheckIcon size={14} className="text-[#05DF72]" />
                                         Director Identity Confirmed (NIN Match)
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-2 py-2 px-3 bg-amber-50 text-amber-600 border border-amber-100 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                    <div className="flex items-center gap-2 py-2 px-3 bg-amber-50 text-amber-600 border border-amber-100 rounded-sm text-[10px] font-bold uppercase tracking-wider">
                                         <ZapIcon size={14} />
                                         Manual Director Review Required
                                     </div>
@@ -316,33 +315,33 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                     </div>
 
                     {/* Bank Details */}
-                    <div className="pt-10 border-t-2 border-dashed border-slate-100">
-                        <div className="flex items-center gap-3 mb-8">
-                            <span className="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-black text-xs">3</span>
-                            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Financial Settlement</h3>
+                    <div className="pt-8 border-t border-slate-200">
+                        <div className="flex items-center gap-3 mb-6">
+                            <span className="w-6 h-6 rounded-sm bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">3</span>
+                            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Financial Settlement</h3>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Bank Institution</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Bank Institution</label>
                                 <input
                                     type="text"
                                     placeholder="e.g. Zenith Bank"
                                     required
-                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 font-bold text-slate-900 text-sm"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-bold text-slate-900 text-sm"
                                     value={formData.bankName}
                                     onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Account Number</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Account Number</label>
                                 <input
                                     type="text"
                                     placeholder="10-digit number"
                                     required
                                     maxLength={10}
                                     inputMode="numeric"
-                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 font-black text-slate-900 tracking-wider text-sm"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-bold text-slate-900 text-sm"
                                     value={formData.accountNumber}
                                     onChange={(e) => {
                                         const val = e.target.value.replace(/\D/g, '')
@@ -354,12 +353,12 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Beneficiary Name</label>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Beneficiary Name</label>
                             <input
                                 type="text"
                                 placeholder="Full Name on Account"
                                 required
-                                className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 font-bold text-slate-900 text-sm"
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-bold text-slate-900 text-sm"
                                 value={formData.accountName}
                                 onChange={(e) => setFormData({ ...formData, accountName: e.target.value })}
                             />
@@ -374,12 +373,12 @@ export default function DocumentVerificationModal({ user, onComplete }) {
                             loading={loading}
                             disabled={!ninVerified}
                             loadingText="FINALIZING PROTOCOL..."
-                            className="w-full !py-6 !rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-sm font-black uppercase tracking-widest"
+                            className="w-full !py-4 !rounded-sm text-sm font-bold uppercase tracking-wider"
                         >
                             Complete Verification
                         </Button>
                         {!ninVerified && (
-                            <div className="flex items-center justify-center gap-2 mt-4 text-[9px] font-black text-red-400 uppercase tracking-[0.2em]">
+                            <div className="flex items-center justify-center gap-2 mt-4 text-[9px] font-bold text-rose-500 uppercase tracking-widest">
                                 <LockIcon size={12} /> Stage 1 Completion Required
                             </div>
                         )}

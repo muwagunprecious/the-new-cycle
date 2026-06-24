@@ -299,7 +299,7 @@ export default function DisputeManagementClient() {
             </div>
 
             {/* Main Search Panel */}
-            <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+            <div className="bg-white rounded-sm border border-slate-200 p-6 shadow-sm">
                 <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -308,13 +308,13 @@ export default function DisputeManagementClient() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Enter buyer/seller name, email, phone, transaction ID or order ID..."
-                            className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-2xl outline-none focus:border-[#05DF72] focus:ring-4 focus:ring-[#05DF72]/10 transition-all text-sm font-medium text-slate-700 bg-slate-50/50"
+                            className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium text-slate-700 bg-slate-50/50"
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={isPending}
-                        className="bg-slate-950 text-white font-semibold px-8 py-3 rounded-2xl hover:bg-slate-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shrink-0 shadow-sm"
+                        className="bg-slate-950 text-white font-semibold px-8 py-3 rounded-sm hover:bg-slate-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shrink-0 shadow-sm"
                     >
                         {isPending ? "Searching..." : "Track Records"}
                         {!isPending && <ArrowRightIcon size={16} />}
@@ -326,13 +326,13 @@ export default function DisputeManagementClient() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
                 {/* Search Results List */}
-                <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm self-stretch flex flex-col min-h-[300px]">
-                    <div className="p-4 bg-slate-50/70 border-b border-slate-100">
+                <div className="lg:col-span-4 bg-white rounded-sm border border-slate-200 overflow-hidden shadow-sm self-stretch flex flex-col min-h-[300px]">
+                    <div className="p-4 bg-slate-50/70 border-b border-slate-200">
                         <h2 className="text-sm font-bold text-slate-800 tracking-wide uppercase">
                             Matching Transactions ({orders.length})
                         </h2>
                     </div>
-                    <div className="flex-1 overflow-y-auto divide-y divide-slate-100 max-h-[600px] no-scrollbar">
+                    <div className="flex-1 overflow-y-auto divide-y divide-slate-200 max-h-[600px] no-scrollbar">
                         {orders.length === 0 ? (
                             <div className="p-8 text-center text-slate-400 h-full flex flex-col justify-center items-center gap-3">
                                 <InfoIcon size={36} className="text-slate-300" />
@@ -350,7 +350,7 @@ export default function DisputeManagementClient() {
                                             <span className="font-mono text-xs font-bold text-slate-500 truncate">
                                                 {order.transactionId || order.id.slice(-8)}
                                             </span>
-                                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${getStatusStyle(order.status)}`}>
+                                            <span className={`text-[10px] px-2 py-0.5 rounded-sm font-bold border ${getStatusStyle(order.status)}`}>
                                                 {order.status}
                                             </span>
                                         </div>
@@ -377,8 +377,8 @@ export default function DisputeManagementClient() {
                 {/* Audit Detail Workspace */}
                 <div className="lg:col-span-8 space-y-8">
                     {!selectedOrder ? (
-                        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-4 min-h-[500px]">
-                            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-sm p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-4 min-h-[500px]">
+                            <div className="w-16 h-16 rounded-sm bg-slate-100 flex items-center justify-center border border-slate-200">
                                 <ShieldCheckIcon size={28} className="text-slate-400" />
                             </div>
                             <div>
@@ -391,13 +391,13 @@ export default function DisputeManagementClient() {
                     ) : (
                         <>
                             {/* Visual Timeline Card */}
-                            <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-6">
-                                <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="bg-white rounded-sm border border-slate-200 p-6 shadow-sm space-y-6">
+                                <div className="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900">Order Audit Timeline</h3>
                                         <p className="text-xs text-slate-500">Timeline of state transitions, verifications, and payouts.</p>
                                     </div>
-                                    <div className="font-mono text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-bold">
+                                    <div className="font-mono text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-sm font-bold">
                                         ID: {selectedOrder.id}
                                     </div>
                                 </div>
@@ -414,7 +414,7 @@ export default function DisputeManagementClient() {
                                             <p className="text-xs text-slate-400 mt-0.5">
                                                 Uploaded on {formatDateTime(selectedOrder.orderItems?.[0]?.product?.createdAt)}
                                             </p>
-                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-100 p-3 rounded-xl max-w-md">
+                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-200 p-3 rounded-sm max-w-md">
                                                 <span className="font-semibold text-slate-600">Product Name:</span> {selectedOrder.orderItems?.[0]?.product?.name || "N/A"}<br />
                                                 <span className="font-semibold text-slate-600">Condition:</span> {selectedOrder.orderItems?.[0]?.product?.condition || "N/A"} ({selectedOrder.orderItems?.[0]?.product?.amps || 0} Amps)
                                             </div>
@@ -431,7 +431,7 @@ export default function DisputeManagementClient() {
                                             <p className="text-xs text-slate-400 mt-0.5">
                                                 Purchased on {formatDateTime(selectedOrder.createdAt)}
                                             </p>
-                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-100 p-3 rounded-xl max-w-md">
+                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-200 p-3 rounded-sm max-w-md">
                                                 <div className="flex justify-between"><span>Battery Price:</span> <strong>₦{(selectedOrder.subtotal || selectedOrder.orderItems?.[0]?.price || 0).toLocaleString()}</strong></div>
                                                 <div className="flex justify-between"><span>Buyer Fee:</span> <strong>₦{(selectedOrder.buyerFee || 0).toLocaleString()}</strong></div>
                                                 <div className="flex justify-between border-t border-slate-200 mt-1 pt-1 font-bold"><span>Total Paid by Buyer:</span> <span className="text-[#05DF72]">₦{(selectedOrder.total || 0).toLocaleString()}</span></div>
@@ -456,7 +456,7 @@ export default function DisputeManagementClient() {
                                                 Method: {selectedOrder.paymentMethod || "N/A"}
                                             </p>
                                             
-                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-100 p-3 rounded-xl max-w-md space-y-1">
+                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-200 p-3 rounded-sm max-w-md space-y-1">
                                                 <div><span className="font-semibold text-slate-600">Verification Type:</span> {selectedOrder.paymentMethod === 'MANUAL_TRANSFER' ? "Manual (Admin Approved)" : "Automated API Gateway"}</div>
                                                 {selectedOrder.paymentMethod === 'MANUAL_TRANSFER' && selectedOrder.paymentSenderName && (
                                                     <div><span className="font-semibold text-slate-600">Sender Name:</span> {selectedOrder.paymentSenderName}</div>
@@ -485,9 +485,9 @@ export default function DisputeManagementClient() {
                                         <div>
                                             <h4 className="text-sm font-bold text-slate-800">Pickup & Collection Code</h4>
                                             <p className="text-xs text-slate-400 mt-0.5">
-                                                Verification Code: <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">{selectedOrder.verificationCode || "N/A"}</span>
+                                                Verification Code: <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-sm">{selectedOrder.verificationCode || "N/A"}</span>
                                             </p>
-                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-100 p-3 rounded-xl max-w-md space-y-1">
+                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-200 p-3 rounded-sm max-w-md space-y-1">
                                                 <div><span className="font-semibold text-slate-600">Pickup Status:</span> {selectedOrder.collectionStatus || "PENDING"}</div>
                                                 {selectedOrder.status === 'COMPLETED' ? (
                                                     <div>
@@ -519,7 +519,7 @@ export default function DisputeManagementClient() {
                                             <p className="text-xs text-slate-400 mt-0.5">
                                                 Payout status: <span className="font-bold uppercase text-slate-700">{selectedOrder.payoutStatus}</span>
                                             </p>
-                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-100 p-3 rounded-xl max-w-md space-y-1">
+                                            <div className="mt-2 text-xs bg-slate-50 border border-slate-200 p-3 rounded-sm max-w-md space-y-1">
                                                 <div className="flex justify-between"><span>Payout Owed to Seller:</span> <strong>₦{(selectedOrder.payoutAmount || selectedOrder.total - (selectedOrder.sellerFee || selectedOrder.total * 0.05)).toLocaleString()}</strong></div>
                                                 <div className="flex justify-between text-rose-600"><span>Platform Commission Fee (5%):</span> <strong>- ₦{(selectedOrder.sellerFee || selectedOrder.total * 0.05).toLocaleString()}</strong></div>
                                                 {selectedOrder.payoutStatus === 'released' ? (
@@ -541,7 +541,7 @@ export default function DisputeManagementClient() {
                             </div>
 
                             {/* Sent Emails Audit Log Card */}
-                            <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
+                            <div className="bg-white rounded-sm border border-slate-200 p-6 shadow-sm space-y-4">
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-900">Communication & Notifications Log</h3>
                                     <p className="text-xs text-slate-500">Preview triggered emails and communications sent to the buyer or seller.</p>
@@ -549,20 +549,20 @@ export default function DisputeManagementClient() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Buyer Emails */}
-                                    <div className="border border-slate-100 rounded-2xl p-4 bg-slate-50/40 space-y-3">
+                                    <div className="border border-slate-200 rounded-sm p-4 bg-slate-50/40 space-y-3">
                                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
                                             <UserIcon size={14} /> Buyer Emails ({selectedOrder.user?.email ? "Active" : "No Email"})
                                         </h4>
                                         <div className="space-y-2">
                                             {/* Order Confirmation */}
-                                            <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100 text-xs">
+                                            <div className="flex items-center justify-between p-2 bg-white rounded-sm border border-slate-200 text-xs">
                                                 <div>
                                                     <p className="font-bold text-slate-700">Order Confirmation</p>
                                                     <p className="text-[10px] text-slate-400">Sent on payment verified</p>
                                                 </div>
                                                 <button
                                                     onClick={() => openEmailPreview("buyer_confirmed")}
-                                                    className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-semibold"
+                                                    className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-sm hover:bg-slate-200 transition-colors font-semibold"
                                                 >
                                                     <EyeIcon size={12} /> Preview
                                                 </button>
@@ -570,14 +570,14 @@ export default function DisputeManagementClient() {
 
                                             {/* Receipt */}
                                             {selectedOrder.status === 'COMPLETED' && (
-                                                <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100 text-xs">
+                                                <div className="flex items-center justify-between p-2 bg-white rounded-sm border border-slate-200 text-xs">
                                                     <div>
                                                         <p className="font-bold text-slate-700">Official Receipt</p>
                                                         <p className="text-[10px] text-slate-400">Sent on pickup completed</p>
                                                     </div>
                                                     <button
                                                         onClick={() => openEmailPreview("buyer_receipt")}
-                                                        className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-semibold"
+                                                        className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-sm hover:bg-slate-200 transition-colors font-semibold"
                                                     >
                                                         <EyeIcon size={12} /> Preview
                                                     </button>
@@ -587,20 +587,20 @@ export default function DisputeManagementClient() {
                                     </div>
 
                                     {/* Seller Emails */}
-                                    <div className="border border-slate-100 rounded-2xl p-4 bg-slate-50/40 space-y-3">
+                                    <div className="border border-slate-200 rounded-sm p-4 bg-slate-50/40 space-y-3">
                                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
                                             <StoreIcon size={14} /> Seller Emails ({selectedOrder.store?.user?.email ? "Active" : "No Email"})
                                         </h4>
                                         <div className="space-y-2">
                                             {/* New Order Alert */}
-                                            <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100 text-xs">
+                                            <div className="flex items-center justify-between p-2 bg-white rounded-sm border border-slate-200 text-xs">
                                                 <div>
                                                     <p className="font-bold text-slate-700">New Order Alert</p>
                                                     <p className="text-[10px] text-slate-400">Sent on payment verified</p>
                                                 </div>
                                                 <button
                                                     onClick={() => openEmailPreview("seller_new_order")}
-                                                    className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-semibold"
+                                                    className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-sm hover:bg-slate-200 transition-colors font-semibold"
                                                 >
                                                     <EyeIcon size={12} /> Preview
                                                 </button>
@@ -608,14 +608,14 @@ export default function DisputeManagementClient() {
 
                                             {/* Collected / Payout Pending */}
                                             {selectedOrder.status === 'COMPLETED' && (
-                                                <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100 text-xs">
+                                                <div className="flex items-center justify-between p-2 bg-white rounded-sm border border-slate-200 text-xs">
                                                     <div>
                                                         <p className="font-bold text-slate-700">Payout Pending Alert</p>
                                                         <p className="text-[10px] text-slate-400">Sent on pickup completed</p>
                                                     </div>
                                                     <button
                                                         onClick={() => openEmailPreview("seller_collected")}
-                                                        className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-semibold"
+                                                        className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-sm hover:bg-slate-200 transition-colors font-semibold"
                                                     >
                                                         <EyeIcon size={12} /> Preview
                                                     </button>
@@ -624,14 +624,14 @@ export default function DisputeManagementClient() {
 
                                             {/* Payout Released */}
                                             {selectedOrder.payoutStatus === 'released' && (
-                                                <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100 text-xs">
+                                                <div className="flex items-center justify-between p-2 bg-white rounded-sm border border-slate-200 text-xs">
                                                     <div>
                                                         <p className="font-bold text-slate-700">Payout Wallet Credit</p>
                                                         <p className="text-[10px] text-slate-400">Sent on payout released</p>
                                                     </div>
                                                     <button
                                                         onClick={() => openEmailPreview("payout_released")}
-                                                        className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-semibold"
+                                                        className="flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-700 rounded-sm hover:bg-slate-200 transition-colors font-semibold"
                                                     >
                                                         <EyeIcon size={12} /> Preview
                                                     </button>
@@ -646,8 +646,8 @@ export default function DisputeManagementClient() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 
                                 {/* Buyer Details Card */}
-                                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                                <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
                                         <UserIcon className="text-[#05DF72]" size={20} />
                                         <h3 className="font-bold text-slate-900">Buyer Information</h3>
                                     </div>
@@ -678,7 +678,7 @@ export default function DisputeManagementClient() {
                                         </div>
                                         <div>
                                             <p className="text-[10px] uppercase font-bold text-slate-400">Account Status</p>
-                                            <span className={`inline-block px-2 py-0.5 rounded-full font-semibold border mt-0.5 ${selectedOrder.user?.accountStatus === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
+                                            <span className={`inline-block px-2 py-0.5 rounded-sm font-semibold border mt-0.5 ${selectedOrder.user?.accountStatus === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
                                                 {selectedOrder.user?.accountStatus || "N/A"}
                                             </span>
                                         </div>
@@ -686,17 +686,17 @@ export default function DisputeManagementClient() {
                                 </div>
 
                                 {/* Seller / Store Details Card */}
-                                <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                                <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
                                         <StoreIcon className="text-[#05DF72]" size={20} />
                                         <h3 className="font-bold text-slate-900">Seller / Store Details</h3>
                                     </div>
                                     <div className="space-y-3 text-xs text-slate-600">
                                         <div className="flex gap-3 items-center">
                                             {selectedOrder.store?.logo ? (
-                                                <Image width={40} height={40} src={selectedOrder.store.logo} alt={selectedOrder.store.name} className="w-10 h-10 object-contain rounded-full shadow border" />
+                                                <Image width={40} height={40} src={selectedOrder.store.logo} alt={selectedOrder.store.name} className="w-10 h-10 object-contain rounded-sm shadow border border-slate-200" />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 uppercase border">
+                                                <div className="w-10 h-10 rounded-sm bg-slate-100 flex items-center justify-center font-bold text-slate-500 uppercase border border-slate-200">
                                                     {selectedOrder.store?.name?.charAt(0) || "S"}
                                                 </div>
                                             )}
@@ -715,7 +715,7 @@ export default function DisputeManagementClient() {
                                                 <p className="text-slate-800 font-semibold">{selectedOrder.store?.contact || selectedOrder.store?.user?.phone || "N/A"}</p>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-2">
+                                        <div className="grid grid-cols-2 gap-3 border-t border-slate-200 pt-2">
                                             <div>
                                                 <p className="text-[10px] uppercase font-bold text-slate-400">Bank Name</p>
                                                 <p className="text-slate-800 font-semibold">{selectedOrder.store?.bankName || "Not Provided"}</p>
@@ -740,8 +740,8 @@ export default function DisputeManagementClient() {
                             </div>
 
                             {/* Product & Warehouse details */}
-                            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
-                                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm space-y-4">
+                                <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
                                     <ShoppingBagIcon className="text-[#05DF72]" size={20} />
                                     <h3 className="font-bold text-slate-900">Product & Warehouse Details</h3>
                                 </div>
@@ -799,7 +799,7 @@ export default function DisputeManagementClient() {
             {/* Email Preview Modal */}
             {previewEmail && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                    <div className="bg-slate-900 border border-slate-800 rounded-sm w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
                         {/* Header */}
                         <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
                             <div>
@@ -813,7 +813,7 @@ export default function DisputeManagementClient() {
                             </div>
                             <button
                                 onClick={() => setPreviewEmail(null)}
-                                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center transition-colors"
+                                className="w-8 h-8 rounded-sm bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center transition-colors border border-slate-700"
                             >
                                 <XIcon size={16} />
                             </button>
@@ -821,7 +821,7 @@ export default function DisputeManagementClient() {
 
                         {/* Email Iframe Box */}
                         <div className="flex-1 p-6 bg-slate-900 overflow-y-auto no-scrollbar">
-                            <div className="bg-white rounded-2xl overflow-hidden shadow-inner p-2">
+                            <div className="bg-white rounded-sm overflow-hidden shadow-inner p-2">
                                 <div dangerouslySetInnerHTML={{ __html: previewEmail.html }} />
                             </div>
                         </div>
@@ -830,7 +830,7 @@ export default function DisputeManagementClient() {
                         <div className="p-4 bg-slate-950 border-t border-slate-800 text-center">
                             <button
                                 onClick={() => setPreviewEmail(null)}
-                                className="bg-[#05DF72] text-[#052e16] font-bold px-6 py-2 rounded-xl text-xs hover:bg-[#05DF72]/90 transition-colors shadow-sm"
+                                className="bg-[#05DF72] text-[#052e16] font-bold px-6 py-2 rounded-sm text-xs hover:bg-[#05DF72]/90 transition-colors shadow-sm"
                             >
                                 Close Preview
                             </button>

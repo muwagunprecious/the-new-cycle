@@ -71,7 +71,7 @@ const AdminLayout = ({ children }) => {
     ) : (
         <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
             <h1 className="text-2xl sm:text-4xl font-semibold text-slate-400">You are not authorized to access this page</h1>
-            <Link href="/" className="bg-slate-700 text-white flex items-center gap-2 mt-8 p-2 px-6 max-sm:text-sm rounded-full">
+            <Link href="/" className="bg-slate-800 hover:bg-slate-900 border border-slate-700 text-white flex items-center gap-2 mt-8 p-2.5 px-6 max-sm:text-sm rounded-sm transition-colors">
                 Go to home <ArrowRightIcon size={18} />
             </Link>
         </div>

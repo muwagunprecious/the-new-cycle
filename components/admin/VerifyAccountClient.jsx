@@ -44,7 +44,6 @@ export default function VerifyAccountClient() {
       setError('Please enter your full name for manual verification');
       return;
     }
-    // For now, just send the name to a placeholder endpoint or log it.
     try {
       const res = await fetch('/api/manual-verification', {
         method: 'POST',
@@ -67,11 +66,11 @@ export default function VerifyAccountClient() {
   ];
 
   return (
-    <div className="mt-8 p-6 border rounded-lg bg-gray-50 shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">Verify Bank Account (Admin)</h2>
+    <div className="mt-8 p-6 border border-slate-200 rounded-sm bg-slate-50 shadow-sm max-w-xl">
+      <h2 className="text-lg font-bold text-slate-900 mb-4 uppercase tracking-wider text-xs">Verify Bank Account (Admin)</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="accountNumber">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" htmlFor="accountNumber">
             Account Number
           </label>
           <input
@@ -80,40 +79,40 @@ export default function VerifyAccountClient() {
             required
             value={accountNumber}
             onChange={(e) => setAccountNumber(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border border-slate-200 bg-white focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 outline-none text-sm rounded-sm font-mono"
             placeholder="e.g., 8144065785"
           />
         </div>
-          <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="firstname">
-              First Name
-            </label>
-            <input
-              id="firstname"
-              type="text"
-              required
-              value={firstname}
-              onChange={(e) => setFirstname(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              placeholder="e.g., John"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="lastname">
-              Last Name
-            </label>
-            <input
-              id="lastname"
-              type="text"
-              required
-              value={lastname}
-              onChange={(e) => setLastname(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              placeholder="e.g., Doe"
-            />
-          </div>
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="bankCode">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" htmlFor="firstname">
+            First Name
+          </label>
+          <input
+            id="firstname"
+            type="text"
+            required
+            value={firstname}
+            onChange={(e) => setFirstname(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 bg-white focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 outline-none text-sm rounded-sm"
+            placeholder="e.g., John"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" htmlFor="lastname">
+            Last Name
+          </label>
+          <input
+            id="lastname"
+            type="text"
+            required
+            value={lastname}
+            onChange={(e) => setLastname(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 bg-white focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 outline-none text-sm rounded-sm"
+            placeholder="e.g., Doe"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" htmlFor="bankCode">
             Bank / Mobile Wallet
           </label>
           <select
@@ -121,7 +120,7 @@ export default function VerifyAccountClient() {
             required
             value={bankCode}
             onChange={(e) => setBankCode(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border border-slate-200 bg-white focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 outline-none text-sm rounded-sm font-semibold"
           >
             <option value="">Select a wallet</option>
             {bankOptions.map((b) => (
@@ -134,38 +133,53 @@ export default function VerifyAccountClient() {
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider rounded-sm transition-colors"
         >
           {loading ? 'Verifying…' : 'Verify Account'}
         </button>
       </form>
 
       {error && (
-        <div className="mt-4 text-red-600 font-medium">Error: {error}</div>
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 font-bold text-xs rounded-sm">
+          Error: {error}
+        </div>
       )}
 
       {result && result.success && (
-        <div className="mt-4 p-4 bg-green-100 border rounded">
-          <p className="font-medium">Success! Account Name:</p>
-          <p>{result.accountName}</p>
+        <div className="mt-4 p-4 bg-emerald-50 border border-emerald-250 text-emerald-800 rounded-sm text-sm">
+          <p className="font-bold">Success! Account Name:</p>
+          <p className="font-semibold text-slate-900 mt-1">{result.accountName}</p>
         </div>
       )}
 
       {result && !result.success && (result.downtime || (result.message && result.message.toLowerCase().includes('downtime'))) && (
-        <div className="mt-4 p-4 bg-yellow-100 border rounded">
-          <p className="font-medium">{result.message}</p>
-          <div className="mt-2">
-            <label className="block text-sm font-medium mb-1" htmlFor="manualFullName">Full Name (for manual verification)</label>
-            <input id="manualFullName" type="text" required value={manualFullName} onChange={(e) => setManualFullName(e.target.value)} className="w-full px-3 py-2 border rounded" placeholder="e.g., John Doe"/>
-            <button onClick={handleManualSubmit} className="mt-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Submit for Manual Review</button>
+        <div className="mt-4 p-4 bg-amber-50 border border-amber-250 text-amber-800 rounded-sm text-sm space-y-2">
+          <p className="font-bold">{result.message}</p>
+          <div className="mt-2 space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" htmlFor="manualFullName">Full Name (for manual verification)</label>
+            <input 
+              id="manualFullName" 
+              type="text" 
+              required 
+              value={manualFullName} 
+              onChange={(e) => setManualFullName(e.target.value)} 
+              className="w-full px-3 py-2 border border-slate-200 bg-white focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 outline-none text-sm rounded-sm" 
+              placeholder="e.g., John Doe"
+            />
+            <button 
+              onClick={handleManualSubmit} 
+              className="w-full py-2 bg-slate-800 text-white font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-slate-700 transition-colors"
+            >
+              Submit for Manual Review
+            </button>
           </div>
         </div>
       )}
 
       {result && !result.success && !result.downtime && !(result.message && result.message.toLowerCase().includes('downtime')) && (
-        <div className="mt-4 p-4 bg-yellow-100 border rounded">
-          <p className="font-medium">Verification failed:</p>
-          <p>{result.message}</p>
+        <div className="mt-4 p-4 bg-amber-50 border border-amber-250 text-amber-800 rounded-sm text-sm">
+          <p className="font-bold">Verification failed:</p>
+          <p className="mt-1">{result.message}</p>
         </div>
       )}
     </div>

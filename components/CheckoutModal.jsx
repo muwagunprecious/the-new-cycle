@@ -191,19 +191,19 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
     }
 
     return (
-        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center sm:p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="glass rounded-t-[2rem] sm:rounded-[3rem] w-full max-w-lg shadow-glass border border-white/40 overflow-hidden animate-in zoom-in-95 duration-500 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-[#0c101b] border border-slate-800 rounded-sm w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
 
                 {/* Header */}
-                <div className="bg-slate-900/90 p-5 sm:p-8 text-white relative border-b border-white/10">
+                <div className="bg-[#0c101b] p-6 sm:p-8 text-white relative border-b border-slate-800">
                     <button
                         onClick={handleClose}
-                        className="absolute top-6 right-6 p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all border border-white/10"
+                        className="absolute top-6 right-6 p-2 rounded-sm bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-white transition-all"
                     >
-                        <XIcon size={18} />
+                        <XIcon size={14} />
                     </button>
-                    <div className="flex items-center gap-2 text-emerald-400 mb-3 font-black uppercase tracking-[0.2em] text-[10px]">
-                        <WalletIcon size={14} />
+                    <div className="flex items-center gap-2 text-[#05DF72] mb-2.5 font-semibold uppercase tracking-wider text-[10px]">
+                        <WalletIcon size={12} />
                         {step === 'SUMMARY' && 'Secure Checkout'}
                         {step === 'PAYMENT_METHOD' && 'Choose Payment'}
                         {step === 'PAYMENT_DETAILS' && 'Make Payment'}
@@ -211,7 +211,7 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                         {step === 'SUCCESS' && (orderResult?.paymentMethod === 'FLUTTERWAVE' ? 'Payment Confirmed' : 'Order Received')}
                         {step === 'FAILED' && 'Transaction Error'}
                     </div>
-                    <h2 className="text-xl sm:text-3xl font-black tracking-tight">
+                    <h2 className="text-lg font-bold tracking-tight">
                         {step === 'SUMMARY' && 'Confirm Order'}
                         {step === 'PAYMENT_METHOD' && 'How Would You Like to Pay?'}
                         {step === 'PAYMENT_DETAILS' && 'Bank Transfer'}
@@ -222,61 +222,55 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                 </div>
 
                 {/* Content */}
-                <div className="p-5 sm:p-8 md:p-10 bg-white/60 overflow-y-auto flex-1">
+                <div className="p-6 sm:p-8 bg-[#0c101b] overflow-y-auto flex-1">
 
                     {/* STEP 1: Order Summary */}
                     {step === 'SUMMARY' && (
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             {/* Product Info */}
-                            <div className="flex gap-4 sm:gap-6 p-4 sm:p-6 bg-white/80 rounded-[1.5rem] sm:rounded-[2rem] border border-white/60 shadow-sm relative group">
-                                <div className="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner">
+                            <div className="flex gap-4 p-4 bg-[#111625] rounded-sm border border-slate-800 shadow-sm relative group">
+                                <div className="w-14 h-14 bg-slate-800 border border-slate-700 rounded-sm flex items-center justify-center text-xl shrink-0">
                                     🔋
                                 </div>
-                                <div className="flex-1">
-                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Item Details</p>
-                                    <h3 className="font-black text-slate-900 text-lg leading-tight">{product?.name}</h3>
-                                    <p className="text-xs text-slate-400 font-medium mt-1">{product?.batteryType} • {product?.condition}</p>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <span className="text-sm font-black text-slate-900">{currency}{product?.price?.toLocaleString()}</span>
-                                        <span className="text-[10px] font-bold text-slate-300">× {quantity}</span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[9px] font-semibold text-[#05DF72] uppercase tracking-wider mb-1">Item Details</p>
+                                    <h3 className="font-bold text-white text-sm truncate">{product?.name}</h3>
+                                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">{product?.batteryType} • {product?.condition}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-xs font-bold text-white">{currency}{product?.price?.toLocaleString()}</span>
+                                        <span className="text-[9px] font-semibold text-slate-500">× {quantity}</span>
                                     </div>
                                 </div>
-                                <div className="absolute top-6 right-6 text-emerald-500 opacity-20 group-hover:opacity-100 transition-opacity">
-                                    <CheckCircleIcon size={20} />
+                                <div className="absolute top-4 right-4 text-[#05DF72] opacity-30 group-hover:opacity-100 transition-opacity">
+                                    <CheckCircleIcon size={16} />
                                 </div>
                             </div>
 
                             {/* Collection Date */}
-                            <div className="p-5 bg-white/40 rounded-3xl border border-white/40 flex items-start gap-4">
-                                <div className="p-2.5 bg-emerald-500/10 rounded-xl">
-                                    <CalendarIcon size={16} className="text-emerald-500" />
+                            <div className="p-4 bg-[#111625] rounded-sm border border-slate-800 flex items-start gap-3">
+                                <div className="p-2 bg-slate-800 border border-slate-700 rounded-sm text-slate-400 shrink-0">
+                                    <CalendarIcon size={14} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pickup Date</p>
-                                    <p className="font-black text-slate-900 text-xs">{formatDate(selectedDate)}</p>
+                                    <p className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider mb-0.5">Pickup Date</p>
+                                    <p className="font-bold text-white text-xs">{formatDate(selectedDate)}</p>
                                 </div>
                             </div>
 
                             {/* Total Bill */}
-                            <div className="p-4 sm:p-6 bg-slate-900 rounded-[1.5rem] sm:rounded-[2rem] text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden space-y-3 sm:space-y-4">
-                                <div className="relative z-10 flex justify-between items-center text-slate-300 font-medium text-sm">
+                            <div className="p-4 sm:p-5 bg-[#111625] border border-slate-800 rounded-sm text-white relative overflow-hidden space-y-3">
+                                <div className="relative z-10 flex justify-between items-center text-slate-400 font-medium text-xs">
                                     <span>Item Subtotal</span>
                                     <span>{currency}{subtotal.toLocaleString()}</span>
                                 </div>
-                                <div className="relative z-10 flex justify-between items-center text-slate-300 font-medium text-sm pb-4 border-b border-white/10">
-                                    <span className="flex items-center gap-2">Platform Fee (5%) <span className="p-1 min-w-[16px] h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[8px]">+</span></span>
-                                    <span className="text-emerald-400">{currency}{platformFee.toLocaleString()}</span>
+                                <div className="relative z-10 flex justify-between items-center text-slate-400 font-medium text-xs pb-3 border-b border-slate-800">
+                                    <span className="flex items-center gap-1.5">Platform Fee (5%) <span className="p-0.5 px-1 bg-[#05DF72]/15 text-[#05DF72] rounded-sm text-[8px] font-mono">+</span></span>
+                                    <span className="text-[#05DF72]">{currency}{platformFee.toLocaleString()}</span>
                                 </div>
-                                <div className="relative z-10 flex items-center justify-between pt-2">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total Payable</p>
-                                    <span className="text-2xl sm:text-3xl font-black">{currency}{totalAmount.toLocaleString()}</span>
+                                <div className="relative z-10 flex items-center justify-between pt-1">
+                                    <p className="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Total Payable</p>
+                                    <span className="text-xl font-bold text-white">{currency}{totalAmount.toLocaleString()}</span>
                                 </div>
-
-                                <div className="absolute -top-4 -right-4 p-4 bg-emerald-500 rounded-3xl z-10 rotate-12 shadow-lg shadow-emerald-500/20 opacity-50">
-                                    <span className="text-white text-3xl">🔋</span>
-                                </div>
-                                {/* Decorative Blur */}
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
                             </div>
 
                             {/* Pay Button */}
@@ -285,13 +279,13 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                     setStep('PAYMENT_METHOD')
                                 }}
                                 loading={isLoading}
-                                className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
+                                className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors mt-2 flex items-center justify-center gap-1.5"
                             >
-                                <ShieldCheckIcon size={18} className="mr-2" />
+                                <ShieldCheckIcon size={14} />
                                 Proceed to Payment Methods
                             </Button>
 
-                            <p className="text-[9px] text-slate-400 text-center font-bold uppercase tracking-[0.1em] opacity-60">
+                            <p className="text-[8px] text-slate-500 text-center font-bold uppercase tracking-wider opacity-60">
                                 ESCROW PROTECTION ENABLED
                             </p>
                         </div>
@@ -299,47 +293,47 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
 
                     {/* STEP 2: Payment Method Selection */}
                     {step === 'PAYMENT_METHOD' && (
-                        <div className="space-y-6">
-                            <p className="text-xs text-slate-500 font-medium text-center">
-                                Select your preferred payment method for <span className="font-black text-slate-900">{currency}{totalAmount.toLocaleString()}</span>
+                        <div className="space-y-4">
+                            <p className="text-xs text-slate-400 font-medium text-center">
+                                Select your preferred payment method for <span className="font-bold text-white">{currency}{totalAmount.toLocaleString()}</span>
                             </p>
 
                             {/* Flutterwave Card Option */}
                             <button
                                 onClick={() => setSelectedPaymentMethod('FLUTTERWAVE')}
-                                className={`w-full p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] text-left transition-all duration-300 border-2 relative overflow-hidden group ${
+                                className={`w-full p-4 sm:p-5 rounded-sm text-left transition-all duration-300 border relative overflow-hidden group ${
                                     selectedPaymentMethod === 'FLUTTERWAVE'
-                                        ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 shadow-xl shadow-emerald-500/10'
-                                        : 'border-slate-100 bg-white/80 hover:border-emerald-200'
+                                        ? 'border-[#05DF72] bg-[#111625] shadow-lg shadow-[#05DF72]/5'
+                                        : 'border-slate-800 bg-[#0c101b] hover:border-slate-700'
                                 }`}
                             >
                                 <div className="flex items-start gap-4 relative z-10">
-                                    <div className={`p-3 rounded-2xl transition-all ${
+                                    <div className={`p-2.5 rounded-sm transition-all ${
                                         selectedPaymentMethod === 'FLUTTERWAVE'
-                                            ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
-                                            : 'bg-slate-100'
+                                            ? 'bg-[#05DF72] text-slate-950'
+                                            : 'bg-slate-800 text-slate-400'
                                     }`}>
-                                        <CreditCardIcon size={20} className={selectedPaymentMethod === 'FLUTTERWAVE' ? 'text-white' : 'text-slate-400'} />
+                                        <CreditCardIcon size={16} />
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-black text-slate-900 text-sm">Debit Card / USSD / Bank Transfer</h3>
-                                            <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">Instant</span>
+                                            <h3 className="font-bold text-white text-xs">Debit Card / USSD / Bank Transfer</h3>
+                                            <span className="bg-[#05DF72]/10 border border-[#05DF72]/20 text-[#05DF72] text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm shrink-0">Instant</span>
                                         </div>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
                                             Secured by Flutterwave • Auto Verified
                                         </p>
-                                        <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                                        <p className="text-xs text-slate-450 font-medium mt-1 leading-relaxed">
                                             Pay instantly using your card, bank account, or USSD code. Payment is verified automatically.
                                         </p>
                                     </div>
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
                                         selectedPaymentMethod === 'FLUTTERWAVE'
-                                            ? 'border-emerald-500 bg-emerald-500'
-                                            : 'border-slate-300'
+                                            ? 'border-[#05DF72] bg-[#05DF72]'
+                                            : 'border-slate-600'
                                     }`}>
                                         {selectedPaymentMethod === 'FLUTTERWAVE' && (
-                                            <CheckCircleIcon size={12} className="text-white" />
+                                            <CheckCircleIcon size={10} className="text-slate-950" />
                                         )}
                                     </div>
                                 </div>
@@ -348,39 +342,39 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             {/* Manual Transfer Option */}
                             <button
                                 onClick={() => setSelectedPaymentMethod('MANUAL_TRANSFER')}
-                                className={`w-full p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] text-left transition-all duration-300 border-2 relative overflow-hidden group ${
+                                className={`w-full p-4 sm:p-5 rounded-sm text-left transition-all duration-300 border relative overflow-hidden group ${
                                     selectedPaymentMethod === 'MANUAL_TRANSFER'
-                                        ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-orange-50 shadow-xl shadow-amber-500/10'
-                                        : 'border-slate-100 bg-white/80 hover:border-amber-200'
+                                        ? 'border-[#05DF72] bg-[#111625] shadow-lg shadow-[#05DF72]/5'
+                                        : 'border-slate-800 bg-[#0c101b] hover:border-slate-700'
                                 }`}
                             >
                                 <div className="flex items-start gap-4 relative z-10">
-                                    <div className={`p-3 rounded-2xl transition-all ${
+                                    <div className={`p-2.5 rounded-sm transition-all ${
                                         selectedPaymentMethod === 'MANUAL_TRANSFER'
-                                            ? 'bg-amber-500 shadow-lg shadow-amber-500/30'
-                                            : 'bg-slate-100'
+                                            ? 'bg-[#05DF72] text-slate-950'
+                                            : 'bg-slate-800 text-slate-400'
                                     }`}>
-                                        <BankIcon size={20} className={selectedPaymentMethod === 'MANUAL_TRANSFER' ? 'text-white' : 'text-slate-400'} />
+                                        <BankIcon size={16} />
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-black text-slate-900 text-sm">Manual Bank Transfer</h3>
-                                            <span className="bg-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">1-24hrs</span>
+                                            <h3 className="font-bold text-white text-xs">Manual Bank Transfer</h3>
+                                            <span className="bg-[#05DF72]/10 border border-[#05DF72]/20 text-[#05DF72] text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm shrink-0">1-24hrs</span>
                                         </div>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
                                             Direct Bank Transfer • Admin Verified
                                         </p>
-                                        <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                                        <p className="text-xs text-slate-450 font-medium mt-1 leading-relaxed">
                                             Transfer to our bank account. Payment is verified manually by our finance team within 1-24 hours.
                                         </p>
                                     </div>
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
                                         selectedPaymentMethod === 'MANUAL_TRANSFER'
-                                            ? 'border-amber-500 bg-amber-500'
-                                            : 'border-slate-300'
+                                            ? 'border-[#05DF72] bg-[#05DF72]'
+                                            : 'border-slate-600'
                                     }`}>
                                         {selectedPaymentMethod === 'MANUAL_TRANSFER' && (
-                                            <CheckCircleIcon size={12} className="text-white" />
+                                            <CheckCircleIcon size={10} className="text-slate-950" />
                                         )}
                                     </div>
                                 </div>
@@ -396,15 +390,15 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                     }
                                 }}
                                 loading={isLoading}
-                                className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-xs sm:text-sm font-black tracking-widest uppercase"
+                                className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors mt-2 flex items-center justify-center gap-1.5"
                             >
-                                <ZapIcon size={18} className="mr-2" />
+                                <ZapIcon size={14} />
                                 {selectedPaymentMethod === 'FLUTTERWAVE' ? 'Pay Now with Flutterwave' : 'Continue to Transfer Details'}
                             </Button>
 
                             <button
                                 onClick={() => setStep('SUMMARY')}
-                                className="w-full text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-slate-600 transition-colors py-2"
+                                className="w-full text-center text-[9px] text-slate-500 font-bold uppercase tracking-wider hover:text-white transition-colors py-2"
                             >
                                 ← Back to Order Summary
                             </button>
@@ -413,56 +407,55 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
 
                     {/* STEP 3: Bank Transfer Details (Manual only) */}
                     {step === 'PAYMENT_DETAILS' && (
-                        <div className="space-y-6">
-                            <div className="p-5 sm:p-8 bg-slate-900 rounded-3xl border border-slate-800 space-y-6 relative overflow-hidden text-white shadow-xl shadow-slate-900/20">
-                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 blur-3xl rounded-full"></div>
-                                <h3 className="text-sm font-black text-emerald-400 uppercase tracking-widest relative z-10 text-center">Transfer Details</h3>
-                                <p className="text-xs text-slate-400 text-center relative z-10 leading-relaxed">
-                                    Please transfer exactly <span className="font-black text-white text-base">{currency}{totalAmount.toLocaleString()}</span> to the account below to secure this order.
+                        <div className="space-y-4">
+                            <div className="p-4 sm:p-6 bg-[#111625] rounded-sm border border-slate-800 space-y-4 relative overflow-hidden text-white shadow-xl">
+                                <h3 className="text-xs font-bold text-[#05DF72] uppercase tracking-wider text-center">Transfer Details</h3>
+                                <p className="text-xs text-slate-400 text-center leading-relaxed">
+                                    Please transfer exactly <span className="font-bold text-white text-sm">{currency}{totalAmount.toLocaleString()}</span> to the account below to secure this order.
                                 </p>
                                 
-                                <div className="bg-white/10 p-5 rounded-2xl border border-white/10 relative z-10 backdrop-blur-md">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Bank Name</span>
-                                        <span className="text-sm font-black">Sterling Bank</span>
+                                <div className="bg-[#0c101b] p-4 rounded-sm border border-slate-800">
+                                    <div className="flex justify-between items-center mb-2.5">
+                                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Bank Name</span>
+                                        <span className="text-xs font-bold text-white">Sterling Bank</span>
                                     </div>
-                                    <div className="flex justify-between items-center mb-3">
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Account Number</span>
-                                        <span className="text-lg font-mono font-black text-white tracking-widest flex items-center gap-2">
+                                    <div className="flex justify-between items-center mb-2.5">
+                                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Account Number</span>
+                                        <span className="text-base font-mono font-bold text-white tracking-wider">
                                             0143633968
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Account Name</span>
-                                        <span className="text-sm font-black text-emerald-400">Go Cycle Limited</span>
+                                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Account Name</span>
+                                        <span className="text-xs font-bold text-[#05DF72]">Go Cycle Limited</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-3 p-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sender Account Name</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Sender Account Name</label>
                                 <input
                                     type="text"
                                     value={senderName}
                                     onChange={(e) => setSenderName(e.target.value)}
                                     placeholder="E.g. John Doe"
-                                    className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 focus:bg-white transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                                    className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 px-4 text-white text-xs outline-none transition-all placeholder:text-slate-650"
                                     disabled={isLoading}
                                 />
-                                <p className="text-[10px] text-slate-400 font-medium leading-relaxed">Ensure this name matches the account you transfer from. Our admins will verify this payment manually.</p>
+                                <p className="text-[9px] text-slate-550 font-medium leading-relaxed">Ensure this name matches the account you transfer from. Our admins will verify this payment manually.</p>
                             </div>
 
                             <Button
                                 onClick={handleSubmitManualTransfer}
                                 loading={isLoading}
-                                className="w-full !py-4 sm:!py-5 !rounded-2xl shadow-2xl shadow-emerald-500/20 text-sm font-black tracking-widest uppercase mt-4"
+                                className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors mt-2"
                             >
                                 I Have Transferred The Funds
                             </Button>
 
                             <button
                                 onClick={() => setStep('PAYMENT_METHOD')}
-                                className="w-full text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest hover:text-slate-600 transition-colors py-2"
+                                className="w-full text-center text-[9px] text-slate-500 font-bold uppercase tracking-wider hover:text-white transition-colors py-2"
                             >
                                 ← Change Payment Method
                             </button>
@@ -471,29 +464,26 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
 
                     {/* STEP 4: Processing */}
                     {step === 'PROCESSING' && (
-                        <div className="py-16 text-center space-y-8 animate-in fade-in zoom-in-95">
-                            <div className="relative inline-block">
-                                <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center animate-pulse">
-                                    <LoaderIcon className="text-emerald-500 animate-spin" size={48} />
-                                </div>
-                                <div className="absolute inset-0 bg-emerald-500/10 rounded-full animate-ping"></div>
+                        <div className="py-12 text-center space-y-6 animate-in fade-in zoom-in-95">
+                            <div className="w-16 h-16 bg-slate-800 border border-slate-700 rounded-sm flex items-center justify-center mx-auto">
+                                <LoaderIcon className="text-[#05DF72] animate-spin" size={32} />
                             </div>
                             {selectedPaymentMethod === 'MANUAL_TRANSFER' ? (
                                 <div className="space-y-2">
-                                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Processing Manual Transfer</h3>
-                                    <p className="text-sm text-slate-400 font-medium max-w-[240px] mx-auto">Submitting your order details...</p>
-                                    <div className="flex flex-col items-center gap-3 text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                        <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Awaiting admin verification</span>
+                                    <h3 className="text-base font-bold text-white tracking-tight">Processing Manual Transfer</h3>
+                                    <p className="text-xs text-slate-400 font-medium max-w-[240px] mx-auto">Submitting your order details...</p>
+                                    <div className="flex flex-col items-center gap-1.5 text-[9px] font-semibold text-slate-500 uppercase tracking-wider mt-4">
+                                        <span className="flex items-center gap-1.5 text-[#05DF72]"><CheckCircleIcon size={11} /> Awaiting admin verification</span>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="space-y-2">
-                                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Securing Your Transaction</h3>
-                                    <p className="text-sm text-slate-400 font-medium max-w-[240px] mx-auto">Connecting to payment gateway...</p>
-                                    <div className="flex flex-col items-center gap-3 text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                        <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Validating order details</span>
-                                        <span className="flex items-center gap-2"><CheckCircleIcon size={12} className="text-emerald-400" /> Secure gateway handshake</span>
-                                        <span className="flex items-center gap-2 animate-pulse"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div> Awaiting payment confirmation</span>
+                                    <h3 className="text-base font-bold text-white tracking-tight">Securing Your Transaction</h3>
+                                    <p className="text-xs text-slate-400 font-medium max-w-[240px] mx-auto">Connecting to payment gateway...</p>
+                                    <div className="flex flex-col items-center gap-1.5 text-[9px] font-semibold text-slate-500 uppercase tracking-wider mt-4">
+                                        <span className="flex items-center gap-1.5"><CheckCircleIcon size={11} className="text-[#05DF72]" /> Validating order details</span>
+                                        <span className="flex items-center gap-1.5"><CheckCircleIcon size={11} className="text-[#05DF72]" /> Secure gateway handshake</span>
+                                        <span className="flex items-center gap-1.5 animate-pulse text-[#05DF72]"><div className="w-1.5 h-1.5 bg-[#05DF72] rounded-sm"></div> Awaiting payment confirmation</span>
                                     </div>
                                 </div>
                             )}
@@ -502,73 +492,64 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
 
                     {/* STEP 5: Success */}
                     {step === 'SUCCESS' && orderResult && (
-                        <div className="py-10 text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
+                        <div className="py-6 text-center space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
                             {orderResult.paymentMethod === 'FLUTTERWAVE' ? (
                                 <>
                                     {/* Flutterwave Success — Instant Confirmation */}
-                                    <div className="w-24 h-24 bg-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/30 rotate-6">
-                                        <CheckCircleIcon className="text-white" size={48} />
+                                    <div className="w-14 h-14 bg-[#05DF72] rounded-sm flex items-center justify-center mx-auto shadow-xl">
+                                        <CheckCircleIcon className="text-slate-950" size={32} />
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Payment Confirmed!</h3>
-                                        <p className="text-sm text-slate-400 font-medium">Your order has been paid and confirmed.</p>
+                                    <div className="space-y-1">
+                                        <h3 className="text-lg font-bold text-white tracking-tight">Payment Confirmed!</h3>
+                                        <p className="text-xs text-slate-400 font-medium">Your order has been paid and confirmed.</p>
                                     </div>
 
                                     {/* E-Receipt */}
-                                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2.5rem] p-8 space-y-5 text-left relative overflow-hidden shadow-inner">
-                                        <div className="absolute -top-6 -right-6 p-4 opacity-[0.03] text-slate-900">
-                                            <ShieldCheckIcon size={160} />
-                                        </div>
-                                        <div className="flex justify-between items-center pb-4 border-b border-slate-200/60">
+                                    <div className="bg-[#111625] border border-slate-800 rounded-sm p-6 space-y-4 text-left relative overflow-hidden shadow-inner">
+                                        <div className="flex justify-between items-center pb-3 border-b border-slate-800">
                                             <div>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Electronic Receipt</p>
-                                                <h4 className="text-sm font-black text-slate-900">Go-Cycle Marketplace</h4>
+                                                <p className="text-[8px] font-bold text-slate-450 uppercase tracking-wider mb-0.5">Electronic Receipt</p>
+                                                <h4 className="text-xs font-bold text-white">Go-Cycle Marketplace</h4>
                                             </div>
-                                            <span className="text-[9px] font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full uppercase tracking-widest">
+                                            <span className="text-[8px] font-bold text-[#05DF72] bg-[#05DF72]/10 border border-[#05DF72]/20 px-2 py-0.5 rounded-sm uppercase tracking-wider">
                                                 Paid
                                             </span>
                                         </div>
                                         
-                                        <div className="space-y-3.5">
+                                        <div className="space-y-2 text-xs">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">Transaction Ref</span>
-                                                <span className="text-[11px] font-mono font-black text-slate-900">{orderResult?.paymentReference || orderResult?.id?.slice(0, 12)}</span>
+                                                <span className="text-slate-400">Transaction Ref</span>
+                                                <span className="font-mono font-semibold text-white">{orderResult?.paymentReference || orderResult?.id?.slice(0, 12)}</span>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">Amount Paid</span>
-                                                <span className="text-[11px] font-black text-slate-900">₦{totalAmount.toLocaleString()}</span>
+                                                <span className="text-slate-400">Amount Paid</span>
+                                                <span className="font-semibold text-white">₦{totalAmount.toLocaleString()}</span>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">Payment Method</span>
-                                                <span className="text-[11px] font-black text-slate-900 flex items-center gap-1.5">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                                <span className="text-slate-400">Payment Method</span>
+                                                <span className="font-semibold text-white flex items-center gap-1.5">
+                                                    <div className="w-1.5 h-1.5 bg-[#05DF72] rounded-sm"></div>
                                                     FLW / {orderResult.paymentMethod || 'Instant'}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">Date & Time</span>
-                                                <span className="text-[11px] font-black text-slate-900 uppercase">
+                                                <span className="text-slate-400">Date & Time</span>
+                                                <span className="font-semibold text-white uppercase">
                                                     {new Date().toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                 </span>
                                             </div>
                                         </div>
-
-                                        <div className="pt-4 border-t border-slate-200/60 flex items-center justify-center gap-2">
-                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
-                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
-                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
-                                        </div>
                                     </div>
 
-                                    <div className="bg-white border border-slate-100 rounded-[2rem] p-6 text-left flex items-start gap-4 shadow-sm">
-                                        <div className="p-2.5 bg-emerald-500 rounded-xl shrink-0 shadow-lg shadow-emerald-500/20">
-                                            <ZapIcon size={16} className="text-white" />
+                                    <div className="bg-[#111625] border border-slate-800 rounded-sm p-4 text-left flex items-start gap-3 shadow-sm">
+                                        <div className="p-2 bg-[#05DF72]/10 border border-[#05DF72]/20 rounded-sm shrink-0">
+                                            <ZapIcon size={14} className="text-[#05DF72]" />
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Order Processing</p>
-                                            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                                                The seller has been notified of your payment. Please proceed to <span className="font-bold text-slate-900">{orderResult?.store?.address || product?.pickupAddress || "the collection point"}</span> on the scheduled date. A detailed receipt has been sent to your email.
+                                            <p className="text-[9px] font-bold text-white uppercase tracking-wider">Order Processing</p>
+                                            <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
+                                                The seller has been notified of your payment. Please proceed to <span className="font-semibold text-white">{orderResult?.store?.address || product?.pickupAddress || "the collection point"}</span> on the scheduled date. A detailed receipt has been sent to your email.
                                             </p>
                                         </div>
                                     </div>
@@ -576,35 +557,35 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                             ) : (
                                 <>
                                     {/* Manual Transfer Success — Pending Verification */}
-                                    <div className="w-24 h-24 bg-amber-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/20 rotate-6">
-                                        <WalletIcon className="text-white" size={48} />
+                                    <div className="w-14 h-14 bg-amber-500 rounded-sm flex items-center justify-center mx-auto shadow-xl">
+                                        <WalletIcon className="text-slate-950" size={32} />
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Verification Pending</h3>
-                                        <p className="text-sm text-slate-400 font-medium">We have received your order details.</p>
+                                    <div className="space-y-1">
+                                        <h3 className="text-lg font-bold text-white tracking-tight">Verification Pending</h3>
+                                        <p className="text-xs text-slate-400 font-medium">We have received your order details.</p>
                                     </div>
 
-                                    <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 flex items-start gap-4">
-                                        <AlertCircleIcon size={20} className="text-orange-500 shrink-0 mt-0.5" />
+                                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-sm p-4 flex items-start gap-3 text-left">
+                                        <AlertCircleIcon size={16} className="text-amber-500 shrink-0 mt-0.5" />
                                         <div>
-                                            <p className="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">Awaiting Admin Approval</p>
-                                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                            <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wider mb-1">Awaiting Admin Approval</p>
+                                            <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
                                                 Your bank transfer is being reviewed by our finance team. Once verified, the seller's pickup address and your collection code will be unlocked. This usually takes 1-24 hours.
                                             </p>
-                                            <p className="text-xs text-slate-500 font-medium mt-2">
-                                                <span className="font-bold text-slate-900">Pickup Address:</span> Address will be revealed after verification
+                                            <p className="text-[10px] text-slate-400 mt-2 font-medium">
+                                                <span className="font-bold text-white">Pickup Address:</span> Address will be revealed after verification
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-left flex items-start gap-4">
-                                        <div className="p-2.5 bg-slate-300 rounded-xl shrink-0">
-                                            <ClockIcon size={16} className="text-white" />
+                                    <div className="bg-[#111625] border border-slate-800 rounded-sm p-4 text-left flex items-start gap-3">
+                                        <div className="p-2 bg-slate-800 border border-slate-700 rounded-sm shrink-0">
+                                            <ClockIcon size={14} className="text-slate-400" />
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">What Happens Next?</p>
-                                            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                                            <p className="text-[9px] font-bold text-white uppercase tracking-wider">What Happens Next?</p>
+                                            <p className="text-[10px] text-slate-450 leading-relaxed font-medium">
                                                 Once our finance team verifies your transfer, you will receive an email with the seller's pickup address and your verification code. This usually takes 1-24 hours.
                                             </p>
                                         </div>
@@ -612,12 +593,12 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
                                 </>
                             )}
 
-                            <div className="grid grid-cols-1 gap-3">
-                                <Button onClick={handleClose} className="w-full !py-5 !rounded-2xl shadow-none text-xs font-black uppercase tracking-widest">
+                            <div className="space-y-3">
+                                <Button onClick={handleClose} className="w-full bg-[#05DF72] hover:bg-[#04c865] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors">
                                     Go to My Orders
                                 </Button>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                                    <ShieldCheckIcon size={12} /> Ref: {orderResult?.id?.slice(0, 12) || orderResult?.transactionId || 'N/A'}
+                                <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider flex items-center justify-center gap-1.5">
+                                    <ShieldCheckIcon size={12} className="text-[#05DF72]/60" /> Ref: {orderResult?.id?.slice(0, 12) || orderResult?.transactionId || 'N/A'}
                                 </p>
                             </div>
                         </div>
@@ -625,26 +606,26 @@ export default function CheckoutModal({ isOpen, onClose, product, quantity = 1, 
 
                     {/* STEP 6: Failed */}
                     {step === 'FAILED' && (
-                        <div className="py-16 text-center space-y-8 animate-in fade-in zoom-in-95">
-                            <div className="w-24 h-24 bg-red-50 rounded-[2.5rem] flex items-center justify-center mx-auto rotate-12">
-                                <AlertCircleIcon className="text-red-500" size={48} />
+                        <div className="py-12 text-center space-y-6 animate-in fade-in zoom-in-95">
+                            <div className="w-14 h-14 bg-red-500 rounded-sm flex items-center justify-center mx-auto">
+                                <AlertCircleIcon className="text-slate-950" size={32} />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Payment Failed</h3>
-                                <p className="text-sm text-slate-400 font-medium max-w-[260px] mx-auto">
+                                <h3 className="text-base font-bold text-white tracking-tight">Payment Failed</h3>
+                                <p className="text-xs text-slate-400 font-medium max-w-[260px] mx-auto">
                                     We couldn't process this transaction. Please check your balance or try again.
                                 </p>
                             </div>
-                            <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex gap-3 pt-2">
                                 <button
                                     onClick={handleClose}
-                                    className="flex-1 py-5 bg-white text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest border-2 border-slate-100 hover:bg-slate-50 transition-all"
+                                    className="flex-1 py-2.5 rounded-sm font-semibold text-[10px] uppercase tracking-wider text-slate-400 hover:text-white transition-colors bg-[#111625] hover:bg-[#111625]/80 border border-slate-700"
                                 >
                                     Cancel Order
                                 </button>
                                 <Button
                                     onClick={() => setStep('PAYMENT_METHOD')}
-                                    className="flex-1 !py-5 !rounded-2xl !bg-slate-900"
+                                    className="flex-1 !py-3 bg-[#05DF72] hover:bg-[#04c865] text-slate-950 font-semibold text-xs uppercase tracking-wider rounded-sm transition-colors"
                                 >
                                     Try Again
                                 </Button>

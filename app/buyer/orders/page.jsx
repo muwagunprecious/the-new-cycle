@@ -155,7 +155,7 @@ export default function BuyerOrders() {
                         <input
                             type="text"
                             placeholder="Search Order ID or Product..."
-                            className="bg-white border border-slate-200 pl-12 pr-6 py-3.5 rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 focus:border-[#05DF72] w-full md:w-80 font-medium transition-all shadow-sm"
+                            className="bg-white border border-slate-200 pl-12 pr-6 py-3.5 rounded-sm outline-none focus:ring-1 focus:ring-[#05DF72] focus:border-[#05DF72] w-full md:w-80 font-medium transition-all shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -165,17 +165,17 @@ export default function BuyerOrders() {
 
             {/* Action Required Section */}
             {orders.some(order => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(order.status)) && (
-                <div className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
+                <div className="bg-amber-50 border border-amber-200 rounded-sm p-6 md:p-8 relative overflow-hidden">
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-6">
-                            <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest animate-pulse">Action Required</span>
+                            <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-sm tracking-widest animate-pulse">Action Required</span>
                             <h2 className="text-2xl font-black text-slate-900">Verify Pickup</h2>
                         </div>
                         <div className="grid gap-4">
                             {orders.filter(o => ['APPROVED', 'ORDER_PLACED', 'PAID', 'AWAITING_PICKUP'].includes(o.status) && o.isPaid).map(order => (
-                                <div key={order.id} className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div key={order.id} className="bg-white rounded-sm p-6 shadow-sm border border-amber-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-[#05DF72]/10 text-[#05DF72] rounded-xl flex items-center justify-center shrink-0">
+                                        <div className="w-12 h-12 bg-[#05DF72]/10 text-[#05DF72] rounded-sm flex items-center justify-center shrink-0 border border-[#05DF72]/20">
                                             <PackageIcon size={20} />
                                         </div>
                                         <div>
@@ -187,13 +187,13 @@ export default function BuyerOrders() {
                                     <div className="flex flex-col sm:flex-row items-center gap-3">
                                         <button 
                                             onClick={() => { setSelectedOrder(order); setShowRescheduleForm(true); setIsVerifyModalOpen(true); }}
-                                            className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all flex items-center gap-2"
+                                            className="px-6 py-3 bg-slate-100 text-slate-600 rounded-sm font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all flex items-center gap-2"
                                         >
                                             <CalendarIcon size={14} /> Reschedule
                                         </button>
                                         <button 
                                             onClick={() => { setSelectedOrder(order); setShowRescheduleForm(false); setIsVerifyModalOpen(true); }}
-                                            className="px-6 py-3 bg-[#05DF72] text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-all shadow-lg shadow-[#05DF72]/20 flex items-center gap-2"
+                                            className="px-6 py-3 bg-[#05DF72] text-white rounded-sm font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-all flex items-center gap-2"
                                         >
                                             <CheckCircleIcon size={14} /> Verify Pickup
                                         </button>
@@ -209,11 +209,11 @@ export default function BuyerOrders() {
             <div className="space-y-6">
                 {filteredOrders.length > 0 ? (
                     filteredOrders.map((order) => (
-                        <div key={order.id} className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-slate-100 shadow-xl shadow-slate-200/40 group hover:border-[#05DF72]/30 transition-all flex flex-col md:flex-row md:items-center gap-8">
+                        <div key={order.id} className="bg-white rounded-sm p-6 md:p-8 border border-slate-200 shadow-sm group hover:border-[#05DF72]/40 transition-all flex flex-col md:flex-row md:items-center gap-8">
 
                             {/* Icon & ID */}
                             <div className="flex items-center gap-6 md:w-1/4">
-                                <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shrink-0 ${order.status === 'Cancelled' ? 'bg-slate-50 text-slate-300' : 'bg-[#05DF72]/10 text-[#05DF72]'}`}>
+                                <div className={`w-16 h-16 rounded-sm flex items-center justify-center shrink-0 border ${order.status === 'Cancelled' ? 'bg-slate-50 text-slate-350 border-slate-100' : 'bg-[#05DF72]/10 text-[#05DF72] border-[#05DF72]/20'}`}>
                                     <PackageIcon size={28} />
                                 </div>
                                 <div className="space-y-1">
@@ -251,8 +251,8 @@ export default function BuyerOrders() {
                                         <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1 flex items-center gap-1">
                                             <ClockIcon size={12} /> Seller proposed: {order.proposedDate}
                                         </p>
-                                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center gap-3 mb-2">
-                                            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-400">
+                                        <div className="bg-slate-50 p-3 rounded-sm border border-slate-200 flex items-center gap-3 mb-2">
+                                            <div className="w-8 h-8 rounded-sm bg-white border border-slate-100 flex items-center justify-center text-slate-400">
                                                 <Store size={14} />
                                             </div>
                                             <div>
@@ -263,13 +263,13 @@ export default function BuyerOrders() {
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleRescheduleAction(order.id, 'ACCEPT')}
-                                                className="px-4 py-2 bg-[#05DF72] text-white font-bold text-[10px] rounded-lg hover:shadow-lg transition-all flex items-center gap-1"
+                                                className="px-4 py-2 bg-[#05DF72] text-white font-bold text-[10px] rounded-sm hover:bg-[#04c764] transition-all flex items-center gap-1"
                                             >
                                                 <CheckIcon size={12} /> Accept
                                             </button>
                                             <button
                                                 onClick={() => handleRescheduleAction(order.id, 'REJECT')}
-                                                className="px-4 py-2 bg-red-50 text-red-600 border border-red-100 font-bold text-[10px] rounded-lg hover:bg-red-100 transition-all flex items-center gap-1"
+                                                className="px-4 py-2 bg-red-50 text-red-600 border border-red-100 font-bold text-[10px] rounded-sm hover:bg-red-100 transition-all flex items-center gap-1"
                                             >
                                                 <XIcon size={12} /> Reject
                                             </button>
@@ -278,7 +278,7 @@ export default function BuyerOrders() {
                                                     setSelectedOrder({ ...order, rescheduleMode: 'COUNTER' })
                                                     setIsRescheduleModalOpen(true)
                                                 }}
-                                                className="px-4 py-2 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 transition-all"
+                                                className="px-4 py-2 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] rounded-sm hover:bg-slate-50 transition-all"
                                             >
                                                 Propose New
                                             </button>
@@ -295,13 +295,13 @@ export default function BuyerOrders() {
                                     <div className="flex flex-col sm:flex-row items-center gap-3">
                                         <button 
                                             onClick={() => { setSelectedOrder(order); setShowRescheduleForm(true); setIsVerifyModalOpen(true); }}
-                                            className="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-lg font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all flex items-center gap-2"
+                                            className="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-sm font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all flex items-center gap-2"
                                         >
                                             <CalendarIcon size={12} /> Reschedule
                                         </button>
                                         <button 
                                             onClick={() => { setSelectedOrder(order); setShowRescheduleForm(false); setIsVerifyModalOpen(true); }}
-                                            className="px-4 py-2.5 bg-[#05DF72] text-white rounded-lg font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-all shadow-md shadow-[#05DF72]/10 flex items-center gap-2"
+                                            className="px-4 py-2.5 bg-[#05DF72] text-white rounded-sm font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-all shadow-sm flex items-center gap-2"
                                         >
                                             <CheckCircleIcon size={12} /> Verify
                                         </button>
@@ -309,7 +309,7 @@ export default function BuyerOrders() {
                                 ) : (
                                     <button
                                         onClick={() => { setSelectedOrder(order); setIsDetailsModalOpen(true); }}
-                                        className="px-8 py-4 bg-slate-50 text-slate-400 font-bold text-xs rounded-xl border border-slate-100 hover:bg-slate-100 transition-all"
+                                        className="px-8 py-4 bg-slate-50 text-slate-500 font-bold text-xs rounded-sm border border-slate-200 hover:bg-slate-100 transition-all"
                                     >
                                         View Details
                                     </button>
@@ -318,8 +318,8 @@ export default function BuyerOrders() {
                         </div>
                     ))
                 ) : (
-                    <div className="bg-white rounded-[3rem] p-20 text-center border border-dashed border-slate-200">
-                        <AlertCircleIcon className="mx-auto text-slate-200 mb-6" size={64} />
+                    <div className="bg-white rounded-sm p-12 text-center border border-slate-200 shadow-sm">
+                        <AlertCircleIcon className="mx-auto text-slate-350 mb-6" size={64} />
                         <h3 className="text-lg font-black text-slate-900 mb-2">No orders found</h3>
                         <p className="text-sm font-bold text-slate-400 mb-8 max-w-xs mx-auto">We couldn't find any orders matching your criteria.</p>
                         <button
@@ -333,7 +333,7 @@ export default function BuyerOrders() {
             </div>
 
             {/* Support Area */}
-            <div className="bg-slate-900 rounded-[3rem] p-12 text-white relative overflow-hidden mt-10">
+            <div className="bg-[#0c101b] border border-slate-800 rounded-sm p-8 text-white relative overflow-hidden mt-10">
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
                     <div className="max-w-md">
                         <div className="flex items-center gap-2 text-[#05DF72] mb-4 font-black uppercase tracking-widest text-[10px]">
@@ -342,11 +342,10 @@ export default function BuyerOrders() {
                         <h2 className="text-3xl font-black mb-4">Secured by GoCycle</h2>
                         <p className="text-slate-400 font-medium leading-relaxed">Every purchase is protected. Funds are only released to sellers after you verify delivery with your unique security code.</p>
                     </div>
-                    <button className="bg-white text-slate-900 px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-[#05DF72] hover:text-white transition-all shadow-2xl">
+                    <button className="bg-white text-slate-950 px-10 py-5 rounded-sm font-black uppercase tracking-widest text-xs hover:bg-[#05DF72] hover:text-slate-950 transition-all shadow-md">
                         Contact Support
                     </button>
                 </div>
-                <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-[#05DF72]/10 rounded-full blur-[100px] -ml-20"></div>
             </div>
 
             <BottomActionSheet 
@@ -356,18 +355,18 @@ export default function BuyerOrders() {
                 subtitle={selectedOrder?.id ? `Order #${selectedOrder.id}` : 'Manage Order'}
             >
                 <div className="space-y-8">
-                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
+                    <div className="bg-slate-50 rounded-sm p-6 border border-slate-200">
                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Seller Contact Details</h4>
                         <div className="space-y-4">
                             <div className="flex items-center gap-4">
-                                <div className="size-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm"><MapPinIcon size={20} /></div>
+                                <div className="size-10 bg-white rounded-sm flex items-center justify-center text-slate-400 shadow-sm border border-slate-100"><MapPinIcon size={20} /></div>
                                 <div className="flex-1">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase">Pickup Address</p>
                                     <p className="text-sm font-black text-slate-700 leading-tight">{selectedOrder?.store?.address || 'Address not available'}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
-                                <div className="size-10 bg-white rounded-xl flex items-center justify-center text-[#05DF72] shadow-sm"><MessageSquareIcon size={20} /></div>
+                                <div className="size-10 bg-white rounded-sm flex items-center justify-center text-[#05DF72] shadow-sm border border-slate-100"><MessageSquareIcon size={20} /></div>
                                 <div className="flex-1">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase">Contact Seller</p>
                                     <p className="text-sm font-black text-slate-700">{selectedOrder?.store?.contact || 'Phone not available'}</p>
@@ -384,7 +383,7 @@ export default function BuyerOrders() {
                             <p className="text-xs text-slate-500 font-medium mb-6">Enter the 6-digit verification code provided by the seller to release the funds.</p>
                             
                             <form onSubmit={(e) => handleVerifyCollection(e, selectedOrder?.id)} className="flex flex-col gap-4">
-                                <div className="bg-slate-100 p-6 rounded-[2rem] border border-slate-200 flex items-center justify-center">
+                                <div className="bg-slate-50 p-6 rounded-sm border border-slate-200 flex items-center justify-center">
                                     <input
                                         type="text"
                                         maxLength={6}
@@ -397,7 +396,7 @@ export default function BuyerOrders() {
                                 <button
                                     type="submit"
                                     disabled={verifying || verifyToken.length < 6}
-                                    className="w-full py-5 bg-[#05DF72] text-white rounded-[2rem] font-black uppercase text-sm tracking-widest hover:bg-[#04c764] transition-all shadow-xl shadow-[#05DF72]/20 flex items-center justify-center gap-3"
+                                    className="w-full py-5 bg-[#05DF72] text-white rounded-sm font-black uppercase text-sm tracking-widest hover:bg-[#04c764] transition-all flex items-center justify-center gap-3"
                                 >
                                     {verifying ? (
                                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -409,7 +408,7 @@ export default function BuyerOrders() {
 
                             <button 
                                 onClick={() => setShowRescheduleForm(true)}
-                                className="w-full mt-8 py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3"
+                                className="w-full mt-8 py-5 bg-slate-900 text-white rounded-sm font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3"
                             >
                                 <CalendarIcon size={20} /> Need to Reschedule Pickup?
                             </button>
@@ -446,8 +445,8 @@ export default function BuyerOrders() {
             {
                 isRescheduleModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                        <div className="bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300">
-                            <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                        <div className="bg-white rounded-sm w-full max-w-2xl overflow-hidden shadow-xl border border-slate-200 animate-in zoom-in-95 duration-300">
+                            <div className="p-8 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                                 <div>
                                     <h3 className="text-2xl font-black text-slate-900 leading-none">Propose <span className="text-[#05DF72]">Alternate</span> Date</h3>
                                     <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Select a date that works better for you</p>
@@ -457,7 +456,7 @@ export default function BuyerOrders() {
                                         setIsRescheduleModalOpen(false)
                                         setSelectedOrder(null)
                                     }}
-                                    className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:shadow-lg transition-all"
+                                    className="w-12 h-12 rounded-sm bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:shadow-md transition-all"
                                 >
                                     <XIcon size={24} />
                                 </button>
@@ -489,9 +488,9 @@ export default function BuyerOrders() {
             {/* Details Modal */}
             {isDetailsModalOpen && selectedOrder && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-xl overflow-hidden shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300">
+                    <div className="bg-white rounded-sm w-full max-w-xl overflow-hidden shadow-xl border border-slate-200 animate-in zoom-in-95 duration-300">
                         {/* Header */}
-                        <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                        <div className="p-8 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                             <div>
                                 <h3 className="text-2xl font-black text-slate-900 leading-none">Purchase <span className="text-[#05DF72]">Details</span></h3>
                                 <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Order #{selectedOrder.id}</p>
@@ -501,17 +500,17 @@ export default function BuyerOrders() {
                                     setIsDetailsModalOpen(false)
                                     setSelectedOrder(null)
                                 }}
-                                className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:shadow-lg transition-all"
+                                className="w-12 h-12 rounded-sm bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:shadow-md transition-all"
                             >
                                 <XIcon size={24} />
                             </button>
                         </div>
 
                         {/* Content */}
-                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto animate-in fade-in duration-200">
                             {/* Product Info with Image */}
-                            <div className="flex gap-4 items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <div className="w-20 h-20 bg-slate-100 rounded-xl overflow-hidden shrink-0 border border-slate-200">
+                            <div className="flex gap-4 items-center bg-slate-50 p-4 rounded-sm border border-slate-200">
+                                <div className="w-20 h-20 bg-slate-100 rounded-sm overflow-hidden shrink-0 border border-slate-200 relative">
                                     <img 
                                         src={selectedOrder.orderItems?.[0]?.product?.images?.[0] || '/placeholder-battery.jpg'} 
                                         alt="" 
@@ -552,7 +551,7 @@ export default function BuyerOrders() {
                             </div>
 
                             {/* Pickup & Seller details */}
-                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-4">
+                            <div className="bg-slate-50 rounded-sm p-6 border border-slate-200 space-y-4">
                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Seller & Collection Info</h4>
                                 <div className="space-y-3">
                                     <div>

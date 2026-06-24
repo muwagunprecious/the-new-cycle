@@ -35,11 +35,11 @@ export default function RescheduleModal({ isOpen, onClose, orderId, onReschedule
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300">
+            <div className="bg-white rounded-sm w-full max-w-lg overflow-hidden shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-300">
                 {/* Header */}
-                <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-[#05DF72]/10 flex items-center justify-center text-[#05DF72]">
+                        <div className="w-12 h-12 rounded-sm bg-[#05DF72]/10 border border-[#05DF72]/20 flex items-center justify-center text-[#05DF72]">
                             <Clock size={24} />
                         </div>
                         <div>
@@ -49,7 +49,7 @@ export default function RescheduleModal({ isOpen, onClose, orderId, onReschedule
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"
+                        className="w-10 h-10 rounded-sm bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"
                     >
                         <X size={20} />
                     </button>
@@ -66,7 +66,7 @@ export default function RescheduleModal({ isOpen, onClose, orderId, onReschedule
                             min={new Date().toISOString().split('T')[0]}
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 font-bold text-slate-900 outline-none focus:border-[#05DF72] transition-all"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-sm p-4 font-bold text-slate-900 outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 transition-all"
                         />
                     </div>
 
@@ -80,7 +80,7 @@ export default function RescheduleModal({ isOpen, onClose, orderId, onReschedule
                             rows={3}
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 font-bold text-slate-900 outline-none focus:border-[#05DF72] transition-all resize-none text-sm"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-sm p-4 font-bold text-slate-900 outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 transition-all resize-none text-sm"
                         />
                     </div>
 
@@ -88,7 +88,7 @@ export default function RescheduleModal({ isOpen, onClose, orderId, onReschedule
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="w-full bg-[#05DF72] text-slate-900 font-black text-xs uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#04c764] transition-all shadow-xl shadow-[#05DF72]/20 disabled:opacity-50"
+                        className="w-full bg-[#05DF72] text-slate-950 font-bold text-xs uppercase tracking-wider py-4 rounded-sm flex items-center justify-center gap-2 hover:bg-[#04c865] transition-all shadow-sm disabled:opacity-50"
                     >
                         {loading ? <Loader2 className="animate-spin" size={18} /> : "Confirm Reschedule"}
                     </button>

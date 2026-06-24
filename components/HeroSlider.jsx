@@ -8,12 +8,12 @@ const Hero = () => {
     const router = useRouter()
 
     return (
-        <section className="relative min-h-screen bg-slate-950 overflow-hidden">
+        <section className="relative min-h-screen bg-[#080b11] overflow-hidden">
             
             {/* Background Image — Right Side (Circunomics Style) */}
             <div className="absolute inset-0">
                 {/* Dark overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-[#080b11] via-[#080b11]/80 to-transparent z-10"></div>
                 
                 {/* The hero image — positioned to the right */}
                 <div className="absolute top-0 right-0 w-full lg:w-[60%] h-full">
@@ -21,15 +21,12 @@ const Hero = () => {
                         src="/slider/hero-premium.jpg"
                         alt="Battery Technology Infrastructure"
                         fill
-                        className="object-cover object-center"
+                        className="object-cover object-center opacity-85"
                         priority
                     />
                     {/* Additional gradient blend into the dark side */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#080b11] via-[#080b11]/30 to-transparent"></div>
                 </div>
-
-                {/* Subtle green ambient glow */}
-                <div className="absolute bottom-[-20%] left-[10%] w-[500px] h-[500px] bg-[#00D166]/[0.04] rounded-full blur-[150px] pointer-events-none z-10"></div>
             </div>
 
             {/* Content */}
@@ -37,10 +34,10 @@ const Hero = () => {
                 
                 {/* Trust Badge Row — top */}
                 <div className="flex items-center gap-3 mb-8 md:mb-0">
-                    <span className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em]">Trusted by:</span>
-                    <div className="flex items-center gap-2 bg-white/[0.06] border border-white/[0.08] rounded-full px-4 py-2">
-                        <Zap size={14} className="text-[#00D166]" fill="currentColor" />
-                        <span className="text-[11px] font-bold text-white/70 tracking-wide">Recyclers Association of Nigeria</span>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Trusted by:</span>
+                    <div className="flex items-center gap-2 bg-[#0c101b] border border-slate-800 rounded-sm px-3.5 py-1.5">
+                        <Zap size={12} className="text-[#05DF72]" fill="currentColor" />
+                        <span className="text-[10px] font-bold text-slate-350 tracking-wider uppercase">Recyclers Association of Nigeria</span>
                     </div>
                 </div>
 
@@ -51,11 +48,11 @@ const Hero = () => {
                     <h1 className="text-[clamp(2.5rem,5vw,4.5rem)] font-light text-white leading-[1.05] tracking-[-0.02em] mb-8">
                         E-waste Digital{' '}
                         <br className="hidden xl:block" />
-                        <span className="text-[#00D166]">marketplace</span>
+                        <span className="text-[#05DF72]">marketplace</span>
                     </h1>
 
                     {/* Subtitle */}
-                    <p className="text-lg md:text-xl text-white/50 font-normal leading-relaxed max-w-xl mb-12">
+                    <p className="text-lg md:text-xl text-slate-400 font-normal leading-relaxed max-w-xl mb-12">
                         With smart price intelligence, AI enabled product verification, buyer matching and secure payments!
                     </p>
                 </div>
@@ -64,22 +61,22 @@ const Hero = () => {
                 <div className="flex items-end justify-between">
                     {/* Left: subtle trust indicators */}
                     <div className="hidden md:flex items-center gap-8">
-                        <div className="flex items-center gap-2 text-white/30">
-                            <ShieldCheck size={16} className="text-[#00D166]/60" />
-                            <span className="text-[11px] font-semibold uppercase tracking-widest">Verified Sellers</span>
+                        <div className="flex items-center gap-2 text-slate-500">
+                            <ShieldCheck size={14} className="text-[#05DF72]" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Verified Sellers</span>
                         </div>
-                        <div className="flex items-center gap-2 text-white/30">
-                            <Zap size={16} className="text-[#00D166]/60" />
-                            <span className="text-[11px] font-semibold uppercase tracking-widest">Instant Matching</span>
+                        <div className="flex items-center gap-2 text-slate-500">
+                            <Zap size={14} className="text-[#05DF72]" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Instant Matching</span>
                         </div>
                     </div>
 
                     {/* Right: Primary CTA */}
                     <button 
                         onClick={() => router.push('/signup')}
-                        className="group flex items-center gap-3 bg-[#00D166] text-white px-10 py-5 rounded-full text-[15px] font-semibold hover:bg-[#00A350] transition-all duration-300 hover:shadow-2xl hover:shadow-[#00D166]/20 hover:-translate-y-0.5"
+                        className="group flex items-center gap-2 bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 px-8 py-3.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
                     >
-                        Sign Up <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                        Sign Up <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                     </button>
                 </div>
             </div>

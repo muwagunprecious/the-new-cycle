@@ -65,8 +65,8 @@ export default function VerifyBuyersClient({ initialBuyers }) {
             </div>
 
             {buyers.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="bg-white rounded-sm border border-slate-200 p-12 text-center">
+                    <div className="w-16 h-16 bg-slate-100 rounded-sm flex items-center justify-center mx-auto mb-4 border border-slate-200">
                         <UserCircleIcon size={32} className="text-slate-400" />
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">No Pending Verifications</h3>
@@ -75,10 +75,10 @@ export default function VerifyBuyersClient({ initialBuyers }) {
             ) : (
                 <div className="grid gap-6">
                     {buyers.map((buyer) => (
-                        <div key={buyer.id} className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
+                        <div key={buyer.id} className="bg-white rounded-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
                             {/* Header */}
                             <div className="flex items-start gap-4 mb-6">
-                                <div className="w-16 h-16 bg-gradient-to-br from-[#05DF72] to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                <div className="w-16 h-16 bg-[#05DF72]/10 rounded-sm flex items-center justify-center text-[#05DF72] font-bold text-xl border border-slate-200">
                                     {buyer.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex-1">
@@ -86,7 +86,7 @@ export default function VerifyBuyersClient({ initialBuyers }) {
                                     <p className="text-slate-500 text-sm">{buyer.email}</p>
                                     <p className="text-slate-400 text-xs mt-1">{buyer.phone}</p>
                                 </div>
-                                <span className="px-4 py-2 bg-orange-50 text-orange-600 rounded-full text-sm font-bold">
+                                <span className="px-4 py-2 bg-orange-50 text-orange-600 rounded-sm text-sm font-bold border border-orange-100">
                                     Pending Verification
                                 </span>
                             </div>
@@ -94,13 +94,13 @@ export default function VerifyBuyersClient({ initialBuyers }) {
                             {/* Documents Section */}
                             <div className="grid md:grid-cols-2 gap-4 mb-6">
                                 {/* NIN Document */}
-                                <div className="border border-slate-200 rounded-xl p-4">
+                                <div className="border border-slate-200 rounded-sm p-4">
                                     <div className="flex items-center gap-2 mb-3">
                                         <FileText size={18} className="text-[#05DF72]" />
                                         <span className="font-bold text-slate-700 text-sm">NIN Number</span>
                                     </div>
                                     {buyer.ninDocument ? (
-                                        <div className="bg-slate-50 rounded-lg p-4">
+                                        <div className="bg-slate-50 rounded-sm p-4 border border-slate-100">
                                             <p className="text-xl font-mono font-bold text-slate-900 tracking-wider">
                                                 {buyer.ninDocument}
                                             </p>
@@ -111,13 +111,13 @@ export default function VerifyBuyersClient({ initialBuyers }) {
                                 </div>
 
                                 {/* CAC Document */}
-                                <div className="border border-slate-200 rounded-xl p-4">
+                                <div className="border border-slate-200 rounded-sm p-4">
                                     <div className="flex items-center gap-2 mb-3">
                                         <FileText size={18} className="text-blue-500" />
                                         <span className="font-bold text-slate-700 text-sm">CAC Number (Optional)</span>
                                     </div>
                                     {buyer.cacDocument ? (
-                                        <div className="bg-slate-50 rounded-lg p-4">
+                                        <div className="bg-slate-50 rounded-sm p-4 border border-slate-100">
                                             <p className="text-lg font-mono font-bold text-slate-900">
                                                 {buyer.cacDocument}
                                             </p>
@@ -129,7 +129,7 @@ export default function VerifyBuyersClient({ initialBuyers }) {
                             </div>
 
                             {/* Bank Details */}
-                            <div className="border border-slate-200 rounded-xl p-4 mb-6">
+                            <div className="border border-slate-200 rounded-sm p-4 mb-6">
                                 <div className="flex items-center gap-2 mb-3">
                                     <CreditCardIcon size={18} className="text-purple-500" />
                                     <span className="font-bold text-slate-700 text-sm">Bank Account Details</span>
@@ -155,7 +155,7 @@ export default function VerifyBuyersClient({ initialBuyers }) {
                                 <div className="flex gap-3">
                                     <button
                                         onClick={() => handleApprove(buyer.id, buyer.name)}
-                                        className="flex-1 bg-[#05DF72] text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
+                                        className="flex-1 bg-[#05DF72] text-white px-6 py-3 rounded-sm font-bold hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
                                     >
                                         <CheckCircleIcon size={20} />
                                         Approve Buyer
@@ -167,11 +167,11 @@ export default function VerifyBuyersClient({ initialBuyers }) {
                                         placeholder="Rejection reason (required)"
                                         value={rejectionReason[buyer.id] || ""}
                                         onChange={(e) => setRejectionReason({ ...rejectionReason, [buyer.id]: e.target.value })}
-                                        className="flex-1 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-rose-400 transition-colors"
+                                        className="flex-1 border border-slate-200 rounded-sm px-4 py-3 outline-none focus:border-rose-400 transition-colors text-sm"
                                     />
                                     <button
                                         onClick={() => handleReject(buyer.id, buyer.name)}
-                                        className="bg-rose-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-rose-600 transition-colors flex items-center gap-2"
+                                        className="bg-rose-500 text-white px-6 py-3 rounded-sm font-bold hover:bg-rose-600 transition-colors flex items-center gap-2"
                                     >
                                         <XCircleIcon size={20} />
                                         Reject

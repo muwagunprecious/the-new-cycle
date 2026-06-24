@@ -22,7 +22,7 @@ export async function getAllAffiliates({ page = 1, limit = 20 } = {}) {
         // Enrich with referral counts
         const enriched = await Promise.all(affiliates.map(async (aff) => {
             const referralCount = await prisma.user.count({
-                where: { referredByCode: aff.referralCode }
+                where: { referredByCode: aff.referralCode, role: 'SELLER' }
             })
             return {
                 ...aff,
@@ -71,7 +71,7 @@ export async function getAffiliateDetail(affiliateId) {
 
         // Fetch users referred by this affiliate's code
         const referred = await prisma.user.findMany({
-            where: { referredByCode: affiliate.referralCode },
+            where: { referredByCode: affiliate.referralCode, role: 'SELLER' },
             select: { id: true, name: true, phone: true, email: true, createdAt: true, accountStatus: true }
         })
 

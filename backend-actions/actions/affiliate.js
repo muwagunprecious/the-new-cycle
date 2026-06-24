@@ -229,7 +229,7 @@ export async function getAffiliateDashboard() {
 
         // Count referred users
         const referralCount = await prisma.user.count({
-            where: { referredByCode: affiliate.referralCode }
+            where: { referredByCode: affiliate.referralCode, role: 'SELLER' }
         })
 
         const pendingEarnings = earnings.filter(e => e.status === 'pending').reduce((sum, e) => sum + e.commission, 0)

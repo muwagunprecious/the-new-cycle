@@ -84,9 +84,9 @@ export default function AdminNotifications() {
                             <div
                                 key={note.id}
                                 onClick={() => note.status === 'unread' && handleMarkRead(note.id)}
-                                className={`card p-5 flex gap-5 items-start transition-all cursor-pointer hover:border-[#05DF72]/30 ${note.status === 'unread' ? 'border-l-4 border-l-[#05DF72] bg-white shadow-md' : 'bg-slate-50/50 opacity-80'}`}
+                                className={`card rounded-sm border border-slate-200 p-5 flex gap-5 items-start transition-all cursor-pointer hover:border-[#05DF72]/30 ${note.status === 'unread' ? 'border-l-4 border-l-[#05DF72] bg-white shadow-sm' : 'bg-slate-50/50 opacity-80'}`}
                             >
-                                <div className={`${colors.bg} ${colors.text} p-3 rounded-2xl shrink-0`}>
+                                <div className={`${colors.bg} ${colors.text} p-3 rounded-sm shrink-0`}>
                                     <Icon size={22} />
                                 </div>
                                 <div className="flex-1">
@@ -98,7 +98,7 @@ export default function AdminNotifications() {
                                     </div>
                                     <p className="text-sm text-slate-500 leading-relaxed">{note.message}</p>
                                     <div className="flex items-center gap-3 mt-4">
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${note.status === 'unread' ? 'bg-[#05DF72] text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase ${note.status === 'unread' ? 'bg-[#05DF72] text-white' : 'bg-slate-200 text-slate-500'}`}>
                                             {note.status}
                                         </span>
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Type: {note.type}</span>
@@ -108,7 +108,7 @@ export default function AdminNotifications() {
                         )
                     })
                 ) : (
-                    <div className="mt-12 text-center p-10 border-2 border-dashed border-slate-100 rounded-[2rem]">
+                    <div className="mt-12 text-center p-10 border-2 border-dashed border-slate-200 rounded-sm">
                         <BellIcon className="mx-auto text-slate-200 mb-4" size={48} />
                         <p className="text-slate-400 font-medium">No system notifications yet.</p>
                     </div>

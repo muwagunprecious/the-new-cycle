@@ -124,39 +124,39 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                         <input
                             type="text"
                             placeholder="Search by name, email or whatsapp..."
-                            className="pl-12 pr-6 py-4 bg-white border-none rounded-[2rem] shadow-xl shadow-slate-200/50 outline-none w-full md:w-80 font-medium text-sm focus:ring-2 focus:ring-[#05DF72]/20 transition-all"
+                            className="pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-sm shadow-sm outline-none w-full md:w-80 font-medium text-sm focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <button 
                         onClick={() => setIsAddAdminOpen(true)}
-                        className="px-6 py-4 bg-[#05DF72] hover:bg-[#04c966] text-white rounded-[2rem] font-bold text-sm shadow-xl shadow-[#05DF72]/30 transition-all w-full sm:w-auto flex items-center justify-center gap-2"
+                        className="px-6 py-4 bg-[#05DF72] hover:bg-[#04c966] text-white rounded-sm font-bold text-sm shadow-sm transition-all w-full sm:w-auto flex items-center justify-center gap-2"
                     >
                         <ShieldCheckIcon size={18} /> Create Admin
                     </button>
                 </div>
             </div>
 
-            <div className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/60 overflow-hidden border border-slate-100">
+            <div className="bg-white rounded-sm shadow-md overflow-hidden border border-slate-200">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-slate-900 text-white">
-                                <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px] first:rounded-tl-[3rem]">User Identity</th>
+                            <tr className="bg-slate-900 text-white border-b border-slate-200">
+                                <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px]">User Identity</th>
                                 <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px]">Role</th>
                                 <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px]">Contact (Admin View)</th>
                                 <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px]">Verification</th>
                                 <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px]">Security Status</th>
-                                <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px] last:rounded-tr-[3rem] text-right">Actions</th>
+                                <th className="px-8 py-6 font-black uppercase tracking-widest text-[10px] text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-200">
                             {filteredUsers.map((user) => (
                                 <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-[#05DF72] border border-slate-200">
+                                            <div className="w-10 h-10 rounded-sm bg-slate-100 flex items-center justify-center font-black text-[#05DF72] border border-slate-200">
                                                 {user.name.charAt(0)}
                                             </div>
                                             <div className="flex flex-col">
@@ -166,7 +166,7 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
-                                        <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${user.role === 'ADMIN' ? 'bg-slate-900 text-white border-slate-900' :
+                                        <span className={`px-4 py-1.5 rounded-sm text-[9px] font-black uppercase tracking-widest border ${user.role === 'ADMIN' ? 'bg-slate-900 text-white border-slate-900' :
                                             user.role === 'SELLER' ? 'bg-blue-50 text-blue-600 border-blue-100' :
                                                 user.role === 'DELIVERY' ? 'bg-amber-50 text-amber-600 border-amber-100' :
                                                     user.role === 'USER' ? 'bg-emerald-50 text-[#05DF72] border-emerald-100' :
@@ -209,7 +209,7 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                             {user.accountStatus !== 'approved' && user.role !== 'ADMIN' && (
                                                 <button
                                                     onClick={() => handleApprove(user.id, user.name)}
-                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
                                                 >
                                                     <CheckIcon size={14} /> Approve
                                                 </button>
@@ -217,7 +217,7 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                             <button
                                                 disabled={user.role === 'ADMIN'}
                                                 onClick={() => handleToggleStatus(user.id, user.name)}
-                                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${(user.status === 'active' || !user.status)
+                                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${(user.status === 'active' || !user.status)
                                                     ? 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
                                                     : 'bg-[#05DF72]/10 text-[#05DF72] hover:bg-[#05DF72] hover:text-white'
                                                     } disabled:opacity-30 disabled:cursor-not-allowed`}
@@ -227,7 +227,7 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                             <button
                                                 disabled={user.role === 'ADMIN'}
                                                 onClick={() => handleDeleteUser(user.id, user.name)}
-                                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                                                className="inline-flex items-center gap-2 px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
                                             >
                                                 <TrashIcon size={14} /> Delete
                                             </button>
@@ -241,8 +241,8 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
 
                 {filteredUsers.length === 0 && (
                     <div className="p-20 text-center">
-                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <SearchIcon className="text-slate-200" size={32} />
+                        <div className="w-20 h-20 bg-slate-50 rounded-sm flex items-center justify-center mx-auto mb-6 border border-slate-200">
+                            <SearchIcon className="text-slate-300" size={32} />
                         </div>
                         <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No users found in database</p>
                     </div>
@@ -252,10 +252,10 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
             {/* Create Admin Modal */}
             {isAddAdminOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <div className="bg-white rounded-sm shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[#05DF72]/10 text-[#05DF72] flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-sm bg-[#05DF72]/10 text-[#05DF72] flex items-center justify-center border border-slate-200">
                                     <ShieldCheckIcon size={20} />
                                 </div>
                                 <div>
@@ -265,7 +265,7 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                             </div>
                             <button 
                                 onClick={() => setIsAddAdminOpen(false)}
-                                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors"
+                                className="w-8 h-8 rounded-sm bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors border border-slate-200"
                             >
                                 <BanIcon size={16} />
                             </button>
@@ -276,7 +276,7 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                 <input 
                                     type="text" 
                                     required
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
+                                    className="w-full px-4 py-3 rounded-sm bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
                                     placeholder="e.g. John Doe"
                                     value={adminForm.name}
                                     onChange={(e) => setAdminForm({...adminForm, name: e.target.value})}
@@ -287,7 +287,7 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                 <input 
                                     type="email" 
                                     required
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
+                                    className="w-full px-4 py-3 rounded-sm bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
                                     placeholder="admin@example.com"
                                     value={adminForm.email}
                                     onChange={(e) => setAdminForm({...adminForm, email: e.target.value})}
@@ -298,7 +298,7 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                 <input 
                                     type="text" 
                                     required
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
+                                    className="w-full px-4 py-3 rounded-sm bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
                                     placeholder="+234..."
                                     value={adminForm.phone}
                                     onChange={(e) => setAdminForm({...adminForm, phone: e.target.value})}
@@ -309,7 +309,7 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                 <input 
                                     type="password" 
                                     required
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
+                                    className="w-full px-4 py-3 rounded-sm bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-sm font-medium"
                                     placeholder="••••••••"
                                     value={adminForm.password}
                                     onChange={(e) => setAdminForm({...adminForm, password: e.target.value})}
@@ -320,14 +320,14 @@ export default function AdminUsersClient({ initialUsers, userFilters = {} }) {
                                 <button 
                                     type="button"
                                     onClick={() => setIsAddAdminOpen(false)}
-                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                                    className="flex-1 py-3 px-4 rounded-sm font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors border border-slate-200"
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-slate-900 text-white hover:bg-[#05DF72] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 px-4 rounded-sm font-bold text-sm bg-slate-900 text-white hover:bg-[#05DF72] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {isSubmitting ? 'Creating...' : 'Create Admin'}
                                 </button>

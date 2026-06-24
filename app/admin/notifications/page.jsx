@@ -86,7 +86,7 @@ export default function AdminNotifications() {
                                 onClick={() => note.status === 'unread' && handleMarkRead(note.id)}
                                 className={`card p-5 flex gap-5 items-start transition-all cursor-pointer hover:border-[#05DF72]/30 ${note.status === 'unread' ? 'border-l-4 border-l-[#05DF72] bg-white shadow-md' : 'bg-slate-50/50 opacity-80'}`}
                             >
-                                <div className={`${colors.bg} ${colors.text} p-3 rounded-2xl shrink-0`}>
+                                <div className={`${colors.bg} ${colors.text} p-3 rounded-sm shrink-0 border border-slate-200`}>
                                     <Icon size={22} />
                                 </div>
                                 <div className="flex-1">
@@ -108,7 +108,7 @@ export default function AdminNotifications() {
                         )
                     })
                 ) : (
-                    <div className="mt-12 text-center p-10 border-2 border-dashed border-slate-100 rounded-[2rem]">
+                    <div className="mt-12 text-center p-10 border-2 border-dashed border-slate-200 rounded-sm">
                         <BellIcon className="mx-auto text-slate-200 mb-4" size={48} />
                         <p className="text-slate-400 font-medium">No system notifications yet.</p>
                     </div>

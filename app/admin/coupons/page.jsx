@@ -50,20 +50,20 @@ export default function AdminCoupons() {
             <form onSubmit={(e) => toast.promise(handleAddCoupon(e), { loading: "Adding coupon..." })} className="max-w-sm text-sm">
                 <h2 className="text-2xl">Add <span className="text-slate-800 font-medium">Coupons</span></h2>
                 <div className="flex gap-2 max-sm:flex-col mt-2">
-                    <input type="text" placeholder="Coupon Code" className="w-full mt-2 p-2 border border-slate-200 outline-slate-400 rounded-md"
+                    <input type="text" placeholder="Coupon Code" className="w-full mt-2 p-2 border border-slate-200 outline-slate-400 rounded-sm"
                         name="code" value={newCoupon.code} onChange={handleChange} required
                     />
-                    <input type="number" placeholder="Coupon Discount (%)" min={1} max={100} className="w-full mt-2 p-2 border border-slate-200 outline-slate-400 rounded-md"
+                    <input type="number" placeholder="Coupon Discount (%)" min={1} max={100} className="w-full mt-2 p-2 border border-slate-200 outline-slate-400 rounded-sm"
                         name="discount" value={newCoupon.discount} onChange={handleChange} required
                     />
                 </div>
-                <input type="text" placeholder="Coupon Description" className="w-full mt-2 p-2 border border-slate-200 outline-slate-400 rounded-md"
+                <input type="text" placeholder="Coupon Description" className="w-full mt-2 p-2 border border-slate-200 outline-slate-400 rounded-sm"
                     name="description" value={newCoupon.description} onChange={handleChange} required
                 />
 
                 <label>
                     <p className="mt-3">Coupon Expiry Date</p>
-                    <input type="date" placeholder="Coupon Expires At" className="w-full mt-1 p-2 border border-slate-200 outline-slate-400 rounded-md"
+                    <input type="date" placeholder="Coupon Expires At" className="w-full mt-1 p-2 border border-slate-200 outline-slate-400 rounded-sm"
                         name="expiresAt" value={format(newCoupon.expiresAt, 'yyyy-MM-dd')} onChange={handleChange}
                     />
                 </label>
@@ -98,7 +98,7 @@ export default function AdminCoupons() {
             {/* List Coupons */}
             <div className="mt-14">
                 <h2 className="text-2xl">List <span className="text-slate-800 font-medium">Coupons</span></h2>
-                <div className="overflow-x-auto mt-4 rounded-lg border border-slate-200 max-w-4xl">
+                <div className="overflow-x-auto mt-4 rounded-sm border border-slate-200 max-w-4xl">
                     <table className="min-w-full bg-white text-sm">
                         <thead className="bg-slate-50">
                             <tr>

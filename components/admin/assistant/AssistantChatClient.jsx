@@ -46,8 +46,8 @@ const formatMessageContent = (text) => {
             tableRows = [];
 
             return (
-                <div key={`table-${idx}`} className="overflow-x-auto my-4 border border-slate-100 rounded-xl">
-                    <table className="min-w-full divide-y divide-slate-100 text-sm">
+                <div key={`table-${idx}`} className="overflow-x-auto my-4 border border-slate-200 rounded-sm">
+                    <table className="min-w-full divide-y divide-slate-200 text-sm">
                         <thead className="bg-slate-50 font-semibold text-slate-700">
                             <tr>
                                 {headers.map((h, i) => (
@@ -55,7 +55,7 @@ const formatMessageContent = (text) => {
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50 text-slate-600 bg-white">
+                        <tbody className="divide-y divide-slate-200 text-slate-650 bg-white">
                             {rows.map((row, rowIndex) => (
                                 <tr key={rowIndex} className="hover:bg-slate-50/50 transition-colors">
                                     {row.map((cell, cellIndex) => (
@@ -74,7 +74,7 @@ const formatMessageContent = (text) => {
             return <h4 key={idx} className="text-base font-bold text-slate-800 mt-4 mb-2">{trimmed.replace("###", "").trim()}</h4>;
         }
         if (trimmed.startsWith("##")) {
-            return <h3 key={idx} className="text-lg font-bold text-slate-800 mt-5 mb-2 border-b border-slate-100 pb-1">{trimmed.replace("##", "").trim()}</h3>;
+            return <h3 key={idx} className="text-lg font-bold text-slate-800 mt-5 mb-2 border-b border-slate-200 pb-1">{trimmed.replace("##", "").trim()}</h3>;
         }
         if (trimmed.startsWith("#")) {
             return <h2 key={idx} className="text-xl font-bold text-slate-800 mt-6 mb-3">{trimmed.replace("#", "").trim()}</h2>;
@@ -98,7 +98,7 @@ const formatMessageContent = (text) => {
         }
 
         return (
-            <p key={idx} className="text-slate-600 leading-relaxed my-1">
+            <p key={idx} className="text-slate-650 leading-relaxed my-1">
                 {parseInlineStyles(line)}
             </p>
         );
@@ -107,8 +107,8 @@ const formatMessageContent = (text) => {
     // If there's still a table being accumulated at the end of the text
     if (tableHeaders.length > 0) {
         formattedLines.push(
-            <div key="table-final" className="overflow-x-auto my-4 border border-slate-100 rounded-xl">
-                <table className="min-w-full divide-y divide-slate-100 text-sm">
+            <div key="table-final" className="overflow-x-auto my-4 border border-slate-200 rounded-sm">
+                <table className="min-w-full divide-y divide-slate-200 text-sm">
                     <thead className="bg-slate-50 font-semibold text-slate-700">
                         <tr>
                             {tableHeaders.map((h, i) => (
@@ -116,7 +116,7 @@ const formatMessageContent = (text) => {
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50 text-slate-600 bg-white">
+                    <tbody className="divide-y divide-slate-200 text-slate-605 bg-white">
                         {tableRows.map((row, rowIndex) => (
                             <tr key={rowIndex} className="hover:bg-slate-50/50 transition-colors">
                                 {row.map((cell, cellIndex) => (
@@ -142,7 +142,7 @@ const parseInlineStyles = (text) => {
             return <strong key={index} className="font-bold text-slate-800">{part.slice(2, -2)}</strong>;
         }
         if (part.startsWith("`") && part.endsWith("`")) {
-            return <code key={index} className="px-1.5 py-0.5 bg-slate-100 rounded text-rose-600 font-mono text-xs font-semibold">{part.slice(1, -1)}</code>;
+            return <code key={index} className="px-1.5 py-0.5 bg-slate-100 rounded-sm text-rose-600 font-mono text-xs font-semibold border border-slate-200">{part.slice(1, -1)}</code>;
         }
         return part;
     });
@@ -254,44 +254,22 @@ export default function AssistantChatClient() {
         }
     };
 
-    // Tool label helper
-    const getToolDescription = (toolName, args) => {
-        switch (toolName) {
-            case "getSystemHealth":
-                return "🔍 Scanning system database and environment configurations...";
-            case "emailWebDeveloper":
-                return "✉️ Emailing developer (Precious) error logs...";
-            case "sendEmailToUser":
-                return `✉️ Sending support email to ${args?.to || "user"}...`;
-            case "deleteOrBlockUser":
-                return `🚫 Modifying account status for ${args?.emailOrPhoneOrId}...`;
-            case "getVerificationCodes":
-                return `🔑 Retrieving verification tokens for "${args?.query}"...`;
-            case "auditAccount":
-                return `📋 Auditing buyer/seller profile logs for "${args?.emailOrPhoneOrId}"...`;
-            case "getDashboardStats":
-                return "📊 Extracting sales records and pending cashouts metrics...";
-            default:
-                return `⚡ Running system command: ${toolName}...`;
-        }
-    };
-
     const runPreset = (text) => {
         handleSend(text);
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-140px)] bg-slate-50/50 rounded-3xl border border-slate-100 overflow-hidden shadow-sm backdrop-blur-md">
+        <div className="flex flex-col h-[calc(100vh-140px)] bg-slate-50/50 rounded-sm border border-slate-200 overflow-hidden shadow-sm">
             <Toaster position="top-right" />
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#05DF72] to-emerald-400 flex items-center justify-center text-white shadow-sm shadow-emerald-200">
-                        <Sparkles size={20} className="animate-pulse" />
+                    <div className="w-10 h-10 rounded-sm bg-[#05DF72]/15 border border-[#05DF72]/20 flex items-center justify-center text-slate-800">
+                        <Sparkles size={20} className="text-[#05DF72]" />
                     </div>
                     <div>
-                        <h2 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 uppercase tracking-wider">
                             AI Co-pilot Assistant
                             <span className="flex h-2.5 w-2.5 relative">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -305,16 +283,16 @@ export default function AssistantChatClient() {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => setShowGuideModal(true)}
-                        className="text-xs font-semibold text-slate-600 hover:text-[#05DF72] transition flex items-center gap-1 bg-slate-50 hover:bg-emerald-50 px-3 py-2 rounded-xl border border-slate-100"
+                        className="text-xs font-bold text-slate-650 hover:text-[#05DF72] transition flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 px-3 py-2 rounded-sm border border-slate-200 uppercase tracking-wider"
                     >
-                        <HelpCircle size={15} />
+                        <HelpCircle size={14} />
                         Page Guide
                     </button>
                     <button
                         onClick={() => runPreset("Check system status")}
-                        className="text-xs font-semibold text-slate-600 hover:text-amber-500 transition flex items-center gap-1 bg-slate-50 hover:bg-amber-50 px-3 py-2 rounded-xl border border-slate-100"
+                        className="text-xs font-bold text-slate-650 hover:text-amber-600 transition flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 px-3 py-2 rounded-sm border border-slate-200 uppercase tracking-wider"
                     >
-                        <Activity size={15} />
+                        <Activity size={14} />
                         Diagnostics
                     </button>
                 </div>
@@ -328,32 +306,32 @@ export default function AssistantChatClient() {
                         className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
                     >
                         {/* Avatar */}
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border shadow-sm ${
+                        <div className={`w-8 h-8 rounded-sm flex items-center justify-center shrink-0 border shadow-sm ${
                             msg.role === 'user'
                                 ? 'bg-slate-800 border-slate-800 text-white'
-                                : 'bg-gradient-to-tr from-[#05DF72]/10 to-emerald-400/10 border-emerald-100 text-[#05DF72]'
+                                : 'bg-emerald-50 border-emerald-250 text-[#05DF72]'
                         }`}>
                             {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
                         </div>
 
                         {/* Content Card */}
                         <div className="flex flex-col gap-1.5">
-                            <div className={`p-4 rounded-2xl text-sm border shadow-sm/5 leading-relaxed ${
+                            <div className={`p-4 rounded-sm text-sm border shadow-sm leading-relaxed ${
                                 msg.role === 'user'
-                                    ? 'bg-slate-800 border-slate-800 text-white rounded-tr-none'
-                                    : 'bg-white border-slate-100 text-slate-700 rounded-tl-none'
+                                    ? 'bg-slate-850 border-slate-750 text-white'
+                                    : 'bg-white border-slate-200 text-slate-700'
                             }`}>
                                 {formatMessageContent(msg.content)}
                             </div>
 
                             {/* Render associated executed tools */}
                             {msg.toolLogs && msg.toolLogs.length > 0 && (
-                                <div className="ml-1 flex flex-col gap-1 bg-slate-50/50 p-2 rounded-xl border border-slate-100 max-w-fit">
+                                <div className="ml-1 flex flex-col gap-1 bg-slate-50/50 p-2 rounded-sm border border-slate-200 max-w-fit">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Executed Commands</p>
                                     {msg.toolLogs.map((log, lIdx) => (
                                         <div key={lIdx} className="flex items-center gap-1.5 text-xs text-slate-500 px-1 py-0.5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-[#05DF72]" />
-                                            <span className="font-mono bg-white px-1 py-0.5 border border-slate-100 rounded font-semibold text-slate-600">{log.tool}</span>
+                                            <span className="w-1.5 h-1.5 rounded-sm bg-[#05DF72]" />
+                                            <span className="font-mono bg-white px-1.5 py-0.5 border border-slate-200 rounded-sm font-semibold text-slate-650">{log.tool}</span>
                                             <span className="text-[10px] text-slate-400">at {log.timestamp}</span>
                                         </div>
                                     ))}
@@ -366,17 +344,17 @@ export default function AssistantChatClient() {
                 {/* Loading Status Indicator */}
                 {loading && (
                     <div className="flex gap-3 max-w-[85%] mr-auto">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-100 flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-sm bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
                             <Bot size={14} className="text-slate-400" />
                         </div>
                         <div className="flex flex-col gap-2">
-                            <div className="bg-white border border-slate-100 p-4 rounded-2xl rounded-tl-none shadow-sm/5 text-sm text-slate-500 flex items-center gap-2.5">
+                            <div className="bg-white border border-slate-200 p-4 rounded-sm shadow-sm text-sm text-slate-500 flex items-center gap-2.5">
                                 <Loader2 size={16} className="animate-spin text-[#05DF72]" />
                                 <span>Co-pilot is executing request...</span>
                             </div>
                             
                             {activeTool && (
-                                <div className="flex items-center gap-2 text-xs font-medium text-[#05DF72] bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl animate-pulse w-fit">
+                                <div className="flex items-center gap-2 text-xs font-medium text-[#05DF72] bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-sm animate-pulse w-fit">
                                     <Activity size={14} className="shrink-0" />
                                     <span>{activeTool}</span>
                                 </div>
@@ -388,41 +366,41 @@ export default function AssistantChatClient() {
             </div>
 
             {/* Quick Action Suggestion Chips */}
-            <div className="px-6 py-2 bg-white/50 border-t border-slate-100 flex items-center gap-2 overflow-x-auto no-scrollbar py-3">
+            <div className="px-6 py-3 bg-white/50 border-t border-slate-200 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
                 <button
                     onClick={() => runPreset("Check system status")}
-                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-100 hover:border-emerald-200 px-3.5 py-1.5 rounded-full shrink-0 font-medium transition shadow-sm/5"
+                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-200 hover:border-emerald-250 px-3.5 py-1.5 rounded-sm shrink-0 font-medium transition shadow-sm"
                 >
                     🔍 System Health Check
                 </button>
                 <button
                     onClick={() => runPreset("Audit account professorprecious03@gmail.com")}
-                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-100 hover:border-emerald-200 px-3.5 py-1.5 rounded-full shrink-0 font-medium transition shadow-sm/5"
+                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-200 hover:border-emerald-250 px-3.5 py-1.5 rounded-sm shrink-0 font-medium transition shadow-sm"
                 >
                     📋 Audit Dev Account
                 </button>
                 <button
                     onClick={() => runPreset("Find best selling sellers")}
-                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-100 hover:border-emerald-200 px-3.5 py-1.5 rounded-full shrink-0 font-medium transition shadow-sm/5"
+                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-200 hover:border-emerald-250 px-3.5 py-1.5 rounded-sm shrink-0 font-medium transition shadow-sm"
                 >
                     🏆 Best Sellers
                 </button>
                 <button
                     onClick={() => runPreset("Show pending cashouts")}
-                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-100 hover:border-emerald-200 px-3.5 py-1.5 rounded-full shrink-0 font-medium transition shadow-sm/5"
+                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-200 hover:border-emerald-250 px-3.5 py-1.5 rounded-sm shrink-0 font-medium transition shadow-sm"
                 >
                     💸 Payout Desk Stats
                 </button>
                 <button
                     onClick={() => runPreset("Explain what the disputes page does")}
-                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-100 hover:border-emerald-200 px-3.5 py-1.5 rounded-full shrink-0 font-medium transition shadow-sm/5"
+                    className="text-xs bg-white text-slate-600 hover:text-[#05DF72] hover:bg-emerald-50 border border-slate-200 hover:border-emerald-250 px-3.5 py-1.5 rounded-sm shrink-0 font-medium transition shadow-sm"
                 >
                     💡 Disputes Page Guide
                 </button>
             </div>
 
             {/* Input Bar */}
-            <div className="p-4 bg-white border-t border-slate-100">
+            <div className="p-4 bg-white border-t border-slate-200 shrink-0">
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -435,13 +413,13 @@ export default function AssistantChatClient() {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         disabled={loading}
-                        placeholder="Ask the co-pilot (e.g. 'Email developer X was fixed', 'Block user @email', 'Get verification code for Order GCY-...')"
-                        className="flex-1 px-4 py-3 border border-slate-100 focus:border-[#05DF72]/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#05DF72]/10 transition placeholder-slate-400 bg-slate-50/50"
+                        placeholder="Ask the co-pilot (e.g. 'Check system status', 'Block user @email', 'Get verification code for Order GCY-...')"
+                        className="flex-1 px-4 py-3 border border-slate-200 focus:border-[#05DF72]/40 rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-[#05DF72]/20 transition placeholder-slate-400 bg-slate-50/50"
                     />
                     <button
                         type="submit"
                         disabled={loading || !input.trim()}
-                        className="bg-slate-800 hover:bg-slate-700 disabled:bg-slate-100 disabled:text-slate-400 text-white p-3 px-5 rounded-xl font-bold text-sm transition flex items-center gap-1.5 shadow-sm shadow-slate-200"
+                        className="bg-slate-800 hover:bg-slate-700 disabled:bg-slate-100 disabled:text-slate-400 text-white p-3 px-5 rounded-sm font-bold text-sm transition flex items-center gap-1.5 shadow-sm"
                     >
                         <Send size={15} />
                         <span className="max-sm:hidden">Ask Co-pilot</span>
@@ -457,20 +435,20 @@ export default function AssistantChatClient() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-3xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100"
+                            className="bg-white rounded-sm w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200"
                         >
                             {/* Modal Header */}
-                            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-800">Admin Portal Visual Guide</h3>
-                                    <p className="text-xs text-slate-400">Understand the components, metrics, and workflows on each page.</p>
+                                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">Admin Portal Visual Guide</h3>
+                                    <p className="text-xs text-slate-400 font-medium">Understand the components, metrics, and workflows on each page.</p>
                                 </div>
                                 <button
                                     onClick={() => {
                                         setShowGuideModal(false);
                                         setSelectedGuide(null);
                                     }}
-                                    className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-xl transition"
+                                    className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-sm border border-slate-200 transition text-sm font-bold w-7 h-7 flex items-center justify-center"
                                 >
                                     ✕
                                 </button>
@@ -479,7 +457,7 @@ export default function AssistantChatClient() {
                             {/* Modal Body */}
                             <div className="flex-1 flex overflow-hidden max-md:flex-col">
                                 {/* Left Sidebar Guide List */}
-                                <div className="w-1/3 max-md:w-full border-r border-slate-100 overflow-y-auto p-4 space-y-1.5 bg-slate-50/50">
+                                <div className="w-1/3 max-md:w-full border-r border-slate-200 overflow-y-auto p-4 space-y-1.5 bg-slate-50/50">
                                     {PAGE_GUIDES.map((guide, idx) => {
                                         const Icon = guide.icon;
                                         const isSelected = selectedGuide?.title === guide.title || (!selectedGuide && idx === 0);
@@ -489,19 +467,19 @@ export default function AssistantChatClient() {
                                             <button
                                                 key={idx}
                                                 onClick={() => setSelectedGuide(guide)}
-                                                className={`w-full flex items-center gap-3 p-3 rounded-2xl text-left transition ${
+                                                className={`w-full flex items-center gap-3 p-3 rounded-sm text-left transition ${
                                                     isSelected
-                                                        ? 'bg-white text-[#05DF72] border border-slate-100 shadow-sm font-semibold'
+                                                        ? 'bg-white text-[#05DF72] border border-slate-200 shadow-sm font-semibold'
                                                         : 'text-slate-600 hover:bg-white/50 border border-transparent'
                                                 }`}
                                             >
-                                                <div className={`p-2 rounded-xl shrink-0 ${
-                                                    isSelected ? 'bg-emerald-50 text-[#05DF72]' : 'bg-slate-100 text-slate-400'
+                                                <div className={`p-2 rounded-sm shrink-0 border ${
+                                                    isSelected ? 'bg-emerald-50 border-emerald-200 text-[#05DF72]' : 'bg-slate-100 border-slate-200 text-slate-400'
                                                 }`}>
                                                     <Icon size={16} />
                                                 </div>
                                                 <div className="overflow-hidden">
-                                                    <p className="text-xs truncate">{guide.title}</p>
+                                                    <p className="text-xs font-bold text-slate-900 truncate">{guide.title}</p>
                                                     <p className="text-[10px] text-slate-400 truncate">{guide.path}</p>
                                                 </div>
                                             </button>
@@ -514,18 +492,18 @@ export default function AssistantChatClient() {
                                     {selectedGuide && (
                                         <div className="space-y-6">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-3 bg-emerald-50 text-[#05DF72] rounded-2xl">
+                                                <div className="p-3 bg-emerald-50 border border-emerald-250 text-[#05DF72] rounded-sm">
                                                     {React.createElement(selectedGuide.icon, { size: 24 })}
                                                 </div>
                                                 <div>
                                                     <h4 className="text-base font-bold text-slate-800">{selectedGuide.title}</h4>
-                                                    <p className="text-xs text-slate-400">Path: <code className="font-mono bg-slate-50 p-0.5 rounded text-[#05DF72]">{selectedGuide.path}</code></p>
+                                                    <p className="text-xs text-slate-400">Path: <code className="font-mono bg-slate-55 p-0.5 rounded-sm border border-slate-200 text-[#05DF72]">{selectedGuide.path}</code></p>
                                                 </div>
                                             </div>
 
                                             <div>
                                                 <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Description & Purpose</h5>
-                                                <p className="text-sm text-slate-600 leading-relaxed bg-slate-50/50 p-4 border border-slate-100 rounded-2xl">
+                                                <p className="text-sm text-slate-600 leading-relaxed bg-slate-50/50 p-4 border border-slate-200 rounded-sm">
                                                     {selectedGuide.description}
                                                 </p>
                                             </div>
@@ -534,7 +512,7 @@ export default function AssistantChatClient() {
                                                 <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Core Metrics & Columns</h5>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     {selectedGuide.keyMetrics.map((metric, index) => (
-                                                        <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                                                        <div key={index} className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-sm">
                                                             <Info size={14} className="text-[#05DF72]" />
                                                             <span className="text-xs font-semibold text-slate-700">{metric}</span>
                                                         </div>
@@ -542,13 +520,13 @@ export default function AssistantChatClient() {
                                                 </div>
                                             </div>
 
-                                            <div className="pt-4 border-t border-slate-100 flex justify-end">
+                                            <div className="pt-4 border-t border-slate-200 flex justify-end">
                                                 <button
                                                     onClick={() => {
                                                         setShowGuideModal(false);
                                                         runPreset(`Explain the ${selectedGuide.title} page details`);
                                                     }}
-                                                    className="text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm"
+                                                    className="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-sm transition shadow-sm uppercase tracking-wider"
                                                 >
                                                     Ask AI Co-pilot for page analysis
                                                 </button>

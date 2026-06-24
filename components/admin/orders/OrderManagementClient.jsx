@@ -235,9 +235,9 @@ export default function OrderManagementClient({ initialOrders }) {
                 <p className="text-slate-500 mt-1">Monitor transactions and coordinate logistics.</p>
             </div>
 
-            <div className="card bg-white h-auto">
+            <div className="card bg-white h-auto rounded-sm border border-slate-200 shadow-sm">
                 {/* Search & Filter */}
-                <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="relative w-full max-w-md">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
@@ -245,11 +245,11 @@ export default function OrderManagementClient({ initialOrders }) {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search by Order ID or Buyer..."
-                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#05DF72] transition-all text-sm"
+                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] transition-all text-sm"
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                        <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-sm text-sm text-slate-600 hover:bg-slate-50 transition-colors">
                             <FilterIcon size={16} /> Filter
                         </button>
                     </div>
@@ -268,7 +268,7 @@ export default function OrderManagementClient({ initialOrders }) {
                                 <th className="px-6 py-4 font-semibold">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-200">
                             {filteredOrders.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-12 text-center text-slate-400 text-sm">
@@ -295,7 +295,7 @@ export default function OrderManagementClient({ initialOrders }) {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col gap-1.5">
-                                                <span className={`status-badge ${getStatusColor(order.status)} w-fit`}>{order.status}</span>
+                                                <span className={`status-badge rounded-sm px-2 py-0.5 text-xs font-bold border ${getStatusColor(order.status)} w-fit`}>{order.status}</span>
                                                 <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
                                                     <CalendarIcon size={12} />
                                                     Pickup: {order.collectionDate || "Pending"}
@@ -304,12 +304,12 @@ export default function OrderManagementClient({ initialOrders }) {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span
-                                                className={`status-badge w-fit ${
+                                                className={`status-badge w-fit rounded-sm px-2 py-0.5 text-xs font-bold border ${
                                                     order.payoutStatus === "released"
-                                                        ? "bg-green-100 text-green-700"
+                                                        ? "bg-green-100 text-green-700 border-green-200"
                                                         : order.payoutStatus === "pending"
-                                                        ? "bg-amber-100 text-amber-700"
-                                                        : "bg-slate-100 text-slate-600"
+                                                        ? "bg-amber-100 text-amber-700 border-amber-200"
+                                                        : "bg-slate-100 text-slate-600 border-slate-200"
                                                 }`}
                                             >
                                                 {order.payoutStatus?.toUpperCase() || "NONE"}
@@ -319,13 +319,13 @@ export default function OrderManagementClient({ initialOrders }) {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => setSelectedOrder(order)}
-                                                    className="p-2 bg-slate-50 hover:bg-[#05DF72]/10 rounded-lg transition-colors text-slate-600 hover:text-[#05DF72]"
+                                                    className="p-2 bg-slate-50 hover:bg-[#05DF72]/10 rounded-sm transition-colors text-slate-600 hover:text-[#05DF72] border border-slate-200"
                                                     title="View Details"
                                                 >
                                                     <EyeIcon size={18} />
                                                 </button>
                                                 <button
-                                                    className="p-2 bg-slate-50 hover:bg-blue-50 rounded-lg transition-colors text-slate-600 hover:text-blue-500"
+                                                    className="p-2 bg-slate-50 hover:bg-blue-50 rounded-sm transition-colors text-slate-600 hover:text-blue-500 border border-slate-200"
                                                     title="Contact Seller"
                                                 >
                                                     <MessageSquareIcon size={18} />
@@ -343,17 +343,17 @@ export default function OrderManagementClient({ initialOrders }) {
             {/* ── Slide-out Order Detail Sidebar ── */}
             {selectedOrder && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end" onClick={(e) => { if (e.target === e.currentTarget) setSelectedOrder(null) }}>
-                    <div className="bg-white w-full max-w-lg h-full shadow-2xl flex flex-col overflow-y-auto animate-slide-in">
+                    <div className="bg-white w-full max-w-lg h-full shadow-2xl flex flex-col overflow-y-auto animate-slide-in border-l border-slate-200">
 
                         {/* Header */}
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
                             <div>
                                 <h2 className="text-lg font-bold text-slate-900">Order Details</h2>
                                 <p className="text-xs text-slate-400 font-mono mt-0.5">{selectedOrder.id}</p>
                             </div>
                             <button
                                 onClick={() => setSelectedOrder(null)}
-                                className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400"
+                                className="p-2 hover:bg-slate-100 rounded-sm transition-colors text-slate-400 border border-slate-200"
                             >
                                 <XCircleIcon size={22} />
                             </button>
@@ -372,14 +372,14 @@ export default function OrderManagementClient({ initialOrders }) {
                                     <div>
                                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Vendor</h3>
                                         <p className="text-slate-900 font-semibold">{selectedOrder.store?.name || selectedOrder.storeId}</p>
-                                        <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-[#05DF72]/10 text-[#05DF72] rounded text-[10px] font-bold">
+                                        <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-[#05DF72]/10 text-[#05DF72] rounded-sm text-[10px] font-bold border border-[#05DF72]/20">
                                             VERIFIED VENDOR
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Tracking Progress */}
-                                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                                <div className="bg-slate-50 rounded-sm p-5 border border-slate-200">
                                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tracking Progress</h3>
                                     <div className="flex items-center justify-between relative mt-4">
                                         <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 -translate-y-1/2" />
@@ -409,27 +409,27 @@ export default function OrderManagementClient({ initialOrders }) {
                                 </div>
 
                                 {/* Payment Verification */}
-                                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                                <div className="bg-white border border-slate-200 rounded-sm p-5 shadow-sm">
                                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center justify-between">
                                         <div className="flex items-center gap-1.5">
                                             <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                                             Incoming Buyer Payment
                                         </div>
-                                        <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-black ${selectedOrder.paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                        <span className={`px-2.5 py-0.5 rounded-sm text-[8px] font-black ${selectedOrder.paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
                                             {selectedOrder.paymentStatus?.toUpperCase() || "PENDING"}
                                         </span>
                                     </h3>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                        <div className="bg-slate-50 p-3 rounded-sm border border-slate-200">
                                             <p className="text-[9px] text-slate-400 uppercase font-black mb-0.5">Expected Amount</p>
                                             <p className="font-bold text-base text-slate-900">₦{(selectedOrder.total || 0).toLocaleString()}</p>
                                         </div>
-                                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                        <div className="bg-slate-50 p-3 rounded-sm border border-slate-200">
                                             <p className="text-[9px] text-slate-400 uppercase font-black mb-0.5">Payment Method</p>
                                             <p className="font-bold text-base text-slate-900 uppercase">{selectedOrder.paymentMethod || "MANUAL_TRANSFER"}</p>
                                         </div>
-                                        <div className="md:col-span-2 bg-amber-50 p-3 rounded-xl border border-amber-100">
+                                        <div className="md:col-span-2 bg-amber-50 p-3 rounded-sm border border-amber-200">
                                             <p className="text-[9px] text-amber-600 uppercase font-black mb-0.5">Sender Account Name</p>
                                             <p className="font-bold text-base text-amber-900 uppercase tracking-wider">{selectedOrder.paymentSenderName || "NOT PROVIDED"}</p>
                                         </div>
@@ -445,7 +445,7 @@ export default function OrderManagementClient({ initialOrders }) {
                                         <button
                                             onClick={handleVerifyPayment}
                                             disabled={verifyPaymentLoading}
-                                            className="mt-3 w-full py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-black uppercase rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                                            className="mt-3 w-full py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-black uppercase rounded-sm transition-all shadow-md flex items-center justify-center gap-2"
                                         >
                                             {verifyPaymentLoading ? (
                                                 <><Spinner size={16} /> Verifying Payment...</>
@@ -457,23 +457,23 @@ export default function OrderManagementClient({ initialOrders }) {
                                 </div>
 
                                 {/* Vendor Payout */}
-                                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-white shadow-sm">
+                                <div className="bg-slate-900 border border-slate-800 rounded-sm p-5 text-white shadow-sm">
                                     <h3 className="text-xs font-bold text-[#05DF72] uppercase tracking-wider mb-4 flex items-center justify-between">
                                         <div className="flex items-center gap-1.5">
                                             <div className="w-1.5 h-1.5 rounded-full bg-[#05DF72]" />
                                             Target Payout
                                         </div>
-                                        <div className="bg-[#05DF72]/20 text-[#05DF72] px-2 py-0.5 rounded-full text-[8px] font-black">
+                                        <div className="bg-[#05DF72]/20 text-[#05DF72] px-2 py-0.5 rounded-sm text-[8px] font-black">
                                             FEE: ₦{((selectedOrder.buyerFee || 0) + (selectedOrder.sellerFee || 0)).toLocaleString()}
                                         </div>
                                     </h3>
 
                                     <div className="grid grid-cols-2 gap-3 mb-4">
-                                        <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                                        <div className="bg-white/5 p-3 rounded-sm border border-white/5">
                                             <p className="text-[8px] text-slate-400 uppercase font-black mb-0.5">Base Price</p>
                                             <p className="font-bold text-sm">₦{(selectedOrder.subtotal || 0).toLocaleString()}</p>
                                         </div>
-                                        <div className="bg-[#05DF72]/10 p-3 rounded-lg border border-[#05DF72]/20">
+                                        <div className="bg-[#05DF72]/10 p-3 rounded-sm border border-[#05DF72]/20">
                                             <p className="text-[8px] text-[#05DF72] uppercase font-black mb-0.5">Net Vendor Payout</p>
                                             <p className="font-black text-sm text-[#05DF72]">₦{(selectedOrder.payoutAmount || 0).toLocaleString()}</p>
                                         </div>
@@ -483,7 +483,7 @@ export default function OrderManagementClient({ initialOrders }) {
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <p className="text-[8px] text-slate-400 uppercase font-black mb-1">Payout Status</p>
-                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black border ${
+                                                <span className={`px-3 py-1 rounded-sm text-[9px] font-black border ${
                                                     selectedOrder.payoutStatus === "released"
                                                         ? "bg-green-500/20 text-green-400 border-green-500/30"
                                                         : selectedOrder.payoutStatus === "pending"
@@ -498,7 +498,7 @@ export default function OrderManagementClient({ initialOrders }) {
                                                 <button
                                                     onClick={handleReleasePayout}
                                                     disabled={releasePayoutLoading}
-                                                    className="px-5 py-2.5 bg-[#05DF72] hover:bg-[#04c965] disabled:opacity-60 disabled:cursor-not-allowed text-slate-900 font-black rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
+                                                    className="px-5 py-2.5 bg-[#05DF72] hover:bg-[#04c965] disabled:opacity-60 disabled:cursor-not-allowed text-slate-900 font-black rounded-sm text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
                                                 >
                                                     {releasePayoutLoading ? (
                                                         <><Spinner size={14} className="text-slate-900" /> Releasing...</>
@@ -519,11 +519,11 @@ export default function OrderManagementClient({ initialOrders }) {
                             </div>
 
                             {/* ── Logistics Controls ── */}
-                            <div className="p-6 bg-slate-50 border-t border-slate-100 space-y-4">
+                            <div className="p-6 bg-slate-50 border-t border-slate-200 space-y-4">
                                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Logistics Controls</h3>
 
                                 {selectedOrder.status === "COMPLETED" ? (
-                                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                                    <div className="bg-green-50 border border-green-200 rounded-sm p-4 text-center">
                                         <CheckCircleIcon size={28} className="mx-auto text-green-400 mb-2" />
                                         <p className="text-green-700 text-xs font-black uppercase">Order Completed</p>
                                         <p className="text-green-600 text-[10px] mt-0.5">All logistics handling is complete.</p>
@@ -541,7 +541,7 @@ export default function OrderManagementClient({ initialOrders }) {
                                             <button
                                                 onClick={handleApprovePickup}
                                                 disabled={pickupLoading}
-                                                className="w-full py-4 bg-[#05DF72] hover:bg-[#04c764] disabled:opacity-60 disabled:cursor-not-allowed text-slate-900 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                                                className="w-full py-4 bg-[#05DF72] hover:bg-[#04c764] disabled:opacity-60 disabled:cursor-not-allowed text-slate-900 font-black uppercase text-[10px] tracking-widest rounded-sm transition-all shadow-md flex items-center justify-center gap-2"
                                             >
                                                 {pickupLoading ? (
                                                     <><Spinner size={16} className="text-slate-900" /> Approving Pickup...</>
@@ -552,7 +552,7 @@ export default function OrderManagementClient({ initialOrders }) {
                                         </div>
 
                                         {/* Reschedule Date */}
-                                        <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+                                        <div className="bg-white border border-slate-200 rounded-sm p-4 space-y-3">
                                             <p className="text-[9px] font-black text-slate-400 uppercase">Reschedule Pickup Date</p>
 
                                             <ActionBanner
@@ -566,12 +566,12 @@ export default function OrderManagementClient({ initialOrders }) {
                                                     type="date"
                                                     ref={rescheduleInputRef}
                                                     min={new Date().toISOString().split("T")[0]}
-                                                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium focus:border-[#05DF72] outline-none"
+                                                    className="flex-1 px-3 py-2 border border-slate-200 rounded-sm text-xs font-medium focus:border-[#05DF72] outline-none"
                                                 />
                                                 <button
                                                     onClick={handleReschedule}
                                                     disabled={rescheduleLoading}
-                                                    className="px-4 py-2 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                                                    className="px-4 py-2 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-sm hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 whitespace-nowrap"
                                                 >
                                                     {rescheduleLoading ? (
                                                         <><Spinner size={12} /> Saving...</>

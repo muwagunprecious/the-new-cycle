@@ -328,12 +328,12 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {statsCards.map((card, index) => (
-                            <div key={index} className="card p-6 flex items-center justify-between group bg-white rounded-2xl border border-slate-100 shadow-sm">
+                            <div key={index} className="p-6 flex items-center justify-between group bg-white rounded-sm border border-slate-200 shadow-sm hover:border-[#05DF72]/45 transition-all duration-300">
                                 <div className="flex flex-col gap-1">
                                     <p className="text-sm font-medium text-slate-500">{card.title}</p>
                                     <b className="text-2xl font-bold text-slate-800">{card.value}</b>
                                 </div>
-                                <div className={`${card.bg} ${card.color} p-4 rounded-2xl transition-transform group-hover:scale-110`}>
+                                <div className={`${card.bg} ${card.color} p-4 rounded-sm border border-slate-200/25`}>
                                     <card.icon size={28} />
                                 </div>
                             </div>
@@ -343,24 +343,24 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                     {/* Quick Actions / Recent Orders */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Pending Verifications */}
-                        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100 shadow-sm flex flex-col">
-                            <h3 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2 shrink-0">
+                        <div className="bg-amber-50 rounded-sm p-6 border border-amber-200 shadow-sm flex flex-col">
+                            <h3 className="text-lg font-bold text-amber-955 mb-4 flex items-center gap-2 shrink-0">
                                 <AlertCircleIcon size={18} className="text-amber-500" />
                                 Action Required
                             </h3>
                             <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                                 {(dashboardData.pendingVerifications || []).map(order => (
-                                    <div key={order.id} className="flex flex-col gap-2 p-3 bg-white rounded-xl border border-amber-100">
+                                    <div key={order.id} className="flex flex-col gap-2 p-3 bg-white rounded-sm border border-amber-200">
                                         <div className="flex justify-between items-center">
-                                            <p className="font-black text-sm text-amber-900">₦{(order.total || 0).toLocaleString()}</p>
-                                            <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">TRANSFER CHECK</span>
+                                            <p className="font-black text-sm text-amber-955">₦{(order.total || 0).toLocaleString()}</p>
+                                            <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-sm border border-amber-200/50">TRANSFER CHECK</span>
                                         </div>
                                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{order.paymentSenderName || 'No Name Provided'}</p>
                                         <button 
                                             onClick={() => {
                                                 router.push('/admin/orders?orderId=' + order.id)
                                             }}
-                                            className="mt-1 w-full py-2 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-colors"
+                                            className="mt-1 w-full py-2 bg-amber-500 text-white rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-colors"
                                         >
                                             Verify Transfer
                                         </button>
@@ -376,11 +376,11 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                         </div>
 
                         {/* Recent Orders */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col">
+                        <div className="bg-white rounded-sm p-6 border border-slate-200 shadow-sm flex flex-col">
                             <h3 className="text-lg font-bold text-slate-900 mb-4">Recent Orders</h3>
                             <div className="space-y-3">
                                 {(dashboardData.recentOrders || []).map(order => (
-                                    <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                    <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-sm border border-slate-200/40">
                                         <div>
                                             <p className="font-bold text-sm text-slate-900">{order.store?.name || 'Store Order'}</p>
                                             <p className="text-[10px] text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</p>
@@ -393,9 +393,9 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                 )}
                             </div>
                         </div>
-
+ 
                         {/* Send Notification */}
-                        <div className="bg-slate-900 rounded-2xl p-6 text-white flex flex-col">
+                        <div className="bg-slate-950 rounded-sm p-6 text-white border border-slate-800 flex flex-col">
                             <h3 className="text-lg font-bold mb-1 flex items-center gap-2 shrink-0">
                                 <SendIcon size={18} className="text-[#05DF72]" />
                                 Quick Notification
@@ -406,13 +406,13 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                     placeholder="Notification title"
                                     value={notificationForm.title}
                                     onChange={e => setNotificationForm({ ...notificationForm, title: e.target.value })}
-                                    className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-400"
+                                    className="w-full bg-white/5 border border-white/10 rounded-sm px-4 py-3 text-white placeholder:text-slate-400 outline-none focus:border-[#05DF72]/40 transition-colors"
                                 />
                                 <textarea
                                     placeholder="Message..."
                                     value={notificationForm.message}
                                     onChange={e => setNotificationForm({ ...notificationForm, message: e.target.value })}
-                                    className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-400 resize-none"
+                                    className="w-full bg-white/5 border border-white/10 rounded-sm px-4 py-3 text-white placeholder:text-slate-400 resize-none outline-none focus:border-[#05DF72]/40 transition-colors"
                                     rows={2}
                                 />
                                 <Button
@@ -429,15 +429,15 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                 </div>
             )}
 
-            {/* Users Tab */}
+             {/* Users Tab */}
             {activeTab === 'users' && (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100">
+                <div className="bg-white rounded-sm border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-200">
                         <h3 className="text-lg font-bold text-slate-900">All Users</h3>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                            <thead className="bg-slate-50 text-xs uppercase text-slate-550 border-b border-slate-200">
                                 <tr>
                                     <th className="px-6 py-4 text-left font-semibold">User</th>
                                     <th className="px-6 py-4 text-left font-semibold">Role</th>
@@ -448,7 +448,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {users.map(user => (
-                                    <tr key={user.id} className="hover:bg-slate-50">
+                                    <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div>
                                                 <p className="font-bold text-slate-900">{user.name}</p>
@@ -456,10 +456,10 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full ${user.role === 'ADMIN' ? 'bg-purple-50 text-purple-600' :
-                                                user.role === 'SELLER' ? 'bg-blue-50 text-blue-600' :
-                                                    user.role === 'USER' ? 'bg-emerald-50 text-[#05DF72]' :
-                                                        'bg-slate-100 text-slate-600'
+                                            <span className={`text-xs font-bold uppercase px-2 py-1 rounded-sm ${user.role === 'ADMIN' ? 'bg-purple-50 text-purple-650 border border-purple-100' :
+                                                user.role === 'SELLER' ? 'bg-blue-50 text-blue-655 border border-blue-100' :
+                                                    user.role === 'USER' ? 'bg-emerald-50 text-[#05DF72] border border-[#05DF72]/20' :
+                                                        'bg-slate-100 text-slate-600 border border-slate-200'
                                                 }`}>
                                                 {user.role === 'USER' ? 'BUYER' : user.role}
                                             </span>
@@ -476,7 +476,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full ${user.status === 'banned' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
+                                            <span className={`text-xs font-bold uppercase px-2 py-1 rounded-sm border ${user.status === 'banned' ? 'bg-red-50 text-red-650 border-red-100' : 'bg-green-50 text-green-650 border-green-100'
                                                 }`}>
                                                 {user.status || 'active'}
                                             </span>
@@ -485,7 +485,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                             <div className="flex gap-2">
                                                 <button 
                                                     onClick={() => handleViewProfile(user.id)}
-                                                    className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-500"
+                                                    className="p-2 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-sm text-slate-405 hover:text-blue-550 transition-colors"
                                                     title="View profile"
                                                 >
                                                     <EyeIcon size={16} />
@@ -494,14 +494,14 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                                     <>
                                                         <button
                                                             onClick={() => handleBanUser(user.id, user.status || 'active')}
-                                                            className={`p-2 hover:bg-slate-100 rounded-lg ${user.status === 'banned' ? 'text-green-500' : 'text-red-400 hover:text-red-500'
+                                                            className={`p-2 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-sm ${user.status === 'banned' ? 'text-green-500' : 'text-slate-400 hover:text-rose-500'
                                                                 }`}
                                                         >
                                                             <BanIcon size={16} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteUser(user.id, user.name)}
-                                                            className="p-2 hover:bg-slate-100 rounded-lg text-red-500 hover:text-red-600"
+                                                            className="p-2 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-sm text-slate-405 hover:text-rose-600 transition-colors"
                                                             title="Delete user"
                                                         >
                                                             <TrashIcon size={16} />
@@ -516,7 +516,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                         </table>
                     </div>
                     {pagination.users.page < pagination.users.totalPages && (
-                        <div className="p-6 text-center border-t border-slate-100">
+                        <div className="p-6 text-center border-t border-slate-200">
                             <button
                                 onClick={loadMoreUsers}
                                 className="text-sm font-bold text-[#05DF72] hover:underline"
@@ -530,8 +530,8 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
 
             {/* Orders Tab */}
             {activeTab === 'orders' && (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100">
+                <div className="bg-white rounded-sm border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-200">
                         <h3 className="text-lg font-bold text-slate-900">All Orders</h3>
                     </div>
                     <div className="overflow-x-auto">
@@ -565,12 +565,12 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                             <p className="font-semibold text-emerald-600">{currency}{(order.payoutAmount || 0).toLocaleString()}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`text-xs font-bold uppercase px-2 py-1 rounded-full border ${
-                                                order.status === 'ORDER_PLACED' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                                                order.status === 'PAID' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
-                                                order.status === 'COMPLETED' ? 'bg-green-50 text-green-600 border-green-100' :
-                                                order.status === 'PICKED_UP' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                'bg-slate-100 text-slate-600 border-slate-200'
+                                            <span className={`text-xs font-bold uppercase px-2 py-1 rounded-sm border ${
+                                                order.status === 'ORDER_PLACED' ? 'bg-rose-50 text-rose-600 border-rose-200' :
+                                                order.status === 'PAID' ? 'bg-yellow-50 text-yellow-605 border-yellow-200' :
+                                                order.status === 'COMPLETED' ? 'bg-green-50 text-green-600 border-green-200' :
+                                                order.status === 'PICKED_UP' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                                'bg-slate-50 text-slate-600 border-slate-200'
                                             }`}>
                                                 {order.status?.replace('_', ' ')}
                                             </span>
@@ -596,8 +596,8 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
             {/* Payouts Tab */}
             {activeTab === 'payouts' && (
                 <div className="space-y-8">
-                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-amber-800 flex items-center gap-2">
+                    <div className="bg-amber-50 border border-amber-200 rounded-sm p-6">
+                        <h3 className="text-lg font-bold text-amber-805 flex items-center gap-2">
                             <WalletIcon size={20} /> Pending Payouts
                         </h3>
                         <p className="text-3xl font-black text-amber-900 mt-2">
@@ -606,8 +606,8 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                         <p className="text-sm text-amber-700 mt-1">To be released to sellers after collection confirmation</p>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-slate-100">
+                    <div className="bg-white rounded-sm border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-200">
                             <h3 className="text-lg font-bold text-slate-900">Completed Orders (Pending Payout)</h3>
                         </div>
                         <div className="divide-y divide-slate-100">
@@ -617,7 +617,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                         <p className="font-bold text-slate-900">{order.product?.name || 'Battery Order'}</p>
                                         <p className="text-sm text-slate-500 font-bold">Seller: {order.store?.name || 'Seller'}</p>
                                         {order.store?.accountNumber && (
-                                            <div className="mt-1 p-2 bg-slate-50 rounded-lg border border-slate-100 text-[10px]">
+                                            <div className="mt-1 p-2 bg-slate-50 rounded-sm border border-slate-200 text-[10px]">
                                                 <p className="font-black text-slate-400 uppercase tracking-widest">Bank Details</p>
                                                 <p className="text-slate-900 font-bold">{order.store.bankName} | {order.store.accountName}</p>
                                                 <p className="text-slate-900 font-black font-mono mt-0.5">{order.store.accountNumber}</p>
@@ -647,8 +647,8 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                     </div>
 
                     {/* Payout History Section */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <div className="bg-white rounded-sm border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
                             <h3 className="text-lg font-bold text-slate-900">Payout History</h3>
                             <div className="w-2 h-2 bg-[#05DF72] rounded-full animate-pulse"></div>
                         </div>
@@ -716,9 +716,9 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
             {/* Notify Tab */}
             {activeTab === 'notify' && (
                 <div className="max-w-2xl space-y-6">
-                    <div className="bg-slate-900 rounded-2xl p-6 text-white">
+                    <div className="bg-[#0c101b] border border-slate-800 rounded-sm p-6 text-white">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#05DF72]/20 rounded-xl flex items-center justify-center">
+                            <div className="w-10 h-10 bg-[#05DF72]/20 rounded-sm flex items-center justify-center border border-[#05DF72]/20">
                                 <SendIcon className="text-[#05DF72]" size={20} />
                             </div>
                             <div>
@@ -728,7 +728,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                    <div className="bg-white rounded-sm border border-slate-200 shadow-sm p-6">
                         <form onSubmit={handleSendNotification} className="space-y-5">
 
                             {/* Audience */}
@@ -749,9 +749,9 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                                 setUserEmailInput('')
                                                 setSelectedUser(null)
                                             }}
-                                            className={`p-3 rounded-xl border-2 text-left transition-all ${notificationForm.target === opt.value
+                                            className={`p-3 rounded-sm border border-slate-200 text-left transition-all ${notificationForm.target === opt.value
                                                 ? 'border-[#05DF72] bg-[#05DF72]/5'
-                                                : 'border-slate-100 hover:border-slate-200'
+                                                : 'border-slate-200 hover:border-slate-300'
                                                 }`}
                                         >
                                             <p className="font-bold text-sm text-slate-900">{opt.label}</p>
@@ -785,12 +785,12 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                                             setSelectedUser(null)
                                                         }
                                                     }}
-                                                    className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium"
                                                     required={!notificationForm.userId}
                                                 />
                                                 {/* Local matches dropdown suggestions */}
                                                 {userEmailInput.trim() !== '' && !selectedUser && (
-                                                    <div className="absolute z-10 w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                                                    <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-sm shadow-lg max-h-48 overflow-y-auto">
                                                         {users
                                                             .filter(u => u.role !== 'ADMIN' && u.email?.toLowerCase().includes(userEmailInput.toLowerCase()))
                                                             .map(u => (
@@ -808,7 +808,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                                                         <p className="font-bold text-sm text-slate-900">{u.name}</p>
                                                                         <p className="text-xs text-slate-400">{u.email}</p>
                                                                     </div>
-                                                                    <span className="text-[10px] bg-slate-100 px-2 py-1 rounded-md font-bold text-slate-500 uppercase">{u.role}</span>
+                                                                    <span className="text-[10px] bg-slate-100 px-2 py-1 rounded-sm border border-slate-200 font-bold text-slate-500 uppercase">{u.role}</span>
                                                                 </button>
                                                             ))}
                                                         {users.filter(u => u.role !== 'ADMIN' && u.email?.toLowerCase().includes(userEmailInput.toLowerCase())).length === 0 && (
@@ -821,7 +821,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                                 type="button"
                                                 onClick={handleSearchDatabase}
                                                 disabled={searchingEmail}
-                                                className="px-4 py-3 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white disabled:text-slate-400 font-bold text-xs rounded-xl transition-colors shrink-0"
+                                                className="px-4 py-3 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white disabled:text-slate-400 font-bold text-xs rounded-sm transition-colors shrink-0"
                                             >
                                                 {searchingEmail ? 'Searching...' : 'Find User'}
                                             </button>
@@ -830,7 +830,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
 
                                     {/* Display Selected User profile */}
                                     {selectedUser && (
-                                        <div className="p-4 bg-emerald-50/20 border border-[#05DF72]/20 rounded-xl flex items-center justify-between animate-fadeIn">
+                                        <div className="p-4 bg-emerald-50/10 border border-[#05DF72]/20 rounded-sm flex items-center justify-between animate-fadeIn">
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-[#05DF72] mb-1">Target User Details</p>
                                                 <p className="font-bold text-base text-slate-900">{selectedUser.name}</p>
@@ -853,7 +853,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                                     setUserEmailInput('')
                                                     setSelectedUser(null)
                                                 }}
-                                                className="text-xs font-bold text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100/50 px-3 py-1.5 rounded-lg transition-all shrink-0"
+                                                className="text-xs font-bold text-red-500 hover:text-red-600 bg-red-50/40 px-3 py-1.5 rounded-sm transition-all shrink-0 border border-red-200"
                                             >
                                                 Clear Selection
                                             </button>
@@ -868,7 +868,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                 <select
                                     value={notificationForm.type}
                                     onChange={e => setNotificationForm(f => ({ ...f, type: e.target.value }))}
-                                    className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium"
                                 >
                                     <option value="SYSTEM">📢 System Announcement</option>
                                     <option value="PROMO">🎁 Promotion / Offer</option>
@@ -885,7 +885,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                     placeholder="e.g. New Feature Available!"
                                     value={notificationForm.title}
                                     onChange={e => setNotificationForm(f => ({ ...f, title: e.target.value }))}
-                                    className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium font-bold"
                                     maxLength={80}
                                     required
                                 />
@@ -899,7 +899,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                     placeholder="Write your message here..."
                                     value={notificationForm.message}
                                     onChange={e => setNotificationForm(f => ({ ...f, message: e.target.value }))}
-                                    className="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium resize-none"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium resize-none"
                                     rows={4}
                                     maxLength={500}
                                     required
@@ -908,7 +908,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                             </div>
 
                             {/* Email Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-sm">
                                 <div>
                                     <p className="font-bold text-sm text-slate-900">Also send via Email</p>
                                     <p className="text-xs text-slate-400">Sends an email alongside the in-app notification</p>
@@ -916,14 +916,14 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                 <button
                                     type="button"
                                     onClick={() => setNotificationForm(f => ({ ...f, withEmail: !f.withEmail }))}
-                                    className={`relative w-11 h-6 rounded-full transition-colors ${notificationForm.withEmail ? 'bg-[#05DF72]' : 'bg-slate-200'}`}
+                                    className={`relative w-11 h-6 rounded-sm transition-colors ${notificationForm.withEmail ? 'bg-[#05DF72]' : 'bg-slate-250 border border-slate-350'}`}
                                 >
-                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notificationForm.withEmail ? 'translate-x-5' : ''}`} />
+                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-sm shadow transition-transform ${notificationForm.withEmail ? 'translate-x-5' : ''}`} />
                                 </button>
                             </div>
 
                             {/* SMS Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-sm">
                                 <div>
                                     <p className="font-bold text-sm text-slate-900">Also send via SMS</p>
                                     <p className="text-xs text-slate-400">Sends an SMS message alongside the in-app notification</p>
@@ -931,9 +931,9 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                 <button
                                     type="button"
                                     onClick={() => setNotificationForm(f => ({ ...f, withSMS: !f.withSMS }))}
-                                    className={`relative w-11 h-6 rounded-full transition-colors ${notificationForm.withSMS ? 'bg-[#05DF72]' : 'bg-slate-200'}`}
+                                    className={`relative w-11 h-6 rounded-sm transition-colors ${notificationForm.withSMS ? 'bg-[#05DF72]' : 'bg-slate-250 border border-slate-350'}`}
                                 >
-                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notificationForm.withSMS ? 'translate-x-5' : ''}`} />
+                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-sm shadow transition-transform ${notificationForm.withSMS ? 'translate-x-5' : ''}`} />
                                 </button>
                             </div>
 
@@ -959,7 +959,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
             {activeTab === 'diagnostics' && (
                 <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
+                        <div className="w-10 h-10 bg-[#0c101b] border border-slate-800 rounded-sm flex items-center justify-center">
                             <span className="text-lg">🩺</span>
                         </div>
                         <div>
@@ -982,11 +982,11 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                     style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)' }}
                     onClick={(e) => { if (e.target === e.currentTarget) setIsProfileModalOpen(false) }}
                 >
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+                    <div className="bg-white rounded-sm border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
                         {/* Modal Header */}
-                        <div className="px-7 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+                        <div className="px-7 py-5 border-b border-slate-200 flex items-center justify-between shrink-0">
                             <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-[#05DF72]/10 flex items-center justify-center">
+                                <div className="w-9 h-9 rounded-sm bg-[#05DF72]/10 flex items-center justify-center border border-[#05DF72]/20">
                                     <EyeIcon size={18} className="text-[#05DF72]" />
                                 </div>
                                 <div>
@@ -996,7 +996,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                             </div>
                             <button
                                 onClick={() => setIsProfileModalOpen(false)}
-                                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors text-lg font-bold"
+                                className="w-8 h-8 rounded-sm bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors text-lg font-bold"
                             >
                                 ×
                             </button>
@@ -1012,26 +1012,26 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                             ) : selectedUserProfile ? (
                                 <div className="space-y-6">
                                     {/* Avatar + Basic Info */}
-                                    <div className="flex items-center gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <div className="w-16 h-16 rounded-2xl bg-[#05DF72]/10 flex items-center justify-center text-2xl font-black text-[#05DF72] shrink-0">
+                                    <div className="flex items-center gap-5 p-5 bg-slate-50 rounded-sm border border-slate-200">
+                                        <div className="w-16 h-16 rounded-sm bg-[#05DF72]/10 flex items-center justify-center text-2xl font-black text-[#05DF72] shrink-0 border border-[#05DF72]/20">
                                             {selectedUserProfile.name?.charAt(0)?.toUpperCase() || '?'}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="text-xl font-black text-slate-900 truncate">{selectedUserProfile.name}</h4>
                                             <p className="text-sm text-slate-500 truncate">{selectedUserProfile.email}</p>
                                             <div className="flex flex-wrap gap-2 mt-2">
-                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
-                                                    selectedUserProfile.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                                                    selectedUserProfile.role === 'SELLER' ? 'bg-blue-100 text-blue-700' :
-                                                    'bg-slate-100 text-slate-600'
+                                                <span className={`text-[10px] font-black px-3 py-1 rounded-sm border uppercase tracking-widest ${
+                                                    selectedUserProfile.role === 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                                    selectedUserProfile.role === 'SELLER' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                    'bg-slate-50 text-slate-600 border-slate-200'
                                                 }`}>{selectedUserProfile.role}</span>
-                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
-                                                    selectedUserProfile.accountStatus === 'approved' ? 'bg-[#05DF72]/10 text-[#05DF72]' :
-                                                    selectedUserProfile.accountStatus === 'rejected' ? 'bg-red-100 text-red-600' :
-                                                    'bg-amber-100 text-amber-700'
+                                                <span className={`text-[10px] font-black px-3 py-1 rounded-sm border uppercase tracking-widest ${
+                                                    selectedUserProfile.accountStatus === 'approved' ? 'bg-[#05DF72]/10 text-[#05DF72] border-[#05DF72]/20' :
+                                                    selectedUserProfile.accountStatus === 'rejected' ? 'bg-red-50 text-red-600 border-red-200' :
+                                                    'bg-amber-50 text-amber-700 border-amber-250'
                                                 }`}>{selectedUserProfile.accountStatus || 'pending'}</span>
-                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
-                                                    selectedUserProfile.status === 'banned' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
+                                                <span className={`text-[10px] font-black px-3 py-1 rounded-sm border uppercase tracking-widest ${
+                                                    selectedUserProfile.status === 'banned' ? 'bg-red-50 text-red-650 border-red-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                                 }`}>{selectedUserProfile.status || 'active'}</span>
                                             </div>
                                         </div>
@@ -1041,18 +1041,18 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                     <div>
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Contact Details</p>
                                         <div className="grid grid-cols-2 gap-3">
-                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                            <div className="bg-slate-50 rounded-sm p-4 border border-slate-200">
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Phone</p>
                                                 <p className="font-bold text-slate-800">{selectedUserProfile.phone || <span className="text-slate-300 font-medium">Not provided</span>}</p>
                                             </div>
-                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                            <div className="bg-slate-50 rounded-sm p-4 border border-slate-200">
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Email Verified</p>
                                                 <p className={`font-bold ${selectedUserProfile.isEmailVerified ? 'text-[#05DF72]' : 'text-amber-500'}`}>
                                                     {selectedUserProfile.isEmailVerified ? '✓ Verified' : '✗ Unverified'}
                                                 </p>
                                             </div>
                                             {selectedUserProfile.Address && selectedUserProfile.Address.length > 0 && (
-                                                <div className="col-span-2 bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                <div className="col-span-2 bg-slate-50 rounded-sm p-4 border border-slate-200">
                                                     <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Address</p>
                                                     <p className="font-bold text-slate-800">{selectedUserProfile.Address[0]?.street}, {selectedUserProfile.Address[0]?.city}, {selectedUserProfile.Address[0]?.state}</p>
                                                 </div>
@@ -1064,7 +1064,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                     <div>
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Identity Documents</p>
                                         <div className="grid grid-cols-2 gap-3">
-                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                            <div className="bg-slate-50 rounded-sm p-4 border border-slate-200">
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">NIN Number</p>
                                                 {selectedUserProfile.ninDocument ? (
                                                     <p className="text-slate-900 font-bold text-sm tracking-wide break-all">
@@ -1074,7 +1074,7 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                                     <p className="text-slate-300 font-medium text-sm">Not provided</p>
                                                 )}
                                             </div>
-                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                            <div className="bg-slate-50 rounded-sm p-4 border border-slate-200">
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">CAC Document</p>
                                                 {selectedUserProfile.cacDocument ? (
                                                     <a href={selectedUserProfile.cacDocument} target="_blank" rel="noreferrer"
@@ -1092,19 +1092,19 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                                     {selectedUserProfile.store && (
                                         <div>
                                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Store Details</p>
-                                            <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100 space-y-4">
+                                            <div className="bg-blue-50/50 rounded-sm p-5 border border-blue-200 space-y-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                                                        <StoreIcon size={18} className="text-blue-600" />
+                                                    <div className="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center border border-blue-250">
+                                                        <StoreIcon size={18} className="text-blue-650" />
                                                     </div>
                                                     <div>
                                                         <p className="font-black text-blue-900">{selectedUserProfile.store.name}</p>
                                                         <p className="text-xs text-blue-500">@{selectedUserProfile.store.username}</p>
                                                     </div>
-                                                    <span className={`ml-auto text-[10px] font-black px-3 py-1 rounded-full uppercase ${
-                                                        selectedUserProfile.store.status === 'approved' ? 'bg-[#05DF72]/10 text-[#05DF72]' :
-                                                        selectedUserProfile.store.status === 'rejected' ? 'bg-red-100 text-red-600' :
-                                                        'bg-amber-100 text-amber-700'
+                                                    <span className={`ml-auto text-[10px] font-black px-3 py-1 rounded-sm border uppercase ${
+                                                        selectedUserProfile.store.status === 'approved' ? 'bg-[#05DF72]/10 text-[#05DF72] border-[#05DF72]/20' :
+                                                        selectedUserProfile.store.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-200' :
+                                                        'bg-amber-50 text-amber-700 border-amber-250'
                                                     }`}>{selectedUserProfile.store.status}</span>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-3 pt-2 border-t border-blue-100">
@@ -1143,13 +1143,13 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
 
                                     {/* Timestamps */}
                                     <div className="grid grid-cols-2 gap-3">
-                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                        <div className="bg-slate-50 rounded-sm p-4 border border-slate-200">
                                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Joined</p>
                                             <p className="font-bold text-slate-800 text-sm">
                                                 {selectedUserProfile.createdAt ? new Date(selectedUserProfile.createdAt).toLocaleDateString('en-NG', { dateStyle: 'medium' }) : 'N/A'}
                                             </p>
                                         </div>
-                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                        <div className="bg-slate-50 rounded-sm p-4 border border-slate-200">
                                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Verified At</p>
                                             <p className="font-bold text-slate-800 text-sm">
                                                 {selectedUserProfile.verifiedAt ? new Date(selectedUserProfile.verifiedAt).toLocaleDateString('en-NG', { dateStyle: 'medium' }) : 'Not verified'}
@@ -1165,10 +1165,10 @@ export default function AdminDashboardClient({ initialSummary, initialUsers, ini
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="px-7 py-4 border-t border-slate-100 shrink-0">
+                        <div className="px-7 py-4 border-t border-slate-200 shrink-0">
                             <button
                                 onClick={() => setIsProfileModalOpen(false)}
-                                className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
+                                className="w-full py-3 rounded-sm bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold transition-colors"
                             >
                                 Close
                             </button>

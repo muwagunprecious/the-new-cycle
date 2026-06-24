@@ -82,8 +82,8 @@ export default function AdminProductsClient({ initialProducts }) {
                 <p className="text-slate-500 mt-1">Approve or reject battery listings from sellers.</p>
             </div>
 
-            <div className="card bg-white">
-                <div className="p-6 border-b border-slate-100 flex items-center gap-4">
+            <div className="card bg-white rounded-sm border border-slate-200 shadow-sm">
+                <div className="p-6 border-b border-slate-200 flex items-center gap-4">
                     <div className="relative flex-1 max-w-md">
                         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
@@ -91,14 +91,14 @@ export default function AdminProductsClient({ initialProducts }) {
                             placeholder="Search by product name, category or seller..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 transition-all text-sm"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] transition-all text-sm"
                         />
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-slate-50/50 text-slate-400 text-[10px] uppercase font-black tracking-[0.2em]">
+                        <thead className="bg-slate-50/50 text-slate-505 text-[10px] uppercase font-bold tracking-[0.2em] border-b border-slate-200">
                             <tr>
                                 <th className="px-8 py-5">Product Info</th>
                                 <th className="px-8 py-5">Seller</th>
@@ -107,7 +107,7 @@ export default function AdminProductsClient({ initialProducts }) {
                                 <th className="px-8 py-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-200">
                             {loading ? (
                                 <tr>
                                     <td colSpan="5" className="px-8 py-20 text-center">
@@ -128,7 +128,7 @@ export default function AdminProductsClient({ initialProducts }) {
                                     <tr key={product.id} className="group hover:bg-slate-50/30 transition-colors">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 border border-slate-100 group-hover:border-[#05DF72]/20 transition-all overflow-hidden relative">
+                                                <div className="w-14 h-14 rounded-sm bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 border border-slate-200 group-hover:border-[#05DF72]/20 transition-all overflow-hidden relative">
                                                     <img
                                                         src={getImageUrl(product.images?.[0])}
                                                         alt=""
@@ -155,30 +155,30 @@ export default function AdminProductsClient({ initialProducts }) {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className={`status-badge ${product.status === 'approved' ? 'status-completed' : product.status === 'rejected' ? 'status-cancelled' : 'status-pending'}`}>
+                                            <span className={`status-badge rounded-sm px-2.5 py-1 text-xs font-bold border ${product.status === 'approved' ? 'status-completed' : product.status === 'rejected' ? 'status-cancelled' : 'status-pending'}`}>
                                                 {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex items-center justify-end gap-2">
                                                 {product.status === 'pending' && (
-                                                    <button onClick={() => handleApprove(product.id)} className="p-2.5 bg-green-50 text-[#05DF72] rounded-xl hover:bg-[#05DF72] hover:text-white transition-all shadow-sm" title="Approve Product">
+                                                    <button onClick={() => handleApprove(product.id)} className="p-2.5 bg-green-50 text-[#05DF72] rounded-sm hover:bg-[#05DF72] hover:text-white border border-slate-200 transition-all shadow-sm" title="Approve Product">
                                                         <CheckCircleIcon size={18} />
                                                     </button>
                                                 )}
                                                 {product.status === 'pending' && (
-                                                    <button onClick={() => handleReject(product.id)} className="p-2.5 bg-orange-50 text-orange-500 rounded-xl hover:bg-orange-500 hover:text-white transition-all shadow-sm" title="Reject Product">
+                                                    <button onClick={() => handleReject(product.id)} className="p-2.5 bg-orange-50 text-orange-500 rounded-sm hover:bg-orange-500 hover:text-white border border-slate-200 transition-all shadow-sm" title="Reject Product">
                                                         <XCircleIcon size={18} />
                                                     </button>
                                                 )}
                                                 <button
                                                     onClick={() => window.open(`/product/${product.id}?adminPreview=true`, '_blank')}
-                                                    className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-200 hover:text-slate-700 transition-all shadow-sm"
+                                                    className="p-2.5 bg-slate-50 text-slate-400 rounded-sm hover:bg-slate-200 hover:text-slate-700 border border-slate-200 transition-all shadow-sm"
                                                     title="View Preview"
                                                 >
                                                     <ExternalLinkIcon size={18} />
                                                 </button>
-                                                <button onClick={() => handleDelete(product.id)} className="p-2.5 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all shadow-sm" title="Delete">
+                                                <button onClick={() => handleDelete(product.id)} className="p-2.5 bg-rose-50 text-rose-500 rounded-sm hover:bg-rose-500 hover:text-white border border-slate-200 transition-all shadow-sm" title="Delete">
                                                     <Trash2Icon size={18} />
                                                 </button>
                                             </div>

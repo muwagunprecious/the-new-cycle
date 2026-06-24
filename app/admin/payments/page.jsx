@@ -251,24 +251,24 @@ export default function AdminCashoutsPage() {
 
             {/* ── Summary Cards ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-slate-900 rounded-2xl p-5 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-[#05DF72]/10 rounded-full blur-xl" />
+                <div className="bg-slate-900 rounded-sm p-5 text-white relative overflow-hidden border border-slate-700">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-[#05DF72]/10 rounded-sm blur-xl" />
                     <p className="text-[9px] font-black uppercase tracking-widest text-[#05DF72] mb-1">Platform Balance</p>
                     <p className="text-2xl font-black">₦{platformBalance.toLocaleString()}</p>
                     <p className="text-[10px] text-slate-400 mt-1 font-medium">Admin wallet</p>
                 </div>
-                <div className="bg-amber-500 rounded-2xl p-5 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-xl" />
+                <div className="bg-amber-500 rounded-sm p-5 text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-sm blur-xl" />
                     <p className="text-[9px] font-black uppercase tracking-widest text-amber-100 mb-1">Seller Pending</p>
                     <p className="text-2xl font-black">₦{totals.amount.toLocaleString()}</p>
                     <p className="text-[10px] text-amber-100 mt-1 font-medium">Owed to sellers</p>
                 </div>
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                <div className="bg-white border border-slate-200 rounded-sm p-5 shadow-sm">
                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Affiliate Pending</p>
                     <p className="text-2xl font-black text-slate-900">₦{affiliateTotals.amount.toLocaleString()}</p>
                     <p className="text-[10px] text-slate-400 mt-1 font-medium">Owed to partners ({affiliateTotals.count})</p>
                 </div>
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                <div className="bg-white border border-slate-200 rounded-sm p-5 shadow-sm">
                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Pending Orders</p>
                     <p className="text-2xl font-black text-slate-900">{totals.orders}</p>
                     <p className="text-[10px] text-slate-400 mt-1 font-medium">Seller orders waiting</p>
@@ -284,7 +284,7 @@ export default function AdminCashoutsPage() {
                         placeholder="Search store, partner, bank, account..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-amber-400 transition-colors"
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-sm text-sm font-medium outline-none focus:border-amber-400 transition-colors"
                     />
                 </div>
             </div>
@@ -335,10 +335,10 @@ export default function AdminCashoutsPage() {
                             return (
                                 <div
                                     key={store.storeId}
-                                    className={`bg-white rounded-3xl border overflow-hidden transition-all duration-200 ${
+                                    className={`bg-white rounded-sm border overflow-hidden transition-all duration-200 ${
                                         isExpanded
-                                            ? 'border-amber-200 shadow-xl shadow-amber-500/5'
-                                            : 'border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200'
+                                            ? 'border-amber-200 shadow-md'
+                                            : 'border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300'
                                     }`}
                                 >
                                     {/* ── Store Header Row ── */}
@@ -346,7 +346,7 @@ export default function AdminCashoutsPage() {
                                         onClick={() => setExpandedStore(isExpanded ? null : store.storeId)}
                                         className="w-full p-5 flex items-center gap-4 text-left"
                                     >
-                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+                                        <div className={`w-12 h-12 rounded-sm flex items-center justify-center shrink-0 border ${
                                             hasBankDetails ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'
                                         }`}>
                                             <StoreIcon size={20} className={hasBankDetails ? "text-amber-500" : "text-red-400"} />
@@ -378,7 +378,7 @@ export default function AdminCashoutsPage() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                                                 {/* Bank Details */}
-                                                <div className={`rounded-2xl p-5 border ${hasBankDetails ? 'bg-white border-slate-100' : 'bg-red-50 border-red-200'}`}>
+                                                <div className={`rounded-sm p-5 border ${hasBankDetails ? 'bg-white border-slate-200' : 'bg-red-50 border-red-200'}`}>
                                                     <div className="flex items-center gap-2 mb-4">
                                                         <Building2Icon size={15} className={hasBankDetails ? "text-slate-500" : "text-red-500"} />
                                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Bank Account</p>
@@ -413,7 +413,7 @@ export default function AdminCashoutsPage() {
                                                 </div>
 
                                                 {/* Seller Contact */}
-                                                <div className="bg-white rounded-2xl p-5 border border-slate-100 space-y-3">
+                                                <div className="bg-white rounded-sm p-5 border border-slate-200 space-y-3">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <ShieldIcon size={15} className="text-slate-500" />
                                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Seller Contact</p>
@@ -454,7 +454,7 @@ export default function AdminCashoutsPage() {
                                                 <button
                                                     onClick={() => handleReleaseAll(store)}
                                                     disabled={!!releasingId}
-                                                    className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+                                                    className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-2"
                                                 >
                                                     <SendIcon size={16} />
                                                     Release All {store.orderCount} Orders · ₦{store.totalPayout.toLocaleString()}
@@ -462,7 +462,7 @@ export default function AdminCashoutsPage() {
                                             )}
 
                                             {/* Orders Table */}
-                                            <div className="rounded-2xl border border-slate-100 overflow-hidden bg-white">
+                                            <div className="rounded-sm border border-slate-100 overflow-hidden bg-white">
                                                 <div className="px-5 py-3 border-b border-slate-50 bg-slate-50/80">
                                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                                                         Orders Pending Payout ({store.orderCount})
@@ -479,7 +479,7 @@ export default function AdminCashoutsPage() {
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex items-center gap-2 flex-wrap">
                                                                         <span className="text-sm font-black text-slate-900">{order.buyerName}</span>
-                                                                        <span className="text-[9px] font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                                                                        <span className="text-[9px] font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-sm border border-slate-200">
                                                                             #{(order.transactionId || order.id).slice(-10)}
                                                                         </span>
                                                                     </div>
@@ -500,9 +500,9 @@ export default function AdminCashoutsPage() {
                                                                     onClick={() => handleRelease(order.id, store.storeId, order.payoutAmount, store.storeName)}
                                                                     disabled={!!releasingId || !hasBankDetails}
                                                                     title={!hasBankDetails ? "No bank details on file" : "Release payout"}
-                                                                    className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all shrink-0 ${
+                                                                    className={`flex items-center gap-1.5 px-4 py-2.5 rounded-sm font-black text-[11px] uppercase tracking-widest transition-all shrink-0 ${
                                                                         hasBankDetails
-                                                                            ? 'bg-[#05DF72] hover:bg-[#04c764] text-slate-900 shadow-md shadow-emerald-500/20 disabled:opacity-50'
+                                                                            ? 'bg-[#05DF72] hover:bg-[#04c764] text-slate-900 shadow-sm disabled:opacity-50'
                                                                             : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                                                                     }`}
                                                                 >
@@ -547,7 +547,7 @@ export default function AdminCashoutsPage() {
                             return (
                                 <div
                                     key={payout.id}
-                                    className="bg-white rounded-3xl border border-slate-100 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-all"
+                                    className="bg-white rounded-sm border border-slate-200 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-all"
                                 >
                                     <div className="flex-1 min-w-0 space-y-2">
                                         <div className="flex items-center gap-2 flex-wrap">
@@ -559,7 +559,7 @@ export default function AdminCashoutsPage() {
                                         <p className="text-xs text-slate-500 font-medium">
                                             Phone: {aff.phone} · Email: {aff.email}
                                         </p>
-                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                        <div className="bg-slate-50 rounded-sm p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                                             <div>
                                                 <p className="text-[9px] font-black uppercase text-slate-400 mb-0.5">Bank Information</p>
                                                 <p className="font-bold text-slate-900">{payout.bankName}</p>
@@ -576,14 +576,14 @@ export default function AdminCashoutsPage() {
                                         <button
                                             onClick={() => handleReleaseAffiliate(payout.id, payout.amount, aff.name)}
                                             disabled={!!releasingId}
-                                            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#05DF72] hover:bg-[#04c764] text-slate-900 font-black text-[11px] uppercase tracking-widest transition-all disabled:opacity-50 shadow-md shadow-emerald-500/25"
+                                            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-sm bg-[#05DF72] hover:bg-[#04c764] text-slate-900 font-black text-[11px] uppercase tracking-widest transition-all disabled:opacity-50 shadow-sm"
                                         >
                                             {isReleasing ? <><Spinner size={12} /> Releasing...</> : <><CheckCircleIcon size={12} /> Approve & Pay</>}
                                         </button>
                                         <button
                                             onClick={() => { setRejectAffiliateId(payout.id); setRejectReason('') }}
                                             disabled={!!releasingId}
-                                            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 font-black text-[11px] uppercase tracking-widest transition-all disabled:opacity-50 bg-white"
+                                            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-sm border border-red-200 text-red-600 hover:bg-red-50 font-black text-[11px] uppercase tracking-widest transition-all disabled:opacity-50 bg-white"
                                         >
                                             <XCircleIcon size={12} /> Reject
                                         </button>
@@ -598,8 +598,8 @@ export default function AdminCashoutsPage() {
             {/* Rejection Modal */}
             {rejectAffiliateId && (
                 <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl border border-slate-150 p-6 w-full max-w-md shadow-2xl relative space-y-4 text-slate-800">
-                        <button onClick={() => setRejectAffiliateId(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-650">
+                    <div className="bg-white rounded-sm border border-slate-200 p-6 w-full max-w-md shadow-xl relative space-y-4 text-slate-800">
+                        <button onClick={() => setRejectAffiliateId(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
                             <XCircleIcon size={20} />
                         </button>
                         <h3 className="text-lg font-black text-slate-900 uppercase tracking-wide">Reject Payout Request</h3>
@@ -609,13 +609,13 @@ export default function AdminCashoutsPage() {
                             placeholder="e.g. Account name mismatch, incorrect NUBAN, etc."
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-xl text-xs outline-none focus:border-red-400 resize-none font-medium"
+                            className="w-full p-3 border border-slate-200 rounded-sm text-xs outline-none focus:border-red-400 resize-none font-medium"
                         />
                         <div className="flex gap-2 pt-2">
-                            <button onClick={() => setRejectAffiliateId(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-black uppercase tracking-wider">
+                            <button onClick={() => setRejectAffiliateId(null)} className="flex-1 py-2.5 rounded-sm border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-black uppercase tracking-wider">
                                 Cancel
                             </button>
-                            <button onClick={handleRejectAffiliate} disabled={!rejectReason.trim()} className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-black uppercase tracking-wider">
+                            <button onClick={handleRejectAffiliate} disabled={!rejectReason.trim()} className="flex-1 py-2.5 rounded-sm bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-black uppercase tracking-wider">
                                 Confirm Rejection
                             </button>
                         </div>
@@ -635,7 +635,7 @@ export default function AdminCashoutsPage() {
                 </button>
 
                 {showHistory && (
-                    <div className="mt-4 bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm">
+                    <div className="mt-4 bg-white rounded-sm border border-slate-200 overflow-hidden shadow-sm">
                         <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
                             <h2 className="text-sm font-black text-slate-900">Released Payouts</h2>
                             {historyLoading && <Spinner size={14} className="text-slate-400" />}
@@ -648,7 +648,7 @@ export default function AdminCashoutsPage() {
                             <div className="divide-y divide-slate-50">
                                 {history.map(order => (
                                     <div key={order.id} className="px-6 py-4 flex items-center gap-4">
-                                        <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+                                        <div className="w-9 h-9 rounded-sm bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100">
                                             <CheckCircleIcon size={16} className="text-emerald-500" />
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -661,7 +661,7 @@ export default function AdminCashoutsPage() {
                                                 {order.updatedAt ? new Date(order.updatedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : ''}
                                             </p>
                                         </div>
-                                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[9px] font-black uppercase tracking-wider border border-emerald-100 shrink-0">
+                                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-sm text-[9px] font-black uppercase tracking-wider border border-emerald-100 shrink-0">
                                             Released
                                         </span>
                                     </div>

@@ -149,9 +149,10 @@ export default function SellerSettings() {
                 <p className="text-slate-500 mt-1">Manage your payout information and preferences.</p>
             </div>
 
-            <div className="card bg-white p-8">
-                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
-                    <div className="w-12 h-12 bg-[#05DF72]/10 rounded-2xl flex items-center justify-center text-[#05DF72]">
+            {/* Payout Bank Details Card */}
+            <div className="bg-white border border-slate-200 rounded-sm p-8 shadow-sm">
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-200">
+                    <div className="w-12 h-12 bg-[#05DF72]/10 border border-[#05DF72]/20 rounded-sm flex items-center justify-center text-[#05DF72]">
                         <CreditCardIcon size={24} />
                     </div>
                     <div>
@@ -169,7 +170,7 @@ export default function SellerSettings() {
                                 value={formData.bankName}
                                 onChange={onBankInputChange}
                                 required
-                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
                             >
                                 <option value="">Select Bank</option>
                                 {Object.keys(banks).map(bankName => (
@@ -181,92 +182,96 @@ export default function SellerSettings() {
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Number *</label>
                             <input
+                                name="accountNumber"
                                 value={formData.accountNumber}
                                 onChange={onBankInputChange}
                                 placeholder="10-digit account number"
                                 maxLength={10}
                                 required
-                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm font-bold tracking-wider"
                             />
                         </div>
 
                         <div className="space-y-2 md:col-span-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Name *</label>
                             <input
+                                name="accountName"
                                 value={formData.accountName}
                                 onChange={onBankInputChange}
                                 placeholder="e.g. John Doe Enterprises"
                                 required
-                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
                             />
                         </div>
                     </div>
 
                     <div className="pt-4 flex justify-end">
-                        <button type="submit" className="btn-primary flex items-center gap-2">
+                        <button type="submit" className="px-6 py-3 bg-[#05DF72] hover:bg-[#04c764] text-slate-950 font-bold rounded-sm text-sm transition-all flex items-center gap-2 shadow-sm">
                             <SaveIcon size={18} />
                             Save Bank Details
                         </button>
                     </div>
                 </form>
-                <div className="card bg-white p-8">
-                    <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
-                        <div className="w-12 h-12 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-500">
-                            <LockIcon size={24} />
+            </div>
+
+            {/* Security Settings Card */}
+            <div className="bg-white border border-slate-200 rounded-sm p-8 shadow-sm">
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-200">
+                    <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/20 rounded-sm flex items-center justify-center text-rose-500">
+                        <LockIcon size={24} />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-900">Security Settings</h2>
+                        <p className="text-sm text-slate-500">Update your account password to stay secure.</p>
+                    </div>
+                </div>
+
+                <form onSubmit={handlePasswordChange} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Password *</label>
+                            <input
+                                type="password"
+                                value={passwordData.currentPassword}
+                                onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                                placeholder="Enter current password"
+                                required
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 font-medium text-sm"
+                            />
                         </div>
-                        <div>
-                            <h2 className="text-lg font-bold text-slate-900">Security Settings</h2>
-                            <p className="text-sm text-slate-500">Update your account password to stay secure.</p>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">New Password *</label>
+                            <input
+                                type="password"
+                                value={passwordData.newPassword}
+                                onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                placeholder="Min. 6 characters"
+                                required
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Confirm New Password *</label>
+                            <input
+                                type="password"
+                                value={passwordData.confirmPassword}
+                                onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                placeholder="Repeat new password"
+                                required
+                                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20 font-medium text-sm"
+                            />
                         </div>
                     </div>
 
-                    <form onSubmit={handlePasswordChange} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2 md:col-span-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Password *</label>
-                                <input
-                                    type="password"
-                                    value={passwordData.currentPassword}
-                                    onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                                    placeholder="Enter current password"
-                                    required
-                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 font-medium text-sm"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">New Password *</label>
-                                <input
-                                    type="password"
-                                    value={passwordData.newPassword}
-                                    onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                                    placeholder="Min. 6 characters"
-                                    required
-                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Confirm New Password *</label>
-                                <input
-                                    type="password"
-                                    value={passwordData.confirmPassword}
-                                    onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                                    placeholder="Repeat new password"
-                                    required
-                                    className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#05DF72]/20 font-medium text-sm"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="pt-4 flex justify-end">
-                            <button type="submit" className="px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 transition-all shadow-xl shadow-slate-900/10 flex items-center gap-2">
-                                <SaveIcon size={18} />
-                                Update Password
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <div className="pt-4 flex justify-end">
+                        <button type="submit" className="px-6 py-3 bg-slate-900 text-white border border-transparent rounded-sm text-xs font-bold uppercase tracking-wider hover:bg-slate-800 transition-all shadow-sm flex items-center gap-2">
+                            <SaveIcon size={18} />
+                            Update Password
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     )

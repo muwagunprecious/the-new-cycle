@@ -79,8 +79,8 @@ function ScheduleContent() {
                     <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Confirmed Pickups</h2>
                     <div className="grid gap-6">
                         {scheduledOrders.map(order => (
-                            <div key={order.id} className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 flex flex-col md:flex-row gap-8 items-center">
-                                <div className="w-20 h-20 bg-slate-900 text-white rounded-3xl flex flex-col items-center justify-center shrink-0 shadow-lg">
+                            <div key={order.id} className="bg-white rounded-sm p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row gap-8 items-center">
+                                <div className="w-20 h-20 bg-[#0c101b] border border-slate-800 text-white rounded-sm flex flex-col items-center justify-center shrink-0">
                                     <span className="text-[10px] font-black uppercase opacity-60">
                                         {new Date(order.collectionDate).toLocaleDateString('en-US', { month: 'short' })}
                                     </span>
@@ -108,13 +108,13 @@ function ScheduleContent() {
                                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                                     <button 
                                         onClick={() => router.push(`/buyer?orderId=${order.id}`)}
-                                        className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                                        className="px-8 py-4 bg-slate-900 text-white rounded-sm font-black uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
                                     >
                                         <CalendarIcon size={14} /> Reschedule
                                     </button>
                                     <button 
                                         onClick={() => router.push('/buyer')}
-                                        className="px-8 py-4 bg-[#05DF72] text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-all shadow-xl shadow-[#05DF72]/20 flex items-center justify-center gap-2"
+                                        className="px-8 py-4 bg-[#05DF72] text-white rounded-sm font-black uppercase text-[10px] tracking-widest hover:bg-[#04c764] transition-all flex items-center justify-center gap-2"
                                     >
                                         <CheckCircleIcon size={14} /> View Details
                                     </button>
@@ -132,14 +132,14 @@ function ScheduleContent() {
                         />
                     </div>
 
-                    <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 space-y-8 sticky top-8 shadow-2xl">
+                    <div className="bg-[#0c101b] border border-slate-800 text-white rounded-sm p-8 space-y-8 sticky top-8 shadow-sm">
                         <div>
                             <h3 className="text-lg font-black mb-1">Schedule Pickup</h3>
                             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Select a slot to continue</p>
                         </div>
 
                         {selectedSlot && (
-                            <div className="p-6 rounded-3xl bg-[#05DF72]/10 border border-[#05DF72] text-[#05DF72]">
+                            <div className="p-6 rounded-sm bg-[#05DF72]/10 border border-[#05DF72] text-[#05DF72]">
                                 <p className="text-[10px] font-black uppercase mb-1">Selected Date</p>
                                 <p className="text-xl font-black text-white">
                                     {new Date(selectedSlot.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -151,7 +151,7 @@ function ScheduleContent() {
                         <button
                             onClick={handleConfirm}
                             disabled={!selectedSlot || isSubmitting}
-                            className="w-full py-5 bg-[#05DF72] disabled:bg-slate-800 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-[#05DF72]/20 transition-all"
+                            className="w-full py-5 bg-[#05DF72] disabled:bg-slate-800 text-white rounded-sm font-black uppercase tracking-widest text-[10px] transition-all"
                         >
                             {isSubmitting ? 'Confirming...' : 'Confirm Appointment'}
                         </button>
@@ -195,7 +195,7 @@ function SmartLoading() {
             {slowConnection && (
                 <button 
                     onClick={() => window.location.reload()} 
-                    className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl"
+                    className="px-6 py-3 bg-slate-900 text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md"
                 >
                     Retry Loading
                 </button>

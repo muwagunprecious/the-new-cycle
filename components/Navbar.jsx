@@ -87,18 +87,18 @@ const Navbar = () => {
                     </Link>
 
                     {/* Center Navigation — Pill Container (like Circunomics) */}
-                    <div className={`hidden lg:flex items-center gap-1 px-2 py-1.5 rounded-full border transition-all duration-300 ${
+                    <div className={`hidden lg:flex items-center gap-1 px-1.5 py-1 rounded-sm border transition-all duration-300 ${
                         isDark 
-                            ? 'bg-white/[0.08] backdrop-blur-md border-white/[0.12]' 
-                            : 'bg-white/90 backdrop-blur-xl border-black/[0.06] shadow-lg'
+                            ? 'bg-[#0c101b]/80 backdrop-blur-md border-slate-800/80' 
+                            : 'bg-white/90 backdrop-blur-xl border-slate-200 shadow-sm'
                     }`}>
-                        <Link href="/shop" prefetch={true} className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 ${
-                            isDark ? 'text-white/80 hover:bg-white/10 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
+                        <Link href="/shop" prefetch={true} className={`px-4 py-2 rounded-sm text-[12px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                            isDark ? 'text-slate-300 hover:bg-slate-800/40 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                         }`}>
                             Market place
                         </Link>
-                        <Link href="/price-check" prefetch={true} className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 ${
-                            isDark ? 'text-white/80 hover:bg-white/10 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
+                        <Link href="/price-check" prefetch={true} className={`px-4 py-2 rounded-sm text-[12px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                            isDark ? 'text-slate-300 hover:bg-slate-800/40 hover:text-white' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                         }`}>
                             Price check
                         </Link>
@@ -107,12 +107,12 @@ const Navbar = () => {
                     {/* Right Actions */}
                     <div className="flex items-center gap-3 shrink-0">
                         {/* Cart */}
-                        <button onClick={() => handleNavigation('/cart')} className={`relative p-2.5 rounded-full transition-all hidden sm:flex ${
-                            isDark ? 'text-white/70 hover:bg-white/10' : 'text-slate-500 hover:bg-slate-50'
+                        <button onClick={() => handleNavigation('/cart')} className={`relative p-2.5 rounded-sm transition-all hidden sm:flex ${
+                            isDark ? 'text-slate-400 hover:bg-slate-800/40 hover:text-white' : 'text-slate-500 hover:bg-slate-50'
                         }`}>
                             <ShoppingCart size={18} />
                             {cartCount > 0 && (
-                                <span className="absolute top-0 right-0 text-[8px] text-white bg-[#00D166] size-4 rounded-full flex items-center justify-center font-black">
+                                <span className="absolute top-0 right-0 text-[8px] text-slate-950 bg-[#05DF72] size-4 rounded-full flex items-center justify-center font-black">
                                     {cartCount}
                                 </span>
                             )}
@@ -121,7 +121,7 @@ const Navbar = () => {
                         {!isLoggedIn ? (
                             <button 
                                 onClick={() => handleNavigation('/signup')} 
-                                className="hidden sm:flex items-center gap-2 bg-[#00D166] text-white px-7 py-3 rounded-full text-[13px] font-semibold hover:bg-[#00A350] transition-all duration-300 hover:shadow-lg hover:shadow-[#00D166]/25"
+                                className="hidden sm:flex items-center gap-2 bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 px-5 py-2.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
                             >
                                 Enter the Platform
                             </button>
@@ -129,15 +129,15 @@ const Navbar = () => {
                             <div className="hidden sm:flex items-center gap-2">
                                 <button 
                                     onClick={() => handleNavigation(getDashboardLink())} 
-                                    className="flex items-center gap-2 bg-[#00D166] text-white px-7 py-3 rounded-full text-[13px] font-semibold hover:bg-[#00A350] transition-all duration-300 hover:shadow-lg hover:shadow-[#00D166]/25"
+                                    className="flex items-center gap-2 bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 px-5 py-2.5 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
                                 >
-                                    <LayoutDashboardIcon size={15} /> Dashboard
+                                    <LayoutDashboardIcon size={14} /> Dashboard
                                 </button>
                                 <button 
                                     onClick={handleLogout} 
-                                    className={`p-3 rounded-full transition-all duration-300 ${
+                                    className={`p-2.5 rounded-sm transition-all duration-300 ${
                                         isDark 
-                                            ? 'text-white/50 hover:bg-white/10 hover:text-rose-400' 
+                                            ? 'text-slate-400 hover:bg-slate-850 hover:text-rose-400' 
                                             : 'text-slate-400 hover:bg-rose-50 hover:text-rose-500'
                                     }`}
                                 >
@@ -149,8 +149,8 @@ const Navbar = () => {
                         {/* Mobile Menu Toggle */}
                         <button 
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className={`p-3 rounded-full lg:hidden transition-all ${
-                                isDark ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-600'
+                            className={`p-2.5 rounded-sm lg:hidden transition-all ${
+                                isDark ? 'bg-slate-800 text-white' : 'bg-slate-50 text-slate-600'
                             }`}
                         >
                             {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -160,30 +160,30 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Menu — Dark Fullscreen Overlay */}
-            <div className={`fixed inset-0 bg-black z-[90] lg:hidden transition-all duration-500 ease-in-out pt-28 px-6 ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}`}>
+            <div className={`fixed inset-0 bg-[#080b11] z-[90] lg:hidden transition-all duration-500 ease-in-out pt-28 px-6 ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}`}>
                 <div className="flex flex-col gap-2">
-                    <Link href="/shop" prefetch={true} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-white/[0.06] text-xl font-bold text-white">
-                        Market place <ChevronRight size={20} className="text-[#00D166]" />
+                    <Link href="/shop" prefetch={true} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-slate-800 text-base font-semibold uppercase tracking-wider text-slate-200">
+                        Market place <ChevronRight size={18} className="text-[#05DF72]" />
                     </Link>
-                    <Link href="/price-check" prefetch={true} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-white/[0.06] text-xl font-bold text-white">
-                        Price check <ChevronRight size={20} className="text-[#00D166]" />
+                    <Link href="/price-check" prefetch={true} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between py-5 border-b border-slate-800 text-base font-semibold uppercase tracking-wider text-slate-200">
+                        Price check <ChevronRight size={18} className="text-[#05DF72]" />
                     </Link>
                     
                     <div className="mt-10 flex flex-col gap-4">
                         {!isLoggedIn ? (
                             <>
-                                <button onClick={() => handleNavigation('/login')} className="w-full py-4 rounded-full border border-white/10 text-white font-semibold hover:bg-white/5 transition-all">Sign In</button>
-                                <button onClick={() => handleNavigation('/signup')} className="w-full py-4 rounded-full bg-[#00D166] text-white font-semibold hover:bg-[#00A350] transition-all">Enter the Platform</button>
+                                <button onClick={() => handleNavigation('/login')} className="w-full py-3.5 rounded-sm border border-slate-800 text-slate-350 text-xs font-bold uppercase tracking-wider hover:bg-white/5 transition-all">Sign In</button>
+                                <button onClick={() => handleNavigation('/signup')} className="w-full py-3.5 rounded-sm bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 text-xs font-bold uppercase tracking-wider transition-all">Enter the Platform</button>
                             </>
                         ) : (
                             <>
-                                <button onClick={() => handleNavigation(getDashboardLink())} className="w-full py-4 rounded-full bg-[#00D166] text-white font-semibold hover:bg-[#00A350] transition-all">Dashboard</button>
-                                <button onClick={handleLogout} className="w-full py-4 rounded-full border border-white/10 text-rose-400 font-semibold hover:bg-white/5 transition-all">Sign Out</button>
+                                <button onClick={() => handleNavigation(getDashboardLink())} className="w-full py-3.5 rounded-sm bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 text-xs font-bold uppercase tracking-wider transition-all">Dashboard</button>
+                                <button onClick={handleLogout} className="w-full py-3.5 rounded-sm border border-slate-800 text-rose-400 text-xs font-bold uppercase tracking-wider hover:bg-white/5 transition-all">Sign Out</button>
                             </>
                         )}
                         
-                        <button onClick={() => setIsMenuOpen(false)} className="w-full py-4 mt-2 rounded-full border border-white/20 text-white font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-                            <X size={18} /> Cancel
+                        <button onClick={() => setIsMenuOpen(false)} className="w-full py-3.5 mt-2 rounded-sm border border-slate-800 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-white/5 transition-all flex items-center justify-center gap-2">
+                            <X size={16} /> Cancel
                         </button>
                     </div>
                 </div>

@@ -151,8 +151,8 @@ export default function ManualVerificationPage() {
 
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-slate-50 rounded-xl text-slate-600">
+        <div className="bg-white rounded-sm border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-slate-50 rounded-sm text-slate-600 border border-slate-200">
             <CreditCardIcon size={24} />
           </div>
           <div>
@@ -161,8 +161,8 @@ export default function ManualVerificationPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-amber-50 rounded-xl text-amber-600">
+        <div className="bg-white rounded-sm border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-amber-50 rounded-sm text-amber-600 border border-amber-100">
             <AlertCircleIcon size={24} />
           </div>
           <div>
@@ -171,8 +171,8 @@ export default function ManualVerificationPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-green-50 rounded-xl text-green-600">
+        <div className="bg-white rounded-sm border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-green-50 rounded-sm text-green-600 border border-green-100">
             <CheckCircleIcon size={24} />
           </div>
           <div>
@@ -181,8 +181,8 @@ export default function ManualVerificationPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-rose-50 rounded-xl text-rose-600">
+        <div className="bg-white rounded-sm border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-rose-50 rounded-sm text-rose-600 border border-rose-100">
             <XCircleIcon size={24} />
           </div>
           <div>
@@ -193,18 +193,18 @@ export default function ManualVerificationPage() {
       </div>
 
       {/* Dynamic Content Layout */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-sm border border-slate-200 shadow-sm overflow-hidden">
         {/* Controls Bar */}
-        <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="p-5 border-b border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between">
           {/* Tab Segmentation */}
-          <div className="flex bg-slate-50 p-1.5 rounded-xl border border-slate-100 shrink-0">
+          <div className="flex bg-slate-50 p-1.5 rounded-sm border border-slate-200 shrink-0">
             {["all", "pending", "approved", "rejected"].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-sm transition-all ${
                   activeTab === tab 
-                    ? "bg-white text-slate-900 shadow-sm" 
+                    ? "bg-white text-slate-900 shadow-sm border border-slate-200" 
                     : "text-slate-400 hover:text-slate-600"
                 }`}
               >
@@ -221,7 +221,7 @@ export default function ManualVerificationPage() {
               placeholder="Search by store, name, bank, or account number..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:bg-white focus:border-[#05DF72] focus:ring-2 focus:ring-[#05DF72]/10 transition-all text-xs font-medium"
+              className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-sm outline-none focus:bg-white focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72] transition-all text-xs font-medium"
             />
           </div>
         </div>
@@ -272,7 +272,7 @@ export default function ManualVerificationPage() {
                     {/* Store Name & Info */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                        <div className="w-9 h-9 rounded-sm bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 border border-slate-200">
                           <StoreIcon size={18} />
                         </div>
                         <div className="flex flex-col">
@@ -310,7 +310,7 @@ export default function ManualVerificationPage() {
 
                     {/* Status Badge */}
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-sm ${
                         record.status === "approved" 
                           ? "bg-green-50 text-green-600 border border-green-100" 
                           : record.status === "rejected" 
@@ -330,19 +330,19 @@ export default function ManualVerificationPage() {
                               onClick={() => handleTestResolution(record)}
                               disabled={testingId === record.id}
                               title="Query live verify-bank service to see if downtime has resolved"
-                              className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-blue-600 transition-colors disabled:opacity-50 shrink-0"
+                              className="p-2 hover:bg-slate-100 rounded-sm text-slate-500 hover:text-blue-600 transition-colors disabled:opacity-50 shrink-0"
                             >
                               <RefreshCwIcon size={16} className={testingId === record.id ? "animate-spin" : ""} />
                             </button>
                             <button
                               onClick={() => handleUpdateStatus(record.id, "approved")}
-                              className="px-3 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shrink-0"
+                              className="px-3 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors shrink-0"
                             >
                               Approve
                             </button>
                             <button
                               onClick={() => handleUpdateStatus(record.id, "rejected")}
-                              className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shrink-0"
+                              className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors shrink-0"
                             >
                               Reject
                             </button>

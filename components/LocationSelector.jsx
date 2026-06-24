@@ -25,43 +25,43 @@ const LocationSelector = ({ selectedState, selectedLga, onStateChange, onLgaChan
   }, [selectedState, onStateChange])
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full animate-in fade-in slide-in-from-bottom-4 duration-550">
       {/* State Selector (Locked to Lagos) */}
-      <div className="space-y-2">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
+      <div className="space-y-1">
+        <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">
           State
         </label>
         <div className="relative group">
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" size={18} />
+          <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
           <select
             required
-            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-xl focus:shadow-emerald-500/5 font-bold text-slate-950 text-lg appearance-none cursor-pointer"
+            className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-10 outline-none transition-all text-white text-xs appearance-none cursor-pointer"
             value={selectedState || 'Lagos'}
             onChange={(e) => onStateChange(e.target.value)}
           >
-            {states.map(s => <option key={s} value={s}>{s}</option>)}
+            {states.map(s => <option key={s} value={s} className="bg-[#111625] text-white">{s}</option>)}
           </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={13} />
         </div>
       </div>
 
       {/* LGA Selector */}
-      <div className="space-y-2">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
+      <div className="space-y-1">
+        <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">
           Local Government Area
         </label>
         <div className="relative group">
-          <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${selectedLga ? 'text-emerald-500' : 'text-slate-400'}`} size={18} />
+          <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
           <select
             required
-            className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-xl focus:shadow-emerald-500/5 font-bold text-slate-950 text-lg appearance-none cursor-pointer"
+            className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-10 outline-none transition-all text-white text-xs appearance-none cursor-pointer"
             value={selectedLga}
             onChange={(e) => onLgaChange(e.target.value)}
           >
-            <option value="" disabled>-- Select LGA --</option>
-            {lgas.map(l => <option key={l} value={l}>{l}</option>)}
+            <option value="" disabled className="bg-[#111625] text-slate-500">-- Select LGA --</option>
+            {lgas.map(l => <option key={l} value={l} className="bg-[#111625] text-white">{l}</option>)}
           </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={13} />
         </div>
       </div>
     </div>

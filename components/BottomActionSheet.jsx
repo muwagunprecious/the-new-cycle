@@ -22,10 +22,10 @@ export default function BottomActionSheet({ isOpen, onClose, title, subtitle, ch
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed bottom-0 left-0 right-0 z-[101] bg-white rounded-t-[2.5rem] shadow-2xl border-t border-slate-100 p-8 md:hidden"
+                        className="fixed bottom-0 left-0 right-0 z-[101] bg-white rounded-t-sm shadow-2xl border-t border-slate-200 p-8 md:hidden"
                     >
                         {/* Pull Bar */}
-                        <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6" />
+                        <div className="w-12 h-1.5 bg-slate-200 rounded-sm mx-auto mb-6" />
 
                         <div className="flex items-center justify-between mb-6 shrink-0">
                             <div>
@@ -34,7 +34,7 @@ export default function BottomActionSheet({ isOpen, onClose, title, subtitle, ch
                             </div>
                             <button
                                 onClick={onClose}
-                                className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"
+                                className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"
                             >
                                 <X size={20} />
                             </button>
@@ -52,7 +52,7 @@ export default function BottomActionSheet({ isOpen, onClose, title, subtitle, ch
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="hidden md:flex fixed inset-0 z-[100] items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
                     >
-                        <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 p-8">
+                        <div className="bg-white rounded-sm w-full max-w-lg overflow-hidden shadow-2xl border border-slate-200 p-8">
                              <div className="flex items-center justify-between mb-8">
                                 <div>
                                     <h3 className="text-2xl font-black text-slate-900 leading-none">{title}</h3>
@@ -60,7 +60,7 @@ export default function BottomActionSheet({ isOpen, onClose, title, subtitle, ch
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"
+                                    className="w-12 h-12 rounded-sm bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"
                                 >
                                     <X size={24} />
                                 </button>

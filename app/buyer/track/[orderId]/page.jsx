@@ -86,18 +86,18 @@ export default function OrderTracking() {
                     <ArrowLeftIcon size={16} /> Back to Dashboard
                 </Link>
 
-                <div className="card !p-0 overflow-hidden mb-8">
-                    <div className="bg-slate-900 p-10 text-white relative">
+                <div className="bg-white border border-slate-200 rounded-sm overflow-hidden mb-8 shadow-sm">
+                    <div className="bg-[#0c101b] border-b border-slate-800 p-8 text-white relative">
                         <div className="relative z-10">
-                            <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block ${isPickup ? 'bg-blue-500 text-white' : 'bg-[#05DF72] text-slate-900'}`}>
+                            <span className={`px-4 py-1 rounded-sm text-[10px] font-black uppercase tracking-widest mb-4 inline-block ${isPickup ? 'bg-blue-500 text-white' : 'bg-[#05DF72] text-slate-950 font-bold'}`}>
                                 {isPickup ? 'LinkUp Marketplace' : 'GoCycle Delivery'}
                             </span>
                             <h1 className="text-4xl font-black mb-2">Order {orderData.id}</h1>
                             <p className="text-slate-400 font-medium">Placed on {orderData.date} • {orderData.deliveryType}</p>
 
                             {isPickup && orderData.collectionDate && (
-                                <div className="mt-6 flex items-start gap-3 bg-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/10">
-                                    <MapPinIcon className="text-[#05DF72] shrink-0" />
+                                <div className="mt-6 flex items-start gap-3 bg-white/5 p-4 rounded-sm border border-white/10">
+                                    <MapPinIcon className="text-[#05DF72] shrink-0" size={18} />
                                     <div>
                                         <p className="font-bold text-sm">Collection Details</p>
                                         <p className="text-xs text-slate-300 mt-1">Scheduled for: {new Date(orderData.collectionDate).toLocaleString()}</p>
@@ -106,18 +106,17 @@ export default function OrderTracking() {
                                 </div>
                             )}
                         </div>
-                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 bg-[#05DF72]/10 rounded-full blur-[80px]"></div>
                     </div>
 
-                    <div className="p-10">
+                    <div className="p-8">
                         <div className="flex flex-col gap-10">
                             {steps.map((step, index) => (
                                 <div key={index} className="flex gap-6 items-start relative">
                                     {index !== steps.length - 1 && (
-                                        <div className={`absolute left-[23px] top-10 w-0.5 h-16 ${index < currentStep ? 'bg-[#05DF72]' : 'bg-slate-100'}`}></div>
+                                        <div className={`absolute left-[23px] top-10 w-0.5 h-16 ${index < currentStep ? 'bg-[#05DF72]' : 'bg-slate-200'}`}></div>
                                     )}
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-500 ${index <= currentStep ? 'bg-[#05DF72] text-white shadow-lg shadow-[#05DF72]/20' : 'bg-slate-100 text-slate-300'}`}>
-                                        <step.icon size={24} />
+                                    <div className={`w-12 h-12 rounded-sm border flex items-center justify-center shrink-0 transition-all duration-500 ${index <= currentStep ? 'bg-[#05DF72] border-[#05DF72] text-slate-950 font-bold shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+                                        <step.icon size={20} />
                                     </div>
                                     <div className="pt-2">
                                         <h3 className={`font-bold transition-colors ${index <= currentStep ? 'text-slate-900' : 'text-slate-300'}`}>{step.name}</h3>
@@ -131,7 +130,7 @@ export default function OrderTracking() {
                     </div>
                 </div>
 
-                <div className="card p-10 bg-slate-900 text-white border-none mb-8 relative overflow-hidden">
+                <div className="bg-[#0c101b] border border-slate-800 p-8 text-white mb-8 relative overflow-hidden rounded-sm">
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                         <div className="flex-1">
                             <div className="flex items-center gap-2 text-[#05DF72] mb-4">
@@ -145,16 +144,15 @@ export default function OrderTracking() {
                                     : "Provide this code to the courier only when you have received your item."}
                             </p>
                         </div>
-                        <div className="bg-white/10 p-8 rounded-[2rem] border border-white/10 backdrop-blur-md">
+                        <div className="bg-white/5 p-6 rounded-sm border border-white/10">
                             <span className="text-5xl font-black text-[#05DF72] tracking-[0.2em]">{orderData.pickupToken || orderData.code}</span>
                         </div>
                     </div>
-                    <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#05DF72]/10 rounded-full blur-[100px]"></div>
                 </div>
 
                 {/* Mock Controls */}
-                <div className="p-8 bg-blue-50 border border-blue-100 rounded-[2.5rem] flex flex-col items-center text-center">
-                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                <div className="p-8 bg-blue-50 border border-blue-200 rounded-sm flex flex-col items-center text-center">
+                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-sm border border-blue-200 flex items-center justify-center mb-4">
                         <UserIcon size={24} />
                     </div>
                     <h4 className="font-bold text-blue-900 mb-1">Simulate Updates</h4>
@@ -163,7 +161,7 @@ export default function OrderTracking() {
                     <button
                         onClick={nextStep}
                         disabled={currentStep === steps.length - 1}
-                        className="btn-primary !bg-blue-600 !hover:bg-blue-700 !shadow-blue-200"
+                        className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-sm transition-colors"
                     >
                         {currentStep === steps.length - 1 ? 'Process Completed' : 'Advance to Next Step'}
                     </button>

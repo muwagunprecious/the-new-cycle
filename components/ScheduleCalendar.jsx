@@ -116,7 +116,7 @@ const ScheduleCalendar = ({
     }
 
     return (
-        <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40">
+        <div className="bg-white rounded-sm p-6 border border-slate-200 shadow-sm">
             {/* Header / Navigation */}
             <div className="flex items-center justify-between mb-8">
                 <h3 className="font-bold text-slate-800 text-lg uppercase tracking-wider">
@@ -126,10 +126,10 @@ const ScheduleCalendar = ({
                     )}
                 </h3>
                 <div className="flex gap-2">
-                    <button onClick={handlePrevWeek} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
+                    <button onClick={handlePrevWeek} className="p-2 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors border border-slate-200">
                         <ChevronLeft size={20} />
                     </button>
-                    <button onClick={handleNextWeek} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
+                    <button onClick={handleNextWeek} className="p-2 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors border border-slate-200">
                         <ChevronRight size={20} />
                     </button>
                 </div>
@@ -144,7 +144,7 @@ const ScheduleCalendar = ({
                     const isDisabled = isBlocked || isPast
 
                     return (
-                        <div key={index} className={`relative flex flex-col gap-3 p-4 rounded-2xl border transition-all ${isToday ? 'bg-green-50/50 border-green-100' : isDisabled ? 'bg-slate-50/50 border-slate-50' : 'bg-slate-50 border-slate-100'}`}>
+                        <div key={index} className={`relative flex flex-col gap-3 p-4 rounded-sm border transition-all ${isToday ? 'bg-green-50/30 border-green-200' : isDisabled ? 'bg-slate-50/50 border-slate-100' : 'bg-slate-50 border-slate-200'}`}>
 
                             {/* Date Header */}
                             <div className={`text-center mb-2 ${isDisabled ? 'opacity-30' : ''}`}>
@@ -162,12 +162,12 @@ const ScheduleCalendar = ({
                                     <button
                                         onClick={() => handleItemClick(day, 'Morning')}
                                         disabled={isDisabled}
-                                        className={`w-full py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all group
+                                        className={`w-full py-3 px-3 rounded-sm text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all group
                                             ${isDisabled
                                                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent'
                                                 : isSelected(day, 'Morning')
-                                                    ? 'bg-[#05DF72] text-white shadow-lg shadow-[#05DF72]/30 scale-105'
-                                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-[#05DF72] hover:shadow-md'
+                                                    ? 'bg-[#05DF72] text-slate-950 font-bold shadow-sm'
+                                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-slate-950 hover:bg-[#05DF72]/5 hover:shadow-sm'
                                             }
                                         `}
                                     >
@@ -179,12 +179,12 @@ const ScheduleCalendar = ({
                                     <button
                                         onClick={() => handleItemClick(day, 'Afternoon')}
                                         disabled={isDisabled}
-                                        className={`w-full py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all group
+                                        className={`w-full py-3 px-3 rounded-sm text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all group
                                             ${isDisabled
                                                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent'
                                                 : isSelected(day, 'Afternoon')
-                                                    ? 'bg-[#05DF72] text-white shadow-lg shadow-[#05DF72]/30 scale-105'
-                                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-[#05DF72] hover:shadow-md'
+                                                    ? 'bg-[#05DF72] text-slate-950 font-bold shadow-sm'
+                                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-slate-950 hover:bg-[#05DF72]/5 hover:shadow-sm'
                                             }
                                         `}
                                     >
@@ -197,12 +197,12 @@ const ScheduleCalendar = ({
                                     type="button"
                                     onClick={() => handleItemClick(day)}
                                     disabled={isDisabled}
-                                    className={`w-full py-4 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all group
+                                    className={`w-full py-4 px-3 rounded-sm text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all group
                                         ${isDisabled
                                             ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent'
                                             : isSelected(day)
-                                                ? 'bg-[#05DF72] text-white shadow-lg shadow-[#05DF72]/30'
-                                                : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-[#05DF72] hover:shadow-md'
+                                                ? 'bg-[#05DF72] text-slate-950 font-bold shadow-sm'
+                                                : 'bg-white text-slate-600 border border-slate-200 hover:border-[#05DF72] hover:text-slate-950 hover:bg-[#05DF72]/5 hover:shadow-sm'
                                         }
                                     `}
                                 >
@@ -217,16 +217,16 @@ const ScheduleCalendar = ({
             {/* Legend */}
             <div className="flex items-center justify-center gap-6 mt-8 text-[10px] font-black uppercase tracking-widest text-slate-400">
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-white border border-slate-300"></div>
+                    <div className="w-3 h-3 rounded-sm bg-white border border-slate-300"></div>
                     <span>Available</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#05DF72]"></div>
+                    <div className="w-3 h-3 rounded-sm bg-[#05DF72]"></div>
                     <span>{multiSelect ? 'Selected' : 'Selected Slot'}</span>
                 </div>
                 {mode === "slots" && (
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-slate-200"></div>
+                        <div className="w-3 h-3 rounded-sm bg-slate-200"></div>
                         <span>Fully Booked</span>
                     </div>
                 )}

@@ -13,14 +13,14 @@ const Button = ({
     type = "button"
 }) => {
 
-    const baseStyles = "relative flex items-center justify-center gap-2 px-8 py-4 font-black rounded-2xl transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden uppercase tracking-wider text-xs active:scale-95"
+    const baseStyles = "relative flex items-center justify-center gap-2 px-8 py-4 font-black rounded-sm transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden uppercase tracking-wider text-xs active:scale-95"
 
     const variants = {
-        primary: "bg-[#05DF72] text-white hover:bg-[#04b35c] shadow-xl shadow-[#05DF72]/20",
-        secondary: "bg-slate-900 text-white hover:bg-black shadow-xl shadow-slate-900/10",
-        outline: "border-2 border-slate-200 text-slate-900 hover:border-[#05DF72] hover:text-[#05DF72] bg-white",
+        primary: "bg-[#05DF72] text-white hover:bg-[#04b35c] shadow-sm",
+        secondary: "bg-slate-900 text-white hover:bg-black shadow-sm",
+        outline: "border border-slate-200 text-slate-900 hover:border-[#05DF72] hover:text-[#05DF72] bg-white",
         ghost: "text-slate-600 hover:bg-slate-100",
-        danger: "bg-red-500 text-white hover:bg-red-600 shadow-xl shadow-red-500/20"
+        danger: "bg-red-500 text-white hover:bg-red-600 shadow-sm"
     }
 
     return (

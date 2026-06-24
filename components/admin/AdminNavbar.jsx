@@ -58,7 +58,7 @@ const AdminNavbar = () => {
     }, [checkNotifications])
 
     return (
-        <div className="flex items-center justify-between px-12 py-3 border-b border-slate-200 transition-all">
+        <div className="flex items-center justify-between px-12 py-3 border-b border-slate-200 bg-white transition-all">
             <Link href="/" className="flex items-center gap-2.5 group relative">
                 <Image 
                     src={assets.gs_logo} 
@@ -67,7 +67,7 @@ const AdminNavbar = () => {
                     height={40} 
                     className="w-auto h-8 md:h-10 object-contain transition-transform group-hover:scale-105 duration-500"
                 />
-                <p className="absolute text-[9px] font-bold -top-2 -right-10 px-2 py-0.5 rounded-full flex items-center gap-2 text-emerald-600 bg-emerald-50 border border-emerald-500/20 uppercase tracking-widest">
+                <p className="absolute text-[9px] font-bold -top-2 -right-10 px-2 py-0.5 rounded-sm flex items-center gap-2 text-[#05DF72] bg-[#05DF72]/10 border border-[#05DF72]/20 uppercase tracking-widest">
                     Admin
                 </p>
             </Link>
@@ -75,20 +75,20 @@ const AdminNavbar = () => {
                 <Link href="/admin/notifications" className="relative p-2 text-slate-400 hover:text-[#05DF72] transition-colors">
                     <BellIcon size={24} />
                     {unreadCount > 0 && (
-                        <span className="absolute top-1 right-1 w-5 h-5 bg-[#05DF72] text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                        <span className="absolute top-1 right-1 w-5 h-5 bg-[#05DF72] text-slate-950 text-[10px] font-black flex items-center justify-center rounded-sm border border-white">
                             {unreadCount}
                         </span>
                     )}
                 </Link>
                 <div className="flex items-center gap-3">
-                    <p className="text-sm font-medium text-slate-700">Hi, Admin</p>
-                    <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-bold border border-slate-200">
+                    <p className="text-sm font-bold text-slate-700">Hi, Admin</p>
+                    <div className="w-8 h-8 bg-slate-50 rounded-sm flex items-center justify-center text-slate-400 font-bold border border-slate-200">
                         A
                     </div>
                 </div>
                 <button
                     onClick={handleLogout}
-                    className="p-2 text-slate-400 hover:text-rose-500 transition-all border border-transparent hover:border-rose-100 rounded-lg"
+                    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50/50 hover:border-rose-100 transition-all border border-transparent rounded-sm"
                     title="Logout"
                 >
                     <LogOutIcon size={20} />

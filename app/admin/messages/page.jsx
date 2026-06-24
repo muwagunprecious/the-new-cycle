@@ -50,7 +50,7 @@ const MessagesPage = () => {
                          placeholder="Search messages..."
                          value={search}
                          onChange={(e) => setSearch(e.target.value)}
-                         className="pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00D166]/20 focus:border-[#00D166] w-full md:w-80 shadow-sm"
+                         className="pl-12 pr-4 py-3 rounded-sm border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00D166] focus:border-[#00D166] w-full md:w-80 shadow-sm"
                        />
                      </>
                 </div>
@@ -61,7 +61,7 @@ const MessagesPage = () => {
                     <Loader2 className="animate-spin text-[#00D166]" size={32} />
                 </div>
             ) : filteredMessages.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                <div className="text-center py-20 bg-white rounded-sm border border-slate-200 shadow-sm">
                     <MailOpen size={48} className="mx-auto text-slate-300 mb-4" />
                     <h3 className="text-xl font-semibold text-slate-700">No messages found</h3>
                     <p className="text-slate-500 mt-2">Inbox is currently empty.</p>
@@ -69,12 +69,12 @@ const MessagesPage = () => {
             ) : (
                 <div className="grid grid-cols-1 gap-6">
                     {filteredMessages.map((msg) => (
-                        <div key={msg.id} className={`bg-white p-6 rounded-2xl shadow-sm border transition-all ${msg.status === 'unread' ? 'border-[#00D166] shadow-emerald-50' : 'border-slate-100'}`}>
+                        <div key={msg.id} className={`bg-white p-6 rounded-sm shadow-sm border transition-all ${msg.status === 'unread' ? 'border-l-4 border-l-[#00D166] border-t-slate-200 border-r-slate-200 border-b-slate-200 bg-white shadow-md' : 'border-slate-200'}`}>
                             <div className="flex flex-col lg:flex-row gap-6">
                                 {/* User Details Sidebar */}
                                 <div className="lg:w-1/3 space-y-4 pr-6 lg:border-r border-slate-100">
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${msg.status === 'unread' ? 'bg-[#00D166]/10 text-[#00D166]' : 'bg-slate-100 text-slate-500'}`}>
+                                        <div className={`w-12 h-12 rounded-sm flex items-center justify-center font-bold text-lg border border-slate-200 ${msg.status === 'unread' ? 'bg-[#00D166]/10 text-[#00D166]' : 'bg-slate-100 text-slate-500'}`}>
                                             {msg.firstName[0]}{msg.lastName[0]}
                                         </div>
                                         <div>
@@ -107,22 +107,22 @@ const MessagesPage = () => {
                                 {/* Message Content */}
                                 <div className="lg:w-2/3 flex flex-col justify-between space-y-4">
                                     <div>
-                                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 ${msg.status === 'unread' ? 'bg-[#00D166]/10 text-[#00D166]' : 'bg-slate-100 text-slate-500'}`}>
+                                        <span className={`inline-block px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider mb-4 ${msg.status === 'unread' ? 'bg-[#00D166]/10 text-[#00D166]' : 'bg-slate-100 text-slate-500'}`}>
                                             {msg.status}
                                         </span>
-                                        <div className="bg-slate-50 p-6 rounded-2xl text-slate-700 leading-relaxed whitespace-pre-wrap border border-slate-100">
+                                        <div className="bg-slate-50 p-6 rounded-sm text-slate-700 leading-relaxed whitespace-pre-wrap border border-slate-200">
                                             {msg.message}
                                         </div>
                                     </div>
                                     
                                     <div className="flex justify-end gap-3 pt-4">
-                                        <a href={`mailto:${msg.email}`} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors">
+                                        <a href={`mailto:${msg.email}`} className="px-5 py-2.5 bg-slate-900 text-white rounded-sm font-medium hover:bg-slate-800 transition-colors">
                                             Reply
                                         </a>
                                         {msg.status === 'unread' && (
                                             <button 
                                                 onClick={() => handleMarkAsRead(msg.id)}
-                                                className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors"
+                                                className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-sm font-medium hover:bg-slate-50 transition-colors"
                                             >
                                                 Mark as Read
                                             </button>

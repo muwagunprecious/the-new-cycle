@@ -92,20 +92,20 @@ const ProductDetails = ({ product }) => {
     }
 
     return (
-        <div className="flex max-lg:flex-col gap-8 lg:gap-16 p-4 sm:p-6 max-w-7xl mx-auto">
+        <div className="flex max-lg:flex-col gap-8 lg:gap-16 py-6 max-w-7xl mx-auto">
 
             {/* LEFT: Images Showcase */}
             <div className="flex max-sm:flex-col-reverse gap-4 sm:gap-6 flex-1 lg:sticky lg:top-24 lg:self-start">
-                <div className="flex sm:flex-col gap-4">
+                <div className="flex sm:flex-col gap-3">
                     {product.images?.map((image, index) => (
                         <div
                             key={index}
                             onClick={() => setMainImage(product.images[index])}
-                            className={`bg-white flex items-center justify-center size-20 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden hover:border-emerald-200 ${mainImage === image ? 'border-emerald-500 ring-4 ring-emerald-500/10' : 'border-transparent'}`}
+                            className={`bg-white flex items-center justify-center size-20 rounded-sm border transition-all cursor-pointer overflow-hidden ${mainImage === image ? 'border-[#05DF72] ring-2 ring-[#05DF72]/10 bg-slate-50' : 'border-slate-200 hover:border-[#05DF72]/50'}`}
                         >
                             <img
                                 src={getImageUrl(image)}
-                                className="hover:scale-110 transition-transform duration-500 w-full h-full object-contain p-2"
+                                className="transition-transform duration-500 w-full h-full object-contain p-2"
                                 alt=""
                                 onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
                             />
@@ -113,81 +113,79 @@ const ProductDetails = ({ product }) => {
                     ))}
                 </div>
 
-                <div className="flex-1 flex justify-center items-center glass rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-12 relative group overflow-hidden border border-slate-100 min-h-[280px] sm:min-h-[400px] lg:min-h-[500px]">
+                <div className="flex-1 flex justify-center items-center bg-white border border-slate-200 rounded-sm p-6 sm:p-10 relative group overflow-hidden shadow-sm min-h-[280px] sm:min-h-[400px] lg:min-h-[500px]">
                     <img
                         src={getImageUrl(mainImage || product.images?.[0])}
                         alt=""
-                        className="group-hover:scale-105 transition-transform duration-700 relative z-10 w-full max-w-[450px] h-full object-contain p-4 drop-shadow-2xl"
+                        className="group-hover:scale-[1.02] transition-transform duration-700 relative z-10 w-full max-w-[420px] h-full object-contain p-4 drop-shadow-md"
                         onError={(e) => { e.target.src = '/placeholder-battery.jpg' }}
                     />
 
                     {/* Condition Badge */}
-                    <div className="absolute top-8 left-8 z-20">
-                        <span className="bg-slate-900/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-xl border border-white/10 shadow-2xl">
+                    <div className="absolute top-4 left-4 z-20">
+                        <span className="bg-[#05DF72]/10 border border-[#05DF72]/20 text-[#05DF72] text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-sm">
                             {product.condition || 'SCRAP'}
                         </span>
                     </div>
-
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-emerald-500/5 rounded-full blur-[100px]"></div>
                 </div>
             </div>
 
             {/* RIGHT: Product Information */}
-            <div className="flex-1 lg:max-w-xl space-y-6 sm:space-y-10">
+            <div className="flex-1 lg:max-w-xl space-y-6 sm:space-y-8">
 
                 {/* Header Context */}
-                <div>
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <div className="inline-flex items-center gap-1.5 bg-[#05DF72]/10 text-[#05DF72] px-2.5 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border border-[#05DF72]/20">
                             <ShieldCheckIcon size={12} /> GoCycle Verified
                         </div>
-                        <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100">
+                        <div className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 px-2.5 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border border-slate-200">
                             {product.batteryType || 'BATTERY'}
                         </div>
                     </div>
 
-                    <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight mb-3 sm:mb-4 tracking-tight">{product.name}</h1>
-                    <p className="text-slate-500 text-sm sm:text-lg leading-relaxed font-medium">{product.description}</p>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 leading-tight tracking-tight">{product.name}</h1>
+                    <p className="text-slate-500 text-sm sm:text-base leading-relaxed">{product.description}</p>
                 </div>
 
                 {/* Price Display */}
-                <div className="flex items-end gap-3">
-                    <span className="text-2xl sm:text-4xl font-black text-slate-900">{currency}{(product.price || 0).toLocaleString()}</span>
-                    <span className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-1">Per Unit</span>
+                <div className="flex items-end gap-2">
+                    <span className="text-xl sm:text-3xl font-bold text-slate-900">{currency}{(product.price || 0).toLocaleString()}</span>
+                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Per Unit</span>
                 </div>
 
                 {/* Specifications Grid */}
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 p-5 sm:p-8 glass rounded-[1.5rem] sm:rounded-[2.5rem] border-slate-100">
+                <div className="grid grid-cols-2 gap-4 p-5 sm:p-6 bg-white border border-slate-200 rounded-sm shadow-sm">
                     {[
                         { label: 'Battery Type', value: product.batteryType || product.category, icon: Battery },
                         { label: 'Brand', value: product.brand || '', icon: InfoIcon },
                         { label: 'Condition', value: product.condition || 'SCRAP', color: 'text-amber-600' },
                         { label: 'Stock Status', value: `${product.unitsAvailable || 0} Units In Stock`, color: 'text-emerald-600' }
                     ].map((spec, i) => (
-                        <div key={i} className="space-y-1.5">
-                            <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{spec.label}</span>
-                            <p className={`text-sm font-black ${spec.color || 'text-slate-800'}`}>{spec.value}</p>
+                        <div key={i} className="space-y-1">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{spec.label}</span>
+                            <p className={`text-xs sm:text-sm font-semibold ${spec.color || 'text-slate-800'}`}>{spec.value}</p>
                         </div>
                     ))}
                 </div>
 
                 {/* Logistics Section */}
-                <div className="space-y-6">
+                <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                             Collection Schedule
                         </h2>
-                        <span className="text-[10px] font-bold text-slate-400 px-2 py-1 bg-slate-50 rounded-lg">Lagos LGA: {product.lga || 'Verified'}</span>
+                        <span className="text-[9px] font-bold text-slate-500 px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-sm">Lagos LGA: {product.lga || 'Verified'}</span>
                     </div>
 
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-2.5">
                         {product.collectionDates?.map(date => (
                             <button
                                 key={date}
                                 onClick={() => setSelectedDate(date)}
-                                className={`px-6 py-4 rounded-2xl text-xs font-black transition-all border-2 ${selectedDate === date
-                                    ? 'bg-slate-900 border-slate-900 text-white shadow-xl translate-y-[-2px]'
-                                    : 'bg-white border-slate-100 text-slate-500 hover:border-emerald-200 hover:text-emerald-600'
+                                className={`px-4 py-2.5 rounded-sm text-xs font-bold transition-all border ${selectedDate === date
+                                    ? 'bg-[#0c101b] border-slate-900 text-white shadow-sm'
+                                    : 'bg-white border-slate-200 text-slate-650 hover:border-[#05DF72]/50 hover:text-[#05DF72]'
                                     }`}
                             >
                                 {formatDate(date)}
@@ -196,44 +194,44 @@ const ProductDetails = ({ product }) => {
                     </div>
 
                     {!product.collectionDates?.length && (
-                        <div className="p-4 bg-slate-50 rounded-2xl text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
+                        <div className="p-4 bg-slate-50 rounded-sm border border-slate-200 text-center text-xs text-slate-400 font-bold uppercase tracking-wider">
                             No dates scheduled. Contact seller.
                         </div>
                     )}
                 </div>
 
                 {/* Purchase Controls */}
-                <div className="space-y-6 pt-6 border-t border-slate-100">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-50 p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 gap-6 sm:gap-0">
+                <div className="space-y-4 pt-6 border-t border-slate-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-50 p-5 rounded-sm border border-slate-200 gap-4 sm:gap-0">
                         <div className="flex items-center justify-between sm:justify-start gap-4">
-                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Available Units:</span>
-                            <span className="text-2xl font-black text-slate-900">{quantity}</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Available Units:</span>
+                            <span className="text-xl font-bold text-slate-900">{quantity}</span>
                         </div>
-                        <div className="text-left sm:text-right border-t sm:border-t-0 border-slate-100 pt-5 sm:pt-0">
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Total Amount</p>
-                            <p className="text-xl sm:text-3xl font-black text-slate-900">{currency}{(product.price * quantity).toLocaleString()}</p>
+                        <div className="text-left sm:text-right border-t sm:border-t-0 border-slate-200 pt-4 sm:pt-0">
+                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-1">Total Amount</p>
+                            <p className="text-lg sm:text-2xl font-bold text-slate-900">{currency}{(product.price * quantity).toLocaleString()}</p>
                         </div>
                     </div>
 
                     {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'SELLER' || isAdminPreview) ? (
-                        <div className="w-full py-4 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] text-sm sm:text-lg bg-slate-100 text-slate-400 font-bold text-center flex items-center justify-center border border-slate-200 shadow-inner">
-                            <ShieldCheckIcon size={20} className="mr-2 opacity-50" />
+                        <div className="w-full py-4 rounded-sm text-xs bg-slate-100 text-slate-400 font-bold text-center flex items-center justify-center border border-slate-200 shadow-inner uppercase tracking-wider">
+                            <ShieldCheckIcon size={16} className="mr-2 opacity-50" />
                             {user?.role === 'SELLER' ? 'SELLERS CANNOT PURCHASE BATTERIES' : 'ADMIN PREVIEW MODE - PURCHASE DISABLED'}
                         </div>
                     ) : (
-                        <Button
+                        <button
                             onClick={handlePayNow}
-                            loading={isInitializing}
-                            className="w-full !py-4 sm:!py-6 !rounded-[1.5rem] sm:!rounded-[2rem] text-sm sm:text-lg shadow-2xl"
+                            disabled={isInitializing}
+                            className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-bold uppercase tracking-wider py-4 rounded-sm text-xs transition-colors shadow-sm flex items-center justify-center gap-2"
                         >
-                            <WalletIcon size={22} className="mr-2" />
+                            <WalletIcon size={16} />
                             PROCEED TO SECURE CHECKOUT
-                        </Button>
+                        </button>
                     )}
 
-                    <div className="flex items-center justify-center gap-4 text-center">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
-                            <ShieldCheckIcon size={12} className="text-emerald-500" /> Secure Payment via GoCycle Escrow
+                    <div className="flex items-center justify-center gap-2 text-center">
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <ShieldCheckIcon size={12} className="text-[#05DF72]" /> Secure Payment via GoCycle Escrow
                         </p>
                     </div>
                 </div>

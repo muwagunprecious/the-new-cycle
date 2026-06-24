@@ -32,7 +32,7 @@ function ActionBanner({ type, message, onDismiss }) {
     if (!message) return null
     const isSuccess = type === "success"
     return (
-        <div className={`flex items-start gap-2 p-3 rounded-xl border text-xs font-medium
+        <div className={`flex items-start gap-2 p-3 rounded-sm border text-xs font-medium
             ${isSuccess
                 ? "bg-emerald-50 border-emerald-200 text-emerald-800"
                 : "bg-red-50 border-red-200 text-red-800"
@@ -61,7 +61,7 @@ function CopyButton({ text }) {
     return (
         <button
             onClick={handle}
-            className="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors"
+            className="p-1 rounded-sm hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors"
             title="Copy"
         >
             {copied ? <CheckCircleIcon size={11} className="text-emerald-500" /> : <CopyIcon size={11} />}
@@ -277,33 +277,33 @@ export default function PendingPayoutSidebar() {
 
     const getStatusStyle = (status) => {
         switch (status) {
-            case "ORDER_PLACED": return "bg-amber-100 text-amber-700"
-            case "APPROVED":     return "bg-blue-100 text-blue-700"
-            case "PICKED_UP":    return "bg-indigo-100 text-indigo-700"
-            case "IN_TRANSIT":   return "bg-purple-100 text-purple-700"
-            default:             return "bg-slate-100 text-slate-600"
+            case "ORDER_PLACED": return "bg-amber-50 text-amber-700 border border-amber-200"
+            case "APPROVED":     return "bg-blue-50 text-blue-700 border border-blue-200"
+            case "PICKED_UP":    return "bg-indigo-55/30 text-indigo-700 border border-indigo-200"
+            case "IN_TRANSIT":   return "bg-purple-50 text-purple-700 border border-purple-200"
+            default:             return "bg-slate-50 text-slate-600 border border-slate-200"
         }
     }
 
     if (statsLoading && ordersLoading && cashoutsLoading) {
         return (
-            <div className="xl:w-80 h-full p-8 border-l border-slate-100 bg-white hidden xl:block animate-pulse">
-                <div className="h-8 bg-slate-100 rounded-full w-3/4 mb-10"></div>
-                <div className="h-32 bg-slate-100 rounded-2xl mb-8"></div>
+            <div className="xl:w-80 h-full p-8 border-l border-slate-200 bg-white hidden xl:block animate-pulse">
+                <div className="h-8 bg-slate-100 rounded-sm w-3/4 mb-10 border border-slate-200"></div>
+                <div className="h-32 bg-slate-100 rounded-sm mb-8 border border-slate-200"></div>
                 <div className="space-y-4">
-                    <div className="h-4 bg-slate-100 rounded w-full"></div>
-                    <div className="h-4 bg-slate-100 rounded w-full"></div>
-                    <div className="h-4 bg-slate-100 rounded w-full"></div>
+                    <div className="h-4 bg-slate-100 rounded-sm w-full"></div>
+                    <div className="h-4 bg-slate-100 rounded-sm w-full"></div>
+                    <div className="h-4 bg-slate-100 rounded-sm w-full"></div>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="xl:min-w-80 xl:w-80 h-full border-l border-slate-100 bg-white hidden xl:flex flex-col overflow-hidden">
+        <div className="xl:min-w-80 xl:w-80 h-full border-l border-slate-200 bg-white hidden xl:flex flex-col overflow-hidden">
 
             {/* ── Tab Switcher ── */}
-            <div className="flex border-b border-slate-100 shrink-0">
+            <div className="flex border-b border-slate-200 shrink-0">
                 <button
                     onClick={() => setActiveTab("pickup")}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 text-[9px] font-black uppercase tracking-widest transition-all ${
@@ -315,7 +315,7 @@ export default function PendingPayoutSidebar() {
                     <TruckIcon size={12} />
                     Pickup
                     {orders.length > 0 && (
-                        <span className="ml-0.5 w-4 h-4 rounded-full bg-[#05DF72] text-white text-[8px] flex items-center justify-center font-black">
+                        <span className="ml-1 px-1.5 py-0.5 rounded-sm bg-[#05DF72] text-slate-900 text-[8px] font-bold">
                             {orders.length}
                         </span>
                     )}
@@ -331,7 +331,7 @@ export default function PendingPayoutSidebar() {
                     <BanknoteIcon size={12} />
                     Cashout
                     {cashoutsTotal.orders > 0 && (
-                        <span className="ml-0.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[8px] flex items-center justify-center font-black">
+                        <span className="ml-1 px-1.5 py-0.5 rounded-sm bg-amber-500 text-white text-[8px] font-bold">
                             {cashoutsTotal.orders}
                         </span>
                     )}
@@ -360,13 +360,13 @@ export default function PendingPayoutSidebar() {
                         {/* Header */}
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="w-2 h-6 bg-amber-400 rounded-full"></div>
-                                <h2 className="text-sm font-black text-slate-900">Pending Cashouts</h2>
+                                <div className="w-1.5 h-5 bg-amber-400 rounded-sm"></div>
+                                <h2 className="text-xs font-black uppercase text-slate-900 tracking-wider">Pending Cashouts</h2>
                             </div>
                             <button
                                 onClick={fetchCashouts}
                                 disabled={cashoutsLoading}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-40"
+                                className="p-1.5 rounded-sm hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-40"
                                 title="Refresh"
                             >
                                 <RefreshCwIcon size={13} className={cashoutsLoading ? "animate-spin" : ""} />
@@ -375,7 +375,7 @@ export default function PendingPayoutSidebar() {
 
                         {/* Summary strip */}
                         {cashoutsTotal.orders > 0 && (
-                            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 grid grid-cols-3 gap-2 text-center">
+                            <div className="bg-amber-50 border border-amber-200 rounded-sm p-3 grid grid-cols-3 gap-2 text-center">
                                 <div>
                                     <p className="text-[8px] font-black uppercase text-amber-500 tracking-wider">Sellers</p>
                                     <p className="text-base font-black text-slate-900">{cashoutsTotal.stores}</p>
@@ -410,10 +410,10 @@ export default function PendingPayoutSidebar() {
                                     return (
                                         <div
                                             key={store.storeId}
-                                            className={`rounded-2xl border overflow-hidden transition-all ${
+                                            className={`rounded-sm border overflow-hidden transition-all ${
                                                 isExpanded
-                                                    ? "border-amber-200 shadow-lg shadow-amber-500/5"
-                                                    : "border-slate-100 shadow-sm hover:shadow-md"
+                                                    ? "border-amber-300 shadow-md"
+                                                    : "border-slate-200 shadow-sm hover:border-slate-300"
                                             }`}
                                         >
                                             {/* Store header row */}
@@ -421,7 +421,7 @@ export default function PendingPayoutSidebar() {
                                                 onClick={() => setExpandedStore(isExpanded ? null : store.storeId)}
                                                 className="w-full p-3 flex items-center gap-2.5 text-left bg-white"
                                             >
-                                                <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100">
+                                                <div className="w-8 h-8 rounded-sm bg-amber-50 flex items-center justify-center shrink-0 border border-amber-200">
                                                     <StoreIcon size={14} className="text-amber-500" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -438,10 +438,10 @@ export default function PendingPayoutSidebar() {
 
                                             {/* Expanded store detail */}
                                             {isExpanded && (
-                                                <div className="border-t border-slate-50 bg-slate-50/50 px-3 pb-3 pt-2.5 space-y-3">
+                                                <div className="border-t border-slate-200 bg-slate-50/50 px-3 pb-3 pt-2.5 space-y-3">
 
                                                     {/* Bank Details Card */}
-                                                    <div className={`rounded-xl p-3 border ${hasBankDetails ? 'bg-white border-slate-100' : 'bg-red-50 border-red-100'}`}>
+                                                    <div className={`rounded-sm p-3 border ${hasBankDetails ? 'bg-white border-slate-200' : 'bg-red-50 border-red-200'}`}>
                                                         <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1">
                                                             <Building2Icon size={9} /> Bank Details
                                                         </p>
@@ -454,7 +454,7 @@ export default function PendingPayoutSidebar() {
                                                                 <div className="flex items-center justify-between">
                                                                     <span className="text-[10px] text-slate-500 font-medium">Account</span>
                                                                     <div className="flex items-center gap-1">
-                                                                        <span className="text-[11px] font-black text-slate-900 tracking-wider">{store.accountNumber}</span>
+                                                                        <span className="text-[11px] font-black text-slate-900 tracking-wider font-mono">{store.accountNumber}</span>
                                                                         <CopyButton text={store.accountNumber} />
                                                                     </div>
                                                                 </div>
@@ -466,7 +466,7 @@ export default function PendingPayoutSidebar() {
                                                                 )}
                                                             </div>
                                                         ) : (
-                                                            <p className="text-[10px] font-bold text-red-500">⚠ No bank details on file</p>
+                                                            <p className="text-[10px] font-bold text-red-550">⚠ No bank details on file</p>
                                                         )}
                                                     </div>
 
@@ -484,7 +484,7 @@ export default function PendingPayoutSidebar() {
                                                         <button
                                                             onClick={() => handleReleaseAll(store)}
                                                             disabled={!!releasingId}
-                                                            className="w-full py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20"
+                                                            className="w-full py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-black text-[9px] uppercase tracking-widest rounded-sm transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                                                         >
                                                             <SendIcon size={11} />
                                                             Release All (₦{store.totalPayout.toLocaleString()})
@@ -498,7 +498,7 @@ export default function PendingPayoutSidebar() {
                                                             const isReleasing = releasingId === order.id
                                                             const banner = cashoutBanners[order.id]
                                                             return (
-                                                                <div key={order.id} className="bg-white rounded-xl border border-slate-100 p-2.5 space-y-2">
+                                                                <div key={order.id} className="bg-white rounded-sm border border-slate-200 p-2.5 space-y-2">
                                                                     <div className="flex items-start justify-between gap-2">
                                                                         <div className="min-w-0">
                                                                             <p className="text-[10px] font-bold text-slate-900 truncate">
@@ -523,7 +523,7 @@ export default function PendingPayoutSidebar() {
                                                                     <button
                                                                         onClick={() => handleReleasePayout(order.id, store.storeId, order.payoutAmount)}
                                                                         disabled={!!releasingId}
-                                                                        className="w-full py-2 bg-[#05DF72] hover:bg-[#04c764] disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-black text-[9px] uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5"
+                                                                        className="w-full py-2 bg-[#05DF72] hover:bg-[#04c764] disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-black text-[9px] uppercase tracking-widest rounded-sm transition-all flex items-center justify-center gap-1.5"
                                                                     >
                                                                         {isReleasing ? (
                                                                             <><Spinner size={10} className="text-slate-900" /> Releasing...</>
@@ -552,13 +552,13 @@ export default function PendingPayoutSidebar() {
                     <div className="p-5 space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="w-2 h-7 bg-[#05DF72] rounded-full"></div>
-                                <h2 className="text-base font-black text-slate-900 tracking-tight">Approve Pickup</h2>
+                                <div className="w-1.5 h-5 bg-[#05DF72] rounded-sm"></div>
+                                <h2 className="text-xs font-black uppercase text-slate-900 tracking-wider">Approve Pickup</h2>
                             </div>
                             <button
                                 onClick={fetchOrders}
                                 disabled={ordersLoading}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-40"
+                                className="p-1.5 rounded-sm hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-40"
                                 title="Refresh"
                             >
                                 <RefreshCwIcon size={14} className={ordersLoading ? "animate-spin" : ""} />
@@ -586,24 +586,24 @@ export default function PendingPayoutSidebar() {
                                     return (
                                         <div
                                             key={order.id}
-                                            className={`bg-white border rounded-2xl overflow-hidden transition-all ${
+                                            className={`bg-white border rounded-sm overflow-hidden transition-all ${
                                                 isExpanded
-                                                    ? "border-[#05DF72]/30 shadow-lg shadow-[#05DF72]/5"
-                                                    : "border-slate-100 shadow-sm hover:shadow-md"
+                                                    ? "border-[#05DF72]/30 shadow-md"
+                                                    : "border-slate-200 shadow-sm hover:border-slate-300"
                                             }`}
                                         >
                                             <button
                                                 onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
                                                 className="w-full p-3.5 flex items-center gap-3 text-left"
                                             >
-                                                <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                                                <div className="w-9 h-9 rounded-sm bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200">
                                                     <PackageIcon size={16} className="text-slate-400" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-xs font-bold text-slate-900 truncate">{order.user?.name || "Unknown Buyer"}</p>
                                                     <div className="flex items-center gap-2 mt-0.5">
                                                         <span className="text-[10px] font-bold text-slate-900">₦{(order.total || 0).toLocaleString()}</span>
-                                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${getStatusStyle(order.status)}`}>
+                                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-sm ${getStatusStyle(order.status)}`}>
                                                             {order.status?.replace("_", " ")}
                                                         </span>
                                                     </div>
@@ -612,13 +612,13 @@ export default function PendingPayoutSidebar() {
                                             </button>
 
                                             {isExpanded && (
-                                                <div className="px-3.5 pb-3.5 space-y-3 border-t border-slate-50 pt-3">
+                                                <div className="px-3.5 pb-3.5 space-y-3 border-t border-slate-200 pt-3 bg-slate-50/20">
                                                     <div className="grid grid-cols-2 gap-2">
-                                                        <div className="bg-slate-50 rounded-lg p-2.5">
+                                                        <div className="bg-slate-50 border border-slate-200 rounded-sm p-2.5">
                                                             <p className="text-[8px] font-black text-slate-400 uppercase">Vendor</p>
                                                             <p className="text-[11px] font-bold text-slate-800 truncate mt-0.5">{order.store?.name || order.storeId || "N/A"}</p>
                                                         </div>
-                                                        <div className="bg-slate-50 rounded-lg p-2.5">
+                                                        <div className="bg-slate-50 border border-slate-200 rounded-sm p-2.5">
                                                             <p className="text-[8px] font-black text-slate-400 uppercase">Pickup Date</p>
                                                             <p className="text-[11px] font-bold text-slate-800 mt-0.5 flex items-center gap-1">
                                                                 <ClockIcon size={10} className="text-slate-400" />
@@ -630,7 +630,7 @@ export default function PendingPayoutSidebar() {
                                                     <button
                                                         onClick={() => handleApprovePickup(order.id)}
                                                         disabled={isApproving || isRescheduling}
-                                                        className="w-full py-3 bg-[#05DF72] hover:bg-[#04c764] disabled:opacity-50 text-slate-900 font-black uppercase text-[9px] tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+                                                        className="w-full py-3 bg-[#05DF72] hover:bg-[#04c764] disabled:opacity-50 text-slate-900 font-black uppercase text-[9px] tracking-widest rounded-sm transition-all shadow-sm flex items-center justify-center gap-1.5"
                                                     >
                                                         {isApproving ? (
                                                             <><Spinner size={12} className="text-slate-900" /> Approving...</>
@@ -638,19 +638,19 @@ export default function PendingPayoutSidebar() {
                                                             <><TruckIcon size={12} /> Approve Pickup</>
                                                         )}
                                                     </button>
-                                                    <div className="bg-slate-50 rounded-xl p-2.5 space-y-2">
+                                                    <div className="bg-slate-50 border border-slate-200 rounded-sm p-2.5 space-y-2">
                                                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Reschedule Date</p>
                                                         <div className="flex gap-1.5">
                                                             <input
                                                                 type="date"
                                                                 ref={(el) => (rescheduleRefs.current[order.id] = el)}
                                                                 min={new Date().toISOString().split("T")[0]}
-                                                                className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-[10px] font-medium focus:border-[#05DF72] outline-none bg-white"
+                                                                className="flex-1 px-2 py-1.5 border border-slate-200 rounded-sm text-[10px] font-medium focus:border-[#05DF72] outline-none bg-white"
                                                             />
                                                             <button
                                                                 onClick={() => handleReschedule(order.id)}
                                                                 disabled={isApproving || isRescheduling}
-                                                                className="px-3 py-1.5 bg-slate-900 text-white font-black text-[8px] uppercase tracking-widest rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center gap-1"
+                                                                className="px-3 py-1.5 bg-slate-900 text-white font-black text-[8px] uppercase tracking-widest rounded-sm hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center gap-1"
                                                             >
                                                                 {isRescheduling ? <><Spinner size={10} />...</> : <><CalendarIcon size={10} />Set</>}
                                                             </button>
@@ -673,11 +673,11 @@ export default function PendingPayoutSidebar() {
                 {activeTab === "payout" && (
                     <div className="p-6 space-y-8">
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-7 bg-[#05DF72] rounded-full"></div>
-                            <h2 className="text-base font-black text-slate-900 tracking-tight">Financial Stats</h2>
+                            <div className="w-1.5 h-5 bg-[#05DF72] rounded-sm"></div>
+                            <h2 className="text-xs font-black uppercase text-slate-900 tracking-wider">Financial Stats</h2>
                         </div>
 
-                        <div className="bg-slate-900 rounded-2xl p-6 text-center shadow-xl shadow-slate-200">
+                        <div className="bg-[#0c101b] border border-slate-800 rounded-sm p-6 text-center shadow-sm">
                             <p className="text-[10px] font-black uppercase tracking-widest text-[#05DF72] mb-2">Platform Balance</p>
                             <h3 className="text-3xl font-black text-white">₦{(stats.adminBalance || 0).toLocaleString()}</h3>
                         </div>
@@ -693,7 +693,7 @@ export default function PendingPayoutSidebar() {
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-slate-400 font-bold">Seller -5% Fee</span>
-                                <span className="text-rose-500 font-black">- ₦{(stats.sellerFee || 0).toLocaleString()}</span>
+                                <span className="text-rose-550 font-black">- ₦{(stats.sellerFee || 0).toLocaleString()}</span>
                             </div>
                             <div className="pt-4 border-t border-dashed border-slate-200">
                                 <div className="flex justify-between items-center">
@@ -701,12 +701,10 @@ export default function PendingPayoutSidebar() {
                                     <span className="text-2xl font-black text-slate-900">₦{(stats.payoutAmount || 0).toLocaleString()}</span>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
-                            <p className="text-[10px] text-emerald-700 font-bold leading-relaxed">
-                                ⚠️ Aggregate totals for all orders awaiting payout release.
-                            </p>
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-sm p-4 text-xs font-semibold text-emerald-800 leading-relaxed">
+                                <p className="font-bold uppercase tracking-wider mb-1 text-[9px] text-[#05DF72]">Platform Earnings</p>
+                                Platform fee is 5% from both buyers and sellers, generating double-sided revenue of ₦{(stats.buyerFee + stats.sellerFee || 0).toLocaleString()} upon successful transactions.
+                            </div>
                         </div>
                     </div>
                 )}

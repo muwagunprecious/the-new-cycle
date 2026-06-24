@@ -265,65 +265,61 @@ function LoginContent() {
 
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
-            {/* Background Decorative Elements */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] -mr-40 -mt-20 -z-0 animate-pulse"></div>
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] -ml-20 -mb-20 -z-0"></div>
-
+        <div className="min-h-screen bg-[#080b11] flex items-center justify-center p-6 relative overflow-hidden">
             <div className="w-full max-w-md relative z-10">
-                <div className="bg-white rounded-[32px] p-10 sm:p-14 border border-black/[0.04] shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
-                    <div className="text-center mb-10">
-                        <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-emerald-100 rotate-3">
-                            <ZapIcon className="text-emerald-500" size={40} />
+                <div className="bg-[#0c101b] rounded-sm p-8 sm:p-12 border border-slate-800 shadow-xl relative">
+                    <div className="text-center mb-8">
+                        <div className="w-12 h-12 bg-slate-800 border border-slate-700 rounded-sm flex items-center justify-center mx-auto mb-4">
+                            <ZapIcon className="text-[#05DF72]" size={20} fill="currentColor" fillOpacity={0.2} />
                         </div>
-                        <h1 className="text-3xl font-bold text-slate-950 mb-2 tracking-tight">
+                        <h1 className="text-xl font-bold text-white mb-1.5 tracking-tight">
                             {step === 'LOGIN' ? 'Welcome Back' : step === 'ADMIN_2FA' ? 'Admin Verification' : step === 'CHANGE_PASSWORD' ? 'Update Password' : 'Security Check'}
                         </h1>
-                        <p className="text-slate-500 font-medium text-sm">
+                        <p className="text-slate-400 font-medium text-xs">
                             {isLoggedIn && !isLoading ? 'Authentication successful. Redirecting...' : step === 'LOGIN' ? 'Log in to your GoCycle account' : step === 'ADMIN_2FA' ? `Code sent to ${twoFAData?.email || 'your email'}` : step === 'CHANGE_PASSWORD' ? 'One-time security update required' : `Verifying ${formData.identifier}`}
                         </p>
                     </div>
 
                     {step === 'LOGIN' ? (
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Email or Phone</label>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Email or Phone</label>
                                 <div className="relative group">
-                                    <MailIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                    <MailIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                     <input
                                         type="text"
                                         name="identifier"
                                         value={formData.identifier}
                                         placeholder="Enter email or phone"
-                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400"
+                                        className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-4 text-white text-xs outline-none transition-all placeholder:text-slate-600"
                                         onChange={handleChange}
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between px-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Password</label>
-                                    <Link href="/forgot-password" size="sm" className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest hover:text-emerald-500">Forgot?</Link>
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Password</label>
+                                    <Link href="/forgot-password" className="text-[9px] font-semibold text-[#05DF72] uppercase tracking-wider hover:underline">Forgot?</Link>
                                 </div>
                                 <div className="relative group">
-                                    <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                    <LockIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         name="password"
                                         value={formData.password}
                                         placeholder="••••••••"
-                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400"
+                                        className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-10 text-white text-xs outline-none transition-all placeholder:text-slate-600"
                                         onChange={handleChange}
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
                                     >
-                                        {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                                        {showPassword ? <EyeOffIcon size={13} /> : <EyeIcon size={13} />}
                                     </button>
                                 </div>
                             </div>
@@ -332,18 +328,18 @@ function LoginContent() {
                                 type="submit"
                                 loading={isLoading}
                                 loadingText="AUTHENTICATING..."
-                                className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm mt-4"
+                                className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors mt-2"
                             >
                                 SECURE LOGIN
                             </Button>
                         </form>
                     ) : step === 'ADMIN_2FA' ? (
-                        <form onSubmit={handleAdmin2FA} className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                            <div className="text-center">
-                                <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-50 rounded-3xl border border-emerald-200 shadow-sm mx-auto mb-4">
-                                    <span className="text-4xl">🔐</span>
+                        <form onSubmit={handleAdmin2FA} className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                            <div className="text-center space-y-2">
+                                <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-800 border border-slate-700 rounded-sm mx-auto">
+                                    <span className="text-xl">🔐</span>
                                 </div>
-                                <p className="text-slate-600 text-sm font-medium">
+                                <p className="text-slate-400 text-xs leading-relaxed">
                                     A 6-digit verification code has been sent to your admin email address. Enter it below to complete your secure login.
                                 </p>
                             </div>
@@ -351,8 +347,8 @@ function LoginContent() {
                             <div className="flex justify-center">
                                 <input
                                     type="text"
-                                    placeholder="0 0 0 0 0 0"
-                                    className="text-center text-4xl tracking-[0.5em] w-full max-w-sm py-6 bg-slate-50 border border-black/[0.06] rounded-2xl outline-none focus:border-emerald-500/50 focus:bg-white text-slate-950 font-bold placeholder:text-slate-300 transition-all shadow-inner"
+                                    placeholder="000000"
+                                    className="w-full bg-[#111625] border border-slate-700/80 rounded-sm py-3 text-center text-xl font-bold font-mono text-white tracking-[0.4em] outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20"
                                     value={twoFACode}
                                     onChange={e => setTwoFACode(e.target.value.replace(/\D/g, ''))}
                                     maxLength={6}
@@ -360,12 +356,12 @@ function LoginContent() {
                                 />
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <Button
                                     type="submit"
                                     loading={isLoading}
                                     loadingText="VERIFYING..."
-                                    className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm"
+                                    className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors"
                                 >
                                     VERIFY & LOGIN
                                 </Button>
@@ -373,14 +369,14 @@ function LoginContent() {
                                     <button
                                         type="button"
                                         onClick={() => { setStep('LOGIN'); setTwoFACode(''); setTwoFAData(null); }}
-                                        className="text-[10px] font-black text-slate-500 hover:text-emerald-400 transition-all uppercase tracking-widest"
+                                        className="text-[9px] font-bold text-slate-400 hover:text-white transition-all uppercase tracking-wider"
                                     >
                                         ← Back to Login
                                     </button>
                                     <button
                                         type="button"
                                         onClick={handleResend2FA}
-                                        className="text-[10px] font-black text-emerald-600 hover:text-emerald-400 transition-all uppercase tracking-widest"
+                                        className="text-[9px] font-bold text-[#05DF72] hover:text-white transition-all uppercase tracking-wider"
                                     >
                                         Resend Code
                                     </button>
@@ -388,42 +384,42 @@ function LoginContent() {
                             </div>
                         </form>
                     ) : step === 'CHANGE_PASSWORD' ? (
-                        <form onSubmit={handlePasswordChange} className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                            <div className="text-center">
-                                <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-sm mx-auto mb-4">
-                                    <ShieldCheckIcon className="text-emerald-500" size={32} />
+                        <form onSubmit={handlePasswordChange} className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                            <div className="text-center space-y-2">
+                                <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-800 border border-slate-700 rounded-sm mx-auto">
+                                    <ShieldCheckIcon className="text-[#05DF72]" size={20} />
                                 </div>
-                                <p className="text-slate-600 text-sm font-medium mb-6">
+                                <p className="text-slate-400 text-xs leading-relaxed">
                                     For security purposes, please set a new strong password for your admin account.
                                 </p>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">New Password</label>
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">New Password</label>
                                 <div className="relative group">
-                                    <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                    <LockIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         name="newPassword"
                                         value={formData.newPassword}
                                         placeholder="••••••••"
-                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400"
+                                        className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-10 text-white text-xs outline-none transition-all placeholder:text-slate-655"
                                         onChange={handleChange}
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Confirm New Password</label>
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-semibold text-slate-450 uppercase tracking-wider block">Confirm New Password</label>
                                 <div className="relative group">
-                                    <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                    <LockIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={13} />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         name="confirmPassword"
                                         value={formData.confirmPassword}
                                         placeholder="••••••••"
-                                        className="w-full bg-slate-50 border border-black/[0.06] rounded-2xl py-4 pl-12 pr-12 outline-none transition-all focus:border-emerald-500/50 focus:bg-white focus:shadow-sm font-medium text-slate-950 placeholder:text-slate-400"
+                                        className="w-full bg-[#111625] border border-slate-700 focus:border-[#05DF72] rounded-sm py-2.5 pl-9 pr-10 text-white text-xs outline-none transition-all placeholder:text-slate-655"
                                         onChange={handleChange}
                                         required
                                     />
@@ -434,15 +430,15 @@ function LoginContent() {
                                 type="submit"
                                 loading={isLoading}
                                 loadingText="UPDATING..."
-                                className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm mt-4"
+                                className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors mt-2"
                             >
                                 UPDATE PASSWORD & LOGIN
                             </Button>
                         </form>
                     ) : (
-                        <form onSubmit={handleVerify} className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                        <form onSubmit={handleVerify} className="space-y-6 animate-in fade-in slide-in-from-right-4">
                             <div className="text-center">
-                                <p className="text-slate-600 text-sm font-medium">
+                                <p className="text-slate-400 text-xs">
                                     Your account requires verification.
                                 </p>
                             </div>
@@ -450,27 +446,27 @@ function LoginContent() {
                             <div className="flex justify-center">
                                 <input
                                     type="text"
-                                    placeholder="0 0 0 0 0 0"
-                                    className="text-center text-4xl tracking-[0.5em] w-full max-w-sm py-6 bg-slate-50 border border-black/[0.06] rounded-2xl outline-none focus:border-emerald-500/50 focus:bg-white text-slate-950 font-bold placeholder:text-slate-300 transition-all shadow-inner"
+                                    placeholder="000000"
+                                    className="w-full bg-[#111625] border border-slate-700/80 rounded-sm py-3 text-center text-xl font-bold font-mono text-white tracking-[0.4em] outline-none focus:border-[#05DF72] focus:ring-1 focus:ring-[#05DF72]/20"
                                     value={otp}
                                     onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
                                     maxLength={6}
                                 />
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <Button
                                     type="submit"
                                     loading={isLoading}
                                     loadingText="VERIFYING CODE..."
-                                    className="w-full !py-5 !rounded-2xl shadow-xl shadow-emerald-500/10 text-sm"
+                                    className="w-full bg-[#05DF72] hover:bg-[#04c865] active:bg-[#03b058] text-slate-950 font-semibold text-xs uppercase tracking-wider py-3 rounded-sm transition-colors"
                                 >
                                     VERIFY & LOGIN
                                 </Button>
                                 <button
                                     type="button"
                                     onClick={() => setStep('LOGIN')}
-                                    className="w-full text-[10px] font-black text-slate-500 hover:text-emerald-400 transition-all uppercase tracking-widest"
+                                    className="w-full text-[9px] font-bold text-slate-400 hover:text-white transition-all uppercase tracking-wider"
                                 >
                                     ← Back to Login
                                 </button>
@@ -478,22 +474,22 @@ function LoginContent() {
                         </form>
                     )}
 
-                    <div className="mt-10 text-center space-y-4">
+                    <div className="mt-8 text-center space-y-3">
                         <div className="relative">
-                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-black/[0.04]"></div></div>
-                            <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest text-slate-400"><span className="bg-white px-4">New to GoCycle?</span></div>
+                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-800"></div></div>
+                            <div className="relative flex justify-center text-[9px] uppercase font-bold tracking-wider text-slate-500"><span className="bg-[#0c101b] px-3">New to GoCycle?</span></div>
                         </div>
-                        <p className="text-slate-500 font-medium text-sm">
+                        <p className="text-slate-400 font-medium text-xs">
                             Don't have an account? {' '}
-                            <Link href="/signup" className="text-emerald-600 font-bold hover:text-emerald-500 transition-colors border-b-2 border-emerald-500/20 hover:border-emerald-500">
+                            <Link href="/signup" className="text-[#05DF72] font-semibold hover:underline">
                                 Create Account
                             </Link>
                         </p>
                     </div>
                 </div>
 
-                <p className="text-center mt-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
-                    <ShieldCheckIcon size={14} className="text-emerald-500/50" /> Secured by GoCycle Core Auth
+                <p className="text-center mt-8 text-[9px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                    <ShieldCheckIcon size={12} className="text-[#05DF72]/60" /> Secured by GoCycle Core Auth
                 </p>
             </div>
         </div>
