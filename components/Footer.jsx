@@ -62,7 +62,7 @@ const Footer = () => {
                         <div className="flex flex-col gap-4">
                             <div className="space-y-1">
                                 <p className="text-[9px] font-bold text-[#05DF72] uppercase tracking-wider">Official Member of</p>
-                                <div className="text-sm font-semibold text-slate-200">
+                                <div className="text-sm font-semibold text-white">
                                     Recyclers Association of Nigeria
                                 </div>
                             </div>

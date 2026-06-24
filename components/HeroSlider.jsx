@@ -37,7 +37,7 @@ const Hero = () => {
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Trusted by:</span>
                     <div className="flex items-center gap-2 bg-[#0c101b] border border-slate-800 rounded-sm px-3.5 py-1.5">
                         <Zap size={12} className="text-[#05DF72]" fill="currentColor" />
-                        <span className="text-[10px] font-bold text-slate-350 tracking-wider uppercase">Recyclers Association of Nigeria</span>
+                        <span className="text-[10px] font-bold text-white tracking-wider uppercase">Recyclers Association of Nigeria</span>
                     </div>
                 </div>
 
