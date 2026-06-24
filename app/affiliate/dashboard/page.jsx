@@ -229,25 +229,33 @@ export default function AffiliateDashboard() {
         ctx.bezierCurveTo(495, 410, 505, 430, 520, 420)
         ctx.stroke()
 
-        // 5. Render GoCycle Logo
-        const logoImg = new window.Image()
-        const logoSrc = assets.gs_logo?.src || assets.gs_logo || '/assets/gocycle.png'
-        logoImg.src = logoSrc
-        logoImg.onload = () => {
-            ctx.drawImage(logoImg, 300 - 80, 75, 160, 40)
-            finalizeDrawing()
-        }
-        logoImg.onerror = () => {
-            ctx.fillStyle = '#0f172a'
-            ctx.font = '900 36px sans-serif'
-            ctx.textAlign = 'center'
-            ctx.fillText('GoCycle', 300, 105)
+        // 5. Render custom professional vector GoCycle Logo
+        ctx.fillStyle = '#05DF72'
+        // Draw elegant recycle green circle icon
+        ctx.strokeStyle = '#05DF72'
+        ctx.lineWidth = 4
+        ctx.beginPath()
+        ctx.arc(220, 92, 12, 0, Math.PI * 2)
+        ctx.stroke()
+        
+        // Draw internal check/accent line
+        ctx.beginPath()
+        ctx.moveTo(215, 92)
+        ctx.lineTo(219, 96)
+        ctx.lineTo(226, 88)
+        ctx.stroke()
 
-            ctx.fillStyle = '#05DF72'
-            ctx.font = 'bold 12px sans-serif'
-            ctx.fillText('NIGERIA\'S E-WASTE HUB', 300, 125)
-            finalizeDrawing()
-        }
+        // Draw "Go" text
+        ctx.fillStyle = '#0f172a'
+        ctx.font = '900 32px sans-serif'
+        ctx.textAlign = 'left'
+        ctx.fillText('Go', 242, 102)
+
+        // Draw "Cycle" text
+        ctx.fillStyle = '#05DF72'
+        ctx.fillText('Cycle', 285, 102)
+
+        finalizeDrawing()
 
         function finalizeDrawing() {
             // Header Text (Date or verified tag)
@@ -809,14 +817,17 @@ export default function AffiliateDashboard() {
 
                             {/* Header Logo */}
                             <div className="pt-2 flex flex-col items-center justify-center relative z-10">
-                                <Image 
-                                    src={assets.gs_logo} 
-                                    alt="GoCycle" 
-                                    width={110} 
-                                    height={28} 
-                                    className="h-5 w-auto object-contain mx-auto filter brightness-95"
-                                />
-                                <span className="text-slate-400 text-[8px] font-mono tracking-wider uppercase mt-2 block">
+                                <div className="flex items-center justify-center gap-2">
+                                    {/* SVG Recycle Icon */}
+                                    <svg className="w-5 h-5 text-[#05DF72]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
+                                    </svg>
+                                    <span className="text-lg font-black tracking-tight text-[#0f172a]">
+                                        Go<span className="text-[#05DF72]">Cycle</span>
+                                    </span>
+                                </div>
+                                <span className="text-slate-400 text-[8px] font-mono tracking-wider uppercase mt-1.5 block">
                                     EST. 2026 • DIGITAL OFFICIAL ID
                                 </span>
                             </div>
