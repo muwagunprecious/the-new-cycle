@@ -171,7 +171,9 @@ async function deleteOrBlockUser({ emailOrPhoneOrId, action }) {
                 OR: [
                     { id: emailOrPhoneOrId },
                     { email: emailOrPhoneOrId },
-                    { phone: emailOrPhoneOrId }
+                    { phone: emailOrPhoneOrId },
+                    { name: { contains: emailOrPhoneOrId, mode: 'insensitive' } },
+                    { fullName: { contains: emailOrPhoneOrId, mode: 'insensitive' } }
                 ]
             }
         });
@@ -275,7 +277,9 @@ async function auditAccount({ emailOrPhoneOrId }) {
                 OR: [
                     { id: emailOrPhoneOrId },
                     { email: emailOrPhoneOrId },
-                    { phone: emailOrPhoneOrId }
+                    { phone: emailOrPhoneOrId },
+                    { name: { contains: emailOrPhoneOrId, mode: 'insensitive' } },
+                    { fullName: { contains: emailOrPhoneOrId, mode: 'insensitive' } }
                 ]
             },
             include: {
