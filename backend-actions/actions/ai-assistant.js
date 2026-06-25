@@ -740,6 +740,145 @@ async function readPublicPage({ pageName }) {
     }
 }
 
+/**
+ * 17. List all affiliates in the system with their stats.
+ */
+async function listAffiliates() {
+    try {
+        const affiliates = await prisma.affiliate.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+        
+        const enriched = await Promise.all(affiliates.map(async (aff) => {
+            const referralCount = await prisma.user.count({
+                where: { referredByCode: aff.referralCode, role: 'SELLER' }
+            });
+            return {
+                id: aff.id,
+                name: aff.name,
+                email: aff.email,
+                phone: aff.phone,
+                referralCode: aff.referralCode,
+                status: aff.status,
+                walletBalance: aff.walletBalance,
+                totalEarned: aff.totalEarned,
+                referralCount,
+                createdAt: aff.createdAt
+            };
+        }));
+
+        return { success: true, affiliates: enriched };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * 18. Audit a specific affiliate profile, earnings, and payout history in detail.
+ */
+async function auditAffiliate({ emailOrCodeOrId }) {
+    try {
+        const affiliate = await prisma.affiliate.findFirst({
+            where: {
+                OR: [
+                    { id: emailOrCodeOrId },
+                    { email: emailOrCodeOrId },
+                    { referralCode: emailOrCodeOrId },
+                    { name: { contains: emailOrCodeOrId, mode: 'insensitive' } }
+                ]
+            }
+        });
+
+        if (!affiliate) {
+            return { success: false, error: `Affiliate matching query "${emailOrCodeOrId}" not found.` };
+        }
+
+        const earnings = await prisma.affiliateEarning.findMany({
+            where: { affiliateId: affiliate.id },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        const payoutRequests = await prisma.affiliatePayoutRequest.findMany({
+            where: { affiliateId: affiliate.id },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        const referredSellers = await prisma.user.findMany({
+            where: { referredByCode: affiliate.referralCode, role: 'SELLER' },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                createdAt: true,
+                accountStatus: true
+            }
+        });
+
+        return {
+            success: true,
+            affiliate: {
+                id: affiliate.id,
+                name: affiliate.name,
+                email: affiliate.email,
+                phone: affiliate.phone,
+                referralCode: affiliate.referralCode,
+                status: affiliate.status,
+                walletBalance: affiliate.walletBalance,
+                totalEarned: affiliate.totalEarned,
+                bankName: affiliate.bankName,
+                accountNumber: affiliate.accountNumber,
+                accountName: affiliate.accountName,
+                createdAt: affiliate.createdAt
+            },
+            earnings,
+            payoutRequests,
+            referredSellers,
+            stats: {
+                referralCount: referredSellers.length,
+                totalEarned: affiliate.totalEarned,
+                walletBalance: affiliate.walletBalance,
+                pendingPayouts: payoutRequests.filter(p => p.status === 'pending').reduce((s, p) => s + p.amount, 0)
+            }
+        };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * 19. Approve or reject a pending affiliate payout request.
+ */
+async function manageAffiliatePayout({ requestId, action, note = "" }) {
+    try {
+        const { approveAffiliatePayout, rejectAffiliatePayout } = await import("./admin-affiliates");
+        let res;
+        if (action === "approve") {
+            res = await approveAffiliatePayout(requestId);
+        } else if (action === "reject") {
+            res = await rejectAffiliatePayout(requestId, note);
+        } else {
+            return { success: false, error: `Invalid action "${action}". Use 'approve' or 'reject'.` };
+        }
+        return res;
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * 20. Suspend or unsuspend an affiliate account.
+ */
+async function toggleAffiliateSuspensionAction({ affiliateId }) {
+    try {
+        const { toggleAffiliateSuspension } = await import("./admin-affiliates");
+        const res = await toggleAffiliateSuspension(affiliateId);
+        return res;
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
 // Router/mapper for tools
 async function executeTool(name, args, adminUserId) {
     console.log(`[AI_ASSISTANT] Executing tool: ${name} with args:`, args);
@@ -776,6 +915,14 @@ async function executeTool(name, args, adminUserId) {
             return await editOrDeleteOrder(args);
         case "readPublicPage":
             return await readPublicPage(args);
+        case "listAffiliates":
+            return await listAffiliates();
+        case "auditAffiliate":
+            return await auditAffiliate(args);
+        case "manageAffiliatePayout":
+            return await manageAffiliatePayout(args);
+        case "toggleAffiliateSuspensionAction":
+            return await toggleAffiliateSuspensionAction(args);
         default:
             throw new Error(`Tool ${name} not found.`);
     }
@@ -1026,11 +1173,63 @@ const assistantTools = [
                 required: ["pageName"]
             }
         }
+    },
+    {
+        type: "function",
+        function: {
+            name: "listAffiliates",
+            description: "List all registered Go-Cycle partner affiliates, showing their referral code, stats, earnings, and suspension statuses.",
+            parameters: { type: "object", properties: {} }
+        }
+    },
+    {
+        type: "function",
+        function: {
+            name: "auditAffiliate",
+            description: "Audit a specific affiliate partner by their email, ID, or referral code, showing referred sellers, earnings log, and payout requests history.",
+            parameters: {
+                type: "object",
+                properties: {
+                    emailOrCodeOrId: { type: "string", description: "The email, referral code, or database ID of the affiliate." }
+                },
+                required: ["emailOrCodeOrId"]
+            }
+        }
+    },
+    {
+        type: "function",
+        function: {
+            name: "manageAffiliatePayout",
+            description: "Approve or reject a pending affiliate payout request by database ID under admin instruction.",
+            parameters: {
+                type: "object",
+                properties: {
+                    requestId: { type: "string", description: "The database ID of the affiliate payout request." },
+                    action: { type: "string", enum: ["approve", "reject"], description: "The action to perform." },
+                    note: { type: "string", description: "Optional rejection note/reason." }
+                },
+                required: ["requestId", "action"]
+            }
+        }
+    },
+    {
+        type: "function",
+        function: {
+            name: "toggleAffiliateSuspensionAction",
+            description: "Suspend or reactivate an affiliate account by ID.",
+            parameters: {
+                type: "object",
+                properties: {
+                    affiliateId: { type: "string", description: "The database ID of the affiliate to toggle suspension." }
+                },
+                required: ["affiliateId"]
+            }
+        }
     }
 ];
 
 const SYSTEM_PROMPT = `You are the Go-Cycle AI Admin Co-pilot (Assistant), a premium intelligence interface built into the admin console of the Go-Cycle Battery Recycling Marketplace.
-Your primary role is to assist super administrators in tracking metrics, monitoring system diagnostics, editing battery prices, managing blogs, auditing and deleting/editing database entities (products, stores, orders, blogs, users), reading public informational pages, and sending emails.
+Your primary role is to assist super administrators in tracking metrics, monitoring system diagnostics, editing battery prices, managing blogs, auditing and deleting/editing database entities (products, stores, orders, blogs, users, affiliates, payouts), reading public informational pages, and sending emails.
 
 GUIDELINES:
 1. When asked about system errors or if you run "getSystemHealth" and find any database failure or warning, ALWAYS politely ask the admin: "Should I email professorprecious03@gmail.com, the web developer, to fix this error?"
@@ -1041,6 +1240,7 @@ GUIDELINES:
 6. Be professional, concise, and formatting-oriented (use lists, bold values, and Markdown tables where appropriate).
 7. ALWAYS include the exact date and time (timestamps) in your responses for any actions, updates, or events mentioned (such as the date a product was listed, the date an email/notification was sent, the date/time a product was verified/approved, when a payment was approved, when a cashout/payout was released, etc.).
 8. Do NOT generate XML or HTML function call blocks (e.g. <function=...>). Only invoke tools via the official JSON tool-call schema.
+9. You have tools to manage the partner affiliate network (listAffiliates, auditAffiliate, manageAffiliatePayout, toggleAffiliateSuspensionAction). You can answer questions about partner earnings, referred sellers, and process their payout withdrawals directly.
 `;
 
 /**
