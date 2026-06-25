@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { FileText, ShieldCheck, Scale, AlertTriangle, Coins, Truck, Globe } from 'lucide-react'
+import { FileText, ShieldCheck, Scale, AlertTriangle, Coins, Truck, Globe, ChevronRight } from 'lucide-react'
 
 const TermsPage = () => {
     const sections = [
@@ -79,84 +79,102 @@ const TermsPage = () => {
     ]
 
     return (
-        <div className="bg-white min-h-screen pt-24 pb-32">
-            <section className="relative py-24 px-4 md:px-8 max-w-[1400px] mx-auto border-b border-slate-100">
+        <div className="bg-[#0f172a] text-slate-100 min-h-screen pt-28 pb-32 relative selection:bg-[#05DF72]/30 selection:text-white">
+            {/* Background Decor */}
+            <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#05DF72]/5 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-10 left-10 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none" />
+
+            <section className="relative py-24 px-4 md:px-8 max-w-[1400px] mx-auto border-b border-slate-800/60">
                 <div className="max-w-4xl space-y-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#00D166]"></div>
-                        <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-[#00D166]">
-                            Governance
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#05DF72] animate-pulse"></div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#05DF72]">
+                            Governance & Trust
                         </span>
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-medium text-slate-900 tracking-[-0.02em] leading-[1.1]">
-                        Merchant Service <br /><span className="text-[#00D166]">Agreement</span>
+                    <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.05]">
+                        Merchant Service <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#05DF72] via-emerald-400 to-[#05DF72]">
+                            Agreement
+                        </span>
                     </h1>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest pt-4">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest pt-2">
                         Version 2.0 | Effective March 2026
                     </p>
                 </div>
             </section>
 
-            <section className="py-24 px-4 md:px-8 max-w-[1400px] mx-auto">
+            <section className="py-24 px-4 md:px-8 max-w-[1400px] mx-auto relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
                     {/* Sidebar Nav */}
-                    <div className="lg:col-span-3 lg:sticky lg:top-32 h-fit space-y-2 max-lg:hidden">
-                        {sections.map(section => (
-                            <a
-                                key={section.id}
-                                href={`#${section.id}`}
-                                className="block px-6 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-widest border border-transparent hover:bg-[#F4F6F8] transition-all text-slate-500 hover:text-[#00D166]"
-                            >
-                                {section.title.split('.')[0]} Section
-                            </a>
-                        ))}
+                    <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit space-y-3 max-lg:hidden">
+                        <div className="p-6 rounded-[24px] bg-slate-900/60 border border-slate-800/80 backdrop-blur-md">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 px-2">Table of Contents</p>
+                            <nav className="space-y-1">
+                                {sections.map(section => (
+                                    <a
+                                        key={section.id}
+                                        href={`#${section.id}`}
+                                        className="group flex items-center justify-between px-4 py-3 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent hover:border-slate-700/50 transition-all"
+                                    >
+                                        <span className="truncate">{section.title.split('.')[0]} Section</span>
+                                        <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 text-[#05DF72] transition-all" />
+                                    </a>
+                                ))}
+                            </nav>
+                        </div>
                     </div>
 
                     {/* Content */}
-                    <div className="lg:col-span-9 space-y-20">
+                    <div className="lg:col-span-8 space-y-16">
                         <div className="max-w-3xl">
-                            <p className="text-xl leading-relaxed text-slate-600 font-medium italic">
+                            <p className="text-lg md:text-xl leading-relaxed text-slate-400 font-light border-l-2 border-[#05DF72] pl-6 italic">
                                 This Merchant Service Agreement (the "Agreement") is a legally binding contract between Gocycle Limited ("Gocycle"), a company providing a digital marketplace for the circular economy, and the Merchant (the "User," "Seller," or "Buyer") who registers an account on the Gocycle Platform.
                             </p>
                         </div>
 
                         {sections.map((section) => (
-                            <div key={section.id} id={section.id} className="space-y-8 pt-8 border-t border-slate-100">
-                                <div className="flex items-center gap-6">
-                                    <div className="w-14 h-14 bg-[#F4F6F8] rounded-2xl flex items-center justify-center text-[#00D166] shrink-0 border border-slate-100">
-                                        <section.icon size={28} />
+                            <div key={section.id} id={section.id} className="space-y-6 pt-10 border-t border-slate-800/80 scroll-mt-28">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-[#05DF72] shrink-0">
+                                        <section.icon size={22} />
                                     </div>
-                                    <h2 className="text-3xl font-medium text-slate-900 tracking-[-0.01em]">{section.title}</h2>
+                                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{section.title}</h2>
                                 </div>
 
-                                <div className="pl-0 md:pl-20 space-y-8">
+                                <div className="space-y-6 mt-4">
                                     {section.content && (
-                                        <p className="text-slate-600 leading-relaxed text-lg font-medium">
+                                        <p className="text-slate-400 leading-relaxed text-base font-light">
                                             {section.content}
                                         </p>
                                     )}
 
-                                    {section.subsections && section.subsections.map((sub, i) => (
-                                        <div key={i} className="space-y-3 bg-[#F4F6F8] p-8 rounded-[32px]">
-                                            <h3 className="text-[#00D166] font-bold text-sm uppercase tracking-widest">
-                                                {sub.title}
-                                            </h3>
-                                            <p className="text-slate-600 leading-relaxed font-medium">
-                                                {sub.text}
-                                            </p>
+                                    {section.subsections && (
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {section.subsections.map((sub, i) => (
+                                                <div key={i} className="group p-6 bg-slate-900/40 hover:bg-slate-900/70 border border-slate-800/80 hover:border-[#05DF72]/20 rounded-2xl transition-all duration-300">
+                                                    <h3 className="text-[#05DF72] font-bold text-xs uppercase tracking-wider mb-2">
+                                                        {sub.title}
+                                                    </h3>
+                                                    <p className="text-slate-400 leading-relaxed text-sm font-light group-hover:text-slate-300 transition-colors">
+                                                        {sub.text}
+                                                    </p>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             </div>
                         ))}
 
-                        <div className="bg-[#00D166] p-10 md:p-16 rounded-[40px] space-y-6 shadow-lg mt-12">
-                            <div className="flex items-center gap-4 text-white">
-                                <AlertTriangle size={28} />
-                                <h3 className="font-bold uppercase tracking-widest text-lg">Anti-Circumvention</h3>
+                        <div className="relative bg-gradient-to-r from-red-500/10 via-amber-500/5 to-transparent border border-red-500/20 p-8 md:p-12 rounded-[28px] space-y-4 shadow-2xl overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-[40px]" />
+                            <div className="flex items-center gap-3 text-red-400">
+                                <AlertTriangle size={24} />
+                                <h3 className="font-bold uppercase tracking-wider text-sm">Anti-Circumvention Protocol</h3>
                             </div>
-                            <p className="text-white/90 leading-relaxed text-xl font-medium">
-                                Any Merchant found using the platform to identify trading partners and subsequently completing the transaction "offline" to avoid service fees will face immediate permanent suspension and may be liable for liquidated damages.
+                            <p className="text-slate-400 leading-relaxed text-sm font-light">
+                                Any Merchant found using the platform to identify trading partners and subsequently completing the transaction "offline" to avoid service fees will face immediate permanent suspension and may be liable for liquidated damages under this agreement.
                             </p>
                         </div>
                     </div>
@@ -167,3 +185,4 @@ const TermsPage = () => {
 }
 
 export default TermsPage
+

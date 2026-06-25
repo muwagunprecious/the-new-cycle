@@ -4,31 +4,42 @@ import { Leaf, BarChart3, Globe2, ShieldCheck, Recycle, Wind } from 'lucide-reac
 
 const SustainabilityPage = () => {
     return (
-        <div className="bg-white min-h-screen pt-24 pb-32">
+        <div className="bg-[#0f172a] text-white min-h-screen pt-24 pb-32 relative overflow-hidden">
+            {/* Decorative background glows */}
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#05DF72]/10 rounded-full blur-[150px] pointer-events-none"></div>
+            <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-slate-800/50 rounded-full blur-[120px] pointer-events-none"></div>
+
             {/* Header */}
-            <section className="relative py-24 px-4 md:px-8 max-w-[1400px] mx-auto text-center flex flex-col items-center">
+            <section className="relative py-20 px-4 md:px-8 max-w-[1400px] mx-auto text-center flex flex-col items-center z-10">
                 <div className="max-w-4xl space-y-8 flex flex-col items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#00D166]"></div>
-                        <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-[#00D166]">
+                    <div className="flex items-center gap-3 bg-slate-900/60 border border-slate-800 px-4 py-2 rounded-full backdrop-blur-md">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#05DF72] animate-pulse"></div>
+                        <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#05DF72]">
                             Company Impact
                         </span>
                     </div>
-                    <div className="w-20 h-20 bg-[#F4F6F8] rounded-[24px] flex items-center justify-center text-[#00D166] border border-slate-100 shadow-sm">
-                        <Leaf size={40} />
+                    
+                    <div className="w-24 h-24 bg-gradient-to-br from-slate-900 to-slate-800 rounded-[28px] flex items-center justify-center text-[#05DF72] border border-[#05DF72]/20 shadow-[0_0_30px_rgba(5,223,114,0.15)] hover:scale-105 transition-transform duration-350">
+                        <Leaf size={44} className="stroke-[1.5]" />
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-medium text-slate-900 tracking-[-0.02em] leading-[1.1]">
-                        Sustainability <br /><span className="text-[#00D166]">Impact Statement</span>
+                    
+                    <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.1]">
+                        Sustainability <br />
+                        <span className="bg-gradient-to-r from-[#05DF72] to-[#00f28f] bg-clip-text text-transparent">
+                            Impact Statement
+                        </span>
                     </h1>
                 </div>
             </section>
 
             {/* Core Content */}
-            <section className="py-12 px-4 md:px-8 max-w-[1000px] mx-auto">
-                <div className="space-y-16">
+            <section className="relative py-12 px-4 md:px-8 max-w-[1000px] mx-auto z-10">
+                <div className="space-y-20">
                     <div className="space-y-8">
-                        <h2 className="text-4xl font-medium text-slate-900 tracking-[-0.02em]">Institutionalizing Recovery</h2>
-                        <div className="space-y-6 text-slate-600 text-xl leading-relaxed">
+                        <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight border-l-4 border-[#05DF72] pl-6">
+                            Institutionalizing Recovery
+                        </h2>
+                        <div className="space-y-6 text-slate-300 text-lg md:text-xl leading-relaxed font-light">
                             <p>
                                 The Gocycle platform serves as a critical catalyst for Africa’s transition toward a circular economy by institutionalizing the recovery of hazardous electronic waste and end-of-life batteries.
                             </p>
@@ -38,30 +49,36 @@ const SustainabilityPage = () => {
                         </div>
                     </div>
 
+                    {/* Feature Cards Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-[#F4F6F8] p-10 md:p-12 rounded-[32px] border border-slate-100 space-y-6">
-                            <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-[#00D166] shadow-sm">
-                                <Globe2 size={24} />
+                        {/* Card 1 */}
+                        <div className="group bg-slate-900/40 backdrop-blur-md p-10 md:p-12 rounded-[32px] border border-slate-800/80 hover:border-[#05DF72]/45 space-y-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(5,223,114,0.05)]">
+                            <div className="w-14 h-14 rounded-2xl bg-[#05DF72]/10 border border-[#05DF72]/20 flex items-center justify-center text-[#05DF72] group-hover:scale-110 transition-transform duration-300">
+                                <Globe2 size={28} className="stroke-[1.5]" />
                             </div>
-                            <h3 className="text-2xl font-medium text-slate-900 tracking-[-0.01em]">Landfill Diversion</h3>
-                            <p className="text-slate-600 leading-relaxed font-medium">
+                            <h3 className="text-2xl font-bold text-white tracking-tight">Landfill Diversion</h3>
+                            <p className="text-slate-400 leading-relaxed font-normal">
                                 Our impact is rooted in the systematic diversion of toxic materials from landfills and unauthorized dump sites.
                             </p>
                         </div>
-                        <div className="bg-[#F4F6F8] p-10 md:p-12 rounded-[32px] border border-slate-100 space-y-6">
-                            <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-[#00D166] shadow-sm">
-                                <BarChart3 size={24} />
+                        
+                        {/* Card 2 */}
+                        <div className="group bg-slate-900/40 backdrop-blur-md p-10 md:p-12 rounded-[32px] border border-slate-800/80 hover:border-[#05DF72]/45 space-y-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(5,223,114,0.05)]">
+                            <div className="w-14 h-14 rounded-2xl bg-[#05DF72]/10 border border-[#05DF72]/20 flex items-center justify-center text-[#05DF72] group-hover:scale-110 transition-transform duration-300">
+                                <BarChart3 size={28} className="stroke-[1.5]" />
                             </div>
-                            <h3 className="text-2xl font-medium text-slate-900 tracking-[-0.01em]">Traceable Impact</h3>
-                            <p className="text-slate-600 leading-relaxed font-medium">
+                            <h3 className="text-2xl font-bold text-white tracking-tight">Traceable Impact</h3>
+                            <p className="text-slate-400 leading-relaxed font-normal">
                                 Through our proprietary "Smart Transaction Records," we offer granular data on carbon sequestration and mass-balance recovery rates.
                             </p>
                         </div>
                     </div>
 
                     <div className="space-y-8 pt-8">
-                        <h2 className="text-4xl font-medium text-slate-900 tracking-[-0.02em]">Socio-Economic Shift</h2>
-                        <div className="space-y-6 text-slate-600 text-xl leading-relaxed">
+                        <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight border-l-4 border-[#05DF72] pl-6">
+                            Socio-Economic Shift
+                        </h2>
+                        <div className="space-y-6 text-slate-300 text-lg md:text-xl leading-relaxed font-light">
                             <p>
                                 Beyond environmental remediation, Gocycle’s sustainability framework creates a profound socio-economic shift by formalizing the e-waste value chain.
                             </p>
@@ -71,14 +88,16 @@ const SustainabilityPage = () => {
                         </div>
                     </div>
 
-                    <div className="bg-[#00D166] rounded-[40px] p-10 md:p-16 lg:p-20 relative overflow-hidden mt-12">
+                    {/* Banner Section */}
+                    <div className="relative rounded-[40px] p-10 md:p-16 overflow-hidden border border-[#05DF72]/30 bg-gradient-to-br from-slate-900 via-slate-950 to-[#05DF72]/20 group">
+                        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#05DF72]/10 rounded-full blur-[80px] group-hover:bg-[#05DF72]/15 transition-colors duration-500"></div>
                         <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
-                            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-white shrink-0 backdrop-blur-sm">
-                                <Wind size={40} />
+                            <div className="w-20 h-20 bg-[#05DF72] text-[#0f172a] rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(5,223,114,0.4)] group-hover:scale-105 transition-transform duration-300">
+                                <Wind size={36} className="stroke-[2]" />
                             </div>
                             <div className="space-y-4">
-                                <h3 className="text-3xl font-medium text-white tracking-[-0.02em]">Carbon Offset Goal</h3>
-                                <p className="text-white/90 text-lg leading-relaxed max-w-2xl">
+                                <h3 className="text-3xl font-extrabold text-white tracking-tight">Carbon Offset Goal</h3>
+                                <p className="text-slate-300 text-lg leading-relaxed max-w-2xl font-light">
                                     Every transaction on the platform contributes to a measurable reduction in greenhouse gas emissions by optimizing logistics and promoting the "Second-Life" application of battery cells.
                                 </p>
                             </div>
@@ -91,3 +110,4 @@ const SustainabilityPage = () => {
 }
 
 export default SustainabilityPage
+

@@ -298,6 +298,7 @@ async function auditAccount({ emailOrPhoneOrId }) {
                     price: true,
                     status: true,
                     createdAt: true,
+                    updatedAt: true,
                     brand: true,
                     condition: true
                 },
@@ -314,7 +315,8 @@ async function auditAccount({ emailOrPhoneOrId }) {
                 total: true,
                 status: true,
                 collectionStatus: true,
-                createdAt: true
+                createdAt: true,
+                updatedAt: true
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -1033,6 +1035,8 @@ GUIDELINES:
 4. You can read public pages (About us, FAQ, Sourcing Policy, Sustainability, trade process) using readPublicPage tool.
 5. You can delete or edit anything (blogs, products, stores, orders, users) under the command of the admin. Before performing a permanent delete, ensure you have received explicit instruction to delete it.
 6. Be professional, concise, and formatting-oriented (use lists, bold values, and Markdown tables where appropriate).
+7. ALWAYS include the exact date and time (timestamps) in your responses for any actions, updates, or events mentioned (such as the date a product was listed, the date an email/notification was sent, the date/time a product was verified/approved, when a payment was approved, when a cashout/payout was released, etc.).
+8. Do NOT generate XML or HTML function call blocks (e.g. <function=...>). Only invoke tools via the official JSON tool-call schema.
 `;
 
 /**

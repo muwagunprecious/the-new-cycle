@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import { Plus, Minus, Search, MessageSquare } from 'lucide-react'
+import { Plus, Minus, Search, MessageSquare, HelpCircle, ArrowRight } from 'lucide-react'
 
 const FAQPage = () => {
     const [openIndex, setOpenIndex] = useState(null)
@@ -59,74 +59,106 @@ const FAQPage = () => {
     )
 
     return (
-        <div className="bg-white min-h-screen pt-24 pb-32">
-            <section className="relative py-24 px-4 md:px-8 max-w-[1400px] mx-auto text-center flex flex-col items-center">
-                <div className="max-w-4xl space-y-8 flex flex-col items-center">
+        <div className="bg-[#0f172a] text-white min-h-screen pt-32 pb-36 relative overflow-hidden">
+            {/* Background glowing effects */}
+            <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#05DF72]/[0.02] rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute bottom-20 right-0 w-[500px] h-[500px] bg-[#05DF72]/[0.02] rounded-full blur-[120px] pointer-events-none" />
+
+            {/* Grid pattern overlay */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-25 pointer-events-none" />
+
+            <section className="relative py-20 px-4 md:px-8 max-w-[1400px] mx-auto text-center flex flex-col items-center z-10">
+                <div className="max-w-4xl space-y-6 flex flex-col items-center">
                     <div className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#00D166]"></div>
-                        <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-[#00D166]">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#05DF72] animate-pulse"></div>
+                        <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#05DF72]">
                             Help Center
                         </span>
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-medium text-slate-900 tracking-[-0.02em] leading-[1.1]">
-                        Frequently Asked <br /><span className="text-[#00D166]">Questions</span>
+                    <h1 className="text-5xl md:text-7xl font-light text-white tracking-tight leading-[1.05]">
+                        Frequently Asked <br />
+                        <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-white via-[#05DF72] to-[#05DF72]/85">
+                            Questions
+                        </span>
                     </h1>
 
                     <div className="max-w-xl w-full relative mt-12 group">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#00D166] transition-colors" size={20} />
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#05DF72] transition-colors" size={20} />
                         <input
                             type="text"
                             placeholder="Search questions..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-[#F4F6F8] border border-slate-200 rounded-[24px] py-5 pl-14 pr-6 text-base font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-[#00D166]/10 focus:border-[#00D166]/40 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                            className="w-full bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-[20px] py-4.5 pl-14 pr-6 text-base font-medium text-white focus:bg-slate-900 focus:ring-4 focus:ring-[#05DF72]/10 focus:border-[#05DF72]/30 transition-all outline-none shadow-xl placeholder:text-slate-500"
                         />
                     </div>
                 </div>
             </section>
 
-            <section className="px-4 md:px-8 max-w-[1000px] mx-auto">
+            <section className="px-4 md:px-8 max-w-[900px] mx-auto relative z-10">
                 <div className="space-y-4">
                     {filteredFaqs.length > 0 ? (
-                        filteredFaqs.map((faq, idx) => (
-                            <div key={idx} className="bg-white border border-slate-200 shadow-sm rounded-[24px] overflow-hidden transition-all duration-300 hover:border-slate-300">
-                                <button
-                                    onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
-                                    className="w-full px-6 md:px-10 py-8 flex items-center justify-between text-left transition-colors"
+                        filteredFaqs.map((faq, idx) => {
+                            const isOpen = openIndex === idx;
+                            return (
+                                <div 
+                                    key={idx} 
+                                    className={`bg-slate-900/30 backdrop-blur-sm border transition-all duration-500 rounded-[20px] overflow-hidden ${
+                                        isOpen ? 'border-[#05DF72]/30 bg-slate-900/60 shadow-[0_0_25px_rgba(5,223,114,0.02)]' : 'border-slate-800/80 hover:border-slate-700/80'
+                                    }`}
                                 >
-                                    <span className="text-xl md:text-2xl font-medium text-slate-900 pr-8 leading-snug tracking-tight">{faq.q}</span>
-                                    <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors ${openIndex === idx ? 'bg-[#00D166] text-white' : 'bg-[#F4F6F8] text-slate-400'}`}>
-                                        {openIndex === idx ? <Minus size={18} /> : <Plus size={18} />}
+                                    <button
+                                        onClick={() => setOpenIndex(isOpen ? null : idx)}
+                                        className="w-full px-6 md:px-8 py-6.5 flex items-center justify-between text-left transition-colors"
+                                    >
+                                        <span className="text-lg md:text-xl font-medium text-white pr-8 leading-snug tracking-tight">
+                                            {faq.q}
+                                        </span>
+                                        <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                            isOpen ? 'bg-[#05DF72] text-slate-950 rotate-180 shadow-[0_0_15px_rgba(5,223,114,0.4)]' : 'bg-slate-800 text-slate-400 hover:text-white'
+                                        }`}>
+                                            {isOpen ? <Minus size={16} /> : <Plus size={16} />}
+                                        </div>
+                                    </button>
+                                    <div 
+                                        className={`transition-all duration-500 ease-in-out overflow-hidden ${
+                                            isOpen ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'
+                                        }`}
+                                    >
+                                        <div className="px-6 md:px-8 pb-7 pt-2 text-slate-400 text-[15px] md:text-base leading-relaxed font-normal border-t border-slate-800/40">
+                                            {faq.a}
+                                        </div>
                                     </div>
-                                </button>
-                                <div className={`px-6 md:px-10 transition-all duration-300 ease-in-out ${openIndex === idx ? 'max-h-96 pb-10 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                    <p className="text-slate-600 text-lg leading-relaxed font-medium">
-                                        {faq.a}
-                                    </p>
                                 </div>
-                            </div>
-                        ))
+                            )
+                        })
                     ) : (
-                        <div className="text-center py-24 bg-[#F4F6F8] rounded-[32px] border border-dashed border-slate-300">
-                            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">No questions found matching "{searchQuery}"</p>
+                        <div className="text-center py-20 bg-slate-900/20 rounded-[24px] border border-dashed border-slate-850">
+                            <HelpCircle size={36} className="mx-auto text-slate-600 mb-4" />
+                            <p className="text-slate-400 font-semibold tracking-wide text-sm">
+                                No matching questions found for "{searchQuery}"
+                            </p>
                         </div>
                     )}
                 </div>
             </section>
 
-            <section className="mt-24 px-4 md:px-8 max-w-[1400px] mx-auto">
-                <div className="bg-[#00D166] rounded-[40px] p-10 md:p-20 flex flex-col items-center text-center space-y-10 relative overflow-hidden">
-                    <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm mb-2">
-                        <MessageSquare size={32} />
+            <section className="mt-28 px-4 md:px-8 max-w-[1200px] mx-auto relative z-10">
+                <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-[32px] p-8 md:p-16 flex flex-col items-center text-center space-y-8 relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#05DF72]/[0.02] rounded-full blur-[80px] pointer-events-none" />
+                    
+                    <div className="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center text-[#05DF72] shadow-inner">
+                        <MessageSquare size={26} />
                     </div>
-                    <div className="space-y-4">
-                        <h2 className="text-4xl md:text-5xl font-medium text-white tracking-[-0.02em]">Still have questions?</h2>
-                        <p className="text-xl text-white/90 leading-relaxed max-w-2xl mx-auto">
-                            Our support team is here to help you navigate the e-waste marketplace. Connect with us for personalized guidance.
+                    <div className="space-y-3">
+                        <h2 className="text-3xl md:text-4xl font-medium text-white tracking-tight">Still have questions?</h2>
+                        <p className="text-base md:text-lg text-slate-400 leading-relaxed max-w-xl mx-auto">
+                            Our support team is on standby to help you navigate the e-waste marketplace. Get in touch for direct assistance.
                         </p>
                     </div>
-                    <button className="bg-white text-[#00D166] px-10 py-5 rounded-[20px] text-sm font-bold uppercase tracking-widest shadow-xl hover:scale-105 transition-transform active:scale-95">
+                    <button className="bg-[#05DF72] hover:bg-[#05DF72]/90 text-slate-950 font-bold px-8 py-3.5 rounded-[16px] text-xs uppercase tracking-widest shadow-[0_4px_20px_rgba(5,223,114,0.2)] hover:shadow-[0_4px_25px_rgba(5,223,114,0.35)] transition-all duration-300 flex items-center gap-2 group hover:scale-[1.02]">
                         Contact Support
+                        <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </section>
