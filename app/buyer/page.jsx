@@ -509,7 +509,7 @@ export default function BuyerDashboard() {
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="text-center pt-8 border-t border-slate-50">
-                                                                                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Secured by Flutterwave</p>
+                                                                                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Go-Cycle Marketplace</p>
                                                                                     <button onclick="window.print()" class="px-8 py-3 bg-slate-900 text-white rounded-sm font-bold text-xs uppercase tracking-widest">Print Receipt</button>
                                                                                 </div>
                                                                             </div>

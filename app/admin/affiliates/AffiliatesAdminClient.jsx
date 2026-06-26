@@ -191,6 +191,22 @@ export default function AffiliatesAdminClient({ stats, affiliates: initialAffili
                                 <p className="text-slate-500 text-xs font-mono tracking-tight mt-0.5">{selected.referralCode} — {selected.phone}</p>
                             </div>
                             <div className="flex items-center gap-2">
+                                {detail?.payoutRequests?.some(r => r.status === 'pending') && (
+                                    <button 
+                                        onClick={() => {
+                                            const pendingReq = detail.payoutRequests.find(r => r.status === 'pending');
+                                            if (pendingReq) {
+                                                if (confirm(`Approve and release ₦${pendingReq.amount.toLocaleString()} payout to ${selected.name}?`)) {
+                                                    handleApprove(pendingReq.id);
+                                                }
+                                            }
+                                        }}
+                                        disabled={submitting}
+                                        className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1.5 rounded-sm bg-emerald-600 hover:bg-emerald-750 text-white transition-colors border border-emerald-700"
+                                    >
+                                        <CheckCircle size={12} /> Release Payout
+                                    </button>
+                                )}
                                 <button onClick={() => handleToggleSuspend(selected.id)} disabled={submitting}
                                     className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1.5 rounded-sm border transition-colors ${(detail?.affiliate?.status || selected.status) === 'active' ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'}`}>
                                     {(detail?.affiliate?.status || selected.status) === 'active' ? <><UserX size={12} /> Suspend</> : <><UserCheck size={12} /> Unsuspend</>}

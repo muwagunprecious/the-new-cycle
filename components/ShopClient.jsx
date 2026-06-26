@@ -23,7 +23,8 @@ function ShopClientContent({ initialProducts = [] }) {
     useEffect(() => {
         // Sync SSR products to Redux on mount so cart/etc can rely on it if needed
         if (initialProducts?.length > 0) {
-            dispatch(setProduct(initialProducts))
+            const serializableProducts = JSON.parse(JSON.stringify(initialProducts))
+            dispatch(setProduct(serializableProducts))
         }
     }, [initialProducts, dispatch])
 
