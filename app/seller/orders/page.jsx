@@ -176,18 +176,22 @@ export default function SellerOrders() {
                                 {/* Verification Box */}
                                 <div className="bg-[#0c101b] border border-slate-800 rounded-sm p-6 text-white flex items-center justify-between shadow-sm">
                                     <div>
-                                        <p className="text-[9px] font-black text-slate-450 uppercase tracking-[0.2em] mb-1">Code to Share</p>
-                                        <p className="text-3xl font-black tracking-[0.15em] text-[#05DF72]">{order.verificationCode || '---'}</p>
+                                        <p className="text-[9px] font-black text-slate-450 uppercase tracking-[0.2em] mb-1">Verification Code</p>
+                                        <p className="text-xl font-black tracking-[0.1em] text-[#05DF72]">
+                                            {order.isPaid ? (order.verificationCode || '---') : 'Locked until verified'}
+                                        </p>
                                     </div>
-                                    <button 
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(order.verificationCode);
-                                            toast.success("Code copied!");
-                                        }}
-                                        className="w-12 h-12 rounded-sm bg-white/10 flex items-center justify-center hover:bg-[#05DF72] hover:text-slate-950 transition-all border border-white/10"
-                                    >
-                                        <Copy size={20} />
-                                    </button>
+                                    {order.isPaid && order.verificationCode && (
+                                        <button 
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(order.verificationCode);
+                                                toast.success("Code copied!");
+                                            }}
+                                            className="w-12 h-12 rounded-sm bg-white/10 flex items-center justify-center hover:bg-[#05DF72] hover:text-slate-950 transition-all border border-white/10"
+                                        >
+                                            <Copy size={20} />
+                                        </button>
+                                    )}
                                 </div>
 
                                 {/* Buyer Box */}
@@ -197,7 +201,9 @@ export default function SellerOrders() {
                                     </div>
                                     <div>
                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">Buyer</p>
-                                        <p className="text-base font-black text-slate-900">{order.user?.name || 'Adebayo Ecovolt'}</p>
+                                        <p className="text-base font-black text-slate-900">
+                                            {order.isPaid ? (order.user?.name || 'Adebayo Ecovolt') : 'Locked until verified'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -314,12 +320,14 @@ export default function SellerOrders() {
                                     <User size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-black text-slate-900">{selectedOrder?.user?.name}</p>
+                                    <p className="text-sm font-black text-slate-900">
+                                        {selectedOrder?.isPaid ? selectedOrder?.user?.name : 'Locked until verified'}
+                                    </p>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Customer</p>
                                 </div>
                             </div>
 
-                            {selectedOrder?.user?.phone && (
+                            {selectedOrder?.isPaid && selectedOrder?.user?.phone && (
                                 <div className="flex items-center justify-between bg-white p-3 rounded-sm border border-slate-200">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-sm bg-slate-50 border border-slate-200 flex items-center justify-center text-[#05DF72]">
