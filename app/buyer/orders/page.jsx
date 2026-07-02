@@ -556,20 +556,25 @@ export default function BuyerOrders() {
                                 <div className="space-y-3">
                                     <div>
                                         <p className="text-[10px] font-bold text-[#05DF72] uppercase">Store Name</p>
-                                        <p className="font-bold text-slate-800 text-sm">{selectedOrder.store?.name || 'Authorized Partner'}</p>
+                                        <p className="font-bold text-slate-800 text-sm">
+                                            {selectedOrder.isPaid ? (selectedOrder.store?.name || 'Authorized Partner') : 'Locked until payment verified'}
+                                        </p>
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-bold text-[#05DF72] uppercase">Pickup Address</p>
                                         <p className="font-bold text-slate-800 text-sm leading-tight">
-                                            {selectedOrder.isPaid ? (selectedOrder.store?.address || 'Address not available') : "Address will be revealed after verification"}
+                                            {selectedOrder.isPaid ? (selectedOrder.store?.address || 'Address not available') : 'Locked until payment verified'}
                                         </p>
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-bold text-[#05DF72] uppercase">Seller Phone</p>
-                                        <p className="font-bold text-slate-800 text-sm">{selectedOrder.store?.user?.phone || selectedOrder.store?.contact || 'N/A'}</p>
+                                        <p className="font-bold text-slate-800 text-sm">
+                                            {selectedOrder.isPaid ? (selectedOrder.store?.user?.phone || selectedOrder.store?.contact || 'N/A') : 'Locked until payment verified'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter } from "next/navigation"
-import { Home as HomeIcon, ShoppingBag as ShoppingBagIcon, Package as PackageIcon, Settings as SettingsIcon, LogOut as LogOutIcon, Menu as MenuIcon, X as XIcon, Battery as BatteryIcon } from "lucide-react"
+import { Home as HomeIcon, ShoppingBag as ShoppingBagIcon, Package as PackageIcon, Settings as SettingsIcon, LogOut as LogOutIcon, Menu as MenuIcon, X as XIcon, Battery as BatteryIcon, Bell as BellIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
@@ -78,6 +78,7 @@ export default function SellerLayout({ children }) {
         { name: 'Overview', href: '/seller', icon: HomeIcon },
         { name: 'List My Battery', href: '/seller/products', icon: BatteryIcon },
         { name: 'Incoming Orders', href: '/seller/orders', icon: PackageIcon },
+        { name: 'Notifications', href: '/seller/notifications', icon: BellIcon },
         { name: 'Settings', href: '/seller/settings', icon: SettingsIcon },
     ]
 

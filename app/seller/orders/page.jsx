@@ -222,7 +222,7 @@ export default function SellerOrders() {
                                 </div>
 
                                 <div className="flex items-center gap-3 w-full md:w-auto">
-                                    {order.status !== 'COMPLETED' && order.status !== 'PICKED_UP' && (
+                                    {order.status !== 'COMPLETED' && order.status !== 'PICKED_UP' && order.isPaid && (
                                         <div className="flex flex-col gap-3 w-full md:w-auto">
                                             {order.collectionStatus === 'RESCHEDULE_REQUESTED' && (
                                                 <div className="bg-amber-50 p-4 rounded-sm border border-amber-200 space-y-3">

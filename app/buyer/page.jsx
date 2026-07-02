@@ -452,9 +452,11 @@ export default function BuyerDashboard() {
                                                 </div>
                                             </div>
                                             <div className="mt-4 flex flex-wrap gap-3">
-                                                <button onClick={() => { setSelectedOrder(order); setIsActionSheetOpen(true); }} className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors flex items-center justify-center gap-2">
-                                                    <CalendarIcon size={14} /> Manage Pickup
-                                                </button>
+                                                {order.isPaid && (
+                                                    <button onClick={() => { setSelectedOrder(order); setIsActionSheetOpen(true); }} className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors flex items-center justify-center gap-2">
+                                                        <CalendarIcon size={14} /> Manage Pickup
+                                                    </button>
+                                                )}
                                                 {order.isPaid && (
                                                     <button 
                                                         onClick={() => {

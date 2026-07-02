@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter } from "next/navigation"
-import { Home as HomeIcon, ShoppingBag as ShoppingBagIcon, Package as PackageIcon, Heart as HeartIcon, LogOut as LogOutIcon, Menu as MenuIcon, X as XIcon, User as UserIcon } from "lucide-react"
+import { Home as HomeIcon, ShoppingBag as ShoppingBagIcon, Package as PackageIcon, Heart as HeartIcon, LogOut as LogOutIcon, Menu as MenuIcon, X as XIcon, User as UserIcon, Bell as BellIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { showLoader } from "@/lib/features/ui/uiSlice"
@@ -59,6 +59,7 @@ export default function BuyerLayout({ children }) {
         { name: 'Dashboard', href: '/buyer', icon: HomeIcon },
         { name: 'My Purchases', href: '/buyer/orders', icon: PackageIcon },
         { name: 'Collection Schedule', href: '/buyer/schedule', icon: ShoppingBagIcon },
+        { name: 'Notifications', href: '/buyer/notifications', icon: BellIcon },
         { name: 'Profile Settings', href: '/buyer/profile', icon: UserIcon },
     ]
 
